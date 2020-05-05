@@ -42,66 +42,68 @@ l.stop()
 a.stop()
 print ""
 
-print "USB Root Hubs"
-print "-------------------------------------------------------------------------"
+
+subprocess.call(['echo', 'USB Root Hubs'])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['lsusb', '-s' ':1'])
-print ""
+subprocess.call(['echo'," "])
 
-print "USB Bus 1"
-print "-------------------------------------------------------------------------"
+
+subprocess.call(['echo', "USB Bus 1"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['lsusb', '-s','1:'])
-print ""
+subprocess.call(['echo'," "])
 
-print "USB Bus 2"
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', "USB Bus 2"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['lsusb','-s', '2:'])
-print ""
+subprocess.call(['echo'," "])
 
-print "USB Bus 3"
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', "USB Bus 3"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['lsusb', '-s', '3:'])
-print ""
+subprocess.call(['echo'," "])
 
-print "USB Bus 4"
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', "USB Bus 4"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['lsusb', '-s', '4:'])
-print ""
+subprocess.call(['echo'," "])
 
 
-print "Hello Robot Devices"
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', "Hello Robot Devices"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 #subprocess.call(['ls', '-l', '/dev/hello*'])
 os.system('ls -l /dev/hello*')
-print ""
+subprocess.call(['echo'," "])
 
-print " Hard Drive"
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', " Hard Drive"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['df','-h', '--type=ext4'])
-print "---------"
+subprocess.call(['echo',"---------"])
 subprocess.call(['sudo','nvme','list'])
-print "---------"
+subprocess.call(['echo',"---------"])
 subprocess.call(['sudo', 'nvme', 'smart-log', '/dev/nvme0n1'])
-print "---------"
-print ""
+subprocess.call(['echo',"---------"])
+subprocess.call(['echo'," "])
+subprocess.call(['echo'," "])
 
-print "Network"
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', "Network"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['ifconfig'])
-print ""
+subprocess.call(['echo'," "])
 
-
-print 'D435i Camera'
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', "D435i Camera"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['lsusb','-d', '8086:0b3a'])
-print ""
+subprocess.call(['echo'," "])
 
-print 'Temperatures'
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', "Temperatures"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['sensors'])
-print ""
+subprocess.call(['echo'," "])
 
-print 'Reboot History'
-print "-------------------------------------------------------------------------"
+subprocess.call(['echo', "Reboot History"])
+subprocess.call(['echo', "-------------------------------------------------------------------------"])
 subprocess.call(['last','reboot'])
-print ""
+subprocess.call(['echo'," "])
 

@@ -72,9 +72,8 @@ class Transport():
         self.itr = 0
         self.itr_time = 0
         self.tlast = 0
-
         if self.verbose:
-            'Starting TransportConnection on: ' + self.usb
+            print 'Starting TransportConnection on: ' + self.usb
         try:
             self.ser = serial.Serial(self.usb, 115200)  # , write_timeout=1.0)  # Baud not important since USB comms
         except serial.SerialException as e:
@@ -97,12 +96,19 @@ class Transport():
             self.ser = None
 
     def queue_rpc(self,n,reply_callback):
-        self.rpc_queue.append((copy.copy(self.payload_out[:n]),reply_callback))
+        if self.ser:
+            self.rpc_queue.append((copy.copy(self.payload_out[:n]),reply_callback))
 
     def queue_rpc2(self,n,reply_callback):
-        self.rpc_queue2.append((copy.copy(self.payload_out[:n]),reply_callback))
+        if self.ser:
+            self.rpc_queue2.append((copy.copy(self.payload_out[:n]),reply_callback))
 
     def step_rpc(self,rpc,rpc_callback): #Handle a single RPC transaction
+        if not self.ser:
+            if self.verbose:
+                print 'Transport Serial not present for:',self.usb
+            return
+
         dbg_buf = bytes()
         try:
             ts = time.time()
@@ -213,6 +219,8 @@ class Transport():
         return self.rt.dirty_step2==False
 
     def step(self,exiting=False):
+        if not self.ser:
+            return
         if exiting:
             time.sleep(0.1) #May have been a hard exit, give time for bad data to land, remove, do final RPC
             self.ser.reset_output_buffer()
@@ -249,6 +257,8 @@ class Transport():
         self.status['itr'] = self.itr
 
     def step2(self,exiting=False):
+        if not self.ser:
+            return
         if exiting:
             time.sleep(0.1)  # May have been a hard exit, give time for bad data to land, remove, do final RPC
             self.ser.reset_output_buffer()
