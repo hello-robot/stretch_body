@@ -1,0 +1,446 @@
+#! /usr/bin/env python
+
+from stretch_body.transport import *
+from stretch_body.device import Device
+from stretch_body.hello_utils import *
+import threading
+import psutil
+import logging
+import time
+
+RPC_SET_PIMU_CONFIG = 1
+RPC_REPLY_PIMU_CONFIG = 2
+RPC_GET_PIMU_STATUS = 3
+RPC_REPLY_PIMU_STATUS = 4
+RPC_SET_PIMU_TRIGGER = 5
+RPC_REPLY_PIMU_TRIGGER = 6
+RPC_GET_PIMU_BOARD_INFO =7
+RPC_REPLY_PIMU_BOARD_INFO =8
+RPC_SET_MOTOR_SYNC =9
+RPC_REPLY_MOTOR_SYNC =10
+
+STATE_AT_CLIFF_0= 1
+STATE_AT_CLIFF_1= 2
+STATE_AT_CLIFF_2= 4
+STATE_AT_CLIFF_3= 8
+STATE_RUNSTOP_EVENT= 16
+STATE_CLIFF_EVENT= 32
+STATE_FAN_ON =64
+STATE_BUZZER_ON= 128
+STATE_LOW_VOLTAGE_ALERT=256
+STATE_OVER_TILT_ALERT= 512
+STATE_HIGH_CURRENT_ALERT= 1024
+
+TRIGGER_BOARD_RESET=  1
+TRIGGER_RUNSTOP_RESET=  2
+TRIGGER_CLIFF_EVENT_RESET= 4
+TRIGGER_BUZZER_ON=  8
+TRIGGER_BUZZER_OFF=  16
+TRIGGER_FAN_ON=  32
+TRIGGER_FAN_OFF = 64
+TRIGGER_IMU_RESET =128
+TRIGGER_RUNSTOP_ON= 256
+TRIGGER_BEEP =512
+# ######################## PIMU #################################
+
+"""
+The PIMU is the power and IMU Arduino board in the base
+"""
+
+
+class IMU(Device):
+    """
+    API to the Stretch RE1 IMU found in the base
+    """
+    def __init__(self):
+        Device.__init__(self)
+        #pitch; //-180 to 180, rolls over
+        #roll; //-90 to  90, rolls over at 180
+        #heading; //0-360.0, rolls over
+        self.status={'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'roll':0,'pitch':0,'heading':0,'timestamp':0}
+
+    def get_status(self):
+        s=self.status.copy()
+        return s
+
+    def get_quaternion(self):
+        return [self.status['qw'],self.status['qx'],self.status['qy'],self.status['qz']]
+    # ####################################################
+
+    def pretty_print(self):
+        print '----------IMU -------------'
+        print 'AX (m/s^2)', self.status['ax']
+        print 'AY (m/s^2)', self.status['ay']
+        print 'AZ (m/s^2)', self.status['az']
+        print 'GX (rad/s)', self.status['gx']
+        print 'GY (rad/s)', self.status['gy']
+        print 'GZ (rad/s)', self.status['gz']
+        print 'MX (uTesla)', self.status['mx']
+        print 'MY (uTesla)', self.status['my']
+        print 'MZ (uTesla)', self.status['mz']
+        print 'QW', self.status['qw']
+        print 'QX', self.status['qx']
+        print 'QY', self.status['qy']
+        print 'QZ', self.status['qz']
+        print 'Roll (deg)', rad_to_deg(self.status['roll'])
+        print 'Pitch (deg)', rad_to_deg(self.status['pitch'])
+        print 'Heading (deg)', rad_to_deg(self.status['heading'])
+        print 'Bump', self.status['bump']
+        print 'Timestamp', self.status['timestamp']
+        print '-----------------------'
+
+    #Called by transport thread
+    def unpack_status(self, s):
+        # take in an array of bytes
+        # this needs to exactly match the C struct format
+        sidx=0
+        self.status['ax']=  unpack_float_t(s[sidx:]);sidx += 4
+        self.status['ay'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['az'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['gx'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['gy'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['gz'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['mx'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['my'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['mz'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        self.status['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        self.status['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        self.status['qw'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['qx'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['qy'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['qz'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+        return sidx
+
+    def queue_rpc(self,transport):
+        pass
+
+
+class Pimu(Device):
+    """
+    API to the Stretch RE1 Power and IMU board (Pimu)
+    """
+    def __init__(self,verbose=False, event_reset=True):
+        Device.__init__(self)
+        self.logger = logging.getLogger('robot.pimu')
+        self.lock = threading.RLock()
+        self.verbose=verbose
+        self.imu = IMU()
+        self.config = self.robot_params['pimu']['config']
+        self.params = self.robot_params['pimu']
+        self._dirty_config = True
+        self._dirty_trigger = False
+        self._dirty_board_info=True
+        self.frame_id_last = None
+        self.frame_id_base = 0
+        self.transport = Transport('/dev/hello-pimu',self.verbose)
+        self.status = {'voltage': 0, 'current': 0, 'temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
+                       'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
+                       'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
+                       'imu': self.imu.status,'debug':0,
+                       'transport': self.transport.status}
+        self.board_info={'board_version':'None', 'firmware_version':'None'}
+        self._trigger=0
+        self.ts_last_fan_on=None
+        self.fan_on_last=False
+        #Reset PIMU state so that Ctrl-C and re-instantiate Pimu class is efficient way to get out of an event
+        if event_reset:
+            self.runstop_event_reset()
+            self.cliff_event_reset()
+
+
+
+    # ###########  Device Methods #############
+
+    def startup(self):
+        with self.lock:
+            self.transport.startup()
+            self.push_command()
+            self.pull_status()
+
+    def stop(self):
+        with self.lock:
+            self.set_fan_off()
+            self.push_command(exiting=True)
+            self.transport.stop()
+
+    def pull_status(self,exiting=False):
+        with self.lock:
+            if self._dirty_board_info:
+                self.transport.payload_out[0] = RPC_GET_PIMU_BOARD_INFO
+                self.transport.queue_rpc(1, self.rpc_board_info_reply)
+                self._dirty_board_info=False
+
+            # Queue Body Status RPC
+            self.transport.payload_out[0] = RPC_GET_PIMU_STATUS
+            self.transport.queue_rpc(1, self.rpc_status_reply)
+            self.transport.step(exiting=exiting)
+
+    def push_command(self,exiting=False):
+        with self.lock:
+            if self._dirty_config:
+                self.transport.payload_out[0] = RPC_SET_PIMU_CONFIG
+                sidx = self.pack_config(self.transport.payload_out, 1)
+                self.transport.queue_rpc2(sidx, self.rpc_config_reply)
+                self._dirty_config=False
+
+            if self._dirty_trigger:
+                self.transport.payload_out[0] = RPC_SET_PIMU_TRIGGER
+                sidx = self.pack_trigger(self.transport.payload_out, 1)
+                self.transport.queue_rpc2(sidx, self.rpc_trigger_reply)
+                self._trigger=0
+                self._dirty_trigger=False
+            self.transport.step2(exiting=exiting)
+
+    def pretty_print(self):
+        print '------ Pimu -----'
+        print 'Voltage',self.status['voltage']
+        print 'Current', self.status['current']
+        print 'CPU Temp',self.status['cpu_temp']
+        print 'Board Temp', self.status['temp']
+        print 'State', self.status['state']
+        print 'At Cliff', self.status['at_cliff']
+        print 'Cliff Range', self.status['cliff_range']
+        print 'Cliff Event', self.status['cliff_event']
+        print 'Runstop Event', self.status['runstop_event']
+        print 'Bump Event Cnt', self.status['bump_event_cnt']
+        print 'Fan On', self.status['fan_on']
+        print 'Buzzer On', self.status['buzzer_on']
+        print 'Low Voltage Alert', self.status['low_voltage_alert']
+        print 'High Current Alert', self.status['high_current_alert']
+        print 'Over Tilt Alert',self.status['over_tilt_alert']
+        print 'Debug', self.status['debug']
+        print 'Timestamp', self.status['timestamp']
+        print 'Read error', self.transport.status['read_error']
+        print 'Board version:',self.board_info['board_version']
+        print 'Firmware version:', self.board_info['firmware_version']
+        self.imu.pretty_print()
+
+    # ####################### User Functions #######################################################
+
+    def runstop_event_reset(self):
+        """
+        Reset the robot runstop, allowing motion to continue
+        """
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_RUNSTOP_RESET
+            self._dirty_trigger=True
+
+    def runstop_event_trigger(self):
+        """
+        Trigger the robot runstop, stopping motion
+        """
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_RUNSTOP_ON
+            self._dirty_trigger=True
+
+    def trigger_beep(self):
+        """
+        Generate a single short beep
+        """
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_BEEP
+            self._dirty_trigger=True
+
+    # ####################### Utility functions ####################################################
+    def imu_reset(self):
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_IMU_RESET
+            self._dirty_trigger=True
+
+    def trigger_motor_sync(self):
+        #Push out immediately
+        with self.lock:
+            self.transport.payload_out[0] = RPC_SET_MOTOR_SYNC
+            self.transport.queue_rpc(1, self.rpc_motor_sync_reply)
+            self.transport.step()
+
+    def set_fan_on(self):
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_FAN_ON
+            self._dirty_trigger=True
+
+    def set_fan_off(self):
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_FAN_OFF
+            self._dirty_trigger=True
+
+    def set_buzzer_on(self):
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_BUZZER_ON
+            self._dirty_trigger=True
+
+    def set_buzzer_off(self):
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_BUZZER_OFF
+            self._dirty_trigger=True
+
+    def board_reset(self):
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_BOARD_RESET
+            self._dirty_trigger=True
+
+    def cliff_event_reset(self):
+        with self.lock:
+            self._trigger=self._trigger | TRIGGER_CLIFF_EVENT_RESET
+            self._dirty_trigger=True
+
+    # ########### Sensor Calibration #################
+    def get_voltage(self,raw):
+        raw_to_V = 20.0/1024 #10bit adc, 0-20V per 0-3.3V reading
+        return raw*raw_to_V
+
+
+    def get_temp(self,raw):
+        raw_to_mV = 3300/1024.0
+        mV = raw*raw_to_mV - 400 #400mV at 0C per spec
+        C = mV/19.5 #19.5mV per C per spec
+        return C
+
+    def get_current(self,raw):
+        raw_to_mV = 3300 / 1024.0
+        mV = raw * raw_to_mV
+        mA = mV/.408 # conversion per circuit
+        return mA/1000.0
+    # ################Data Packing #####################
+
+    def unpack_board_info(self,s):
+        with self.lock:
+            sidx=0
+            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20)
+            sidx += 20
+            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20)
+            sidx += 20
+            return sidx
+
+
+    def unpack_status(self,s):
+        with self.lock:
+            sidx=0
+            sidx +=self.imu.unpack_status((s[sidx:]))
+            self.status['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+            self.status['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
+            self.status['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
+
+            for i in range(4):
+                self.status['cliff_range'][i]=unpack_float_t(s[sidx:])
+                sidx+=4
+
+            self.status['state'] = unpack_uint32_t(s[sidx:])
+            sidx += 4
+
+            self.status['at_cliff']=[]
+            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_0) is not 0)
+            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_1) is not 0)
+            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_2) is not 0)
+            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_3) is not 0)
+            self.status['runstop_event'] = (self.status['state'] & STATE_RUNSTOP_EVENT) is not 0
+            self.status['cliff_event'] = (self.status['state'] & STATE_CLIFF_EVENT) is not 0
+            self.status['fan_on'] = (self.status['state'] & STATE_FAN_ON) is not 0
+            self.status['buzzer_on'] = (self.status['state'] & STATE_BUZZER_ON) is not 0
+            self.status['low_voltage_alert'] = (self.status['state'] & STATE_LOW_VOLTAGE_ALERT) is not 0
+            self.status['high_current_alert'] = (self.status['state'] & STATE_HIGH_CURRENT_ALERT) is not 0
+            self.status['over_tilt_alert'] = (self.status['state'] & STATE_OVER_TILT_ALERT) is not 0
+            self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
+            self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
+            self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
+            self.status['cpu_temp']=self.get_cpu_temp()
+            return sidx
+
+    def pack_config(self,s,sidx):
+        with self.lock:
+            for i in range(4):
+                pack_float_t(s, sidx, self.config['cliff_zero'][i])
+                sidx += 4
+            pack_float_t(s, sidx, self.config['cliff_thresh']);sidx += 4
+            pack_float_t(s, sidx, self.config['cliff_LPF']);sidx += 4
+            pack_float_t(s, sidx, self.config['voltage_LPF']);sidx += 4
+            pack_float_t(s, sidx, self.config['current_LPF']);sidx += 4
+            pack_float_t(s, sidx, self.config['temp_LPF']);sidx += 4
+            pack_uint8_t(s, sidx, self.config['stop_at_cliff']); sidx += 1
+            pack_uint8_t(s, sidx, self.config['stop_at_runstop']);sidx += 1
+            pack_uint8_t(s, sidx, self.config['stop_at_tilt']);sidx += 1
+            pack_uint8_t(s, sidx, self.config['stop_at_low_voltage']);sidx += 1
+            pack_uint8_t(s, sidx, self.config['stop_at_high_current']); sidx += 1
+            for i in range(3):
+                pack_float_t(s, sidx, self.config['mag_offsets'][i])
+                sidx += 4
+            for i in range(9):
+                pack_float_t(s, sidx, self.config['mag_softiron_matrix'][i])
+                sidx += 4
+            for i in range(3):
+                pack_float_t(s, sidx, self.config['gyro_zero_offsets'][i])
+                sidx += 4
+            pack_float_t(s, sidx, self.config['rate_gyro_vector_scale']); sidx += 4
+            pack_float_t(s, sidx, self.config['gravity_vector_scale']); sidx += 4
+            pack_float_t(s, sidx, self.config['accel_LPF']); sidx += 4
+            pack_float_t(s, sidx, self.config['bump_thresh']); sidx += 4
+            pack_float_t(s, sidx, self.config['low_voltage_alert']);sidx += 4
+            pack_float_t(s, sidx, self.config['high_current_alert']);sidx += 4
+            pack_float_t(s, sidx, self.config['over_tilt_alert']); sidx += 4
+            return sidx
+
+    def pack_trigger(self,s,sidx):
+        with self.lock:
+            pack_uint32_t(s,sidx,self._trigger); sidx+=4
+            return sidx
+
+    # ################Transport Callbacks #####################
+
+    def rpc_motor_sync_reply(self,reply):
+        if reply[0] != RPC_REPLY_MOTOR_SYNC:
+            print 'Error RPC_REPLY_MOTOR_SYNC', reply[0]
+
+    def rpc_config_reply(self,reply):
+        if reply[0] != RPC_REPLY_PIMU_CONFIG:
+            print 'Error RPC_REPLY_PIMU_CONFIG', reply[0]
+
+    def rpc_board_info_reply(self,reply):
+        if reply[0] == RPC_REPLY_PIMU_BOARD_INFO:
+            self.unpack_board_info(reply[1:])
+        else:
+            print 'Error RPC_REPLY_PIMU_BOARD_INFO', reply[0]
+
+    def rpc_trigger_reply(self,reply):
+        if reply[0] != RPC_REPLY_PIMU_TRIGGER:
+            print 'Error RPC_REPLY_PIMU_TRIGGER', reply[0]
+        else:
+            tt=unpack_uint32_t(reply[1:])
+
+    def rpc_status_reply(self,reply):
+        if reply[0] == RPC_REPLY_PIMU_STATUS:
+            self.unpack_status(reply[1:])
+        else:
+            print 'Error RPC_REPLY_PIMU_STATUS', reply[0]
+
+
+    # ################ Sentry #####################
+    def get_cpu_temp(self):
+        cpu_temp = 0
+        t = psutil.sensors_temperatures()['coretemp']
+        for c in t:
+            cpu_temp = max(cpu_temp, c.current)
+        return cpu_temp
+
+    def step_sentry(self,id):
+        if id=='base_fan_control':
+            #Manage CPU temp using the mobile base fan
+            #See https://www.intel.com/content/www/us/en/support/articles/000005946/intel-nuc.html
+            cpu_temp=self.get_cpu_temp()
+            if cpu_temp>self.params['base_fan_on']:
+                if self.ts_last_fan_on is None or time.time()-self.ts_last_fan_on>3.0: #Will turn itself off if don't refresh command
+                    self.set_fan_on()
+                    self.push_command()
+                    self.ts_last_fan_on = time.time()
+                if  not self.status['fan_on']:
+                    self.logger.info('Base fan turned on')
+
+            if self.fan_on_last and not self.status['fan_on']:
+                self.logger.info('Base fan turned off')
+
+            if cpu_temp<self.params['base_fan_off']and self.status['fan_on']:
+                self.set_fan_off()
+                self.push_command()
+            self.fan_on_last = self.status['fan_on']
