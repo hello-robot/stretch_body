@@ -1,0 +1,1 @@
+The stretch_body package provides a low level Python API to the Hello Robot Stretch RE1 hardware. 

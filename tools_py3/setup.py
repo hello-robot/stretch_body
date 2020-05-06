@@ -14,7 +14,7 @@ setuptools.setup(
     version="0.0.3",
     author="Aaron Edsinger",
     author_email="aedsinger@hello-robot.com",
-    description="Stretch Body Tools",
+    description="Stretch Body Py3 Tools",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hello-robot/stretch_body",
