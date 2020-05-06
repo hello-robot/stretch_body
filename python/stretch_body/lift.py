@@ -44,7 +44,7 @@ class Lift(Device):
         print 'Vel (m/s): ', self.status['vel']
         print 'Force (N): ', self.status['force']
         print 'Timestamp PC (s):', self.status['timestamp_pc']
-        self.motor.pretty_print()
+        #self.motor.pretty_print()
 
     # ###################################################
 
@@ -143,7 +143,6 @@ class Lift(Device):
 
         #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate_m(v_r), self.motor_rad_to_translate_m(a_r)))
 
-
         self.motor.set_command(mode = MODE_POS_TRAJ_INCR,
                                 x_des=self.translate_to_motor_rad(x_m),
                                 v_des=v_r,
@@ -188,24 +187,29 @@ class Lift(Device):
         return False
 
 
-    def home(self):
+    def home(self, measuring=False):
         print 'Homing lift...'
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
         self.push_command()
 
+        x_up=None
         #Up direction
         self.pull_status()
         self.move_by(x_m=1.25, contact_thresh_pos_N=self.params['homing_force_N'][1], contact_thresh_neg_N=self.params['homing_force_N'][0], req_calibration=False)
         self.push_command()
         if self.__wait_for_contact(timeout=15.0): #self.__wait_for_contact(timeout=15.0):
             print 'Upward contact detected at motor position (rad)', self.motor.status['pos']
-            x=self.translate_to_motor_rad(self.params['range_m'][1])
-            print 'Marking lift position to (m)', self.params['range_m'][1]
-            self.motor.mark_position(x)
-            self.motor.set_pos_calibrated()
-            self.push_command()
+            if not measuring:
+                x = self.translate_to_motor_rad(self.params['range_m'][1])
+                print 'Marking lift position to (m)', self.params['range_m'][1]
+                self.motor.mark_position(x)
+                self.motor.set_pos_calibrated()
+                self.push_command()
+            else:
+                self.pull_status()
+                x_up=self.status['pos']
         else:
             print 'Failed to detect contact'
             return
@@ -215,7 +219,7 @@ class Lift(Device):
         # Down direction
         self.move_by(x_m=-0.5, req_calibration=False)
         self.push_command()
-        time.sleep(5.0)
+        time.sleep(6.0)
 
         #Restore default
         if not self.motor.gains['enable_guarded_mode']:
@@ -223,3 +227,5 @@ class Lift(Device):
         if self.motor.gains['enable_sync_mode']:
             self.motor.enable_sync_mode()
         self.push_command()
+
+        return x_up

@@ -145,6 +145,7 @@ class DynamixelHelloXL430(Device):
         print 'Stalled',self.status['stalled']
         print 'Stall Overload',self.status['stall_overload']
         print 'Is Calibrated',self.is_calibrated
+        #self.motor.pretty_print()
 
     # #####################################
 
@@ -167,12 +168,13 @@ class DynamixelHelloXL430(Device):
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
         except termios.error:
-            print 'Dynamixel communiation error at time: ',time.time()
+            print 'Dynamixel communication error at time: ',time.time()
 
 
     def set_motion_params(self,v_des=None,a_des=None):
         if v_des is not None:
             v_des = min(self.params['motion']['max']['vel'], v_des)
+
             if v_des != self.v_des:
                 self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
                 self.v_des = v_des

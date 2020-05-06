@@ -111,6 +111,7 @@ class DynamixelXL430(Device):
         print '-----XL430------'
         print 'ID', self.get_id()
         print 'Operating Mode',self.get_operating_mode()
+        print 'Drive Mode', self.get_drive_mode()
         print 'Temp: ', self.get_temp()
         print 'Position', self.get_pos()
         print 'Velocity',self.get_vel()
@@ -261,8 +262,26 @@ class DynamixelXL430(Device):
     def get_operating_mode(self):
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_OPERATING_MODE)
-        self.handle_comm_result('XL430_ADDR_HARDWARE_ERROR_STATUS', dxl_comm_result, dxl_error)
+        self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
         return p
+
+    def get_drive_mode(self):
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_DRIVE_MODE)
+        self.handle_comm_result('XL430_ADDR_DRIVE_MODE', dxl_comm_result, dxl_error)
+        return p
+
+    def set_drive_mode(self,vel_based=True, reverse=False):
+        #defaults to vel_based, not forward at factory
+        x=0
+        if not vel_based:
+            x=x|0x01
+        if reverse:
+            x=x|0x4
+        with self.pt_lock:
+            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_DRIVE_MODE, x)
+        self.handle_comm_result('XL430_ADDR_DRIVE_MODE', dxl_comm_result, dxl_error)
+
 
     def go_to_pos(self,x):
         with self.pt_lock:
