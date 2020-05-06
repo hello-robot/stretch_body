@@ -8,4 +8,4 @@
 # 0.0.2: AE: Development - pre-shipping
 # 0.0.3: AE: Development - pre-shipping
 # 0.0.4: AE: First product release
-__version__ = '0.0.4'
+__version__ = '0.0.5'

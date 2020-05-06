@@ -11,6 +11,10 @@ Stretch_Body comes preinstalled with the robot. It can be reinstalled with:
 ```
 
 # Release Notes
+Version 0.0.5 (2020/05/4)
+* Added set_drive to Dynamixel interface
+* Compatable with firmware 0.0.1.p0
+
 Version 0.0.4 (2020/05/4)
 * Initial public release for Guthrie robot
 * Compatable with firmware 0.0.1.p0
