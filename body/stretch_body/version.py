@@ -8,4 +8,7 @@
 # 0.0.2: AE: Development - pre-shipping
 # 0.0.3: AE: Development - pre-shipping
 # 0.0.4: AE: First product release
-__version__ = '0.0.5'
+# 0.0.5: AE: First product release
+# 0.0.6: AE: Fix dynamixel no port error
+
+__version__ = '0.0.6'
