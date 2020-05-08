@@ -16,13 +16,8 @@ pip3 install hello-robot-stretch-body-tools-py3
 User documentation can be found at https://hello-robot.github.io/stretch_body_guide/
 
 ## License
-The license files found in the software packages here apply to the entire contents of their directories, which contains software exclusively for use with the Stretch RE1 mobile manipulator, which is a robot produced and sold by Hello Robot Inc.
+Each subdirectory contains a LICENSE.md file that applies to the directory's contents. This software is intended for use with the Stretch RE1 mobile manipulator, which is a robot produced and sold by Hello Robot Inc. For further information including inquiries about dual licensing, please contact Hello Robot Inc.
 
-Copyright 2020 Hello Robot Inc.
-
-As stated by the detailed Licenses, "Patent and trademark rights are not licensed under this Public License."
-
-For further information including inquiries about dual licensing, please contact Hello Robot Inc.
 # Release Notes
 
 ## Package: hello-robot-stretch-body
