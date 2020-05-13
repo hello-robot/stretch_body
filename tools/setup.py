@@ -11,7 +11,7 @@ stretch_scripts={script_path+'/'+f for f in listdir(script_path) if isfile(join(
 
 setuptools.setup(
     name="hello_robot_stretch_body_tools",
-    version="0.0.5",
+    version="0.0.6",
     author="Aaron Edsinger",
     author_email="aedsinger@hello-robot.com",
     description="Stretch Body Tools",
@@ -20,10 +20,10 @@ setuptools.setup(
     url="https://github.com/hello-robot/stretch_body",
     scripts = stretch_scripts,
     packages=setuptools.find_packages(),
-    license="Apache License 2.0",
     classifiers=[
         "Programming Language :: Python :: 2",
         "Operating System :: OS Independent",
+        "OSI Approved :: Apache Software License"
     ],
 )
 
