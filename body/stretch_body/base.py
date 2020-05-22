@@ -79,7 +79,7 @@ class Base(Device):
         v_m: velocity for trapezoidal motion profile (m/s)
         a_m: acceleration for trapezoidal motion profile (m/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N: force threshold to stop motion (Not yet implemented)
+        contact_thresh_N: force threshold to stop motion (TODO: Not yet implemented)
         """
         x_mr = self.translate_to_motor_rad(x_m)
 
@@ -194,11 +194,11 @@ class Base(Device):
             a_mr = self.translate_to_motor_rad(a_m)
         else:
             a_mr = self.accel_mr
-        dir=numpy.sign(v_m)
-        v_m = dir*min(abs(v_m), self.params['motion']['max']['vel_m'])
+        v_sign = numpy.sign(v_m)
+        v_m = v_sign * min(abs(v_m), self.params['motion']['max']['vel_m'])
         v_mr = self.translate_to_motor_rad(v_m)
-        self.left_wheel.set_command(mode=MODE_VEL_TRAJ,v_des=v_mr, a_des=a_mr)
-        self.right_wheel.set_command(mode=MODE_VEL_TRAJ,v_des=v_mr, a_des=a_mr)
+        self.left_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
+        self.right_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
 
     def set_rotational_velocity(self, v_r, a_r=None):
         """
@@ -214,13 +214,43 @@ class Base(Device):
         else:
             a_mr = self.accel_mr
 
-        dir = numpy.sign(v_r)
+        w_sign = numpy.sign(v_r)
         v_mr_max = self.translate_to_motor_rad(self.params['motion']['max']['vel_m'])
         v_mr = self.rotate_to_motor_rad(v_r)
-        v_mr = dir*min(abs(v_mr),v_mr_max)
-        self.left_wheel.set_command(mode=MODE_VEL_TRAJ,v_des=-1*v_mr, a_des=a_mr)
-        self.right_wheel.set_command(mode=MODE_VEL_TRAJ,v_des=v_mr, a_des=a_mr)
+        v_mr = w_sign * min(abs(v_mr), v_mr_max)
+        self.left_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=-1*v_mr, a_des=a_mr)
+        self.right_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
 
+    def set_velocity(self, v_m, w_r, a=None):
+        """
+        Command the bases translational and rotational
+        velocities simultaneously.
+        Use care to prevent collisions / avoid runaways
+        v_m: desired velocity (m/s)
+        w_r: desired rotational velocity (rad/s)
+        a:   acceleration of motion profile (m/s^2 and rad/s^2)
+        """
+        if a is not None:
+            a = min(abs(a), self.params['motion']['max']['accel_m'])
+            a_mr = self.translate_to_motor_rad(a)
+        else:
+            a_mr = self.accel_mr
+
+        # Unicycle dynamics w/o R because
+        # translate_to_motor_rad accounts for R and gear ratio
+        wl_m = ((2 * v_m) - (w_r * self.params['wheel_separation_m'])) / 2.0
+        wr_m = ((2 * v_m) + (w_r * self.params['wheel_separation_m'])) / 2.0
+
+        wl_sign = numpy.sign(wl_m)
+        wl_m = wl_sign * min(abs(wl_m), self.params['motion']['max']['vel_m'])
+        wl_r = self.translate_to_motor_rad(wl_m)
+
+        wr_sign = numpy.sign(wr_m)
+        wr_m = wr_sign * min(abs(wr_m), self.params['motion']['max']['vel_m'])
+        wr_r = self.translate_to_motor_rad(wr_m)
+
+        self.left_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr)
+        self.right_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
 
     def step_sentry(self, x_lift, x_arm, x_wrist):
         """
