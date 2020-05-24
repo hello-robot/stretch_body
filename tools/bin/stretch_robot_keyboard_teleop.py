@@ -49,7 +49,7 @@ def menu():
     print 'f / h / t / b : ahead / back / tool / wheels'
     print
     print 'Tool'
-    print '8 / 2 / 0 / 5 : deploy / stow / open / close'
+    print '8 / 2 / 0 / 5 : forward / stow / open / close'
     print
     print 'Mechaduinos'
     print 'e / p  : effort / pose '
@@ -120,7 +120,7 @@ try:
             if c == '2':
                 robot.end_of_arm.pose('wrist_yaw','stow')
             if c == '8':
-                robot.end_of_arm.pose('wrist_yaw','side')
+                robot.end_of_arm.pose('wrist_yaw','forward')
             if c == '0':
                 robot.end_of_arm.pose('stretch_gripper','open')
             if c == '5':

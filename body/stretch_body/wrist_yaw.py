@@ -10,8 +10,7 @@ class WristYaw(DynamixelHelloXL430):
     def __init__(self, chain=None):
         DynamixelHelloXL430.__init__(self,'wrist_yaw',chain)
         self.logger = logging.getLogger('robot.wrist_yaw')
-        #self.poses = {'side': 0.0, 'forward':-90.0, 'stow': -180.0}
-        self.poses = {'side': deg_to_rad(0.0), 'forward': deg_to_rad(-90.0), 'stow': deg_to_rad(-180.0)}
+        self.poses = {'side': deg_to_rad(90.0), 'forward': deg_to_rad(0.0), 'stow': deg_to_rad(180.0)}
         self.sentry_active=False
 
     def home(self):

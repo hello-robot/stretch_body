@@ -25,11 +25,11 @@ class StretchGripper(DynamixelHelloXL430):
         print "Position (%)",self.status['pos_pct']
         DynamixelHelloXL430.pretty_print(self)
 
-    def pose(self,p):
+    def pose(self,p,v_r=None, a_r=None):
         """
         p: Dictionary key to named pose (eg 'close')
         """
-        self.move_to(self.poses[p])
+        self.move_to(self.poses[p],v_r,a_r)
 
     def move_to(self,pct, v_r=None, a_r=None):
         """

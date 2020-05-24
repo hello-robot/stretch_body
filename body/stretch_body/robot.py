@@ -138,7 +138,8 @@ class Robot(Device):
             self.status['end_of_arm']=self.end_of_arm.status
 
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
-
+        self.rt=None
+        self.dt=None
 
 
     # ###########  Device Methods #############
@@ -196,10 +197,12 @@ class Robot(Device):
         Cleanly stops down motion and communication
         """
         print 'Shutting down robot...'
-        self.rt.shutdown_flag.set()
-        self.rt.join()
-        self.dt.shutdown_flag.set()
-        self.dt.join()
+        if self.rt is not None:
+            self.rt.shutdown_flag.set()
+            self.rt.join()
+        if self.dt is not None:
+            self.dt.shutdown_flag.set()
+            self.dt.join()
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 print 'Shutting down',k

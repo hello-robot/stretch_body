@@ -40,6 +40,16 @@ class EndOfArm(DynamixelXChain):
         with self.pt_lock:
             self.motors[joint].move_by(x_r, v_r, a_r)
 
+    def pose(self,joint, p,v_r=None, a_r=None):
+        """
+                joint: name of joint (string)
+                p: named pose of joint
+                v_r: velocity for trapezoidal motion profile (rad/s).
+                a_r: acceleration for trapezoidal motion profile (rad/s^2)
+                """
+        with self.pt_lock:
+            self.motors[joint].pose(p, v_r, a_r)
+
     def home(self, joint):
         """
         Home to hardstops
@@ -56,3 +66,6 @@ class EndOfArm(DynamixelXChain):
             if class_name == self.params['devices'][j]['py_class_name']:
                 return True
         return False
+
+
+
