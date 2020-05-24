@@ -18,7 +18,7 @@ class StretchGripper(DynamixelHelloXL430):
         self.poses = {'zero':0,'open': 50, 'close': -100}
 
     def home(self,move_to_zero=True):
-        DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero)
+        DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero,delay_at_stop=3.0)
 
     def pretty_print(self):
         print '--- StretchGripper ----'

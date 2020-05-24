@@ -243,7 +243,7 @@ class DynamixelHelloXL430(Device):
 
 # ##########################################
 
-    def home(self, single_stop=False, move_to_zero=True):
+    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0):
         # Requires at least one hardstop in the pwm_homing[0] direction
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
@@ -267,6 +267,7 @@ class DynamixelHelloXL430(Device):
             timeout=time.time()-ts>15.0
             time.sleep(0.5)
             #print 'Pos (ticks)',self.motor.get_pos()
+        time.sleep(delay_at_stop)
         self.set_pwm(0)
 
         if timeout:
@@ -298,6 +299,7 @@ class DynamixelHelloXL430(Device):
                 timeout = time.time() - ts > 15.0
                 time.sleep(0.5)
                 #print 'Pos (ticks)', self.motor.get_pos()
+            time.sleep(delay_at_stop)
             x_dir_1 = self.motor.get_pos()
             self.set_pwm(0)
 
