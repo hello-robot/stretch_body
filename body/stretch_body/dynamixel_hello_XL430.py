@@ -268,6 +268,7 @@ class DynamixelHelloXL430(Device):
             time.sleep(0.5)
             #print 'Pos (ticks)',self.motor.get_pos()
         time.sleep(delay_at_stop)
+        xs=self.motor.get_pos()
         self.set_pwm(0)
 
         if timeout:
@@ -277,6 +278,7 @@ class DynamixelHelloXL430(Device):
             print 'Hardware error, unable to home. Exiting'
             return
 
+        print 'Contact at position:', xs
         print 'Hit first hardstop, marking to zero ticks'
         self.motor.disable_torque()
         self.motor.zero_position(verbose=False)
