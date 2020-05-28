@@ -59,8 +59,8 @@ if robot_devices['hello-pimu']:
     val_in_range('Cliff-2',p.status['cliff_range'][2], vmin=p.config['cliff_thresh'], vmax=20)
     val_in_range('Cliff-3',p.status['cliff_range'][3], vmin=p.config['cliff_thresh'], vmax=20)
     val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5)
-    val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-6, vmax=6)
-    val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['roll']), vmin=-6, vmax=6)
+    val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12)
+    val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12)
     print(Style.RESET_ALL)
     p.stop()
 # #####################################################
