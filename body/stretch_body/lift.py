@@ -197,10 +197,11 @@ class Lift(Device):
         x_up=None
         #Up direction
         self.pull_status()
+        xstart=self.status['pos']
         self.move_by(x_m=1.25, contact_thresh_pos_N=self.params['homing_force_N'][1], contact_thresh_neg_N=self.params['homing_force_N'][0], req_calibration=False)
         self.push_command()
         if self.__wait_for_contact(timeout=15.0): #self.__wait_for_contact(timeout=15.0):
-            print 'Upward contact detected at motor position (rad)', self.motor.status['pos']
+            print 'Upward contact detected at motor position (rad)', self.motor.status['pos'],self.motor_rad_to_translate_m(self.motor.status['pos'])
             if not measuring:
                 x = self.translate_to_motor_rad(self.params['range_m'][1])
                 print 'Marking lift position to (m)', self.params['range_m'][1]
@@ -209,7 +210,7 @@ class Lift(Device):
                 self.push_command()
             else:
                 self.pull_status()
-                x_up=self.status['pos']
+                x_up=self.status['pos']-xstart
         else:
             print 'Failed to detect contact'
             return
