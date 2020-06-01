@@ -341,7 +341,9 @@ class Robot(Device):
             for j in self.end_of_arm.joints:
                 print  '--------- Homing ', j, '----'
                 self.end_of_arm.home(j)
-
+        #Let user know it is done
+        self.pimu.trigger_beep()
+        self.push_command()
     # ################ Helpers #################################
 
     def _pretty_print_dict(self, t, d):
