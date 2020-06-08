@@ -26,9 +26,14 @@ class Wacc(Device):
     -- Two digital outputs D2, D3
     -- One analog input: A0
     -- A single tap count based on the accelerometer
+
+    ext_status_cb: Callback to handle custom status data
+    ext_command_cb: Callback to handle custom command data
     """
-    def __init__(self,verbose=False):
+    def __init__(self,verbose=False,ext_status_cb=None,ext_command_cb=None):
         Device.__init__(self)
+        self.ext_status_cb=ext_status_cb
+        self.ext_command_cb=ext_command_cb
         self.lock=threading.RLock()
         self.verbose=verbose
         self.params=self.robot_params['wacc']
@@ -139,6 +144,8 @@ class Wacc(Device):
     def unpack_status(self,s):
         with self.lock:
             sidx=0
+            if self.ext_status_cb is not None:
+                sidx+=self.ext_status_cb(s[sidx:])
             self.status['ax'] = unpack_float_t(s[sidx:]);sidx+=4
             self.status['ay'] = unpack_float_t(s[sidx:]);sidx+=4
             self.status['az'] = unpack_float_t(s[sidx:]);sidx+=4
@@ -154,6 +161,8 @@ class Wacc(Device):
             return sidx
 
     def pack_command(self,s,sidx):
+        if self.ext_command_cb is not None:  # Pack custom data first
+            sidx += self.ext_command_cb(s, sidx)
         pack_uint8_t(s, sidx, self._command['d2'])
         sidx += 1
         pack_uint8_t(s, sidx, self._command['d3'])

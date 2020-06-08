@@ -5,6 +5,7 @@ import time
 import signal
 import logging
 import os
+import importlib
 
 from stretch_body.device import Device
 import stretch_body.base as base
@@ -130,7 +131,12 @@ class Robot(Device):
             self.status['head']=self.head.status
 
         if self.params['use_wacc']:
-            self.wacc=wacc.Wacc()
+            if self.params.has_key('custom_wacc'):
+                module_name = self.params['custom_wacc']['py_module_name']
+                class_name = self.params['custom_wacc']['py_class_name']
+                self.wacc=getattr(importlib.import_module(module_name), class_name)(self)
+            else:
+                self.wacc=wacc.Wacc()
             self.status['wacc']=self.wacc.status
 
         if self.params['use_end_of_arm']:
