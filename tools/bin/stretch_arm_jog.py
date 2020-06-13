@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-
-
 import sys, tty, termios
 import time
-
 import stretch_body.arm as arm
-
 import argparse
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
+
 parser=argparse.ArgumentParser(description='Jog the arm motion from the keyboard')
 args=parser.parse_args()
 

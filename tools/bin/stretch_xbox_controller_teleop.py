@@ -5,8 +5,8 @@ import stretch_body.robot as rb
 from stretch_body.hello_utils import *
 import os
 import time
-
 import argparse
+print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description=
      'Jog the robot from an XBox Controller  \n' +

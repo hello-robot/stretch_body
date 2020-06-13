@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-
-
 from urdfpy import URDF
 import argparse
 import os
 import math
 import yaml
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Python based URDF visualization')
 parser.add_argument("--motion", help="Turn motor on",action="store_true")

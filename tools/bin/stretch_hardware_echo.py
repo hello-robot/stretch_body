@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
 import subprocess
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
 
 print 'Versions'
 print "-------------------------------------------------------------------------"

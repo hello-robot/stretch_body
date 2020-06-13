@@ -3,8 +3,10 @@
 
 import sys
 import stretch_body.stretch_gripper as gripper
-
 import argparse
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
+
 parser=argparse.ArgumentParser(description='Jog the griper from the keyboard')
 args=parser.parse_args()
 

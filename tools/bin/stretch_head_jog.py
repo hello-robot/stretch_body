@@ -3,8 +3,9 @@
 import stretch_body.head as head
 from stretch_body.hello_utils import *
 import sys
-
 import argparse
+print_stretch_re_use()
+
 parser=argparse.ArgumentParser(description='Jog the head from the keyboard')
 args=parser.parse_args()
 

@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-
 import stretch_body.pimu as pimu
 import stretch_body.head as head
 import stretch_body.end_of_arm as end_of_arm
 import stretch_body.wacc as wacc
 import stretch_body.stepper as stepper
-import stretch_body.hello_utils as hu
 import os, fnmatch
 import subprocess
 from colorama import Fore, Back, Style
-
 import argparse
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
+
+
 parser=argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
 args=parser.parse_args()
 

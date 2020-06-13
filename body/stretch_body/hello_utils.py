@@ -3,6 +3,10 @@ import math
 import os
 import time
 
+
+def print_stretch_re_use():
+    print("For use with S T R E T C H (TM) RESEARCH EDITION from Hello Robot Inc.\n")
+
 def create_time_string():
     t = time.localtime()
     time_string = str(t.tm_year) + str(t.tm_mon).zfill(2) + str(t.tm_mday).zfill(2) + str(t.tm_hour).zfill(2) + str(t.tm_min).zfill(2) + str(t.tm_sec).zfill(2)

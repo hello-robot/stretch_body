@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-
 import sys
 from stretch_body.robot import Robot
 from stretch_body.hello_utils import *
-
 import argparse
+print_stretch_re_use()
+
 parser=argparse.ArgumentParser(description='Print all robot data to console')
 args=parser.parse_args()
 

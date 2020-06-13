@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-
-
 import time
 import stretch_body.pimu as pimu
 from stretch_body.hello_utils import *
-
 import argparse
-
+print_stretch_re_use()
 # ###################################
 
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-
 import sys
 from stretch_body.wacc import Wacc
 import argparse
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Comnmand and query the Wacc (Wrist Accelerometer) board from the keyboard')
 args=parser.parse_args()

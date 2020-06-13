@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-
 from stretch_body.hello_utils import *
 import sys
 import stretch_body.wrist_yaw as wrist_yaw
 import argparse
+print_stretch_re_use()
+
 parser=argparse.ArgumentParser(description='Jog the wrist_yaw joint from the keyboard')
 args=parser.parse_args()
 

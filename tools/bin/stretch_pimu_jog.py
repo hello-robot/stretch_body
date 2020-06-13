@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
 from stretch_body.pimu import Pimu
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
 
 p=Pimu()
 p.startup()

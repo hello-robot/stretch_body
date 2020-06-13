@@ -3,12 +3,13 @@
 
 import sys, tty, termios
 import time
-
 from stretch_body.hello_utils import *
 import stretch_body.base as base
 import stretch_body.pimu as pimu
-
 import argparse
+
+print_stretch_re_use()
+
 parser=argparse.ArgumentParser(description='Jog the base motion from the keyboard')
 args=parser.parse_args()
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-
 import sys, tty, termios
 import stretch_body.robot as hello_robot
 from stretch_body.hello_utils import *
-
 import argparse
+print_stretch_re_use()
+
+
 parser=argparse.ArgumentParser(description='Control the robot base, lift, arm, head, and tool from the keyboard')
 args=parser.parse_args()
 

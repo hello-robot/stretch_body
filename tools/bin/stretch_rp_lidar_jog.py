@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-import time
 from rplidar import RPLidar
-
 import argparse
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
+
 parser=argparse.ArgumentParser(description='Tool to control the RP-Lidar')
 parser.add_argument("--motor_on", help="Turn motor on",action="store_true")
 parser.add_argument("--motor_off", help="Turn motor off",action="store_true")

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-
 import stretch_body.pimu as pimu
-
 from colorama import Fore, Back, Style
-
 import argparse
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
+
 parser=argparse.ArgumentParser(description='Print battery state to console')
 args=parser.parse_args()
 
