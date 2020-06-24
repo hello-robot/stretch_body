@@ -10,8 +10,8 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name="hello_robot_stretch_body",
     version=__version__,
-    author="Aaron Edsinger",
-    author_email="aedsinger@hello-robot.com",
+    author="Hello Robot Inc.",
+    author_email="support@hello-robot.com",
     description="Stretch RE1 low level API",
     long_description=long_description,
     long_description_content_type="text/markdown",
