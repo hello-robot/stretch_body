@@ -6,6 +6,9 @@ import cv2
 
 image_file = "/etc/hello-robot/stretch_about.png"
 image = cv2.imread(image_file)
+if image is None:
+    print "Unable to find stretch_about.png in /etc/hello-robot"
+    exit()
 
 factory_params_filename = os.environ['HELLO_FLEET_PATH']+'/'+os.environ['HELLO_FLEET_ID']+'/stretch_re1_factory_params.yaml'
 
