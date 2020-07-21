@@ -282,15 +282,15 @@ def move_robot(cmd):
 
 if __name__ == "__main__":
     data_path = os.environ['HELLO_FLEET_PATH']
-    if not os.path.isdir(os.path.join(data_path, "deepspeech/models/")):
+    if not os.path.isdir(os.path.join(data_path, "models/deepspeech-0.6.1-models/")):
         print "Missing DeepSpeech model in stretch_user/"
 
     BEAM_WIDTH = 500
     LM_ALPHA = 0.75
     LM_BETA = 1.85
-    model_path = os.path.join(data_path, "deepspeech/models/output_graph.tflite")
-    lm_path = os.path.join(data_path, "deepspeech/models/lm.binary")
-    trie_path = os.path.join(data_path, "deepspeech/models/trie")
+    model_path = os.path.join(data_path, "models/deepspeech-0.6.1-models/output_graph.tflite")
+    lm_path = os.path.join(data_path, "models/deepspeech-0.6.1-models/lm.binary")
+    trie_path = os.path.join(data_path, "models/deepspeech-0.6.1-models/trie")
     model = deepspeech.Model(model_path, BEAM_WIDTH)
     model.enableDecoderWithLM(lm_path, trie_path, LM_ALPHA, LM_BETA)
     dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
