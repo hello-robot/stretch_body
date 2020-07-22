@@ -5,8 +5,29 @@ import numpy as np
 import usb.core
 import struct
 import time
+import os
+import sys
+from contextlib import contextmanager
 import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
+
+
+@contextmanager
+def ignore_stderr():
+    devnull = None
+    try:
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        stderr = os.dup(2)
+        sys.stderr.flush()
+        os.dup2(devnull, 2)
+        try:
+            yield
+        finally:
+            os.dup2(stderr, 2)
+            os.close(stderr)
+    finally:
+        if devnull is not None:
+            os.close(devnull)
 
 
 # parameter list
@@ -134,7 +155,8 @@ class Tuning:
 
 
 def get_respeaker_device_id():
-    p = pyaudio.PyAudio()
+    with ignore_stderr():
+        p = pyaudio.PyAudio()
     info = p.get_host_api_info_by_index(0)
     num_devices = info.get('deviceCount')
 
