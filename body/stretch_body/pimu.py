@@ -122,7 +122,7 @@ class Pimu(Device):
     """
     API to the Stretch RE1 Power and IMU board (Pimu)
     """
-    def __init__(self,verbose=False, event_reset=True):
+    def __init__(self,verbose=False, event_reset=False):
         Device.__init__(self)
         self.logger = logging.getLogger('robot.pimu')
         self.lock = threading.RLock()
