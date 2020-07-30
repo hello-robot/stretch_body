@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from drawnow import drawnow
 import time
 
+
 class Scope:
     """
     Simple oscilliscope visualization of a data stream
@@ -46,6 +47,8 @@ class Scope4:
         self.fig = plt.figure()
         self.fig.canvas.set_window_title(title)
         self.yrange=yrange
+    def savefig(self,filename):
+        plt.savefig(filename)
     def step_display(self,y1,y2,y3,y4):
         if self.y1 is None:
             self.y1=[y1] * self.num_points

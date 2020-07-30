@@ -1,0 +1,37 @@
+
+wrist_pitch:
+  flip_encoder_polarity: 0
+  gr: 1.0
+  id: 1
+  max_voltage_limit: 15
+  min_voltage_limit: 11
+  motion:
+    default:
+      accel: 8.0
+      vel: 3.0
+    fast:
+      accel: 10.0
+      vel: 5.0
+    max:
+      accel: 14
+      vel: 7
+    slow:
+      accel: 4.0
+      vel: 1.0
+  pid:
+  - 640
+  - 0
+  - 0
+  pwm_limit: 885
+  range_t:
+  - 0
+  - 4096
+  req_calibration: 0
+  return_delay_time: 0
+  stall_max_effort: 20.0
+  stall_max_time: 1.0
+  stall_min_vel: 0.1
+  temperature_limit: 72
+  usb_name: /dev/hello-dynamixel-wrist
+  use_multiturn: 0
+  zero_t: 2048
