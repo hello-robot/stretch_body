@@ -6,6 +6,6 @@
 
 | Tutorial                               | Description                                                  |
 | -------------------------------------- | ------------------------------------------------------------ |
-| [Wrist Extend](./docs/wrist_extend.md) | How to extend the Stretch wrist with additional degrees-of-freedom |
+| [Extending Wrist DOF](./extending_wrist_dof/README.md) | How to extend the Stretch wrist with additional degrees-of-freedom |
 |                                        |                                                              |
 |                                        |                                                              |
