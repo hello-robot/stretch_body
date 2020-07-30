@@ -21,7 +21,7 @@ User documentation can be found at https://hello-robot.github.io/stretch_body_gu
 
 | Tutorial                                               | Description                                                  |
 | ------------------------------------------------------ | ------------------------------------------------------------ |
-| [Extending Wrist DOF](./extending_wrist_dof/README.md) | How to extend the Stretch wrist with additional degrees-of-freedom |
+| [Extending Wrist DOF](./tutorial/extending_wrist_dof/README.md) | How to extend the Stretch wrist with additional degrees-of-freedom |
 |                                                        |                                                              |
 |                                                        |                                                              |
 
