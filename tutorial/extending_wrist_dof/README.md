@@ -34,7 +34,7 @@ class WristPitch(DynamixelHelloXL430):
         self.move_to(self.poses[p],v_r,a_r)
 ```
 
-Now let's copy in [YAML parameters for your servo](./stretch_re1_tool_params.yaml) to your `stretch_re1_tool_params.yaml `configure this servo. Sample parameters are provided here. You may want to adapt these parameters to your application but the nominal values shown usually work well. Below we highlight some of the more useful parameters.
+Now let's copy in [YAML parameters for your servo](./stretch_re1_tool_params.yaml) to your `stretch_re1_tool_params.yaml` in order to configure this servo. You may want to adapt these parameters to your application but the nominal values shown usually work well. Below we highlight some of the more useful parameters.
 
 ```yaml
 wrist_pitch:
