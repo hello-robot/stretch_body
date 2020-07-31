@@ -78,7 +78,7 @@ end_of_arm:
       py_module_name: wrist_pitch
 ```
 
-This tells `stretch_body.robot` to create a wrist_`pitch.WristPitch`class and add it to its list of tools. Try it from iPython:
+This tells `stretch_body.robot` to manage a wrist_`pitch.WristPitch`instance and add it to the [EndOfArm](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/end_of_arm.py) list of tools. Try it from iPython:
 
 ```python
 Python 2.7.17 (default, Jul 20 2020, 15:37:01)
