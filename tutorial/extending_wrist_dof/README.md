@@ -66,31 +66,6 @@ In [4]: w.move_by(0.1)
 In [5]: w.pose('tool_up')
 
 In [6]: w.pose('tool_down')
-
-In [7]: w.pretty_print()
------ HelloXL430 ------ 
-Name wrist_pitch
-Position (rad) 0
-Position (deg) 0.0
-Position (ticks) 0
-Velocity (rad/s) 0
-Velocity (ticks/s) 0
-Effort (%) 0
-Effort (ticks) 0
-Temp 0
-Comm Errors 0
-Hardware Error 0
-Hardware Error: Input Voltage Error:  0
-Hardware Error: Overheating Error:  0
-Hardware Error: Motor Encoder Error:  0
-Hardware Error: Electrical Shock Error:  0
-Hardware Error: Overload Error:  0
-Timestamp PC 0
-Range (ticks) [0, 4096]
-Range (rad) [ -3.14159265359  ,  3.14159265359 ]
-Stalled 0
-Stall Overload 0
-Is Calibrated 0
 ```
 
 Finally, you'll want to make your WristPitch available from `stretch_body.robot` Add the following [YAML](./stretch_re1_user_params.yaml) to your `stretch_re1_user_params.yaml`
