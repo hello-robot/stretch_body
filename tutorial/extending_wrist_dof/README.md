@@ -120,35 +120,23 @@ By default the Dynamixel servo has an ID of 1. Each servo on a bus must have a u
 [Dynamixel ID:000] ping Failed.
 [Dynamixel ID:001] ping Failed.
 [Dynamixel ID:002] ping Failed.
-[Dynamixel ID:003] ping Failed.
-[Dynamixel ID:004] ping Failed.
-[Dynamixel ID:005] ping Failed.
-[Dynamixel ID:006] ping Failed.
-[Dynamixel ID:007] ping Failed.
-[Dynamixel ID:008] ping Failed.
-[Dynamixel ID:009] ping Failed.
-[Dynamixel ID:010] ping Failed.
-[Dynamixel ID:011] ping Failed.
-[Dynamixel ID:012] ping Failed.
-[Dynamixel ID:013] ping Succeeded. Dynamixel model number : 1060
-[Dynamixel ID:014] ping Succeeded. Dynamixel model number : 1020
-[Dynamixel ID:015] ping Succeeded. Dynamixel model number : 1020
-[Dynamixel ID:016] ping Succeeded. Dynamixel model number : 1060
-[Dynamixel ID:017] ping Failed.
-[Dynamixel ID:018] ping Failed.
-[Dynamixel ID:019] ping Failed.
+[Dynamixel ID:003] ping Succeeded. Dynamixel model number : 1060
+[Dynamixel ID:004] ping Succeeded. Dynamixel model number : 1020
+[Dynamixel ID:005] ping Succeeded. Dynamixel model number : 1020
+[Dynamixel ID:006] ping Succeeded. Dynamixel model number : 1060
+...
 
 ```
 
-Here we see that devices with IDs 13-16 are on the bus. To change the ID for device 16 to 17 for example, use `RE1_dynamixel_id_change.py`
+Here we see that devices with IDs 3-6 are on the bus. To change the ID for device 6 to 7 for example, use `RE1_dynamixel_id_change.py`
 
 ```bash
->>$RE1_dynamixel_id_change.py /dev/hello-dynamixel-wrist 16 17
-[Dynamixel ID:016] ping Succeeded. Dynamixel model number : 1060
-Ready to change ID to 17 . Hit enter to continue
+>>$RE1_dynamixel_id_change.py /dev/hello-dynamixel-wrist 6 7
+[Dynamixel ID:006] ping Succeeded. Dynamixel model number : 1060
+Ready to change ID to 7 . Hit enter to continue
 
-[Dynamixel ID:017] ping Succeeded. Dynamixel model number : 1060
-Success at setting ID to 17
+[Dynamixel ID:007] ping Succeeded. Dynamixel model number : 1060
+Success at setting ID to 7
 ```
 
 
@@ -157,14 +145,14 @@ Success at setting ID to 17
 
 By default the Dynamixel servos are configured to be single-turn devices. When in single turn mode, they do not require a homing procedure on startup. Multi-turn devices, such as the Stretch WristYaw and StretchGripper, require a homing procedure.
 
-The homing procedure moves the joint to one or both mechanical limits of the joint and, based on the detected hardstops, set the joint 'zero' point. 
+The homing procedure moves the joint to one or both mechanical limits of the joint and, based on the detected hardstops, sets the joint's 'zero' point. 
 
 Your custom DynamixelHelloXL430 device may use this functionality if desired. To do so, you'll modify the following YAML fields for the device:
 
 ```yaml
 wrist_pitch:
   ...
-  pwm_homing: #Set the force that the oint approaches the hardstop
+  pwm_homing: #Set the force that the joint approaches the hardstop
   - -300
   - 300
   range_t: #Set the mechanical range of the joint in ticks
