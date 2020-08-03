@@ -34,7 +34,7 @@ class WristPitch(DynamixelHelloXL430):
         self.move_to(self.poses[p],v_r,a_r)
 ```
 
-Now let's copy in [YAML parameters for your servo](./stretch_re1_tool_params.yaml) to your `stretch_re1_tool_params.yaml `configure this servo. Sample parameters are provided here. You may want to adapt these parameters to your application but the nominal values shown usually work well. Below we highlight some of the more useful parameters.
+Now let's copy in [YAML parameters for your servo](./stretch_re1_tool_params.yaml) to your `stretch_re1_tool_params.yaml` in order to configure this servo. You may want to adapt these parameters to your application but the nominal values shown usually work well. Below we highlight some of the more useful parameters.
 
 ```yaml
 wrist_pitch:
@@ -66,31 +66,6 @@ In [4]: w.move_by(0.1)
 In [5]: w.pose('tool_up')
 
 In [6]: w.pose('tool_down')
-
-In [7]: w.pretty_print()
------ HelloXL430 ------ 
-Name wrist_pitch
-Position (rad) 0
-Position (deg) 0.0
-Position (ticks) 0
-Velocity (rad/s) 0
-Velocity (ticks/s) 0
-Effort (%) 0
-Effort (ticks) 0
-Temp 0
-Comm Errors 0
-Hardware Error 0
-Hardware Error: Input Voltage Error:  0
-Hardware Error: Overheating Error:  0
-Hardware Error: Motor Encoder Error:  0
-Hardware Error: Electrical Shock Error:  0
-Hardware Error: Overload Error:  0
-Timestamp PC 0
-Range (ticks) [0, 4096]
-Range (rad) [ -3.14159265359  ,  3.14159265359 ]
-Stalled 0
-Stall Overload 0
-Is Calibrated 0
 ```
 
 Finally, you'll want to make your WristPitch available from `stretch_body.robot` Add the following [YAML](./stretch_re1_user_params.yaml) to your `stretch_re1_user_params.yaml`
@@ -103,7 +78,7 @@ end_of_arm:
       py_module_name: wrist_pitch
 ```
 
-This tells `stretch_body.robot` to create a wrist_`pitch.WristPitch`class and add it to its list of tools. Try it from iPython:
+This tells `stretch_body.robot` to manage a wrist_`pitch.WristPitch`instance and add it to the [EndOfArm](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/end_of_arm.py) list of tools. Try it from iPython:
 
 ```python
 Python 2.7.17 (default, Jul 20 2020, 15:37:01)
@@ -145,35 +120,23 @@ By default the Dynamixel servo has an ID of 1. Each servo on a bus must have a u
 [Dynamixel ID:000] ping Failed.
 [Dynamixel ID:001] ping Failed.
 [Dynamixel ID:002] ping Failed.
-[Dynamixel ID:003] ping Failed.
-[Dynamixel ID:004] ping Failed.
-[Dynamixel ID:005] ping Failed.
-[Dynamixel ID:006] ping Failed.
-[Dynamixel ID:007] ping Failed.
-[Dynamixel ID:008] ping Failed.
-[Dynamixel ID:009] ping Failed.
-[Dynamixel ID:010] ping Failed.
-[Dynamixel ID:011] ping Failed.
-[Dynamixel ID:012] ping Failed.
-[Dynamixel ID:013] ping Succeeded. Dynamixel model number : 1060
-[Dynamixel ID:014] ping Succeeded. Dynamixel model number : 1020
-[Dynamixel ID:015] ping Succeeded. Dynamixel model number : 1020
-[Dynamixel ID:016] ping Succeeded. Dynamixel model number : 1060
-[Dynamixel ID:017] ping Failed.
-[Dynamixel ID:018] ping Failed.
-[Dynamixel ID:019] ping Failed.
+[Dynamixel ID:003] ping Succeeded. Dynamixel model number : 1060
+[Dynamixel ID:004] ping Succeeded. Dynamixel model number : 1020
+[Dynamixel ID:005] ping Succeeded. Dynamixel model number : 1020
+[Dynamixel ID:006] ping Succeeded. Dynamixel model number : 1060
+...
 
 ```
 
-Here we see that devices with IDs 13-16 are on the bus. To change the ID for device 16 to 17 for example, use `RE1_dynamixel_id_change.py`
+Here we see that devices with IDs 3-6 are on the bus. To change the ID for device 6 to 7 for example, use `RE1_dynamixel_id_change.py`
 
 ```bash
->>$RE1_dynamixel_id_change.py /dev/hello-dynamixel-wrist 16 17
-[Dynamixel ID:016] ping Succeeded. Dynamixel model number : 1060
-Ready to change ID to 17 . Hit enter to continue
+>>$RE1_dynamixel_id_change.py /dev/hello-dynamixel-wrist 6 7
+[Dynamixel ID:006] ping Succeeded. Dynamixel model number : 1060
+Ready to change ID to 7 . Hit enter to continue
 
-[Dynamixel ID:017] ping Succeeded. Dynamixel model number : 1060
-Success at setting ID to 17
+[Dynamixel ID:007] ping Succeeded. Dynamixel model number : 1060
+Success at setting ID to 7
 ```
 
 
@@ -182,14 +145,14 @@ Success at setting ID to 17
 
 By default the Dynamixel servos are configured to be single-turn devices. When in single turn mode, they do not require a homing procedure on startup. Multi-turn devices, such as the Stretch WristYaw and StretchGripper, require a homing procedure.
 
-The homing procedure moves the joint to one or both mechanical limits of the joint and, based on the detected hardstops, set the joint 'zero' point. 
+The homing procedure moves the joint to one or both mechanical limits of the joint and, based on the detected hardstops, sets the joint's 'zero' point. 
 
 Your custom DynamixelHelloXL430 device may use this functionality if desired. To do so, you'll modify the following YAML fields for the device:
 
 ```yaml
 wrist_pitch:
   ...
-  pwm_homing: #Set the force that the oint approaches the hardstop
+  pwm_homing: #Set the force that the joint approaches the hardstop
   - -300
   - 300
   range_t: #Set the mechanical range of the joint in ticks

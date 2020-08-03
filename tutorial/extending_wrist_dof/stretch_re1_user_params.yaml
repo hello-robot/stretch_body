@@ -6,6 +6,6 @@ tool_params: stretch_re1_tool_params.yaml
 
 end_of_arm:
   devices:
-    uvc_paddle:
+    wrist_pitch:
       py_class_name: WristPitch
       py_module_name: wrist_pitch
