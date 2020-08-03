@@ -32,7 +32,10 @@ def get_fleet_directory():
 def read_fleet_yaml(fn):
     s = file(get_fleet_directory()+fn, 'r')
     p = yaml.load(s,Loader=yaml.FullLoader)
-    return p
+    if p is None:
+        return {}
+    else:
+        return p
 
 def write_fleet_yaml(fn,rp):
     with open(get_fleet_directory()+fn, 'w') as yaml_file:

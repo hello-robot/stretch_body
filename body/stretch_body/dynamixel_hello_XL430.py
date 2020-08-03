@@ -250,6 +250,9 @@ class DynamixelHelloXL430(Device):
         # Second hardstop is optional
         if not self.servo_valid:
             return
+        if not self.params['req_calibration']:
+            print('Homing not required for: '+self.name)
+            return
 
         self.pull_status()
         if self.status['overload_error'] or self.status['overheating_error']:
