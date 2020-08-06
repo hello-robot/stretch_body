@@ -4,16 +4,9 @@ import argparse
 import os
 import math
 import yaml
-import stretch_body.hello_utils as hu
-hu.print_stretch_re_use()
-
-parser=argparse.ArgumentParser(description='Python based URDF visualization')
-parser.add_argument("--motion", help="Turn motor on",action="store_true")
-parser.add_argument("--fake", help="Show fake robot",action="store_true")
-args=parser.parse_args()
-
-urdf_file=os.environ['HELLO_FLEET_PATH']+'/'+os.environ['HELLO_FLEET_ID']+'/exported_urdf/stretch.urdf'
-controller_parameters_filename =os.environ['HELLO_FLEET_PATH']+'/'+os.environ['HELLO_FLEET_ID']+'/exported_urdf/controller_calibration_head.yaml'
+# import stretch_body.hello_utils as hu
+# hu.print_stretch_re_use()
+print("For use with S T R E T C H (TM) RESEARCH EDITION from Hello Robot Inc.\n")
 
 ########################################################################################
 ### The classes below demonstrate how the robot mechanisms are modeled relative to the URDF
@@ -167,44 +160,48 @@ class StretchState:
 
 # #######################################################################################
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Python based URDF visualization')
+    parser.add_argument("--motion", help="Turn motor on", action="store_true")
+    parser.add_argument("--fake", help="Show fake robot", action="store_true")
+    args = parser.parse_args()
 
-robot_model = URDF.load(urdf_file)
+    urdf_file = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'], 'exported_urdf/stretch.urdf')
+    controller_parameters_filename = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'], 'exported_urdf/controller_calibration_head.yaml')
+    robot_model = URDF.load(urdf_file)
 
-if args.motion:
-    cfg_trajectory = {
-        'joint_left_wheel': [0.0, math.pi],
-        'joint_right_wheel': [0.0, math.pi],
-        'joint_lift': [0.9, 0.7],
-        'joint_arm_l0': [0.0, 0.1],
-        'joint_arm_l1': [0.0, 0.1],
-        'joint_arm_l2': [0.0, 0.1],
-        'joint_arm_l3': [0.0, 0.1],
-        'joint_wrist_yaw': [math.pi, 0.0],
-        'joint_gripper_finger_left': [0.0, 0.25],
-        'joint_gripper_finger_right': [0.0, 0.25],
-        'joint_head_pan': [0.0, -(math.pi / 2.0)],
-        'joint_head_tilt': [0.5, -0.5]
-    }
-    robot_model.animate(cfg_trajectory=cfg_trajectory)
-elif args.fake:
-    # stretch = rb.Robot()
-    print('WARNING: Not actually visualizing the current state of the robot. Instead, using FakeRobot, since stretch_body.robot does not yet support Python 3.')
-    stretch = FakeRobot()
-    stretch.startup()
-    stretch_calibrated = stretch.is_calibrated()
-    if not stretch_calibrated:
-        print('Exiting because the robot has not been calibrated')
-        exit()
+    if args.motion:
+        cfg_trajectory = {
+            'joint_left_wheel': [0.0, math.pi],
+            'joint_right_wheel': [0.0, math.pi],
+            'joint_lift': [0.9, 0.7],
+            'joint_arm_l0': [0.0, 0.1],
+            'joint_arm_l1': [0.0, 0.1],
+            'joint_arm_l2': [0.0, 0.1],
+            'joint_arm_l3': [0.0, 0.1],
+            'joint_wrist_yaw': [math.pi, 0.0],
+            'joint_gripper_finger_left': [0.0, 0.25],
+            'joint_gripper_finger_right': [0.0, 0.25],
+            'joint_head_pan': [0.0, -(math.pi / 2.0)],
+            'joint_head_tilt': [0.5, -0.5]
+        }
+        robot_model.animate(cfg_trajectory=cfg_trajectory)
+    elif args.fake:
+        # stretch = rb.Robot()
+        print('WARNING: Not actually visualizing the current state of the robot. Instead, using FakeRobot, since stretch_body.robot does not yet support Python 3.')
+        stretch = FakeRobot()
+        stretch.startup()
+        stretch_calibrated = stretch.is_calibrated()
+        if not stretch_calibrated:
+            print('Exiting because the robot has not been calibrated')
+            exit()
 
-    fid = open(controller_parameters_filename, 'r')
-    controller_parameters = yaml.load(fid)
-    fid.close()
-    stretch_state = StretchState(stretch, controller_parameters)
-    cfg = stretch_state.get_urdf_configuration()
-    robot_model.show(cfg=cfg)
-    stretch.stop()
-else:
-    robot_model.show()
-
-
-
+        fid = open(controller_parameters_filename, 'r')
+        controller_parameters = yaml.load(fid)
+        fid.close()
+        stretch_state = StretchState(stretch, controller_parameters)
+        cfg = stretch_state.get_urdf_configuration()
+        robot_model.show(cfg=cfg)
+        stretch.stop()
+    else:
+        robot_model.show()
