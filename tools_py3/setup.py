@@ -25,6 +25,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: Apache Software License"
     ],
+    install_requires=['urdfpy', 'numba', 'opencv-python-inference-engine', 'rospkg', 'scipy']
 )
 
 #classifiers = [

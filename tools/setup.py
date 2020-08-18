@@ -25,6 +25,10 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: Apache Software License"
     ],
+    install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'jupyter', 'pandas', 'sympy', 'nose', 'PyYaml',
+                      'inputs', 'drawnow', 'rplidar', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
+                      'click', 'cma', 'opencv-contrib-python', 'colorama', 'llvmlite==0.31.0', 'numba',
+                      'scikit-image', 'open3d', 'pyrealsense2']
 )
 
 #classifiers = [
