@@ -23,7 +23,6 @@ def menu():
     print 'x: reset runstop event'
     print 'o: trigger runstop event'
     print 'y: reset cliff event'
-    print 'z: reset bump event'
     print '-------------------'
 
 def step_interaction():
@@ -42,9 +41,6 @@ def step_interaction():
         if x[0]=='y':
             print 'Resetting Cliff Event'
             p.cliff_event_reset()
-        if x[0]=='z':
-            print 'Resetting Bump Event'
-            p.bump_event_reset()
         if x[0]=='r':
             print 'Resetting Board!!!'
             p.board_reset()
