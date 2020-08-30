@@ -32,6 +32,8 @@ class Scope:
             plt.ylim(self.yrange[0], self.yrange[1])
     def close(self):
         pass
+    def savefig(self,filename):
+        plt.savefig(filename)
 
 class Scope4:
     """
