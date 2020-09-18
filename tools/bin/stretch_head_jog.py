@@ -30,6 +30,7 @@ def menu_top():
     print 'j: up'
     print 'p: pan go to pos ticks'
     print 't: tilt go to pos ticks'
+    print 'x: home'
     print '1: speed slow'
     print '2: speed default'
     print '3: speed fast'
@@ -47,6 +48,9 @@ def step_interaction():
             p = float(x[1:])
             p = h.motors['head_pan'].ticks_to_world_rad(p)
             h.move_to('head_pan',p,v_des,a_des)
+
+        if x[0]=='x':
+            h.home()
 
         if x[0]=='t':
             t = float(x[1:])

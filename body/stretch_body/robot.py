@@ -323,14 +323,8 @@ class Robot(Device):
         Blocking.
         """
         if self.head is not None:
-            # Just confirm that head motion is working
-            print '--------- Head Motion Test ----'
-            self.head.move_to('head_pan', hello_utils.deg_to_rad(-90))
-            self.head.move_to('head_tilt', hello_utils.deg_to_rad(-90))
-            time.sleep(1.0)
-            self.head.move_to('head_pan', hello_utils.deg_to_rad(0))
-            self.head.move_to('head_tilt', hello_utils.deg_to_rad(0))
-            time.sleep(1.0)
+            print '--------- Homing Head ----'
+            self.head.home()
 
         # Home the lift
         if self.lift is not None:

@@ -36,8 +36,18 @@ class Head(DynamixelXChain):
         """
         self.motors[joint].move_by(x_r,v_r,a_r)
 
-    def home(self, joint):
-        pass  # Head doesn't require homing
+    def home(self):
+        if self.motors['head_pan'].params['req_calibration']:
+            with self.pt_lock:
+                self.motors['head_pan'].home(single_stop=True)
+
+        if self.motors['head_tilt'].params['req_calibration']:
+            with self.pt_lock:
+                self.motors['head_tilt'].home(single_stop=True)
+
+        self.move_to('head_pan', deg_to_rad(0))
+        self.move_to('head_tilt', deg_to_rad(0))
+
 
     def pose(self, p, v_r=[None, None], a_r=[None, None]):
         """
