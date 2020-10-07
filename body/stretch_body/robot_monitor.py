@@ -20,9 +20,24 @@ class RobotMonitor(Device):
         self.param=self.robot_params['robot_monitor']
 
     def startup(self):
-        self.monitor_history={'monitor_dynamixel_flags':{}, 'monitor_voltage':self.robot.pimu.config['low_voltage_alert'],'monitor_current':self.robot.pimu.config['high_current_alert'],
-                              'monitor_guarded_contact':{},'monitor_wrist_single_tap':self.robot.wacc.status['single_tap_count'],
-                              'monitor_base_cliff_event':0,'monitor_base_bump_event':self.robot.pimu.status['bump_event_cnt'],'monitor_over_tilt_alert':0,'monitor_runstop':0}
+
+        if self.robot.wacc is not None:
+            stc=self.robot.wacc.status['single_tap_count']
+        else:
+            stc=None
+
+        if self.robot.pimu is not None:
+            lva=self.robot.pimu.config['low_voltage_alert']
+            hca=self.robot.pimu.config['high_current_alert']
+            bec=self.robot.pimu.status['bump_event_cnt']
+        else:
+            lva=None
+            hca=None
+            bec=None
+
+        self.monitor_history={'monitor_dynamixel_flags':{}, 'monitor_voltage':lva,'monitor_current':hca,
+                              'monitor_guarded_contact':{},'monitor_wrist_single_tap':stc,
+                              'monitor_base_cliff_event':0,'monitor_base_bump_event':bec,'monitor_over_tilt_alert':0,'monitor_runstop':0}
         self.logger=logging.getLogger('robot.robot_monitor')
 
     def step(self):
@@ -87,12 +102,13 @@ class RobotMonitor(Device):
         joints=[self.robot.lift, self.robot.arm]
         mn='monitor_guarded_contact'
         for j in joints:
-            if not self.monitor_history[mn].has_key(j.name):# Init history
-                self.monitor_history[mn][j.name] = 0
             if j is not None:
-                if self.monitor_history[mn][j.name]==0 and j.motor.status['in_guarded_event']:
-                    self.logger.info("Guarded contact %s"%j.name)
-            self.monitor_history[mn][j.name] =j.motor.status['in_guarded_event']
+                if not self.monitor_history[mn].has_key(j.name):# Init history
+                    self.monitor_history[mn][j.name] = 0
+                if j is not None:
+                    if self.monitor_history[mn][j.name]==0 and j.motor.status['in_guarded_event']:
+                        self.logger.info("Guarded contact %s"%j.name)
+                self.monitor_history[mn][j.name] =j.motor.status['in_guarded_event']
 
     # ##################################
     def monitor_dynamixel_flags(self):

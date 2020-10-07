@@ -31,6 +31,7 @@ class DynamixelXChain(Device):
         self.status={}
         self.motors = {}
         self.readers={}
+        self.runstop_last=None
 
 
     def add_motor(self,m):
@@ -112,9 +113,19 @@ class DynamixelXChain(Device):
         return values
 
 
+    def step_sentry(self,runstop):
+        """
+        This sentry places the Dynamixel servos in torque_disabled
+        mode when the runstop is enabled
+        """
+        if runstop is not self.runstop_last:
+            if runstop:
+                print 'Disabling torque to ',self.name
+                for mk in self.motors.keys():
+                    self.motors[mk].disable_torque()
+            else:
+                print 'Enabling torque to ', self.name
+                for mk in self.motors.keys():
+                    self.motors[mk].enable_torque()
 
-
-
-
-
-
+        self.runstop_last=runstop
