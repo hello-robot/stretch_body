@@ -120,11 +120,11 @@ class DynamixelXChain(Device):
         """
         if runstop is not self.runstop_last:
             if runstop:
-                print 'Disabling torque to ',self.name
+                #print 'Disabling torque to ',self.name
                 for mk in self.motors.keys():
                     self.motors[mk].disable_torque()
             else:
-                print 'Enabling torque to ', self.name
+                #print 'Enabling torque to ', self.name
                 for mk in self.motors.keys():
                     self.motors[mk].enable_torque()
 
