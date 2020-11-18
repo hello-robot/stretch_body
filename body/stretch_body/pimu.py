@@ -41,6 +41,7 @@ TRIGGER_FAN_OFF = 64
 TRIGGER_IMU_RESET =128
 TRIGGER_RUNSTOP_ON= 256
 TRIGGER_BEEP =512
+TRIGGER_TIMESTAMP_ZERO=1024
 # ######################## PIMU #################################
 
 """
@@ -111,7 +112,6 @@ class IMU(Device):
         self.status['qy'] = unpack_float_t(s[sidx:]);sidx += 4
         self.status['qz'] = unpack_float_t(s[sidx:]);sidx += 4
         self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
         return sidx
 
     def queue_rpc(self,transport):
@@ -244,6 +244,12 @@ class Pimu(Device):
             self._trigger=self._trigger | TRIGGER_BEEP
             self._dirty_trigger=True
 
+    def trigger_timestamp_zero(self):
+        """ Reset the uC timestamp counter"""
+        with self.lock:
+            self._trigger = self._trigger | TRIGGER_TIMESTAMP_ZERO
+            self._dirty_trigger = True
+
     # ####################### Utility functions ####################################################
     def imu_reset(self):
         with self.lock:
@@ -343,7 +349,7 @@ class Pimu(Device):
             self.status['low_voltage_alert'] = (self.status['state'] & STATE_LOW_VOLTAGE_ALERT) is not 0
             self.status['high_current_alert'] = (self.status['state'] & STATE_HIGH_CURRENT_ALERT) is not 0
             self.status['over_tilt_alert'] = (self.status['state'] & STATE_OVER_TILT_ALERT) is not 0
-            self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
+            self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
             self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
             self.status['cpu_temp']=self.get_cpu_temp()

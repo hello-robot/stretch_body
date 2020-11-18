@@ -292,6 +292,12 @@ def unpack_int32_t(s):
 def unpack_uint32_t(s):
     return struct.unpack('I',s[:4])[0]
 
+def unpack_int64_t(s):
+    return struct.unpack('q',s[:8])[0]
+
+def unpack_uint64_t(s):
+    return struct.unpack('Q',s[:8])[0]
+
 def unpack_int16_t(s):
     return struct.unpack('h',s[:2])[0]
 
