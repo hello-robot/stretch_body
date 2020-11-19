@@ -22,6 +22,7 @@ def menu():
     print('r: reset board')
     print 'x: reset runstop event'
     print 'o: trigger runstop event'
+    print 'z: trigger timestamp zero event'
     print 'y: reset cliff event'
     print '-------------------'
 
@@ -60,6 +61,8 @@ def step_interaction():
                 p.set_buzzer_on()
         if x[0] == 't':
             p.trigger_motor_sync()
+        if x[0] == 'z':
+            p.trigger_timestamp_zero()
         p.push_command()
     else:
         p.pretty_print()

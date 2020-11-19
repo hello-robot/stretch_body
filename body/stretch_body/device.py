@@ -21,6 +21,8 @@ class DeviceTimestamp:
         s=(self.timestamp_base + ts - self.timestamp_first) / 1000000.0
         return self.ts_start+s
 
+
+
 class Device:
     """
     Generic base class for all custom Stretch hardware

@@ -91,7 +91,7 @@ class IMU(Device):
         print '-----------------------'
 
     #Called by transport thread
-    def unpack_status(self, s):
+    def unpack_status(self, s, protocol_id=0):
         # take in an array of bytes
         # this needs to exactly match the C struct format
         sidx=0
@@ -112,6 +112,9 @@ class IMU(Device):
         self.status['qy'] = unpack_float_t(s[sidx:]);sidx += 4
         self.status['qz'] = unpack_float_t(s[sidx:]);sidx += 4
         self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+        if protocol_id==0: #Timestamp copied from Pimu class starting with V1
+            self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));
+            sidx += 4
         return sidx
 
     def queue_rpc(self,transport):
@@ -132,12 +135,12 @@ class Pimu(Device):
         self.params = self.robot_params['pimu']
         self._dirty_config = True
         self._dirty_trigger = False
-        self._dirty_board_info=True
+
         self.frame_id_last = None
         self.frame_id_base = 0
         self.transport = Transport('/dev/hello-pimu',self.verbose)
         self.status = {'voltage': 0, 'current': 0, 'temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
-                       'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
+                       'timestamp': 0,'timestamp_last_sync': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'imu': self.imu.status,'debug':0,
                        'transport': self.transport.status}
@@ -157,8 +160,18 @@ class Pimu(Device):
     def startup(self):
         with self.lock:
             self.transport.startup()
+            # Get Board info and Protocol ID
+            self.transport.payload_out[0] = RPC_GET_PIMU_BOARD_INFO
+            self.transport.queue_rpc(1, self.rpc_board_info_reply)
+            self.transport.step()
+            self.protocol_id=int(self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p')+1:])
+            # Configure timestamps
+            if self.protocol_id >0:
+                self.timestamp_base = time.time()
+                self.trigger_timestamp_zero()
             self.push_command()
             self.pull_status()
+
 
     def stop(self):
         with self.lock:
@@ -168,11 +181,6 @@ class Pimu(Device):
 
     def pull_status(self,exiting=False):
         with self.lock:
-            if self._dirty_board_info:
-                self.transport.payload_out[0] = RPC_GET_PIMU_BOARD_INFO
-                self.transport.queue_rpc(1, self.rpc_board_info_reply)
-                self._dirty_board_info=False
-
             # Queue Body Status RPC
             self.transport.payload_out[0] = RPC_GET_PIMU_STATUS
             self.transport.queue_rpc(1, self.rpc_status_reply)
@@ -213,6 +221,7 @@ class Pimu(Device):
         print 'Over Tilt Alert',self.status['over_tilt_alert']
         print 'Debug', self.status['debug']
         print 'Timestamp', self.status['timestamp']
+        print 'Timestamp Last Sync', self.status['timestamp_last_sync']
         print 'Read error', self.transport.status['read_error']
         print 'Board version:',self.board_info['board_version']
         print 'Firmware version:', self.board_info['firmware_version']
@@ -245,7 +254,9 @@ class Pimu(Device):
             self._dirty_trigger=True
 
     def trigger_timestamp_zero(self):
-        """ Reset the uC timestamp counter"""
+        """ Reset the uC timestamp counter
+        Supported on uC starting protocol v1
+        """
         with self.lock:
             self._trigger = self._trigger | TRIGGER_TIMESTAMP_ZERO
             self._dirty_trigger = True
@@ -315,9 +326,9 @@ class Pimu(Device):
     def unpack_board_info(self,s):
         with self.lock:
             sidx=0
-            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
             sidx += 20
-            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
             sidx += 20
             return sidx
 
@@ -325,7 +336,7 @@ class Pimu(Device):
     def unpack_status(self,s):
         with self.lock:
             sidx=0
-            sidx +=self.imu.unpack_status((s[sidx:]))
+            sidx +=self.imu.unpack_status((s[sidx:]),protocol_id=self.protocol_id)
             self.status['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
             self.status['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
             self.status['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
@@ -349,7 +360,12 @@ class Pimu(Device):
             self.status['low_voltage_alert'] = (self.status['state'] & STATE_LOW_VOLTAGE_ALERT) is not 0
             self.status['high_current_alert'] = (self.status['state'] & STATE_HIGH_CURRENT_ALERT) is not 0
             self.status['over_tilt_alert'] = (self.status['state'] & STATE_OVER_TILT_ALERT) is not 0
-            self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
+            if self.protocol_id==0:
+                self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
+            if self.protocol_id > 0:
+                self.status['timestamp'] = self.timestamp_base + (unpack_uint64_t(s[sidx:])/1000000.0); sidx += 8
+                self.imu.status['timestamp']=self.status['timestamp']  # Timestamp copied over starting V1 instead of computed on uC
+                self.status['timestamp_last_sync'] = self.timestamp_base + (unpack_uint64_t(s[sidx:]) / 1000000.0); sidx += 8
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
             self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
             self.status['cpu_temp']=self.get_cpu_temp()
