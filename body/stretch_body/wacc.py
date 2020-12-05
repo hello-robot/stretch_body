@@ -2,6 +2,7 @@
 
 from stretch_body.transport import *
 from stretch_body.device import Device
+from stretch_body.hello_utils import *
 import threading
 
 RPC_SET_WACC_CONFIG = 1
@@ -14,6 +15,7 @@ RPC_GET_WACC_BOARD_INFO =7
 RPC_REPLY_WACC_BOARD_INFO =8
 
 TRIGGER_BOARD_RESET = 1
+TRIGGER_TIMESTAMP_ZERO = 2
 
 # ######################## WACC #################################
 
@@ -40,12 +42,11 @@ class Wacc(Device):
         self.config = self.params['config']
         self._dirty_config = True #Force push down
         self._dirty_command = False
-        self._dirty_board_info = True
         self._command = {'d2':0,'d3':0, 'trigger':0}
         self.board_info={'board_version':'None', 'firmware_version':'None'}
         self.transport = Transport('/dev/hello-wacc',verbose=self.verbose)
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
-                       'timestamp': 0,
+                       'timestamp': SystemTimestamp(),
                        'transport': self.transport.status}
         self.ts_last=None
         self.transport.startup()
@@ -55,6 +56,14 @@ class Wacc(Device):
     def startup(self):
         with self.lock:
             self.transport.startup()
+
+            # Get Board info and Protocol ID
+            self.transport.payload_out[0] = RPC_GET_WACC_BOARD_INFO
+            self.transport.queue_rpc(1, self.rpc_board_info_reply)
+            self.transport.step()
+            self.protocol_id = int(self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p') + 1:])
+            if self.protocol_id > 0:
+                self.trigger_timestamp_zero()
             self.push_command()
             self.pull_status()
 
@@ -80,11 +89,6 @@ class Wacc(Device):
 
     def pull_status(self,exiting=False):
         with self.lock:
-            if self._dirty_board_info:
-                self.transport.payload_out[0] = RPC_GET_WACC_BOARD_INFO
-                self.transport.queue_rpc(1, self.rpc_board_info_reply)
-                self._dirty_board_info=False
-
             # Queue Status RPC
             self.transport.payload_out[0] = RPC_GET_WACC_STATUS
             sidx = 1
@@ -130,14 +134,21 @@ class Wacc(Device):
             self._command['trigger']=self._command['trigger']| TRIGGER_BOARD_RESET
             self._dirty_command=True
 
+    def trigger_timestamp_zero(self):
+        """ Reset the uC timestamp counter
+        Supported on uC starting protocol v1
+        """
+        with self.lock:
+            self._trigger = self._trigger | TRIGGER_TIMESTAMP_ZERO
+            self._dirty_trigger = True
     # ################Data Packing #####################
 
     def unpack_board_info(self,s):
         with self.lock:
             sidx=0
-            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
             sidx += 20
-            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
             sidx += 20
             return sidx
 
@@ -156,7 +167,11 @@ class Wacc(Device):
             self.status['d3'] = unpack_uint8_t(s[sidx:]); sidx += 1
             self.status['single_tap_count'] = unpack_uint32_t(s[sidx:]);sidx += 4
             self.status['state'] = unpack_uint32_t(s[sidx:]); sidx += 4
-            self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+
+            if self.protocol_id ==0:
+                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint32_t(s[sidx:]));sidx += 4
+            if self.protocol_id > 0:
+                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])); sidx += 8
             self.status['debug'] = unpack_uint32_t(s[sidx:]);sidx += 4
             return sidx
 

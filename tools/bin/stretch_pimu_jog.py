@@ -5,6 +5,7 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 
 p=Pimu()
+p.disable_sync_mode()
 p.startup()
 
 import argparse

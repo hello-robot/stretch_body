@@ -82,3 +82,47 @@ def thread_service_shutdown(signum, frame):
     print('Caught signal %d' % signum)
     raise ThreadServiceExit
 
+
+class SystemTimestamp:
+    def __init__(self, secs=0, nsecs=0):
+        """
+        secs: seconds since epoch
+        nsecs: nanoseconds since seconds (since epoch)
+        """
+        self.secs = int(secs)
+        self.nsecs = int(nsecs)
+
+
+    def from_wall_time(self):
+        return self.from_secs(time.time())
+
+    def from_secs(self,secs):
+        s = int(secs)
+        n = int((secs - s) * 1000000000)
+        return SystemTimestamp(s,n)
+
+    def from_nsecs(self,nsecs):
+        s=int(nsecs)/1000000000
+        n=int(nsecs-s*1000000000)
+        return SystemTimestamp(s, n)
+
+    def from_usecs(self,usecs):
+        s=int(usecs)/1000000
+        n=int(usecs-s*1000000)*1000
+        return SystemTimestamp(s, n)
+
+    def to_secs(self):
+        return self.secs+self.nsecs/1000000000.0
+
+    def to_nsecs(self):
+        return self.secs*1000000000 + self.nsecs
+
+    def to_usecs(self):
+        return self.secs * 1000000 + self.nsecs/1000
+
+    def __add__(self,ts ):
+        return SystemTimestamp(self.secs + ts.secs, self.nsecs+ts.nsecs)
+    def __sub__(self,ts ):
+        return SystemTimestamp(self.secs - ts.secs, self.nsecs-ts.nsecs)
+    def __repr__(self):
+        return '%f' % self.to_secs()

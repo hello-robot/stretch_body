@@ -18,6 +18,8 @@ RPC_GET_PIMU_BOARD_INFO =7
 RPC_REPLY_PIMU_BOARD_INFO =8
 RPC_SET_MOTOR_SYNC =9
 RPC_REPLY_MOTOR_SYNC =10
+RPC_SET_STATUS_SYNC =11
+RPC_REPLY_STATUS_SYNC =12
 
 STATE_AT_CLIFF_0= 1
 STATE_AT_CLIFF_1= 2
@@ -41,7 +43,8 @@ TRIGGER_FAN_OFF = 64
 TRIGGER_IMU_RESET =128
 TRIGGER_RUNSTOP_ON= 256
 TRIGGER_BEEP =512
-TRIGGER_TIMESTAMP_ZERO=1024
+TRIGGER_CLOCK_ZERO=1024
+
 # ######################## PIMU #################################
 
 """
@@ -58,7 +61,7 @@ class IMU(Device):
         #pitch; //-180 to 180, rolls over
         #roll; //-90 to  90, rolls over at 180
         #heading; //0-360.0, rolls over
-        self.status={'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'roll':0,'pitch':0,'heading':0,'timestamp':0}
+        self.status={'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'roll':0,'pitch':0,'heading':0,'timestamp':SystemTimestamp()}
 
     def get_status(self):
         s=self.status.copy()
@@ -140,7 +143,7 @@ class Pimu(Device):
         self.frame_id_base = 0
         self.transport = Transport('/dev/hello-pimu',self.verbose)
         self.status = {'voltage': 0, 'current': 0, 'temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
-                       'timestamp': 0,'timestamp_last_sync': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
+                       'timestamp': SystemTimestamp(),'timestamp_last_sync': SystemTimestamp(),'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'imu': self.imu.status,'debug':0,
                        'transport': self.transport.status}
@@ -148,6 +151,7 @@ class Pimu(Device):
         self._trigger=0
         self.ts_last_fan_on=None
         self.fan_on_last=False
+        self.timestamp_base=0 #SystemTimestamp()
         #Reset PIMU state so that Ctrl-C and re-instantiate Pimu class is efficient way to get out of an event
         if event_reset:
             self.runstop_event_reset()
@@ -167,8 +171,11 @@ class Pimu(Device):
             self.protocol_id=int(self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p')+1:])
             # Configure timestamps
             if self.protocol_id >0:
-                self.timestamp_base = time.time()
-                self.trigger_timestamp_zero()
+                self.timestamp_base=0#SystemTimestamp().from_wall_time()
+                #self.trigger_clock_sync()
+                if not self.config.has_key('sync_mode_enabled'): #New with protocol-1. If older YAML default to off
+                    self.config['sync_mode_enabled'] = 0
+
             self.push_command()
             self.pull_status()
 
@@ -229,6 +236,15 @@ class Pimu(Device):
 
     # ####################### User Functions #######################################################
 
+    def enable_sync_mode(self):
+        self.config['sync_mode_enabled'] = 1
+        self._dirty_config = 1
+
+
+    def disable_sync_mode(self):
+        self.config['sync_mode_enabled'] = 0
+        self._dirty_config=1
+
     def runstop_event_reset(self):
         """
         Reset the robot runstop, allowing motion to continue
@@ -253,12 +269,12 @@ class Pimu(Device):
             self._trigger=self._trigger | TRIGGER_BEEP
             self._dirty_trigger=True
 
-    def trigger_timestamp_zero(self):
-        """ Reset the uC timestamp counter
+    def trigger_clock_zero(self):
+        """ Reset the uC clock counter
         Supported on uC starting protocol v1
         """
         with self.lock:
-            self._trigger = self._trigger | TRIGGER_TIMESTAMP_ZERO
+            self._trigger = self._trigger | TRIGGER_CLOCK_ZERO
             self._dirty_trigger = True
 
     # ####################### Utility functions ####################################################
@@ -272,6 +288,13 @@ class Pimu(Device):
         with self.lock:
             self.transport.payload_out[0] = RPC_SET_MOTOR_SYNC
             self.transport.queue_rpc(1, self.rpc_motor_sync_reply)
+            self.transport.step()
+
+    def trigger_status_sync(self):
+        #Push out immediately
+        with self.lock:
+            self.transport.payload_out[0] = RPC_SET_STATUS_SYNC
+            self.transport.queue_rpc(1, self.rpc_status_sync_reply)
             self.transport.step()
 
     def set_fan_on(self):
@@ -361,11 +384,13 @@ class Pimu(Device):
             self.status['high_current_alert'] = (self.status['state'] & STATE_HIGH_CURRENT_ALERT) is not 0
             self.status['over_tilt_alert'] = (self.status['state'] & STATE_OVER_TILT_ALERT) is not 0
             if self.protocol_id==0:
-                self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
+                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint32_t(s[sidx:])); sidx += 4
             if self.protocol_id > 0:
-                self.status['timestamp'] = self.timestamp_base + (unpack_uint64_t(s[sidx:])/1000000.0); sidx += 8
+                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])) #self.timestamp_base + SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:]));
+                sidx += 8
                 self.imu.status['timestamp']=self.status['timestamp']  # Timestamp copied over starting V1 instead of computed on uC
-                self.status['timestamp_last_sync'] = self.timestamp_base + (unpack_uint64_t(s[sidx:]) / 1000000.0); sidx += 8
+                self.status['timestamp_last_sync'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])) #self.timestamp_base + SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:]));
+                sidx += 8
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
             self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
             self.status['cpu_temp']=self.get_cpu_temp()
@@ -402,6 +427,8 @@ class Pimu(Device):
             pack_float_t(s, sidx, self.config['low_voltage_alert']);sidx += 4
             pack_float_t(s, sidx, self.config['high_current_alert']);sidx += 4
             pack_float_t(s, sidx, self.config['over_tilt_alert']); sidx += 4
+            if self.protocol_id > 0:
+                pack_uint8_t(s, sidx, self.config['sync_mode_enabled']);sidx += 1
             return sidx
 
     def pack_trigger(self,s,sidx):
@@ -414,6 +441,10 @@ class Pimu(Device):
     def rpc_motor_sync_reply(self,reply):
         if reply[0] != RPC_REPLY_MOTOR_SYNC:
             print 'Error RPC_REPLY_MOTOR_SYNC', reply[0]
+
+    def rpc_status_sync_reply(self,reply):
+        if reply[0] != RPC_REPLY_STATUS_SYNC:
+            print 'Error RPC_REPLY_STATUS_SYNC', reply[0]
 
     def rpc_config_reply(self,reply):
         if reply[0] != RPC_REPLY_PIMU_CONFIG:

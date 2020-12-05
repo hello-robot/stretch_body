@@ -77,10 +77,10 @@ class Stepper(Device):
         self.lock=threading.RLock()
         self.transport = Transport(self.usb,self.verbose)
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
-        self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
+        self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': SystemTimestamp(), 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0,
-                       'in_safety_event':0,'waiting_on_sync':0}
+                       'in_safety_event':0,'waiting_on_sync':0,'timestamp_last_sync':SystemTimestamp()}
         self.board_info={'board_version':'None', 'firmware_version':'None'}
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
                          MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR'}
@@ -89,7 +89,6 @@ class Stepper(Device):
         self._dirty_command = False
         self._dirty_gains = False
         self._dirty_trigger = False
-        self._dirty_board_info = True
         self._dirty_read_gains_from_flash=False
         self._dirty_motion_limits=False
         self._dirty_load_test=False
@@ -103,6 +102,13 @@ class Stepper(Device):
         with self.lock:
             self.gains=self.params['gains'].copy()
             self.transport.startup()
+
+            # Get Board info and Protocol ID
+            self.transport.payload_out[0] = RPC_GET_STEPPER_BOARD_INFO
+            self.transport.queue_rpc(1, self.rpc_board_info_reply)
+            self.transport.step()
+            self.protocol_id = int(self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p') + 1:])
+
             self.enable_safety()
             self._dirty_gains = True
             self.pull_status()
@@ -154,11 +160,6 @@ class Stepper(Device):
 
     def pull_status(self, exiting=False):
         with self.lock:
-            if self._dirty_board_info:
-                self.transport.payload_out[0] = RPC_GET_STEPPER_BOARD_INFO
-                self.transport.queue_rpc(1, self.rpc_board_info_reply)
-                self._dirty_board_info=False
-
             if self._dirty_read_gains_from_flash:
                 self.transport.payload_out[0] = RPC_READ_GAINS_FROM_FLASH
                 self.transport.queue_rpc(1, self.rpc_read_gains_from_flash_reply)
@@ -199,6 +200,7 @@ class Stepper(Device):
         print '       In Safety Event:', self.status['in_safety_event']
         print '       Waiting on Sync:', self.status['waiting_on_sync']
         print 'Timestamp', self.status['timestamp']
+        print 'Timestamp Last Sync', self.status['timestamp_last_sync']
         print 'Read error', self.transport.status['read_error']
         print 'Board version:', self.board_info['board_version']
         print 'Firmware version:', self.board_info['firmware_version']
@@ -461,6 +463,7 @@ class Stepper(Device):
         if reply[0] != RPC_REPLY_ENC_CALIB:
             print 'Error RPC_REPLY_ENC_CALIB', reply[0]
 
+
     # ######################Menu Inteface ################################3
 
 
@@ -497,9 +500,9 @@ class Stepper(Device):
     def unpack_board_info(self,s):
         with self.lock:
             sidx=0
-            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
             sidx += 20
-            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
             sidx += 20
             return sidx
 
@@ -513,9 +516,15 @@ class Stepper(Device):
             self.status['vel'] = unpack_float_t(s[sidx:]);sidx+=4
             self.status['err'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
-            self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+            if self.protocol_id ==0:
+                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint32_t(s[sidx:]));sidx += 4
+            if self.protocol_id > 0:
+                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])); sidx += 8
+                self.status['timestamp_last_sync'] =SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])); sidx += 8
+
             self.status['debug'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
+
             self.status['pos_calibrated'] =self.status['diag'] & DIAG_POS_CALIBRATED > 0
             self.status['runstop_on'] =self.status['diag'] & DIAG_RUNSTOP_ON > 0
             self.status['near_pos_setpoint'] =self.status['diag'] & DIAG_NEAR_POS_SETPOINT > 0

@@ -22,7 +22,6 @@ class DeviceTimestamp:
         return self.ts_start+s
 
 
-
 class Device:
     """
     Generic base class for all custom Stretch hardware

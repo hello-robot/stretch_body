@@ -65,7 +65,7 @@ class Scope4:
         self.y2.append(y2)
         self.y2 = self.y2[1:]
         self.y3.append(y3)
-        self.y3 = self.y1[3:]
+        self.y3 = self.y3[1:]
         self.y4.append(y4)
         self.y4 = self.y4[1:]
         drawnow(self.make_fig)
