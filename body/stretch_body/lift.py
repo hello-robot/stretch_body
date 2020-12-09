@@ -11,7 +11,7 @@ class Lift(Device):
         self.name='lift'
         self.params=self.robot_params[self.name]
         self.motor = Stepper('/dev/hello-motor-lift')
-        self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
+        self.status = {'timestamp_pc':SystemTimestamp(),'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
         # Default controller params
         self.stiffness = 1.0
         self.i_feedforward=self.params['i_feedforward']
@@ -30,7 +30,7 @@ class Lift(Device):
 
     def pull_status(self):
         self.motor.pull_status()
-        self.status['timestamp_pc'] = time.time()
+        self.status['timestamp_pc'] = SystemTimestamp().from_wall_time()
         self.status['pos']= self.motor_rad_to_translate_m(self.status['motor']['pos'])
         self.status['vel'] = self.motor_rad_to_translate_m(self.status['motor']['vel'])
         self.status['force'] = self.motor_current_to_translate_force(self.status['motor']['current'])

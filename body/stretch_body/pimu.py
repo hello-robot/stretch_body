@@ -3,6 +3,8 @@
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
+from stretch_body.hardware_clock_manager import *
+
 import threading
 import psutil
 import logging
@@ -20,6 +22,9 @@ RPC_SET_MOTOR_SYNC =9
 RPC_REPLY_MOTOR_SYNC =10
 RPC_SET_STATUS_SYNC =11
 RPC_REPLY_STATUS_SYNC =12
+RPC_SET_CLOCK_ZERO =13
+RPC_REPLY_CLOCK_ZERO =14
+
 
 STATE_AT_CLIFF_0= 1
 STATE_AT_CLIFF_1= 2
@@ -43,7 +48,7 @@ TRIGGER_FAN_OFF = 64
 TRIGGER_IMU_RESET =128
 TRIGGER_RUNSTOP_ON= 256
 TRIGGER_BEEP =512
-TRIGGER_CLOCK_ZERO=1024
+
 
 # ######################## PIMU #################################
 
@@ -143,21 +148,24 @@ class Pimu(Device):
         self.frame_id_base = 0
         self.transport = Transport('/dev/hello-pimu',self.verbose)
         self.status = {'voltage': 0, 'current': 0, 'temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
-                       'timestamp': SystemTimestamp(),'timestamp_last_sync': SystemTimestamp(),'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
+                       'timestamp': SystemTimestamp(),'timestamp_line_sync': SystemTimestamp(),'timestamp_status_sync':SystemTimestamp(),
+                        'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'imu': self.imu.status,'debug':0,
-                       'transport': self.transport.status}
+                       'transport': self.transport.status, 'timestamp_pc':0}
         self.board_info={'board_version':'None', 'firmware_version':'None'}
         self._trigger=0
         self.ts_last_fan_on=None
         self.fan_on_last=False
-        self.timestamp_base=0 #SystemTimestamp()
+        self.clock_manager=HardwareClockManager(self,'pimu_clock_manager')
         #Reset PIMU state so that Ctrl-C and re-instantiate Pimu class is efficient way to get out of an event
         if event_reset:
             self.runstop_event_reset()
             self.cliff_event_reset()
 
-
+        #Handle missing YAML fields due to version changes
+        if not self.config.has_key('sync_mode_enabled'):  # New with protocol-1. If older YAML default to off
+            self.config['sync_mode_enabled'] = 0
 
     # ###########  Device Methods #############
 
@@ -169,16 +177,9 @@ class Pimu(Device):
             self.transport.queue_rpc(1, self.rpc_board_info_reply)
             self.transport.step()
             self.protocol_id=int(self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p')+1:])
-            # Configure timestamps
-            if self.protocol_id >0:
-                self.timestamp_base=0#SystemTimestamp().from_wall_time()
-                #self.trigger_clock_sync()
-                if not self.config.has_key('sync_mode_enabled'): #New with protocol-1. If older YAML default to off
-                    self.config['sync_mode_enabled'] = 0
-
             self.push_command()
             self.pull_status()
-
+            self.clock_manager.zero_HW_clock()
 
     def stop(self):
         with self.lock:
@@ -187,6 +188,7 @@ class Pimu(Device):
             self.transport.stop()
 
     def pull_status(self,exiting=False):
+        self.status['timestamp_pc'] =time.time()
         with self.lock:
             # Queue Body Status RPC
             self.transport.payload_out[0] = RPC_GET_PIMU_STATUS
@@ -227,12 +229,15 @@ class Pimu(Device):
         print 'High Current Alert', self.status['high_current_alert']
         print 'Over Tilt Alert',self.status['over_tilt_alert']
         print 'Debug', self.status['debug']
-        print 'Timestamp', self.status['timestamp']
-        print 'Timestamp Last Sync', self.status['timestamp_last_sync']
+        print 'Timestamp Data', self.status['timestamp']
+        print 'Timestamp Line Sync', self.status['timestamp_line_sync']
+        print 'Timestamp Status Sync',self.status['timestamp_status_sync']
+        print 'Timestamp PC', self.status['timestamp_pc']
         print 'Read error', self.transport.status['read_error']
         print 'Board version:',self.board_info['board_version']
         print 'Firmware version:', self.board_info['firmware_version']
         self.imu.pretty_print()
+        self.clock_manager.pretty_print()
 
     # ####################### User Functions #######################################################
 
@@ -269,14 +274,6 @@ class Pimu(Device):
             self._trigger=self._trigger | TRIGGER_BEEP
             self._dirty_trigger=True
 
-    def trigger_clock_zero(self):
-        """ Reset the uC clock counter
-        Supported on uC starting protocol v1
-        """
-        with self.lock:
-            self._trigger = self._trigger | TRIGGER_CLOCK_ZERO
-            self._dirty_trigger = True
-
     # ####################### Utility functions ####################################################
     def imu_reset(self):
         with self.lock:
@@ -291,11 +288,22 @@ class Pimu(Device):
             self.transport.step()
 
     def trigger_status_sync(self):
-        #Push out immediately
-        with self.lock:
-            self.transport.payload_out[0] = RPC_SET_STATUS_SYNC
-            self.transport.queue_rpc(1, self.rpc_status_sync_reply)
-            self.transport.step()
+        if self.protocol_id > 0:
+            self.clock_manager.start_skew_measure()
+            #Push out immediately
+            with self.lock:
+                self.transport.payload_out[0] = RPC_SET_STATUS_SYNC
+                self.transport.queue_rpc(1, self.rpc_status_sync_reply)
+                self.transport.step()
+            self.clock_manager.end_skew_measure()
+
+    def trigger_clock_zero(self):
+        # Push out immediately
+        if self.protocol_id > 0:
+            with self.lock:
+                self.transport.payload_out[0] = RPC_SET_CLOCK_ZERO
+                self.transport.queue_rpc(1, self.rpc_clock_zero_reply)
+                self.transport.step()
 
     def set_fan_on(self):
         with self.lock:
@@ -384,12 +392,13 @@ class Pimu(Device):
             self.status['high_current_alert'] = (self.status['state'] & STATE_HIGH_CURRENT_ALERT) is not 0
             self.status['over_tilt_alert'] = (self.status['state'] & STATE_OVER_TILT_ALERT) is not 0
             if self.protocol_id==0:
-                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint32_t(s[sidx:])); sidx += 4
+                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint32_t(s[sidx:]))
+                sidx += 4
             if self.protocol_id > 0:
-                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])) #self.timestamp_base + SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:]));
+                self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:]))
                 sidx += 8
                 self.imu.status['timestamp']=self.status['timestamp']  # Timestamp copied over starting V1 instead of computed on uC
-                self.status['timestamp_last_sync'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])) #self.timestamp_base + SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:]));
+                self.status['timestamp_line_sync'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:]))
                 sidx += 8
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
             self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
@@ -445,6 +454,12 @@ class Pimu(Device):
     def rpc_status_sync_reply(self,reply):
         if reply[0] != RPC_REPLY_STATUS_SYNC:
             print 'Error RPC_REPLY_STATUS_SYNC', reply[0]
+        else:
+            self.status['timestamp_status_sync'] = SystemTimestamp().from_usecs(unpack_uint64_t(reply[1:]))
+
+    def rpc_clock_zero_reply(self, reply):
+        if reply[0] != RPC_REPLY_CLOCK_ZERO:
+            print 'Error RPC_REPLY_CLOCK_ZERO', reply[0]
 
     def rpc_config_reply(self,reply):
         if reply[0] != RPC_REPLY_PIMU_CONFIG:

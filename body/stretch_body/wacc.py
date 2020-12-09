@@ -3,7 +3,10 @@
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
+from stretch_body.hardware_clock_manager import *
+
 import threading
+import time
 
 RPC_SET_WACC_CONFIG = 1
 RPC_REPLY_WACC_CONFIG = 2
@@ -13,9 +16,13 @@ RPC_SET_WACC_COMMAND = 5
 RPC_REPLY_WACC_COMMAND = 6
 RPC_GET_WACC_BOARD_INFO =7
 RPC_REPLY_WACC_BOARD_INFO =8
+RPC_SET_STATUS_SYNC =9
+RPC_REPLY_STATUS_SYNC =10
+RPC_SET_CLOCK_ZERO =11
+RPC_REPLY_CLOCK_ZERO =12
 
 TRIGGER_BOARD_RESET = 1
-TRIGGER_TIMESTAMP_ZERO = 2
+
 
 # ######################## WACC #################################
 
@@ -46,10 +53,14 @@ class Wacc(Device):
         self.board_info={'board_version':'None', 'firmware_version':'None'}
         self.transport = Transport('/dev/hello-wacc',verbose=self.verbose)
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
-                       'timestamp': SystemTimestamp(),
-                       'transport': self.transport.status}
+                       'timestamp': SystemTimestamp(),'timestamp_status_sync': SystemTimestamp(),
+                       'transport': self.transport.status, 'timestamp_pc':0}
         self.ts_last=None
         self.transport.startup()
+        # Handle missing YAML fields due to version changes
+        if not self.config.has_key('sync_mode_enabled'):  # New with protocol-1. If older YAML default to off
+            self.config['sync_mode_enabled'] = 0
+        self.clock_manager=HardwareClockManager(self,'wacc_clock_manager')
 
     # ###########  Device Methods #############
 
@@ -62,10 +73,9 @@ class Wacc(Device):
             self.transport.queue_rpc(1, self.rpc_board_info_reply)
             self.transport.step()
             self.protocol_id = int(self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p') + 1:])
-            if self.protocol_id > 0:
-                self.trigger_timestamp_zero()
             self.push_command()
             self.pull_status()
+            self.clock_manager.zero_HW_clock()
 
     def stop(self):
         with self.lock:
@@ -88,6 +98,7 @@ class Wacc(Device):
 
 
     def pull_status(self,exiting=False):
+        self.status['timestamp_pc'] =time.time()
         with self.lock:
             # Queue Status RPC
             self.transport.payload_out[0] = RPC_GET_WACC_STATUS
@@ -125,22 +136,43 @@ class Wacc(Device):
         print 'State ', self.status['state']
         print 'Debug',self.status['debug']
         print 'Timestamp', self.status['timestamp']
+        print 'Timestamp Status Sync', self.status['timestamp_status_sync']
+        print 'Timestamp PC', self.status['timestamp_pc']
         print 'Board version:', self.board_info['board_version']
         print 'Firmware version:', self.board_info['firmware_version']
-
+        self.clock_manager.pretty_print()
     # ####################### Utility functions ####################################################
     def board_reset(self):
         with self.lock:
             self._command['trigger']=self._command['trigger']| TRIGGER_BOARD_RESET
             self._dirty_command=True
 
-    def trigger_timestamp_zero(self):
-        """ Reset the uC timestamp counter
-        Supported on uC starting protocol v1
-        """
-        with self.lock:
-            self._trigger = self._trigger | TRIGGER_TIMESTAMP_ZERO
-            self._dirty_trigger = True
+    def trigger_clock_zero(self):
+        # Push out immediately
+        if self.protocol_id > 0:
+            with self.lock:
+                self.transport.payload_out[0] = RPC_SET_CLOCK_ZERO
+                self.transport.queue_rpc(1, self.rpc_clock_zero_reply)
+                self.transport.step()
+
+    def trigger_status_sync(self):
+        if self.protocol_id > 0:
+            self.clock_manager.start_skew_measure()
+            #Push out immediately
+            with self.lock:
+                self.transport.payload_out[0] = RPC_SET_STATUS_SYNC
+                self.transport.queue_rpc(1, self.rpc_status_sync_reply)
+                self.transport.step()
+            self.clock_manager.end_skew_measure()
+
+    def enable_sync_mode(self):
+        self.config['sync_mode_enabled'] = 1
+        self._dirty_config = 1
+
+
+    def disable_sync_mode(self):
+        self.config['sync_mode_enabled'] = 0
+        self._dirty_config=1
     # ################Data Packing #####################
 
     def unpack_board_info(self,s):
@@ -200,6 +232,9 @@ class Wacc(Device):
             sidx += 1
             pack_float_t(s, sidx, self.config['accel_gravity_scale'])
             sidx += 4
+            if self.protocol_id > 0:
+                pack_uint8_t(s, sidx, self.config['sync_mode_enabled'])
+                sidx += 1
             return sidx
 
     # ################Transport Callbacks #####################
@@ -223,8 +258,12 @@ class Wacc(Device):
         else:
             print 'Error RPC_REPLY_WACC_STATUS', reply[0]
 
+    def rpc_status_sync_reply(self,reply):
+        if reply[0] != RPC_REPLY_STATUS_SYNC:
+            print 'Error RPC_REPLY_STATUS_SYNC', reply[0]
+        else:
+            self.status['timestamp_status_sync'] = SystemTimestamp().from_usecs(unpack_uint64_t(reply[1:]))
 
-
-
-
-
+    def rpc_clock_zero_reply(self, reply):
+        if reply[0] != RPC_REPLY_CLOCK_ZERO:
+            print 'Error RPC_REPLY_CLOCK_ZERO', reply[0]

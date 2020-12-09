@@ -33,7 +33,7 @@ class Arm(Device):
 
     def pull_status(self):
         self.motor.pull_status()
-        self.status['timestamp_pc']=time.time()
+        self.status['timestamp_pc'] = time.time()
         self.status['pos']= self.motor_rad_to_translate(self.status['motor']['pos'])
         self.status['vel'] = self.motor_rad_to_translate(self.status['motor']['vel'])
         self.status['force'] = self.motor_current_to_translate_force(self.status['motor']['current'])

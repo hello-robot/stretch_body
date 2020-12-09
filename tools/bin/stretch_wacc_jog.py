@@ -21,6 +21,10 @@ def menu():
     print('b: set D2 off')
     print('c: set D3 on')
     print('d: set D3 off')
+    print('s: trigger status sync')
+    print('k: disable sync mode')
+    print('l: enable sync mode')
+    print('z: zero clock')
     print '-------------------'
 
 def step_interaction():
@@ -42,6 +46,15 @@ def step_interaction():
             w.board_reset()
             w.push_command()
             exit()
+
+        if x[0] == 's':
+            w.trigger_status_sync()
+        if x[0] == 'k':
+            w.disable_sync_mode()
+        if x[0] == 'l':
+            w.enable_sync_mode()
+        if x[0] == 'z':
+            w.trigger_clock_zero()
         w.push_command()
     else:
         w.pull_status()

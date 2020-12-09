@@ -21,7 +21,7 @@ from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
 from stretch_body.robot_sentry import RobotSentry
-
+from stretch_body.robot_timestamp_manager import RobotTimestampManager
 # #############################################################
 class RobotDynamixelThread(threading.Thread):
     """
@@ -51,7 +51,7 @@ class RobotThread(threading.Thread):
     """
     This thread runs at 25Hz.
     It updates the status data of the Devices.
-    It also steps the Sentry and Monitor functions
+    It also steps the Sentry, TimeManager, and Monitor functions
     """
     def __init__(self,robot):
         threading.Thread.__init__(self)
@@ -60,10 +60,12 @@ class RobotThread(threading.Thread):
         self.robot_update_rate_hz = 25.0  #Hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
+
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         if self.robot.params['use_sentry']:
             self.robot.sentry.startup()
+
         self.shutdown_flag = threading.Event()
         self.timer_stats = hello_utils.TimerStats()
         self.titr=0
@@ -72,8 +74,11 @@ class RobotThread(threading.Thread):
     def run(self):
         while not self.shutdown_flag.is_set():
             ts = time.time()
+
             self.robot._pull_status_non_dynamixel()
+
             self.first_status = True
+
             if self.robot.params['use_monitor']:
                 if (self.titr % self.monitor_downrate_int) == 0:
                     self.robot.monitor.step()
@@ -105,12 +110,14 @@ class Robot(Device):
 
         self.monitor = RobotMonitor(self)
         self.sentry = RobotSentry(self)
+        self.timestamp_manager = RobotTimestampManager(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
 
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {},
-                       'timestamps':{'pimu_imu':hello_utils.SystemTimestamp(),'lift_pos':hello_utils.SystemTimestamp(),'arm_pos':hello_utils.SystemTimestamp(),
-                                     'right_wheel_pos':hello_utils.SystemTimestamp(),'left_wheel_pos':hello_utils.SystemTimestamp(),
+                       'timestamps':{'hw_sync':hello_utils.SystemTimestamp(),
+                                     'pimu_imu':hello_utils.SystemTimestamp(),'lift_enc':hello_utils.SystemTimestamp(),'arm_enc':hello_utils.SystemTimestamp(),
+                                     'right_wheel_enc':hello_utils.SystemTimestamp(),'left_wheel_enc':hello_utils.SystemTimestamp(),
                                      'wacc_acc':hello_utils.SystemTimestamp(),
                                      'dynamixel_wall_time':hello_utils.SystemTimestamp(),
                                      'non_dynamixel_wall_time':hello_utils.SystemTimestamp()}}
@@ -187,37 +194,8 @@ class Robot(Device):
             if self.devices[k] is not None:
                 self.devices[k].startup()
 
-        #Globally manage sync mode with Robot, override lower level YAML
-        if not self.params.has_key('sync_mode_enabled'):  # New with protocol-1. If older YAML default to off
-            self.params['sync_mode_enabled'] = 0
-        if self.params['sync_mode_enabled']:
-            if self.pimu is not None:
-                self.pimu.enable_sync_mode()
-                self.pimu.push_command()
-            if self.arm is not None:
-                self.arm.motor.enable_sync_mode()
-                self.arm.push_command()
-            if self.lift is not None:
-                self.lift.motor.enable_sync_mode()
-                self.lift.push_command()
-            if self.base is not None:
-                self.base.left_wheel.enable_sync_mode()
-                self.base.right_wheel.enable_sync_mode()
-                self.base.push_command()
-        else:
-            if self.pimu is not None:
-                self.pimu.disable_sync_mode()
-                self.pimu.push_command()
-            if self.arm is not None:
-                self.arm.motor.disable_sync_mode()
-                self.arm.push_command()
-            if self.lift is not None:
-                self.lift.motor.disable_sync_mode()
-                self.lift.push_command()
-            if self.base is not None:
-                self.base.left_wheel.disable_sync_mode()
-                self.base.right_wheel.disable_sync_mode()
-                self.base.push_command()
+        if self.params['use_time_manager']:
+            self.timestamp_manager.startup()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
@@ -407,11 +385,10 @@ class Robot(Device):
             print 'Serial Exception on Robot Step_Dynamixel'
 
     def _pull_status_non_dynamixel(self):
-        #NOte: send a capture_status message to all slaves, so timestamped at some time
-        #yaml flag at robot level / set each slave in sync_ts mode
-        #coordinate with motor sync at robot level
+        #Send a status sync message to all slaves, so timestamped at same time
         if self.pimu is not None:
             self.pimu.trigger_status_sync()
+            self.wacc.trigger_status_sync()
         if self.wacc is not None:
             self.wacc.pull_status()
         if self.base is not None:
@@ -422,13 +399,9 @@ class Robot(Device):
             self.arm.pull_status()
         if self.pimu is not None:
             self.pimu.pull_status()
-        #Compute timestamps
-        if self.wacc and self.base and self.lift and self.arm and self.pimu:
-            self.status['timestamps']['pimu_imu']=self.pimu.status['timestamp']
-            self.status['timestamps']['lift_pos'] = self.pimu.status['timestamp_last_sync']+self.lift.motor.status['timestamp']-self.lift.motor.status['timestamp_last_sync']
-            self.status['timestamps']['arm_pos'] = self.pimu.status['timestamp_last_sync'] + self.arm.motor.status['timestamp'] - self.arm.motor.status['timestamp_last_sync']
-            self.status['timestamps']['left_wheel_pos'] = self.pimu.status['timestamp_last_sync'] + self.base.left_wheel.status['timestamp'] - self.base.left_wheel.status['timestamp_last_sync']
-            self.status['timestamps']['right_wheel_pos'] = self.pimu.status['timestamp_last_sync'] + self.base.right_wheel.status['timestamp'] - self.base.right_wheel.status['timestamp_last_sync']
-            self.status['timestamps']['non_dynamixel_wall_time']=hello_utils.SystemTimestamp().from_wall_time()
+
+        #This will compute the timestamps ond update the status message at the Robot level
         with self.lock:
+            if self.params['use_time_manager']:
+                self.timestamp_manager.step()
             self.status_last=self.status.copy()

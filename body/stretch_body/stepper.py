@@ -80,7 +80,7 @@ class Stepper(Device):
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': SystemTimestamp(), 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0,
-                       'in_safety_event':0,'waiting_on_sync':0,'timestamp_last_sync':SystemTimestamp()}
+                       'in_safety_event':0,'waiting_on_sync':0,'timestamp_line_sync':SystemTimestamp()}
         self.board_info={'board_version':'None', 'firmware_version':'None'}
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
                          MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR'}
@@ -200,7 +200,7 @@ class Stepper(Device):
         print '       In Safety Event:', self.status['in_safety_event']
         print '       Waiting on Sync:', self.status['waiting_on_sync']
         print 'Timestamp', self.status['timestamp']
-        print 'Timestamp Last Sync', self.status['timestamp_last_sync']
+        print 'Timestamp Line Sync', self.status['timestamp_line_sync']
         print 'Read error', self.transport.status['read_error']
         print 'Board version:', self.board_info['board_version']
         print 'Firmware version:', self.board_info['firmware_version']
@@ -520,7 +520,7 @@ class Stepper(Device):
                 self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint32_t(s[sidx:]));sidx += 4
             if self.protocol_id > 0:
                 self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])); sidx += 8
-                self.status['timestamp_last_sync'] =SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])); sidx += 8
+                self.status['timestamp_line_sync'] =SystemTimestamp().from_usecs(unpack_uint64_t(s[sidx:])); sidx += 8
 
             self.status['debug'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4

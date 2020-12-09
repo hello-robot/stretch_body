@@ -114,6 +114,9 @@ class SystemTimestamp:
     def to_secs(self):
         return self.secs+self.nsecs/1000000000.0
 
+    def to_msecs(self):
+        return self.to_secs()*1000
+
     def to_nsecs(self):
         return self.secs*1000000000 + self.nsecs
 

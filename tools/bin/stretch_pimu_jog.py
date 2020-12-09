@@ -5,7 +5,6 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 
 p=Pimu()
-p.disable_sync_mode()
 p.startup()
 
 import argparse
@@ -19,11 +18,15 @@ def menu():
     print('f: toggle fan')
     print('b: toggle buzzer')
     print('p: beep')
+    print('s: trigger status sync')
     print('t: trigger motor sync')
+    print('k: disable sync mode')
+    print('l: enable sync mode')
     print('r: reset board')
     print 'x: reset runstop event'
     print 'o: trigger runstop event'
-    print 'z: trigger timestamp zero event'
+    print 'z: zero clock'
+
     print 'y: reset cliff event'
     print '-------------------'
 
@@ -62,8 +65,14 @@ def step_interaction():
                 p.set_buzzer_on()
         if x[0] == 't':
             p.trigger_motor_sync()
+        if x[0] == 's':
+            p.trigger_status_sync()
+        if x[0] == 'k':
+            p.disable_sync_mode()
+        if x[0] == 'l':
+            p.enable_sync_mode()
         if x[0] == 'z':
-            p.trigger_timestamp_zero()
+            p.trigger_clock_zero()
         p.push_command()
     else:
         p.pretty_print()
