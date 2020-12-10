@@ -18,6 +18,10 @@ large_rotate_rad=deg_to_rad(10.0)
 
 b=base.Base()
 b.startup()
+#b.left_wheel.disable_sync_mode()
+#b.right_wheel.disable_sync_mode()
+#b.push_command()
+
 large_move_m=0.1
 small_move_m=large_move_m/8
 
@@ -34,6 +38,8 @@ a_r={'fast':a_r_fast,'default':a_r_def,'slow':a_r_slow,'max':a_r_max}
 
 p=pimu.Pimu()
 p.startup()
+p.enable_sync_mode()
+p.push_command()
 
 def get_keystroke():
 
@@ -74,13 +80,7 @@ try:
         if True:
 
             c=get_keystroke()
-
-            #Read current motor positions when in sync mode
-            #p.trigger_motor_sync()
-            #time.sleep(0.1)
             b.pull_status()
-            #print '################################'
-            #b.pretty_print()
 
             if c=='p':
                 b.pretty_print()

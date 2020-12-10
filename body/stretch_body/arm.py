@@ -183,6 +183,8 @@ class Arm(Device):
         Home to hardstops
         """
         print 'Homing Arm...'
+        g0 = self.motor.gains['enable_guarded_mode']
+        s0 = self.motor.gains['enable_sync_mode']
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
@@ -245,9 +247,10 @@ class Arm(Device):
             print 'Arm homing successful'
 
         #Restore default
-        if not self.motor.gains['enable_guarded_mode']:
+        #Restore default
+        if not g0:
             self.motor.disable_guarded_mode()
-        if self.motor.gains['enable_sync_mode']:
+        if s0:
             self.motor.enable_sync_mode()
         self.push_command()
 

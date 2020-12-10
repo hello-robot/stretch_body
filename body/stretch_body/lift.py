@@ -11,7 +11,7 @@ class Lift(Device):
         self.name='lift'
         self.params=self.robot_params[self.name]
         self.motor = Stepper('/dev/hello-motor-lift')
-        self.status = {'timestamp_pc':SystemTimestamp(),'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
+        self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
         # Default controller params
         self.stiffness = 1.0
         self.i_feedforward=self.params['i_feedforward']
@@ -30,7 +30,7 @@ class Lift(Device):
 
     def pull_status(self):
         self.motor.pull_status()
-        self.status['timestamp_pc'] = SystemTimestamp().from_wall_time()
+        self.status['timestamp_pc'] = time.time()
         self.status['pos']= self.motor_rad_to_translate_m(self.status['motor']['pos'])
         self.status['vel'] = self.motor_rad_to_translate_m(self.status['motor']['vel'])
         self.status['force'] = self.motor_current_to_translate_force(self.status['motor']['current'])
@@ -189,6 +189,8 @@ class Lift(Device):
 
     def home(self, measuring=False):
         print 'Homing lift...'
+        g0=self.motor.gains['enable_guarded_mode']
+        s0=self.motor.gains['enable_sync_mode']
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
@@ -223,9 +225,9 @@ class Lift(Device):
         time.sleep(6.0)
 
         #Restore default
-        if not self.motor.gains['enable_guarded_mode']:
+        if not g0:
             self.motor.disable_guarded_mode()
-        if self.motor.gains['enable_sync_mode']:
+        if s0:
             self.motor.enable_sync_mode()
         self.push_command()
 

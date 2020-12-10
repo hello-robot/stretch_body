@@ -339,6 +339,8 @@ class Robot(Device):
         Cause the robot to home its joints by moving to hardstops
         Blocking.
         """
+        self.pimu.disable_sync_mode()
+        self.push_command()
         if self.head is not None:
             print '--------- Homing Head ----'
             self.head.home()
