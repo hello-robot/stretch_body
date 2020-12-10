@@ -14,11 +14,34 @@ hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Tool to check the Stretch timestamps')
 parser.add_argument("--sensor_stats", help="Histogram sensor timestamps relative to the HW sync",action="store_true")
+parser.add_argument("--sensor_delta", help="Display timestamp deltas from the HW sync",action="store_true")
 parser.add_argument("--display", help="Print timestamps to screen",action="store_true")
 args=parser.parse_args()
 
 r=stretch_body.robot.Robot()
 r.startup()
+
+if args.sensor_delta:
+  try:
+      while True:
+          s=r.get_status()
+          hw_sync=s['timestamps']['hw_sync']
+          p0 = (s['timestamps']['pimu_imu']-hw_sync).to_usecs()
+          t0=  (s['timestamps']['left_wheel_enc']-hw_sync).to_usecs()
+          t1 = (s['timestamps']['right_wheel_enc'] - hw_sync).to_usecs()
+          t2 = (s['timestamps']['lift_enc'] - hw_sync).to_usecs()
+          t3 = (s['timestamps']['arm_enc'] - hw_sync).to_usecs()
+          w0 = (s['timestamps']['wacc_acc'] - hw_sync).to_usecs()
+          print('---------------------------')
+          print('DT Pimu IMU            :'+str(p0))
+          print('DT Left Wheel Encoder  :' + str(t0))
+          print('DT Right Wheel Encoder :' + str(t1))
+          print('DT Lift Encoder        :' + str(t2))
+          print('DT Arm Encoder         :' + str(t3))
+          print('DT Wacc Accel          :' + str(w0))
+          time.sleep(0.25)
+  except (ThreadServiceExit):
+    r.stop()
 
 if args.display:
     try:

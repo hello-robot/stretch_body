@@ -6,6 +6,7 @@ import signal
 import logging
 import os
 import importlib
+import copy
 
 from stretch_body.device import Device
 import stretch_body.base as base
@@ -43,7 +44,8 @@ class RobotDynamixelThread(threading.Thread):
             self.first_status=True
             te = time.time()
             tsleep = max(0, (1 / self.robot_update_rate_hz) - (te - ts))
-            time.sleep(tsleep)
+            if not self.shutdown_flag.is_set():
+                time.sleep(tsleep)
 
 
 
@@ -90,7 +92,8 @@ class RobotThread(threading.Thread):
             self.titr=self.titr+1
             te = time.time()
             tsleep = max(0, (1 / self.robot_update_rate_hz) - (te - ts))
-            time.sleep(tsleep)
+            if not self.shutdown_flag.is_set():
+                time.sleep(tsleep)
 
 
 class Robot(Device):
@@ -194,8 +197,7 @@ class Robot(Device):
             if self.devices[k] is not None:
                 self.devices[k].startup()
 
-        if self.params['use_time_manager']:
-            self.timestamp_manager.startup()
+        self.timestamp_manager.startup()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
@@ -221,9 +223,11 @@ class Robot(Device):
         print 'Shutting down robot...'
         if self.rt is not None:
             self.rt.shutdown_flag.set()
+            time.sleep(0.1) #Provide time for thread loop to exit
             self.rt.join()
         if self.dt is not None:
             self.dt.shutdown_flag.set()
+            time.sleep(0.1) #Provide time for thread loop to exit
             self.dt.join()
         for k in self.devices.keys():
             if self.devices[k] is not None:
@@ -380,9 +384,9 @@ class Robot(Device):
                 self.end_of_arm.pull_status()
             if self.head is not None:
                 self.head.pull_status()
-            self.status['timestamps']['dynamixel_wall_time']=hello_utils.SystemTimestamp().from_wall_time()
+            self.status['timestamps']['dynamixel_wall_time'] = hello_utils.SystemTimestamp().from_wall_time()
             with self.lock:
-                self.status_last = self.status.copy()
+                self.status_last = copy.deepcopy(self.status)
         except SerialException:
             print 'Serial Exception on Robot Step_Dynamixel'
 
@@ -403,7 +407,7 @@ class Robot(Device):
             self.pimu.pull_status()
 
         #This will compute the timestamps ond update the status message at the Robot level
+        self.timestamp_manager.step()
+
         with self.lock:
-            if self.params['use_time_manager']:
-                self.timestamp_manager.step()
-            self.status_last=self.status.copy()
+            self.status_last = copy.deepcopy(self.status)

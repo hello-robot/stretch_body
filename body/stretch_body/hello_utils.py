@@ -128,4 +128,4 @@ class SystemTimestamp:
     def __sub__(self,ts ):
         return SystemTimestamp(self.secs - ts.secs, self.nsecs-ts.nsecs)
     def __repr__(self):
-        return '%f' % self.to_secs()
+        return '%.6f' % self.to_secs()
