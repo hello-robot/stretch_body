@@ -52,8 +52,8 @@ class DynamixelHelloXL430(Device):
             self.motor.set_return_delay_time(self.params['return_delay_time'])
             self.vel_default = self.params['motion']['default']['vel']
             self.accel_default = self.params['motion']['default']['accel']
-            self.v_des = self.vel_default
-            self.a_des = self.accel_default
+            self.v_des = 0
+            self.a_des = 0
             self.set_motion_params(self.vel_default, self.accel_default)
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
