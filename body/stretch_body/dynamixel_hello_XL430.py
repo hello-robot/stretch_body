@@ -30,6 +30,7 @@ class DynamixelHelloXL430(Device):
         self.servo_valid=False
         self.is_calibrated=False
 
+
     # ###########  Device Methods #############
 
     def do_ping(self, verbose):
@@ -49,10 +50,11 @@ class DynamixelHelloXL430(Device):
             self.motor.set_I_gain(self.params['pid'][1])
             self.motor.set_D_gain(self.params['pid'][2])
             self.motor.set_return_delay_time(self.params['return_delay_time'])
-            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['default']['vel']))
-            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
-            self.v_des=self.params['motion']['default']['vel']
-            self.a_des=self.params['motion']['default']['accel']
+            self.vel_default = self.params['motion']['default']['vel']
+            self.accel_default = self.params['motion']['default']['accel']
+            self.v_des = self.vel_default
+            self.a_des = self.accel_default
+            self.set_motion_params(self.vel_default, self.accel_default)
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
         else:
@@ -192,19 +194,26 @@ class DynamixelHelloXL430(Device):
 
 
     def set_motion_params(self,v_des=None,a_des=None):
+        # The DXL retains the motion parameters whereas for Stretch
+        # we want them to be updated every control cycle (if different than the last cycle)
+        # We also want to revert to the defaults if no parameters are provided
         if not self.servo_valid:
             return
-        if v_des is not None:
-            v_des = min(self.params['motion']['max']['vel'], v_des)
 
-            if v_des != self.v_des:
-                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
-                self.v_des = v_des
-        if a_des is not None:
-            a_des = min(self.params['motion']['max']['accel'], a_des)
-            if a_des != self.a_des:
-                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(a_des))
-                self.a_des = a_des
+        if v_des is None:
+            v_des = self.vel_default
+        if a_des is None:
+            a_des = self.accel_default
+
+        v_des = min(self.params['motion']['max']['vel'], v_des)
+        if v_des != self.v_des:
+            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
+            self.v_des = v_des
+
+        a_des = min(self.params['motion']['max']['accel'], a_des)
+        if a_des != self.a_des:
+            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(a_des))
+            self.a_des = a_des
 
     def move_by(self,x_des, v_des=None, a_des=None):
         if not self.servo_valid:
@@ -225,8 +234,7 @@ class DynamixelHelloXL430(Device):
         self.motor.disable_torque()
         if self.params['use_multiturn']:
             self.motor.enable_multiturn()
-        self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
-        self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
+        self.set_motion_params(self.v_des,self.a_des)
         self.motor.enable_torque()
 
     def enable_pwm(self):
