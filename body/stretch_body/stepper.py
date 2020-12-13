@@ -4,6 +4,7 @@ from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
 import threading
+import copy
 
 RPC_SET_COMMAND = 1
 RPC_REPLY_COMMAND = 2
@@ -25,6 +26,9 @@ RPC_GET_STEPPER_BOARD_INFO =17
 RPC_REPLY_STEPPER_BOARD_INFO =18
 RPC_SET_MOTION_LIMITS=19
 RPC_REPLY_MOTION_LIMITS =20
+RPC_ADD_TRAJECTORY_SEG =21
+RPC_REPLY_ADD_TRAJECTORY_SEG =22
+
 
 MODE_SAFETY=0
 MODE_FREEWHEEL=1
@@ -35,6 +39,7 @@ MODE_POS_TRAJ=5
 MODE_VEL_TRAJ=6
 MODE_CURRENT=7
 MODE_POS_TRAJ_INCR=8
+MODE_POS_TRAJ_VIA=9
 
 DIAG_POS_CALIBRATED =1         #Has a pos zero RPC been recieved since powerup
 DIAG_RUNSTOP_ON =2             #Is controller in runstop mode
@@ -48,6 +53,7 @@ DIAG_CALIBRATION_RCVD = 256     #Is calibration table in flash
 DIAG_IN_GUARDED_EVENT = 512     # Guarded event occured during motion
 DIAG_IN_SAFETY_EVENT = 1024      #Is it forced into safety mode
 DIAG_WAITING_ON_SYNC = 2048     #Command received but no sync yet
+DIAG_VIA_TRAJ_ACTIVE = 4096     #Is a via trajectory exectuing
 
 CONFIG_SAFETY_HOLD =1           #Hold position in safety mode? Otherwise freewheel
 CONFIG_ENABLE_RUNSTOP =2        #Recognize runstop signal?
@@ -79,11 +85,13 @@ class Stepper(Device):
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': SystemTimestamp(), 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
-                       'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0,
+                       'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0, 'via_traj_active':0,
                        'in_safety_event':0,'waiting_on_sync':0,'timestamp_line_sync':SystemTimestamp()}
         self.board_info={'board_version':'None', 'firmware_version':'None'}
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
-                         MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR'}
+                         MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR',
+                         MODE_POS_TRAJ_VIA:'MODE_POS_TRAJ_VIA'}
+
         self.motion_limits=[0,0]
 
         self._dirty_command = False
@@ -92,10 +100,54 @@ class Stepper(Device):
         self._dirty_read_gains_from_flash=False
         self._dirty_motion_limits=False
         self._dirty_load_test=False
+
         self._trigger=0
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
 
+        self.traj_segs = []
+        self.traj_id = 0
+        self._dirty_traj_seg = False
+        self.traj_seg_curr=None
+
+    def push_new_trajectory(self,segs):
+        # Segs is list of trajectory segments of the form [[a0, a1, a2, a3, tf],...]
+        self.traj_segs = copy.deepcopy(segs)
+        self._dirty_traj_seg = True
+        self.traj_seg_curr = self.traj_segs[0]
+        self.traj_segs=self.traj_segs[1:]
+        self.traj_id = self.traj_id + 1
+        return self.traj_id
+
+    def rpc_add_traj_seg_reply(self,reply):
+        if reply[0] == RPC_REPLY_ADD_TRAJECTORY_SEG:
+            nr=self.unpack_traj_seg_reply(reply[1:])
+        else:
+            print 'Error RPC_REPLY_ADD_TRAJECTORY_SEG', reply[0]
+
+    def unpack_traj_seg_reply(self,s):
+        with self.lock:
+            sidx = 0
+            traj_state = unpack_uint8_t(s[sidx:]);
+            sidx += 1
+            if traj_state==1: #uC accepted segment
+                if len(self.traj_segs): #Queue next segment to go down
+                    self.traj_seg_curr = self.traj_segs[0]
+                    self.traj_segs = self.traj_segs[1:]
+                    self.traj_id = self.traj_id + 1
+                    self._dirty_traj_seg = True
+            else: #try sending same segment again
+                self._dirty_traj_seg = True
+            return sidx
+
+    def pack_traj_seg(self,s,sidx):
+        with self.lock:
+            for i in range(5):
+                pack_float_t(s, sidx, self.traj_seg_curr[i])
+                sidx += 4
+            pack_uint16_t(s,sidx,self.traj_id)
+            sidx+=2
+            return sidx
 
     # ###########  Device Methods #############
     def startup(self):
@@ -156,6 +208,13 @@ class Stepper(Device):
                 sidx = self.pack_command(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_command_reply)
                 self._dirty_command=False
+
+            if self._dirty_traj_seg:
+                self.transport.payload_out[0] = RPC_ADD_TRAJECTORY_SEG
+                sidx = self.pack_traj_seg(self.transport.payload_out, 1)
+                self.transport.queue_rpc2(sidx, self.rpc_add_traj_seg_reply)
+                self._dirty_traj_seg=False
+
             self.transport.step2(exiting=exiting)
 
     def pull_status(self, exiting=False):
@@ -283,6 +342,9 @@ class Stepper(Device):
 
     def enable_pos_traj(self):
         self.set_command(mode=MODE_POS_TRAJ, x_des=self.status['pos'])
+
+    def enable_pos_traj_via(self):
+        self.set_command(mode=MODE_POS_TRAJ_VIA, x_des=0)
 
     def enable_pos_traj_incr(self):
         self.set_command(mode=MODE_POS_TRAJ_INCR, x_des=0)
@@ -537,6 +599,7 @@ class Stepper(Device):
             self.status['in_guarded_event'] = self.status['diag'] & DIAG_IN_GUARDED_EVENT > 0
             self.status['in_safety_event'] = self.status['diag'] & DIAG_IN_SAFETY_EVENT > 0
             self.status['waiting_on_sync'] = self.status['diag'] & DIAG_WAITING_ON_SYNC > 0
+            self.status['via_traj_active'] = self.status['diag'] & DIAG_VIA_TRAJ_ACTIVE > 0
             return sidx
 
 
