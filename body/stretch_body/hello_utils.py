@@ -68,7 +68,8 @@ class TimerStats():
     def pretty_print(self):
         print 'Timer Stat -- Avg: ', str(self.av), 'Max: ', str(self.mx)
 
-    
+
+
 class ThreadServiceExit(Exception):
     """
     Custom exception which is used to trigger the clean exit

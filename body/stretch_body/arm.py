@@ -169,6 +169,45 @@ class Arm(Device):
         return arm_m/self.motor_rad_2_arm_m
 
 
+    # ############### Via Trajectories #############################################
+    def enable_via_trajectory_mode(self, v_m=None, a_m=None):
+        #By default constrain trajectory to factory maximum accel/vel settings
+        #The trajectory tracking will not be accurate if the commanded trajectory generates
+        #velocities and accelerations beyond these settings
+
+        if v_m is not None:
+            v_r = self.translate_to_motor_rad(min(abs(v_m), self.params['motion']['max']['vel_m']))
+        else:
+            v_r = self.translate_to_motor_rad(self.params['motion']['max']['vel_m'])
+
+        if a_m is not None:
+            a_r = self.translate_to_motor_rad(min(abs(a_m), self.params['motion']['max']['accel_m']))
+        else:
+            a_r = self.translate_to_motor_rad(self.params['motion']['max']['accel_m'])
+
+        self.motor.enable_pos_traj_via()
+        self.motor.set_command(v_des=v_r, a_des=a_r)
+
+    def start_via_trajectory(self):
+        self.motor.start_via_trajectory()
+
+    def push_via_trajectory(self):
+        # Call periodically to push down trajectory segments to motor controller
+        self.motor.push_via_trajectory()
+
+    def is_via_trajectory_active(self):
+        return self.motor.trajectory_manager.trajectory_active
+
+    def add_vias_to_trajectory(self,vias):
+        #A via has form [time (s), position (m), velocity (m)]
+        #Trajectories can be concatenated by calling this multiple times
+        #Trajectories can be overwritten (if they start after any currently executing via target)
+        motor_vias=[]
+        for v in vias:
+            motor_vias.append([v[0], self.translate_to_motor_rad(v[1]),self.translate_to_motor_rad(v[2])])
+        self.motor.trajectory_manager.add_vias_to_trajectory(motor_vias)
+
+    # ############################################################################################
     def __wait_for_contact(self, timeout=5.0):
         ts=time.time()
         while (time.time()-ts<timeout):

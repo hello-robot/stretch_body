@@ -3,6 +3,9 @@
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
+import stretch_body.via_trajectory_manager as via_trajectory_manager
+
+import time
 import threading
 import copy
 
@@ -26,9 +29,10 @@ RPC_GET_STEPPER_BOARD_INFO =17
 RPC_REPLY_STEPPER_BOARD_INFO =18
 RPC_SET_MOTION_LIMITS=19
 RPC_REPLY_MOTION_LIMITS =20
-RPC_ADD_TRAJECTORY_SEG =21
-RPC_REPLY_ADD_TRAJECTORY_SEG =22
-
+RPC_SET_NEXT_TRAJECTORY_SEG =21
+RPC_REPLY_SET_NEXT_TRAJECTORY_SEG =22
+RPC_START_NEW_TRAJECTORY =23
+RPC_REPLY_START_NEW_TRAJECTORY =24
 
 MODE_SAFETY=0
 MODE_FREEWHEEL=1
@@ -53,7 +57,7 @@ DIAG_CALIBRATION_RCVD = 256     #Is calibration table in flash
 DIAG_IN_GUARDED_EVENT = 512     # Guarded event occured during motion
 DIAG_IN_SAFETY_EVENT = 1024      #Is it forced into safety mode
 DIAG_WAITING_ON_SYNC = 2048     #Command received but no sync yet
-DIAG_VIA_TRAJ_ACTIVE = 4096     #Is a via trajectory exectuing
+DIAG_TRAJ_ACTIVE = 4096
 
 CONFIG_SAFETY_HOLD =1           #Hold position in safety mode? Otherwise freewheel
 CONFIG_ENABLE_RUNSTOP =2        #Recognize runstop signal?
@@ -61,6 +65,7 @@ CONFIG_ENABLE_SYNC_MODE =4      #Commands are synchronized from digital trigger
 CONFIG_ENABLE_GUARDED_MODE=8    #Stops on current threshold
 CONFIG_FLIP_ENCODER_POLARITY=16
 CONFIG_FLIP_EFFORT_POLARITY=32
+CONFIG_USE_CUBIC_TRAJ = 64
 
 TRIGGER_MARK_POS = 1
 TRIGGER_RESET_MOTION_GEN = 2
@@ -86,7 +91,7 @@ class Stepper(Device):
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': SystemTimestamp(), 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0, 'via_traj_active':0,
-                       'in_safety_event':0,'waiting_on_sync':0,'timestamp_line_sync':SystemTimestamp()}
+                       'in_safety_event':0,'waiting_on_sync':0,'timestamp_line_sync':SystemTimestamp(),'trajectory_active':0}
         self.board_info={'board_version':'None', 'firmware_version':'None'}
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
                          MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR',
@@ -105,49 +110,9 @@ class Stepper(Device):
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
 
-        self.traj_segs = []
-        self.traj_id = 0
-        self._dirty_traj_seg = False
-        self.traj_seg_curr=None
+        self.trajectory_manager=via_trajectory_manager.ViaTrajectoryManager(via_trajectory_manager.TRAJECTORY_TYPE_CUBIC_SPLINE)
+        self.traj_seg_next=None
 
-    def push_new_trajectory(self,segs):
-        # Segs is list of trajectory segments of the form [[a0, a1, a2, a3, tf],...]
-        self.traj_segs = copy.deepcopy(segs)
-        self._dirty_traj_seg = True
-        self.traj_seg_curr = self.traj_segs[0]
-        self.traj_segs=self.traj_segs[1:]
-        self.traj_id = self.traj_id + 1
-        return self.traj_id
-
-    def rpc_add_traj_seg_reply(self,reply):
-        if reply[0] == RPC_REPLY_ADD_TRAJECTORY_SEG:
-            nr=self.unpack_traj_seg_reply(reply[1:])
-        else:
-            print 'Error RPC_REPLY_ADD_TRAJECTORY_SEG', reply[0]
-
-    def unpack_traj_seg_reply(self,s):
-        with self.lock:
-            sidx = 0
-            traj_state = unpack_uint8_t(s[sidx:]);
-            sidx += 1
-            if traj_state==1: #uC accepted segment
-                if len(self.traj_segs): #Queue next segment to go down
-                    self.traj_seg_curr = self.traj_segs[0]
-                    self.traj_segs = self.traj_segs[1:]
-                    self.traj_id = self.traj_id + 1
-                    self._dirty_traj_seg = True
-            else: #try sending same segment again
-                self._dirty_traj_seg = True
-            return sidx
-
-    def pack_traj_seg(self,s,sidx):
-        with self.lock:
-            for i in range(5):
-                pack_float_t(s, sidx, self.traj_seg_curr[i])
-                sidx += 4
-            pack_uint16_t(s,sidx,self.traj_id)
-            sidx+=2
-            return sidx
 
     # ###########  Device Methods #############
     def startup(self):
@@ -175,6 +140,8 @@ class Stepper(Device):
             self.enable_safety()
             self.push_command(exiting=True)
             self.transport.stop()
+
+
 
     def push_command(self,exiting=False):
         with self.lock:
@@ -208,12 +175,6 @@ class Stepper(Device):
                 sidx = self.pack_command(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_command_reply)
                 self._dirty_command=False
-
-            if self._dirty_traj_seg:
-                self.transport.payload_out[0] = RPC_ADD_TRAJECTORY_SEG
-                sidx = self.pack_traj_seg(self.transport.payload_out, 1)
-                self.transport.queue_rpc2(sidx, self.rpc_add_traj_seg_reply)
-                self._dirty_traj_seg=False
 
             self.transport.step2(exiting=exiting)
 
@@ -258,6 +219,7 @@ class Stepper(Device):
         print '       In Guarded Event:', self.status['in_guarded_event']
         print '       In Safety Event:', self.status['in_safety_event']
         print '       Waiting on Sync:', self.status['waiting_on_sync']
+        print '       Trajectory Active:',self.status['trajectory_active']
         print 'Timestamp', self.status['timestamp']
         print 'Timestamp Line Sync', self.status['timestamp_line_sync']
         print 'Read error', self.transport.status['read_error']
@@ -428,6 +390,61 @@ class Stepper(Device):
             #print(time.time(),self._command['x_des'],self._command['incr_trigger'],self._command['v_des'],self._command['a_des'])
             self._dirty_command=True
 
+        # ####################### Splined Trajectories ######################
+
+    def start_via_trajectory(self):
+        # Commands uC to begin trajectory immediately / on next motor_sync
+        # Via points should be give prior to calling this
+        self.traj_seg_next = self.trajectory_manager.get_next_segment(active_id=0)
+        with self.lock:
+            if self.traj_seg_next is not None:
+                self.transport.payload_out[0] = RPC_START_NEW_TRAJECTORY
+                sidx = self.pack_traj_seg(self.transport.payload_out, 1)
+                self.transport.queue_rpc2(sidx, self.rpc_start_new_trajectory_reply)
+            self.transport.step2()
+
+    def push_via_trajectory(self):
+        # Call periodically to push down trajectory segments to uC
+        with self.lock:
+            if self.traj_seg_next is not None:
+                self.transport.payload_out[0] = RPC_SET_NEXT_TRAJECTORY_SEG
+                sidx = self.pack_traj_seg(self.transport.payload_out, 1)
+                self.transport.queue_rpc2(sidx, self.rpc_set_next_traj_seg_reply)
+            self.transport.step2()
+
+    def rpc_start_new_trajectory_reply(self, reply):
+        if reply[0] == RPC_REPLY_START_NEW_TRAJECTORY:
+            with self.lock:
+                id_curr_seg = unpack_uint8_t(reply[1:]);
+                print 'STARTRET',id_curr_seg
+                if id_curr_seg != 0:  # uC accepted segment
+                    self.trajectory_manager.mark_start_of_trajectory()
+                    self.traj_seg_next = self.trajectory_manager.get_next_segment(active_id=id_curr_seg)
+        else:
+            print
+            'Error RPC_REPLY_START_NEW_TRAJECTORY', reply[0]
+            self.trajectory_manager.__setup_new_trajectory()
+
+    def rpc_set_next_traj_seg_reply(self, reply):
+        if reply[0] == RPC_REPLY_SET_NEXT_TRAJECTORY_SEG:
+            with self.lock:
+                id_curr_seg = unpack_uint8_t(reply[1:]);
+                print 'NEXTRET',id_curr_seg
+                self.traj_seg_next = self.trajectory_manager.get_next_segment(active_id=id_curr_seg)
+        else:
+            print
+            'Error RPC_REPLY_SET_NEXT_TRAJECTORY_SEG', reply[0]
+
+    def pack_traj_seg(self, s, sidx):
+        with self.lock:
+            for i in range(7):
+                pack_float_t(s, sidx, self.traj_seg_next[i])
+                sidx += 4
+            pack_uint8_t(s, sidx, self.traj_seg_next[7])
+            sidx += 1
+            return sidx
+
+    # ######################## Utility ############################################
 
     def wait_until_at_setpoint(self,timeout=15.0):
         ts = time.time()
@@ -587,6 +604,7 @@ class Stepper(Device):
             self.status['debug'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
 
+
             self.status['pos_calibrated'] =self.status['diag'] & DIAG_POS_CALIBRATED > 0
             self.status['runstop_on'] =self.status['diag'] & DIAG_RUNSTOP_ON > 0
             self.status['near_pos_setpoint'] =self.status['diag'] & DIAG_NEAR_POS_SETPOINT > 0
@@ -599,7 +617,7 @@ class Stepper(Device):
             self.status['in_guarded_event'] = self.status['diag'] & DIAG_IN_GUARDED_EVENT > 0
             self.status['in_safety_event'] = self.status['diag'] & DIAG_IN_SAFETY_EVENT > 0
             self.status['waiting_on_sync'] = self.status['diag'] & DIAG_WAITING_ON_SYNC > 0
-            self.status['via_traj_active'] = self.status['diag'] & DIAG_VIA_TRAJ_ACTIVE > 0
+            self.status['trajectory_active'] = self.status['diag'] & DIAG_TRAJ_ACTIVE > 0
             return sidx
 
 
