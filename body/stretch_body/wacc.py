@@ -57,9 +57,10 @@ class Wacc(Device):
                        'transport': self.transport.status, 'timestamp_pc':0}
         self.ts_last=None
         self.transport.startup()
-        # Handle missing YAML fields due to version changes
-        if not self.config.has_key('sync_mode_enabled'):  # New with protocol-1. If older YAML default to off
-            self.config['sync_mode_enabled'] = 0
+
+        # Ignore YAML (legacy setting). Sync mode must be manually enabled via the API
+        self.config['sync_mode_enabled'] = 0
+
         self.clock_manager=HardwareClockManager(self,'wacc_clock_manager')
 
     # ###########  Device Methods #############

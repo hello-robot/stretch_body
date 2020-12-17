@@ -163,9 +163,8 @@ class Pimu(Device):
             self.runstop_event_reset()
             self.cliff_event_reset()
 
-        #Handle missing YAML fields due to version changes
-        if not self.config.has_key('sync_mode_enabled'):  # New with protocol-1. If older YAML default to off
-            self.config['sync_mode_enabled'] = 0
+        # Ignore YAML (legacy setting). Sync mode must be manually enabled via the API
+        self.config['sync_mode_enabled'] = 0
 
     # ###########  Device Methods #############
 

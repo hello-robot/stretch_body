@@ -18,9 +18,9 @@ large_rotate_rad=deg_to_rad(10.0)
 
 b=base.Base()
 b.startup()
-#b.left_wheel.disable_sync_mode()
-#b.right_wheel.disable_sync_mode()
-#b.push_command()
+b.left_wheel.enable_sync_mode()
+b.right_wheel.enable_sync_mode()
+b.push_command()
 
 large_move_m=0.1
 small_move_m=large_move_m/8

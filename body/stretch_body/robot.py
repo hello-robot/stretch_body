@@ -199,6 +199,11 @@ class Robot(Device):
 
         self.timestamp_manager.startup()
 
+        if self.params['sync_mode_enabled']:
+            self.enable_sync_mode()
+        else:
+            self.disable_sync_mode()
+
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
         signal.signal(signal.SIGINT, hello_utils.thread_service_shutdown)
@@ -234,6 +239,42 @@ class Robot(Device):
                 print 'Shutting down',k
                 self.devices[k].stop()
 
+
+    def enable_sync_mode(self):
+        if self.pimu is not None:
+            self.pimu.enable_sync_mode()
+            self.pimu.push_command()
+        if self.arm is not None:
+            self.arm.motor.enable_sync_mode()
+            self.arm.push_command()
+        if self.lift is not None:
+            self.lift.motor.enable_sync_mode()
+            self.lift.push_command()
+        if self.base is not None:
+            self.base.left_wheel.enable_sync_mode()
+            self.base.right_wheel.enable_sync_mode()
+            self.base.push_command()
+        if self.wacc is not None:
+            self.wacc.enable_sync_mode()
+            self.wacc.push_command()
+
+    def disable_sync_mode(self):
+        if self.pimu is not None:
+            self.pimu.disable_sync_mode()
+            self.pimu.push_command()
+        if self.arm is not None:
+            self.arm.motor.disable_sync_mode()
+            self.arm.push_command()
+        if self.lift is not None:
+            self.lift.motor.disable_sync_mode()
+            self.lift.push_command()
+        if self.base is not None:
+            self.base.left_wheel.disable_sync_mode()
+            self.base.right_wheel.disable_sync_mode()
+            self.base.push_command()
+        if self.wacc is not None:
+            self.wacc.disable_sync_mode()
+            self.wacc.push_command()
 
     def get_status(self):
         """
@@ -343,8 +384,11 @@ class Robot(Device):
         Cause the robot to home its joints by moving to hardstops
         Blocking.
         """
+        #Turn off so homing can happen w/o Pimu
+        psm=self.pimu.confg['sync_mode_enabled']
         self.pimu.disable_sync_mode()
         self.push_command()
+
         if self.head is not None:
             print '--------- Homing Head ----'
             self.head.home()
@@ -365,6 +409,8 @@ class Robot(Device):
                 print  '--------- Homing ', j, '----'
                 self.end_of_arm.home(j)
         #Let user know it is done
+        if psm:
+            self.pimu.enable_sync_mode()
         self.pimu.trigger_beep()
         self.push_command()
     # ################ Helpers #################################
@@ -392,8 +438,9 @@ class Robot(Device):
 
     def _pull_status_non_dynamixel(self):
         #Send a status sync message to all slaves, so timestamped at same time
-        if self.pimu is not None:
+        if self.pimu is not None and self.params['sync_mode_enabled']:
             self.pimu.trigger_status_sync()
+        if self.wacc is not None and self.params['sync_mode_enabled']:
             self.wacc.trigger_status_sync()
         if self.wacc is not None:
             self.wacc.pull_status()

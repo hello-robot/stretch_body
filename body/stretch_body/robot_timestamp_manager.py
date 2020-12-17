@@ -17,7 +17,7 @@ class RobotTimestampManager(Device):
       The Pimu and Wacc ClockManagers attempt to keep the skew between the
       respective hardware clocks and wall time minimal (<~2ms) when use_skew_compensation is enabled
 
-      sync_mode_enabled: 0/1 : required to be enabled to use synchronous data capture and motor commands
+      robot.params.sync_mode_enabled: 0/1 : required to be enabled to use synchronous data capture and motor commands
       use_skew_compensation: 0/1: compensate the hardware clock timebase so stays aligned with PC (time-constant 10s of seconds)
       time_align_status: 0/1: interpolate between status frames
     """
@@ -31,41 +31,12 @@ class RobotTimestampManager(Device):
         self.status_id=0
 
     def startup(self): #This should be called prior to starting of Robot threads
-        if self.param['sync_mode_enabled']:
-            self.__enable_sync_mode()
-        else:
-            self.__disable_sync_mode()
-
-    def __enable_sync_mode(self):
-        self.robot.pimu.enable_sync_mode()
-        self.robot.pimu.push_command()
-        self.robot.arm.motor.enable_sync_mode()
-        self.robot.arm.push_command()
-        self.robot.lift.motor.enable_sync_mode()
-        self.robot.lift.push_command()
-        self.robot.base.left_wheel.enable_sync_mode()
-        self.robot.base.right_wheel.enable_sync_mode()
-        self.robot.base.push_command()
-        self.robot.wacc.enable_sync_mode()
-        self.robot.wacc.push_command()
-
-    def __disable_sync_mode(self):
-        self.robot.pimu.disable_sync_mode()
-        self.robot.pimu.push_command()
-        self.robot.arm.motor.disable_sync_mode()
-        self.robot.arm.push_command()
-        self.robot.lift.motor.disable_sync_mode()
-        self.robot.lift.push_command()
-        self.robot.base.left_wheel.disable_sync_mode()
-        self.robot.base.right_wheel.disable_sync_mode()
-        self.robot.base.push_command()
-        self.robot.wacc.disable_sync_mode()
-        self.robot.wacc.push_command()
+        pass
 
     def pretty_print(self):
         print('------ Timestamp Manager -----')
         s=self.status_history[-1][1]
-        print('Sync mode enabled    : '+str(self.param['sync_mode_enabled']))
+        print('Sync mode enabled    : '+str(self.robot.params['sync_mode_enabled']))
         print('Status ID            : '+str(self.status_history[-1][0]))
         print('Wall time            : '+str(s['timestamps']['non_dynamixel_wall_time']))
         print('Hardware sync        : ' + str(s['timestamps']['hw_sync']))

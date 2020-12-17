@@ -14,8 +14,6 @@ large_move_m=0.1
 
 a=arm.Arm()
 a.startup()
-a.motor.disable_sync_mode()
-a.push_command()
 
 def get_keystroke():
 

@@ -83,7 +83,7 @@ class ViaTrajectoryManager:
         #An arbitrary number of segments can be sent do the uC sequentially
         #The end of a sequence is marked by sending a [0]*8 spline
 
-        if active_id ==255 and self.trajectory_active: #Marks end of last segment of trajectory
+        if active_id ==0 and self.trajectory_active: #Marks end of last segment of trajectory
             self.vias_last_trajectory=copy.deepcopy(self.vias) #Store this if want a trajectory history
             self.__setup_new_trajectory()
             return None

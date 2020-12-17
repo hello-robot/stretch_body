@@ -58,6 +58,7 @@ DIAG_IN_GUARDED_EVENT = 512     # Guarded event occured during motion
 DIAG_IN_SAFETY_EVENT = 1024      #Is it forced into safety mode
 DIAG_WAITING_ON_SYNC = 2048     #Command received but no sync yet
 DIAG_TRAJ_ACTIVE = 4096
+DIAG_IN_SYNC_MODE = 8192
 
 CONFIG_SAFETY_HOLD =1           #Hold position in safety mode? Otherwise freewheel
 CONFIG_ENABLE_RUNSTOP =2        #Recognize runstop signal?
@@ -89,7 +90,7 @@ class Stepper(Device):
         self.transport = Transport(self.usb,self.verbose)
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': SystemTimestamp(), 'debug':0,'guarded_event':0,
-                       'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
+                       'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0, 'in_sync_mode':0,
                        'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0, 'via_traj_active':0,
                        'in_safety_event':0,'waiting_on_sync':0,'timestamp_line_sync':SystemTimestamp(),'trajectory_active':0}
         self.board_info={'board_version':'None', 'firmware_version':'None'}
@@ -105,6 +106,9 @@ class Stepper(Device):
         self._dirty_read_gains_from_flash=False
         self._dirty_motion_limits=False
         self._dirty_load_test=False
+
+        #Ignore YAML (legacy setting). Sync mode must be manually enabled via the API
+        self.params['gains']['enable_sync_mode']=0
 
         self._trigger=0
         self._trigger_data=0
@@ -125,11 +129,10 @@ class Stepper(Device):
             self.transport.queue_rpc(1, self.rpc_board_info_reply)
             self.transport.step()
             self.protocol_id = int(self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p') + 1:])
-
             self.enable_safety()
             self._dirty_gains = True
-            self.pull_status()
             self.push_command()
+            self.pull_status()
 
 
     #Configure control mode prior to calling this on process shutdown (or default to freewheel)
@@ -140,8 +143,6 @@ class Stepper(Device):
             self.enable_safety()
             self.push_command(exiting=True)
             self.transport.stop()
-
-
 
     def push_command(self,exiting=False):
         with self.lock:
@@ -220,6 +221,7 @@ class Stepper(Device):
         print '       In Safety Event:', self.status['in_safety_event']
         print '       Waiting on Sync:', self.status['waiting_on_sync']
         print '       Trajectory Active:',self.status['trajectory_active']
+        print '       In Sync Mode:', self.status['in_sync_mode']
         print 'Timestamp', self.status['timestamp']
         print 'Timestamp Line Sync', self.status['timestamp_line_sync']
         print 'Read error', self.transport.status['read_error']
@@ -416,7 +418,6 @@ class Stepper(Device):
         if reply[0] == RPC_REPLY_START_NEW_TRAJECTORY:
             with self.lock:
                 id_curr_seg = unpack_uint8_t(reply[1:]);
-                print 'STARTRET',id_curr_seg
                 if id_curr_seg != 0:  # uC accepted segment
                     self.trajectory_manager.mark_start_of_trajectory()
                     self.traj_seg_next = self.trajectory_manager.get_next_segment(active_id=id_curr_seg)
@@ -429,7 +430,6 @@ class Stepper(Device):
         if reply[0] == RPC_REPLY_SET_NEXT_TRAJECTORY_SEG:
             with self.lock:
                 id_curr_seg = unpack_uint8_t(reply[1:]);
-                print 'NEXTRET',id_curr_seg
                 self.traj_seg_next = self.trajectory_manager.get_next_segment(active_id=id_curr_seg)
         else:
             print
@@ -618,6 +618,7 @@ class Stepper(Device):
             self.status['in_safety_event'] = self.status['diag'] & DIAG_IN_SAFETY_EVENT > 0
             self.status['waiting_on_sync'] = self.status['diag'] & DIAG_WAITING_ON_SYNC > 0
             self.status['trajectory_active'] = self.status['diag'] & DIAG_TRAJ_ACTIVE > 0
+            self.status['in_sync_mode'] = self.status['diag'] & DIAG_IN_SYNC_MODE> 0
             return sidx
 
 
