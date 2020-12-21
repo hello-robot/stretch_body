@@ -3,7 +3,7 @@
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
-import stretch_body.via_trajectory_manager as via_trajectory_manager
+import stretch_body.waypoint_trajectory_manager as waypoint_trajectory_manager
 
 import time
 import threading
@@ -43,7 +43,7 @@ MODE_POS_TRAJ=5
 MODE_VEL_TRAJ=6
 MODE_CURRENT=7
 MODE_POS_TRAJ_INCR=8
-MODE_POS_TRAJ_VIA=9
+MODE_POS_TRAJ_WAYPOINT=9
 
 DIAG_POS_CALIBRATED =1         #Has a pos zero RPC been recieved since powerup
 DIAG_RUNSTOP_ON =2             #Is controller in runstop mode
@@ -91,12 +91,12 @@ class Stepper(Device):
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': SystemTimestamp(), 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0, 'in_sync_mode':0,
-                       'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0, 'via_traj_active':0,
-                       'in_safety_event':0,'waiting_on_sync':0,'timestamp_line_sync':SystemTimestamp(),'trajectory_active':0}
+                       'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0,
+                       'in_safety_event':0,'waiting_on_sync':0,'timestamp_line_sync':SystemTimestamp(),'trajectory_active':0, 'pos_traj': 0}
         self.board_info={'board_version':'None', 'firmware_version':'None'}
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
                          MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR',
-                         MODE_POS_TRAJ_VIA:'MODE_POS_TRAJ_VIA'}
+                         MODE_POS_TRAJ_WAYPOINT:'MODE_POS_TRAJ_WAYPOINT'}
 
         self.motion_limits=[0,0]
 
@@ -114,7 +114,7 @@ class Stepper(Device):
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
 
-        self.trajectory_manager=via_trajectory_manager.ViaTrajectoryManager(via_trajectory_manager.TRAJECTORY_TYPE_CUBIC_SPLINE)
+        self.trajectory_manager=waypoint_trajectory_manager.WaypointTrajectoryManager()
         self.traj_seg_next=None
 
 
@@ -205,8 +205,10 @@ class Stepper(Device):
         print 'Effort', self.status['effort']
         print 'Current (A)', self.status['current']
         print 'Error (deg)', rad_to_deg(self.status['err'])
+        print 'Waypoint Trajectory Target (rad)', self.status['pos_traj'], '(deg)', rad_to_deg(self.status['pos_traj'])
         print 'Debug', self.status['debug']
         print 'Guarded Events:', self.status['guarded_event']
+
         print 'Diag', self.status['diag']
         print '       Position Calibrated:', self.status['pos_calibrated']
         print '       Runstop on:', self.status['runstop_on']
@@ -220,7 +222,7 @@ class Stepper(Device):
         print '       In Guarded Event:', self.status['in_guarded_event']
         print '       In Safety Event:', self.status['in_safety_event']
         print '       Waiting on Sync:', self.status['waiting_on_sync']
-        print '       Trajectory Active:',self.status['trajectory_active']
+        print '       Waypoint Trajectory Active:',self.status['trajectory_active']
         print '       In Sync Mode:', self.status['in_sync_mode']
         print 'Timestamp', self.status['timestamp']
         print 'Timestamp Line Sync', self.status['timestamp_line_sync']
@@ -307,8 +309,8 @@ class Stepper(Device):
     def enable_pos_traj(self):
         self.set_command(mode=MODE_POS_TRAJ, x_des=self.status['pos'])
 
-    def enable_pos_traj_via(self):
-        self.set_command(mode=MODE_POS_TRAJ_VIA, x_des=0)
+    def enable_pos_traj_waypoint(self):
+        self.set_command(mode=MODE_POS_TRAJ_WAYPOINT, x_des=0)
 
     def enable_pos_traj_incr(self):
         self.set_command(mode=MODE_POS_TRAJ_INCR, x_des=0)
@@ -394,10 +396,11 @@ class Stepper(Device):
 
         # ####################### Splined Trajectories ######################
 
-    def start_via_trajectory(self):
+    def start_waypoint_trajectory(self):
         # Commands uC to begin trajectory immediately / on next motor_sync
-        # Via points should be give prior to calling this
-        self.traj_seg_next = self.trajectory_manager.get_next_segment(active_id=0)
+        # Waypoints should be give prior to calling this
+        self.traj_seg_next = self.trajectory_manager.get_first_segment()
+        self.traj_seg_next =self.traj_seg_next +[0, 0]  # Pad out to 7 floats for RPC
         with self.lock:
             if self.traj_seg_next is not None:
                 self.transport.payload_out[0] = RPC_START_NEW_TRAJECTORY
@@ -405,7 +408,7 @@ class Stepper(Device):
                 self.transport.queue_rpc2(sidx, self.rpc_start_new_trajectory_reply)
             self.transport.step2()
 
-    def push_via_trajectory(self):
+    def push_waypoint_trajectory(self):
         # Call periodically to push down trajectory segments to uC
         with self.lock:
             if self.traj_seg_next is not None:
@@ -418,12 +421,11 @@ class Stepper(Device):
         if reply[0] == RPC_REPLY_START_NEW_TRAJECTORY:
             with self.lock:
                 id_curr_seg = unpack_uint8_t(reply[1:]);
-                if id_curr_seg != 0:  # uC accepted segment
-                    self.trajectory_manager.mark_start_of_trajectory()
+                if id_curr_seg ==1:  # uC loaded segment
                     self.traj_seg_next = self.trajectory_manager.get_next_segment(active_id=id_curr_seg)
+                    self.traj_seg_next = self.traj_seg_next + [0, 0]  # Pad out to 7 floats for RPC
         else:
-            print
-            'Error RPC_REPLY_START_NEW_TRAJECTORY', reply[0]
+            print 'Error RPC_REPLY_START_NEW_TRAJECTORY', reply[0]
             self.trajectory_manager.__setup_new_trajectory()
 
     def rpc_set_next_traj_seg_reply(self, reply):
@@ -432,8 +434,7 @@ class Stepper(Device):
                 id_curr_seg = unpack_uint8_t(reply[1:]);
                 self.traj_seg_next = self.trajectory_manager.get_next_segment(active_id=id_curr_seg)
         else:
-            print
-            'Error RPC_REPLY_SET_NEXT_TRAJECTORY_SEG', reply[0]
+            print 'Error RPC_REPLY_SET_NEXT_TRAJECTORY_SEG', reply[0]
 
     def pack_traj_seg(self, s, sidx):
         with self.lock:
@@ -603,7 +604,7 @@ class Stepper(Device):
 
             self.status['debug'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
-
+            self.status['pos_traj'] = unpack_float_t(s[sidx:]);sidx += 4
 
             self.status['pos_calibrated'] =self.status['diag'] & DIAG_POS_CALIBRATED > 0
             self.status['runstop_on'] =self.status['diag'] & DIAG_RUNSTOP_ON > 0

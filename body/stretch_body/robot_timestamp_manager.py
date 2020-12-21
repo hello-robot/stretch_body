@@ -25,8 +25,6 @@ class RobotTimestampManager(Device):
         Device.__init__(self)
         self.robot=robot
         self.param=self.robot_params['robot_timestamp_manager']
-        self.n_status_history=25 #Store last 25 status (approx 1 second of data)
-        self.status_history=[]
         self.status_time_aligned=None
         self.status_id=0
 
@@ -35,9 +33,9 @@ class RobotTimestampManager(Device):
 
     def pretty_print(self):
         print('------ Timestamp Manager -----')
-        s=self.status_history[-1][1]
+        s=self.robot.status_history[-1][1]
         print('Sync mode enabled    : '+str(self.robot.params['sync_mode_enabled']))
-        print('Status ID            : '+str(self.status_history[-1][0]))
+        print('Status ID            : '+str(self.robot.status_history[-1][0]))
         print('Wall time            : '+str(s['timestamps']['non_dynamixel_wall_time']))
         print('Hardware sync        : ' + str(s['timestamps']['hw_sync']))
         print('Pimu IMU             : '+str(s['timestamps']['pimu_imu']))
@@ -49,7 +47,7 @@ class RobotTimestampManager(Device):
 
     def step(self): #Called at approx 25Hz
         self.robot.status['timestamps']['non_dynamixel_wall_time']=SystemTimestamp().from_wall_time()
-        if not self.param['sync_mode_enabled']:
+        if not self.robot.params['sync_mode_enabled']:
             self.robot.status['timestamps']['pimu_imu'] = SystemTimestamp().from_secs(self.robot.pimu.status['timestamp_pc'])
             self.robot.status['timestamps']['lift_enc'] =  SystemTimestamp().from_secs(self.robot.lift.status['timestamp_pc'])
             self.robot.status['timestamps']['arm_enc'] =  SystemTimestamp().from_secs(self.robot.arm.status['timestamp_pc'])
@@ -79,21 +77,17 @@ class RobotTimestampManager(Device):
             self.robot.status['timestamps']['right_wheel_enc'] = self.robot.pimu.clock_manager.HW_to_PC_timestamp(dt_right_wheel_enc + ts_pimu_base)
             self.robot.status['timestamps']['wacc_acc'] = self.robot.wacc.clock_manager.HW_to_PC_timestamp(dt_wacc_acc + ts_wacc_base)
 
-        # Record the current status
-        self.status_history.append([self.status_id,copy.deepcopy(self.robot.status)])
-        if len(self.status_history)==self.n_status_history:
-            self.status_history = self.status_history[1:]
-        self.status_id=self.status_id+1
 
-        if self.param['time_align_status']:
-            self.time_align_status()
+
+        #if self.param['time_align_status']:
+        #    self.time_align_status()
 
 
     def time_align_status(self):
-        if len(self.status_history)>1:
+        if len(self.robot.status_history)>1:
             #Align sensor data to the time of the most recent Pimu line sync
-            s2 = self.status_history[-1][1] #Most recent
-            s1 = self.status_history[-2][1] #Prior
+            s2 = self.robot.status_history[-1][1] #Most recent
+            s1 = self.robot.status_history[-2][1] #Prior
             t = s2['timestamps']['hw_sync']
             self.__align_sensor(s2,s1,'arm','pos','arm_enc',t)
             self.__align_sensor(s2, s1, 'arm', 'vel', 'arm_enc', t)
@@ -126,6 +120,7 @@ class RobotTimestampManager(Device):
             self.__align_sensor(s2, s1, 'pimu', 'mx', 'pimu_imu', t, device_sub='imu')
             self.__align_sensor(s2, s1, 'pimu', 'my', 'pimu_imu', t, device_sub='imu')
             self.__align_sensor(s2, s1, 'pimu', 'mz', 'pimu_imu', t, device_sub='imu')
+
 
             q2=Quaternion(w=s2['pimu']['imu']['qw'],x=s2['pimu']['imu']['qx'],y=s2['pimu']['imu']['qy'],z=s2['pimu']['imu']['qz'])
             q1 = Quaternion(w=s1['pimu']['imu']['qw'], x=s1['pimu']['imu']['qx'], y=s1['pimu']['imu']['qy'],z=s1['pimu']['imu']['qz'])
@@ -186,9 +181,3 @@ class RobotTimestampManager(Device):
         y = m*(t - t1)+y1
         return y
 
-    def __get_status_from_id(self,id):
-        for i in range(self.n_status_history):
-            sid=self.status_history[i][0]
-            if sid==id:
-                return self.status_history[i][1]
-        return None

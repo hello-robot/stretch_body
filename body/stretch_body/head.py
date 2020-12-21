@@ -58,3 +58,4 @@ class Head(DynamixelXChain):
         self.move_to('head_pan', self.poses[p][0], v_r[0], a_r[0])
         self.move_to('head_tilt', self.poses[p][1], v_r[0], a_r[1])
 
+

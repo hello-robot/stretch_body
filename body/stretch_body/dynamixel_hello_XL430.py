@@ -4,6 +4,7 @@ from stretch_body.device import Device
 import time
 from stretch_body.hello_utils import *
 import termios
+import waypoint_trajectory_manager
 
 class DynamixelHelloXL430(Device):
     """
@@ -29,8 +30,38 @@ class DynamixelHelloXL430(Device):
         self.ts_over_eff_start=None
         self.servo_valid=False
         self.is_calibrated=False
-
+        self.trajectory_manager=waypoint_trajectory_manager.WaypointTrajectoryManager()
+        self.traj_setpoint=None
+        self.traj_executing = False
     # ###########  Device Methods #############
+
+    def start_waypoint_trajectory(self):
+        self.trajectory_manager.ts_start = time.time()
+        self.traj_setpoint=self.trajectory_manager.get_setpoint_at_time(0.0)
+        self.traj_executing = True
+        self.move_to(self.traj_setpoint[0])
+
+        self.disable_torque()
+        self.motor.enable_vel()
+        self.enable_torque()
+
+
+    def push_waypoint_trajectory(self):
+        t=time.time()-self.trajectory_manager.ts_start
+        self.traj_setpoint = self.trajectory_manager.get_setpoint_at_time(t)
+        if self.is_trajectory_executing():
+            v = self.traj_setpoint[1]
+            self.motor.go_to_vel(self.rad_per_sec_to_ticks(-1 * v))
+        if self.traj_executing is True and not self.is_trajectory_executing():
+            self.disable_torque()
+            self.motor.enable_pos()
+            self.enable_torque()
+            self.move_to(self.traj_setpoint[0])
+            self.traj_executing = False
+
+
+    def is_trajectory_executing(self):
+        return self.trajectory_manager.duration_remaining()>0
 
     def do_ping(self, verbose):
         return self.motor.do_ping(verbose)
@@ -196,7 +227,6 @@ class DynamixelHelloXL430(Device):
             return
         if v_des is not None:
             v_des = min(self.params['motion']['max']['vel'], v_des)
-
             if v_des != self.v_des:
                 self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
                 self.v_des = v_des

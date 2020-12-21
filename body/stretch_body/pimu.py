@@ -245,9 +245,11 @@ class Pimu(Device):
         self._dirty_config = 1
 
 
+
     def disable_sync_mode(self):
         self.config['sync_mode_enabled'] = 0
         self._dirty_config=1
+
 
     def runstop_event_reset(self):
         """

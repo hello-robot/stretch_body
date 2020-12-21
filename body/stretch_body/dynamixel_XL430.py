@@ -283,6 +283,11 @@ class DynamixelXL430(Device):
         self.handle_comm_result('XL430_ADDR_DRIVE_MODE', dxl_comm_result, dxl_error)
 
 
+    def go_to_vel(self,v):
+        with self.pt_lock:
+            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_GOAL_VEL, v)
+        self.handle_comm_result('XL430_ADDR_GOAL_VEL', dxl_comm_result, dxl_error)
+
     def go_to_pos(self,x):
         with self.pt_lock:
             dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_GOAL_POSITION, x)

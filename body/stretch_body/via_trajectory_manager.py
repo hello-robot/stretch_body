@@ -11,7 +11,7 @@ TRAJECTORY_TYPE_QUINTIC_SPLINE = 3
 SEG_IDX_ID = 0
 SEG_IDX_TIME = 1
 
-class ViaTrajectoryManager:
+class WaypointTrajectoryManager:
     """
     Manage joint trajectories
     Trajectories are specified as a list of via points
@@ -34,34 +34,34 @@ class ViaTrajectoryManager:
         self.__traj_type=traj_type
         self.__setup_new_trajectory()
         self.trajectory_active=False
-        self.vias_last_trajectory = None
+        self.waypoints_last_trajectory = None
 
-    def add_vias_to_trajectory(self,v):
-        #V is a list of vias
+    def add_waypoints_to_trajectory(self,v):
+        #V is a list of waypoints
         if self.num_segment_left()>0: #Append or insert into an existing trajectory
-            tstart=self.vias[self.idx_next_via][0]
-            tend=self.vias[-1][0]
+            tstart=self.waypoints[self.idx_next_wp][0]
+            tend=self.waypoints[-1][0]
             tnew=v[0][0]
             if tnew<tstart:
-                print('Unable to add vias to trajectory: tstart %f tnew %f'%(tstart,tnew))
+                print('Unable to add waypoints to trajectory: tstart %f tnew %f'%(tstart,tnew))
                 return
-            idx_insert=len(self.vias)
-            if tnew<tend: #Replace existing vias with new ones starting at tnew
+            idx_insert=len(self.waypoints)
+            if tnew<tend: #Replace existing waypoints with new ones starting at tnew
                 idx_insert=0
-                for i in range(len(self.vias)):
-                    if self.vias[i][0]>=tnew:
+                for i in range(len(self.waypoints)):
+                    if self.waypoints[i][0]>=tnew:
                         idx_insert=i
                         break
-            self.vias =self.vias[0:idx_insert]+copy.deepcopy(v)
+            self.waypoints =self.waypoints[0:idx_insert]+copy.deepcopy(v)
         else: #Start of a new trajectory
             self.__setup_new_trajectory()
-            self.vias=copy.deepcopy(v)
-        self.ts_duration=self.vias[-1][0] - self.vias[0][0]
+            self.waypoints=copy.deepcopy(v)
+        self.ts_duration=self.waypoints[-1][0] - self.waypoints[0][0]
 
 
     def __setup_new_trajectory(self):
-        self.vias = []
-        self.idx_next_via = 0
+        self.waypoints = []
+        self.idx_next_wp = 0
         self.ts_start = None
         self.ts_duration = 0
         self.new_trajectory = True
@@ -70,7 +70,7 @@ class ViaTrajectoryManager:
         self.trajectory_active=False
 
     def num_segment_left(self):
-        return max(0,len(self.vias)-self.idx_next_via-1)
+        return max(0,len(self.waypoints)-self.idx_next_wp-1)
     
 
     def get_next_segment(self,active_id):
@@ -84,21 +84,21 @@ class ViaTrajectoryManager:
         #The end of a sequence is marked by sending a [0]*8 spline
 
         if active_id ==0 and self.trajectory_active: #Marks end of last segment of trajectory
-            self.vias_last_trajectory=copy.deepcopy(self.vias) #Store this if want a trajectory history
+            self.waypoints_last_trajectory=copy.deepcopy(self.waypoints) #Store this if want a trajectory history
             self.__setup_new_trajectory()
             return None
 
         if active_id ==0 and self.id_seg_next==0:   #Marks first segment of trajectory
             self.trajectory_active = True
-            self.idx_next_via=0
+            self.idx_next_wp=0
             self.id_seg_next=1
         elif active_id == self.id_seg_next:         #Marks the seg_next has begun executing, advance counters
-                self.idx_next_via=self.idx_next_via+1
+                self.idx_next_wp=self.idx_next_wp+1
                 self.id_seg_next = max(1,(self.id_seg_next+1)%255)
 
         if self.num_segment_left()>0 :
             if self.__traj_type == TRAJECTORY_TYPE_CUBIC_SPLINE: #Recompute spline in case has changed
-                self.seg_next= self.generate_cubic_spline_segment(self.vias[self.idx_next_via],self.vias[self.idx_next_via+1])
+                self.seg_next= self.generate_cubic_spline_segment(self.waypoints[self.idx_next_wp],self.waypoints[self.idx_next_wp+1])
                 self.seg_next.append(self.id_seg_next)
         else:
             self.seg_next=[0]*8 #Marks no more segments to the uC
@@ -119,7 +119,7 @@ class ViaTrajectoryManager:
         return max(0,self.ts_duration - dt_elapased)
 
     def generate_cubic_spline_segment(self, v0,v1):
-        # Vias is [[pos,vel,time],...]
+        # waypoints is [[pos,vel,time],...]
         #Pad out to 7 floats
         theta0 = v0[1]
         thetadot0 = v0[2]
