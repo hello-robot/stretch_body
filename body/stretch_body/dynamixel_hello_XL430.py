@@ -17,7 +17,7 @@ class DynamixelHelloXL430(Device):
         self.params=self.robot_params[self.name]
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                     'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+                     'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'trajectory_active':0}
         #Share bus resource amongst many XL430s
         if chain is None:
             self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None)
@@ -32,36 +32,7 @@ class DynamixelHelloXL430(Device):
         self.is_calibrated=False
         self.trajectory_manager=waypoint_trajectory_manager.WaypointTrajectoryManager()
         self.traj_setpoint=None
-        self.traj_executing = False
     # ###########  Device Methods #############
-
-    def start_waypoint_trajectory(self):
-        self.trajectory_manager.ts_start = time.time()
-        self.traj_setpoint=self.trajectory_manager.get_setpoint_at_time(0.0)
-        self.traj_executing = True
-        self.move_to(self.traj_setpoint[0])
-
-        self.disable_torque()
-        self.motor.enable_vel()
-        self.enable_torque()
-
-
-    def push_waypoint_trajectory(self):
-        t=time.time()-self.trajectory_manager.ts_start
-        self.traj_setpoint = self.trajectory_manager.get_setpoint_at_time(t)
-        if self.is_trajectory_executing():
-            v = self.traj_setpoint[1]
-            self.motor.go_to_vel(self.rad_per_sec_to_ticks(-1 * v))
-        if self.traj_executing is True and not self.is_trajectory_executing():
-            self.disable_torque()
-            self.motor.enable_pos()
-            self.enable_torque()
-            self.move_to(self.traj_setpoint[0])
-            self.traj_executing = False
-
-
-    def is_trajectory_executing(self):
-        return self.trajectory_manager.duration_remaining()>0
 
     def do_ping(self, verbose):
         return self.motor.do_ping(verbose)
@@ -174,6 +145,7 @@ class DynamixelHelloXL430(Device):
         print 'Velocity (ticks/s)', self.status['vel_ticks']
         print 'Effort (%)', self.status['effort']
         print 'Effort (ticks)', self.status['effort_ticks']
+        print 'Waypoint Trajectory Active', self.status['trajectory_active']
         print 'Temp', self.status['temp']
         print 'Comm Errors', self.motor.comm_errors
         print 'Hardware Error', self.status['hardware_error']
@@ -189,6 +161,38 @@ class DynamixelHelloXL430(Device):
         print 'Stall Overload',self.status['stall_overload']
         print 'Is Calibrated',self.is_calibrated
         #self.motor.pretty_print()
+
+     # ############## Waypoints ###################
+
+    def enable_waypoint_trajectory_mode(self):
+        if not self.servo_valid:
+            return
+        if self.params['req_calibration'] and not self.is_calibrated:
+            print 'Dynamixel not calibrated:', self.name
+            return
+        self.disable_torque()
+        self.motor.enable_vel()
+        self.set_motion_params(self.params['motion']['max']['vel'], self.params['motion']['max']['accel'])
+        self.motor.set_vel_limit(self.rad_per_sec_to_ticks(12.0))
+        self.enable_torque()
+
+    def start_waypoint_trajectory(self):
+        self.trajectory_manager.ts_start = time.time()
+        self.traj_setpoint = self.trajectory_manager.get_setpoint_at_time(0.0)
+        self.status['trajectory_active'] = 1
+
+    def push_waypoint_trajectory(self):
+        t = time.time() - self.trajectory_manager.ts_start
+        self.traj_setpoint = self.trajectory_manager.get_setpoint_at_time(t)
+        if self.trajectory_manager.duration_remaining() > 0:
+            v = self.traj_setpoint[1]
+            self.motor.go_to_vel(self.rad_per_sec_to_ticks(-1 * v))
+        if self.status['trajectory_active'] and self.trajectory_manager.duration_remaining() == 0:
+            self.disable_torque()
+            self.motor.enable_pos()
+            self.enable_torque()
+            self.move_to(self.traj_setpoint[0])
+            self.status['trajectory_active'] = 0
 
     # #####################################
 

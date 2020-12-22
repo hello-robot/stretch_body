@@ -6,10 +6,8 @@ import time
 import copy
 
 TRAJECTORY_TYPE_INVALID = 0
-TRAJECTORY_TYPE_CUBIC_SPLINE = 2
-TRAJECTORY_TYPE_QUINTIC_SPLINE = 3
-SEG_IDX_ID = 0
-SEG_IDX_TIME = 1
+TRAJECTORY_TYPE_CUBIC_SPLINE = 1
+TRAJECTORY_TYPE_QUINTIC_SPLINE = 2
 
 class WaypointTrajectoryManager:
     """
@@ -76,6 +74,7 @@ class WaypointTrajectoryManager:
         self.trajectory_loaded=False
         self.seg=None
         self.traj_type =TRAJECTORY_TYPE_INVALID
+        self.last_setpoint_time = 0
 
     def num_segment_left(self):
         return max(0,len(self.waypoints)-self.idx_waypoint-1)
@@ -91,7 +90,6 @@ class WaypointTrajectoryManager:
     def get_setpoint_at_time(self,t):
         #Get the target pos, vel, accel at time t
         if t>self.waypoints[-1][0]:
-            print 'END',self.waypoints[-1]
             return self.waypoints[-1][1:]
         idx_0=self.find_waypoint_before_time(t)
         if idx_0 is None:
@@ -101,13 +99,9 @@ class WaypointTrajectoryManager:
             t_prior=self.waypoints[idx_0][0]
         else:
             t_prior=0
+        self.last_setpoint_time = t
         if self.traj_type == TRAJECTORY_TYPE_CUBIC_SPLINE:
             seg = self.generate_cubic_spline_segment(self.waypoints[idx_0],self.waypoints[idx_1])
-            print 's',seg
-            e=self.evaluate_cubic_spline(seg,t-t_prior)
-            print 'e',e
-            print 't',t-t_prior
-            self.ttt=t#-t_prior
             return self.evaluate_cubic_spline(seg,t-t_prior)
 
         if self.traj_type == TRAJECTORY_TYPE_QUINTIC_SPLINE:

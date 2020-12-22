@@ -32,22 +32,30 @@ class RobotDynamixelThread(threading.Thread):
     def __init__(self,robot):
         threading.Thread.__init__(self)
         self.robot=robot
-        self.robot_update_rate_hz = 15.0  #Hz
+        self.thread_update_rate_hz = 60.0  #Hz
+        self.trajectory_downrate_int = 1  # Step the trajectory manager at 60hz for smooth vel ctrl
+        self.status_downrate_int = 4  # Step the status at 15hz (most bus can handle)
         self.timer_stats = hello_utils.TimerStats()
         self.shutdown_flag = threading.Event()
         self.first_status=False
+        self.titr = 0
 
     def run(self):
         while not self.shutdown_flag.is_set():
             ts = time.time()
-            self.robot._pull_status_dynamixel()
+
+            if (self.titr % self.trajectory_downrate_int) == 0:
+                self.robot._push_dynamixel_waypoint_trajectory()
+
+            if (self.titr % self.status_downrate_int) == 0:
+                self.robot._pull_status_dynamixel()
             self.first_status=True
+
+            self.titr = self.titr + 1
             te = time.time()
-            tsleep = max(0, (1 / self.robot_update_rate_hz) - (te - ts))
+            tsleep = max(0, (1 / self.thread_update_rate_hz) - (te - ts))
             if not self.shutdown_flag.is_set():
                 time.sleep(tsleep)
-
-
 
 class RobotThread(threading.Thread):
     """
@@ -59,10 +67,11 @@ class RobotThread(threading.Thread):
         threading.Thread.__init__(self)
         self.robot=robot
 
-        self.robot_update_rate_hz = 25.0  #Hz
+        self.thread_update_rate_hz = 25.0  #Hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
         self.trajectory_downrate_int = 5 #Step the trajectory manager every Nth iteration
+        self.status_downrate_int = 1  # Step the status manager every iteration
 
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
@@ -78,12 +87,11 @@ class RobotThread(threading.Thread):
         while not self.shutdown_flag.is_set():
             ts = time.time()
 
-            self.robot._pull_status_non_dynamixel()
-
-            self.first_status = True
+            if (self.titr % self.status_downrate_int) == 0:
+                self.robot._pull_status_non_dynamixel()
 
             if (self.titr % self.trajectory_downrate_int) == 0:
-                self.robot._push_waypoint_trajectory()
+                self.robot._push_non_dynamixel_waypoint_trajectory()
 
             if self.robot.params['use_monitor']:
                 if (self.titr % self.monitor_downrate_int) == 0:
@@ -93,9 +101,11 @@ class RobotThread(threading.Thread):
                 if (self.titr % self.sentry_downrate_int) == 0:
                     self.robot.sentry.step()
 
+            self.first_status = True
+
             self.titr=self.titr+1
             te = time.time()
-            tsleep = max(0, (1 / self.robot_update_rate_hz) - (te - ts))
+            tsleep = max(0, (1 / self.thread_update_rate_hz) - (te - ts))
             if not self.shutdown_flag.is_set():
                 time.sleep(tsleep)
 
@@ -129,39 +139,33 @@ class Robot(Device):
                                      'dynamixel_wall_time':hello_utils.SystemTimestamp(),
                                      'non_dynamixel_wall_time':hello_utils.SystemTimestamp()}}
 
+        self.pimu=pimu.Pimu()
+        self.status['pimu']=self.pimu.status
 
-        if self.params['use_pimu']:
-            self.pimu=pimu.Pimu()
-            self.status['pimu']=self.pimu.status
+        self.base=base.Base()
+        self.status['base']=self.base.status
 
-        if self.params['use_base']:
-            self.base=base.Base()
-            self.status['base']=self.base.status
+        self.lift=lift.Lift()
+        self.status['lift']=self.lift.status
 
-        if self.params['use_lift']:
-            self.lift=lift.Lift()
-            self.status['lift']=self.lift.status
+        self.arm=arm.Arm()
+        self.status['arm']=self.arm.status
 
-        if self.params['use_arm']:
-            self.arm=arm.Arm()
-            self.status['arm']=self.arm.status
+        self.head=head.Head()
+        self.status['head']=self.head.status
 
-        if self.params['use_head']:
-            self.head=head.Head()
-            self.status['head']=self.head.status
 
-        if self.params['use_wacc']:
-            if self.params.has_key('custom_wacc'):
-                module_name = self.params['custom_wacc']['py_module_name']
-                class_name = self.params['custom_wacc']['py_class_name']
-                self.wacc=getattr(importlib.import_module(module_name), class_name)(self)
-            else:
-                self.wacc=wacc.Wacc()
-            self.status['wacc']=self.wacc.status
+        if self.params.has_key('custom_wacc'):
+            module_name = self.params['custom_wacc']['py_module_name']
+            class_name = self.params['custom_wacc']['py_class_name']
+            self.wacc=getattr(importlib.import_module(module_name), class_name)(self)
+        else:
+            self.wacc=wacc.Wacc()
+        self.status['wacc']=self.wacc.status
 
-        if self.params['use_end_of_arm']:
-            self.end_of_arm=end_of_arm.EndOfArm()
-            self.status['end_of_arm']=self.end_of_arm.status
+
+        self.end_of_arm=end_of_arm.EndOfArm()
+        self.status['end_of_arm']=self.end_of_arm.status
 
         self.n_status_history = 25  # Store last 25 status (approx 1 second of data)
         self.status_id = 0
@@ -291,40 +295,38 @@ class Robot(Device):
 
 
     def enable_sync_mode(self):
-        if self.arm is not None:
-            self.arm.motor.enable_sync_mode()
-            self.arm.push_command()
-        if self.lift is not None:
-            self.lift.motor.enable_sync_mode()
-            self.lift.push_command()
-        if self.base is not None:
-            self.base.left_wheel.enable_sync_mode()
-            self.base.right_wheel.enable_sync_mode()
-            self.base.push_command()
-        if self.wacc is not None:
-            self.wacc.enable_sync_mode()
-            self.wacc.push_command()
-        if self.pimu is not None:
-            self.pimu.enable_sync_mode()
-            self.pimu.push_command()
+        self.arm.motor.enable_sync_mode()
+        self.arm.push_command()
+
+        self.lift.motor.enable_sync_mode()
+        self.lift.push_command()
+
+        self.base.left_wheel.enable_sync_mode()
+        self.base.right_wheel.enable_sync_mode()
+        self.base.push_command()
+
+        self.wacc.enable_sync_mode()
+        self.wacc.push_command()
+
+        self.pimu.enable_sync_mode()
+        self.pimu.push_command()
 
     def disable_sync_mode(self):
-        if self.pimu is not None:
-            self.pimu.disable_sync_mode()
-            self.pimu.push_command()
-        if self.arm is not None:
-            self.arm.motor.disable_sync_mode()
-            self.arm.push_command()
-        if self.lift is not None:
-            self.lift.motor.disable_sync_mode()
-            self.lift.push_command()
-        if self.base is not None:
-            self.base.left_wheel.disable_sync_mode()
-            self.base.right_wheel.disable_sync_mode()
-            self.base.push_command()
-        if self.wacc is not None:
-            self.wacc.disable_sync_mode()
-            self.wacc.push_command()
+        self.pimu.disable_sync_mode()
+        self.pimu.push_command()
+
+        self.arm.motor.disable_sync_mode()
+        self.arm.push_command()
+
+        self.lift.motor.disable_sync_mode()
+        self.lift.push_command()
+
+        self.base.left_wheel.disable_sync_mode()
+        self.base.right_wheel.disable_sync_mode()
+        self.base.push_command()
+
+        self.wacc.disable_sync_mode()
+        self.wacc.push_command()
 
 
     def pretty_print(self):
@@ -341,18 +343,12 @@ class Robot(Device):
         Cause all queued up RPC commands to be sent down to Devices
         """
         with self.lock:
-            if self.base is not None:
-                self.base.push_command()
-            if self.arm is not None:
-                self.arm.push_command()
-            if self.lift is not None:
-                self.lift.push_command()
-            if self.pimu is not None:
-                self.pimu.push_command()
-            if self.wacc is not None:
-                self.wacc.push_command()
-            if self.pimu is not None:
-                self.pimu.trigger_motor_sync()
+            self.base.push_command()
+            self.arm.push_command()
+            self.lift.push_command()
+            self.pimu.push_command()
+            self.wacc.push_command()
+            self.pimu.trigger_motor_sync()
 
 # ##################Home and Stow #######################################
 
@@ -360,15 +356,11 @@ class Robot(Device):
         """
         Returns true if homing-calibration has been run all joints that require it
         """
-        ready = True
-        if self.lift is not None:
-            ready = ready and self.lift.motor.status['pos_calibrated']
-        if self.arm is not None:
-            ready = ready and self.arm.motor.status['pos_calibrated']
-        if self.end_of_arm is not None:
-            for j in self.end_of_arm.joints:
-                req = self.end_of_arm.motors[j].params['req_calibration'] and not self.end_of_arm.motors[j].is_calibrated
-                ready = ready and not req
+        ready = self.lift.motor.status['pos_calibrated']
+        ready = ready and self.arm.motor.status['pos_calibrated']
+        for j in self.end_of_arm.joints:
+            req = self.end_of_arm.motors[j].params['req_calibration'] and not self.end_of_arm.motors[j].is_calibrated
+            ready = ready and not req
         return ready
 
     def stow(self):
@@ -431,25 +423,22 @@ class Robot(Device):
         self.pimu.disable_sync_mode()
         self.push_command()
 
-        if self.head is not None:
-            print '--------- Homing Head ----'
-            self.head.home()
+
+        print '--------- Homing Head ----'
+        self.head.home()
 
         # Home the lift
-        if self.lift is not None:
-            print '--------- Homing Lift ----'
-            self.lift.home()
+        print '--------- Homing Lift ----'
+        self.lift.home()
 
         # Home the arm
-        if self.arm is not None:
-            print '--------- Homing Arm ----'
-            self.arm.home()
+        print '--------- Homing Arm ----'
+        self.arm.home()
 
         # Home the end-of-arm
-        if self.end_of_arm is not None:
-            for j in self.end_of_arm.joints:
-                print  '--------- Homing ', j, '----'
-                self.end_of_arm.home(j)
+        for j in self.end_of_arm.joints:
+            print  '--------- Homing ', j, '----'
+            self.end_of_arm.home(j)
         #Let user know it is done
         if psm:
             self.pimu.enable_sync_mode()
@@ -468,72 +457,89 @@ class Robot(Device):
 
     def _pull_status_dynamixel(self):
         try:
-            if self.end_of_arm is not None:
-                self.end_of_arm.pull_status()
-            if self.head is not None:
-                self.head.pull_status()
+            self.end_of_arm.pull_status()
+            self.head.pull_status()
             self.update_status_history(dynamixel=True)
         except SerialException:
             print 'Serial Exception on Robot Step_Dynamixel'
 
     def _pull_status_non_dynamixel(self):
         #Send a status sync message to all slaves, so timestamped at same time
-        if self.pimu is not None and self.params['sync_mode_enabled']:
+        if self.params['sync_mode_enabled']:
             self.pimu.trigger_status_sync()
-        if self.wacc is not None and self.params['sync_mode_enabled']:
             self.wacc.trigger_status_sync()
-        if self.wacc is not None:
-            self.wacc.pull_status()
-        if self.base is not None:
-            self.base.pull_status()
-        if self.lift is not None:
-            self.lift.pull_status()
-        if self.arm is not None:
-            self.arm.pull_status()
-        if self.pimu is not None:
-            self.pimu.pull_status()
-
+        self.wacc.pull_status()
+        self.base.pull_status()
+        self.lift.pull_status()
+        self.arm.pull_status()
+        self.pimu.pull_status()
         self.update_status_history(non_dynamixel=True)
 
-    def _push_waypoint_trajectory(self):
-        if self.arm and self.arm.motor.trajectory_manager.trajectory_loaded:
+    def _push_non_dynamixel_waypoint_trajectory(self):
+        if self.arm.motor.trajectory_manager.trajectory_loaded:
             self.arm.motor.push_waypoint_trajectory()
 
+        if self.lift.motor.trajectory_manager.trajectory_loaded:
+            self.lift.motor.push_waypoint_trajectory()
+
+
+    def _push_dynamixel_waypoint_trajectory(self):
+        if self.head.motors['head_pan'].status['trajectory_active']:
+            self.head.motors['head_pan'].push_waypoint_trajectory()
+
+        if self.head.motors['head_tilt'].status['trajectory_active']:
+            self.head.motors['head_tilt'].push_waypoint_trajectory()
+
+        if self.end_of_arm.motors['wrist_yaw'].status['trajectory_active']:
+            self.end_of_arm.motors['wrist_yaw'].push_waypoint_trajectory()
 
     def is_trajectory_executing(self):
         # Executing is defined as the joint controller is tracking the trajectory
         # Returns false after the last segment has finished executing on the joint controller
-        if self.arm and self.arm.motor.status['trajectory_active']:
-            return True
-        return False
-
-    def is_trajectory_loaded(self):
-        # Loaded as the joint controller is ready to start execution or is executing
-        # Returns false after the last segment has finished executing on the joint controller
-        if self.arm and self.arm.motor.trajectory_manager.trajectory_loaded:
-            return True
-        return False
+        return self.arm.motor.status['trajectory_active'] or  self.lift.motor.status['trajectory_active'] \
+                or self.base.left_wheel.status['trajectory_active'] or self.base.right_wheel.status['trajectory_active'] \
+                or self.head.motors['head_pan'].status['trajectory_active'] or self.head.motors['head_tilt'].status['trajectory_active'] \
+                or self.end_of_arm.motors['wrist_yaw'].status['trajectory_active']
 
     def update_trajectory(self, lift_waypoints=None, arm_waypoints=None,
                       head_pan_waypoints=None, head_tilt_waypoints=None,
-                      base_waypoints=None, is_base_translation=False):
+                      base_translate_waypoints=None, base_rotate_waypoints=None,wrist_yaw_waypoints=None):
         """
         Append waypoints to an existing trajectory
         The existing trajectory may already be executing
         Will overwrite the existing trajectory if the new start time is before the finish of the existing
         Return true if success, false if malformed
         """
-        if arm_waypoints is not None and self.arm is not None:
-            if len(arm_waypoints) < 1:
+        if arm_waypoints is not None:
+            if len(arm_waypoints) < 2  and not (len(arm_waypoints[0]) == 3 or len(arm_waypoints[0]) == 4):
                 return False
-            if len(arm_waypoints[0]) == 3 or len(arm_waypoints[0]) == 4:  # Cubic/Quintic
-                self.arm.add_waypoints_to_trajectory(arm_waypoints)
-            else:
+            self.arm.add_waypoints_to_trajectory(arm_waypoints)
+
+        if lift_waypoints is not None:
+            if len(lift_waypoints) < 2 and not (len(lift_waypoints[0]) == 3 or len(lift_waypoints[0]) == 4):
                 return False
+            self.lift.add_waypoints_to_trajectory(lift_waypoints)
+
+        if head_pan_waypoints is not None:
+            if len(head_pan_waypoints) < 2 and not (len(head_pan_waypoints[0]) == 3 or len(head_pan_waypoints[0]) == 4):
+                return False
+            self.head.motors['head_pan'].trajectory_manager.add_waypoints_to_trajectory(head_pan_waypoints)
+
+        if head_tilt_waypoints is not None:
+            if len(head_tilt_waypoints) < 2 and not (len(head_tilt_waypoints[0]) == 3 or len(head_tilt_waypoints[0]) == 4):
+                return False
+            self.head.motors['head_tilt'].trajectory_manager.add_waypoints_to_trajectory(head_tilt_waypoints)
+
+        if wrist_yaw_waypoints is not None:
+            if len(wrist_yaw_waypoints) < 2 and not (len(wrist_yaw_waypoints[0]) == 3 or len(wrist_yaw_waypoints[0]) == 4):
+                return False
+            self.end_of_arm.motors['wrist_yaw'].trajectory_manager.add_waypoints_to_trajectory(wrist_yaw_waypoints)
+
+        return True
 
     def follow_trajectory(self, lift_waypoints=None, arm_waypoints=None,
                       head_pan_waypoints=None, head_tilt_waypoints=None,
-                      base_waypoints=None, is_base_translation=False):
+                      base_translate_waypoints=None, base_rotate_waypoints=None,wrist_yaw_waypoints=None):
         """
         Coordinated multi-joint trajectory following. This requires Sync Mode to be
         enabled (via YAML or API).
@@ -563,36 +569,33 @@ class Robot(Device):
         bool
             False if provided malformed waypoints, else True
         """
-        if arm_waypoints is not None and self.arm is not None:
-            if len(arm_waypoints)<2:
-                return False
-            if len(arm_waypoints[0])==3 or len(arm_waypoints[0])==4: #Cubic/Quintic
-                self.arm.add_waypoints_to_trajectory(arm_waypoints)
-            else:
-                return False
+        if not self.update_trajectory(lift_waypoints,arm_waypoints,head_pan_waypoints,head_tilt_waypoints,base_translate_waypoints,base_rotate_waypoints,wrist_yaw_waypoints):
+            return False
+
+        if arm_waypoints is not None:
             self.arm.enable_waypoint_trajectory_mode()
             self.arm.push_command()
             self.arm.motor.start_waypoint_trajectory()
 
-        if head_pan_waypoints is not None and self.head is not None:
-            if len(head_pan_waypoints)<2:
-                return False
-            if len(head_pan_waypoints[0]) == 2:
-                self.head.motors['head_pan'].trajectory_manager.add_waypoints_to_trajectory(head_pan_waypoints)
-            else:
-                return False
+        if lift_waypoints is not None:
+            self.lift.enable_waypoint_trajectory_mode()
+            self.lift.push_command()
+            self.lift.motor.start_waypoint_trajectory()
+
+        if self.params['sync_mode_enabled']:
+            self.pimu.trigger_motor_sync() #Start motion of non-dynamixel joints
+
+        if head_pan_waypoints is not None:
+            self.head.motors['head_pan'].enable_waypoint_trajectory_mode()
             self.head.motors['head_pan'].start_waypoint_trajectory()
 
-        if head_tilt_waypoints is not None and self.head is not None:
-            if len(head_tilt_waypoints)<2:
-                return False
-            if len(head_tilt_waypoints[0]) == 2:
-                self.head.motors['head_tilt'].trajectory_manager.add_waypoints_to_trajectory(head_tilt_waypoints)
-            else:
-                return False
+        if head_tilt_waypoints is not None:
+            self.head.motors['head_tilt'].enable_waypoint_trajectory_mode()
             self.head.motors['head_tilt'].start_waypoint_trajectory()
 
-        self.pimu.trigger_motor_sync()
+        if wrist_yaw_waypoints is not None:
+            self.end_of_arm.motors['wrist_yaw'].enable_waypoint_trajectory_mode()
+            self.end_of_arm.motors['wrist_yaw'].start_waypoint_trajectory()
         return True
 
 

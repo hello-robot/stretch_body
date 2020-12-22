@@ -186,21 +186,21 @@ class Arm(Device):
             a_r = self.translate_to_motor_rad(self.params['motion']['max']['accel_m'])
 
         self.motor.enable_pos_traj_waypoint()
-        self.motor.set_command(v_des=v_r, a_des=a_r)
+        self.motor.set_command(v_des=v_r, a_des=a_r, i_feedforward=self.i_feedforward, i_contact_pos=self.i_contact_pos, i_contact_neg=self.i_contact_neg)
 
     def add_waypoints_to_trajectory(self,waypoints):
         #A waypoint has form [time (s), position (m), velocity (m)]
         #Trajectories can be concatenated by calling this multiple times
         #Trajectories can be overwritten (if they start after any currently executing waypoint target)
-        self.motor.trajectory_manager.add_waypoints_to_trajectory(self.arm_waypoints_to_motor_waypoints(waypoints))
+        self.motor.trajectory_manager.add_waypoints_to_trajectory(self.translate_waypoints_to_motor_waypoints(waypoints))
 
-    def motor_waypoints_to_arm_waypoints(self,waypoints):
+    def motor_waypoints_to_translate_waypoints(self,waypoints):
         a=[]
         for w in waypoints:
             a.append([w[0], self.motor_rad_to_translate(w[1]),self.motor_rad_to_translate(w[2])])
         return a
 
-    def arm_waypoints_to_motor_waypoints(self,waypoints):
+    def translate_waypoints_to_motor_waypoints(self,waypoints):
         m = []
         for w in waypoints:
             m.append([w[0], self.translate_to_motor_rad(w[1]), self.translate_to_motor_rad(w[2])])
