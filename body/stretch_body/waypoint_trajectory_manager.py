@@ -101,8 +101,11 @@ class WaypointTrajectoryManager:
             t_prior=0
         self.last_setpoint_time = t
         if self.traj_type == TRAJECTORY_TYPE_CUBIC_SPLINE:
+            #print 'Waypoint0',self.waypoints[idx_0],t-t_prior
             seg = self.generate_cubic_spline_segment(self.waypoints[idx_0],self.waypoints[idx_1])
-            return self.evaluate_cubic_spline(seg,t-t_prior)
+            e=self.evaluate_cubic_spline(seg,t-t_prior)
+            #print 'Vtarget',e[1]
+            return e
 
         if self.traj_type == TRAJECTORY_TYPE_QUINTIC_SPLINE:
             seg = self.generate_quintic_spline_segment(self.waypoints[idx_0],self.waypoints[idx_1])
@@ -184,6 +187,7 @@ class WaypointTrajectoryManager:
         a5 = (12 * f[1] - 12 * i[1] - (6 * f[2] + 6 * i[2]) * (f[0] - i[0]) - (i[3] - f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 5))
         return [duration, a0, a1, a2, a3, a4,a5]
 
+    #See Craig Intro Robotics Ch7
     def generate_cubic_spline_segment(self, i,f):
         # waypoints are [[time, pos,vel],...]
         duration =f[0] - i[0]

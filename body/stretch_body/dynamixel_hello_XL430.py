@@ -41,8 +41,9 @@ class DynamixelHelloXL430(Device):
         if self.motor.do_ping(verbose=False):
             self.servo_valid = True
             self.motor.disable_torque()
-            if self.params['use_multiturn']:
-                self.motor.enable_multiturn()
+            self.v_des = self.params['motion']['default']['vel']
+            self.a_des = self.params['motion']['default']['accel']
+            self.enable_pos()
             self.motor.set_pwm_limit(self.params['pwm_limit'])
             self.motor.set_temperature_limit(self.params['temperature_limit'])
             self.motor.set_min_voltage_limit(self.params['min_voltage_limit'])
@@ -51,10 +52,8 @@ class DynamixelHelloXL430(Device):
             self.motor.set_I_gain(self.params['pid'][1])
             self.motor.set_D_gain(self.params['pid'][2])
             self.motor.set_return_delay_time(self.params['return_delay_time'])
-            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['default']['vel']))
-            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
-            self.v_des=self.params['motion']['default']['vel']
-            self.a_des=self.params['motion']['default']['accel']
+            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
+            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
         else:
@@ -171,10 +170,11 @@ class DynamixelHelloXL430(Device):
             print 'Dynamixel not calibrated:', self.name
             return
         self.disable_torque()
-        self.motor.enable_vel()
-        self.set_motion_params(self.params['motion']['max']['vel'], self.params['motion']['max']['accel'])
-        self.motor.set_vel_limit(self.rad_per_sec_to_ticks(12.0))
+        self.motor.enable_vel() #Do trajectority using velocity control
+        self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
+        self.motor.set_vel_limit(self.rad_per_sec_to_ticks(self.params['motion']['trajectory_max']['vel']))
         self.enable_torque()
+        #print 'IS',self.motor.get_profile_velocity(),self.motor.get_profile_acceleration()
 
     def start_waypoint_trajectory(self):
         self.trajectory_manager.ts_start = time.time()
@@ -185,12 +185,10 @@ class DynamixelHelloXL430(Device):
         t = time.time() - self.trajectory_manager.ts_start
         self.traj_setpoint = self.trajectory_manager.get_setpoint_at_time(t)
         if self.trajectory_manager.duration_remaining() > 0:
-            v = self.traj_setpoint[1]
-            self.motor.go_to_vel(self.rad_per_sec_to_ticks(-1 * v))
+            v_des = self.world_rad_to_ticks_per_sec(self.traj_setpoint[1])
+            self.motor.go_to_vel(v_des)
         if self.status['trajectory_active'] and self.trajectory_manager.duration_remaining() == 0:
-            self.disable_torque()
             self.motor.enable_pos()
-            self.enable_torque()
             self.move_to(self.traj_setpoint[0])
             self.status['trajectory_active'] = 0
 
@@ -259,6 +257,8 @@ class DynamixelHelloXL430(Device):
         self.motor.disable_torque()
         if self.params['use_multiturn']:
             self.motor.enable_multiturn()
+        else:
+            self.motor.enable_pos()
         self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
         self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
         self.motor.enable_torque()
@@ -379,6 +379,11 @@ class DynamixelHelloXL430(Device):
         rad_servo = r*self.params['gr']*self.polarity
         t= self.rad_to_ticks(rad_servo)
         return t+self.params['zero_t']
+
+    def world_rad_to_ticks_per_sec(self,r):
+        rad_per_sec_servo = r*self.params['gr']*self.polarity
+        t= self.rad_per_sec_to_ticks(rad_per_sec_servo)
+        return t
 
     def ticks_to_rad(self,t):
         return deg_to_rad((360.0 * t / 4096.0))

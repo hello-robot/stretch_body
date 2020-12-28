@@ -176,14 +176,14 @@ class Arm(Device):
         #velocities and accelerations beyond these settings
 
         if v_m is not None:
-            v_r = self.translate_to_motor_rad(min(abs(v_m), self.params['motion']['max']['vel_m']))
+            v_r = self.translate_to_motor_rad(min(abs(v_m), self.params['motion']['trajectory_max']['vel_m']))
         else:
-            v_r = self.translate_to_motor_rad(self.params['motion']['max']['vel_m'])
+            v_r = self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_m'])
 
         if a_m is not None:
-            a_r = self.translate_to_motor_rad(min(abs(a_m), self.params['motion']['max']['accel_m']))
+            a_r = self.translate_to_motor_rad(min(abs(a_m), self.params['motion']['trajectory_max']['accel_m']))
         else:
-            a_r = self.translate_to_motor_rad(self.params['motion']['max']['accel_m'])
+            a_r = self.translate_to_motor_rad(self.params['motion']['trajectory_max']['accel_m'])
 
         self.motor.enable_pos_traj_waypoint()
         self.motor.set_command(v_des=v_r, a_des=a_r, i_feedforward=self.i_feedforward, i_contact_pos=self.i_contact_pos, i_contact_neg=self.i_contact_neg)

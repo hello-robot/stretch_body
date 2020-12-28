@@ -482,6 +482,11 @@ class Robot(Device):
         if self.lift.motor.trajectory_manager.trajectory_loaded:
             self.lift.motor.push_waypoint_trajectory()
 
+        if self.base.left_wheel.trajectory_manager.trajectory_loaded:
+            self.base.left_wheel.push_waypoint_trajectory()
+
+        if self.base.right_wheel.trajectory_manager.trajectory_loaded:
+            self.base.right_wheel.push_waypoint_trajectory()
 
     def _push_dynamixel_waypoint_trajectory(self):
         if self.head.motors['head_pan'].status['trajectory_active']:
@@ -510,6 +515,20 @@ class Robot(Device):
         Will overwrite the existing trajectory if the new start time is before the finish of the existing
         Return true if success, false if malformed
         """
+        if base_rotate_waypoints is not None and base_translate_waypoints is not None: #mutually exclusive
+            return False
+
+        #TODO: Prevent adding rotate/translate waypoints to same trajectory sequence, Or handle intelligently
+        if base_translate_waypoints is not None:
+            if len(base_translate_waypoints) < 2  and not (len(base_translate_waypoints[0]) == 3 or len(base_translate_waypoints[0]) == 4):
+                return False
+            self.base.add_waypoints_to_trajectory(waypoints=base_translate_waypoints, translate_mode=True)
+
+        if base_rotate_waypoints is not None:
+            if len(base_rotate_waypoints) < 2 and not (len(base_rotate_waypoints[0]) == 3 or len(base_rotate_waypoints[0]) == 4):
+                return False
+            self.base.add_waypoints_to_trajectory(waypoints=base_rotate_waypoints, translate_mode=False)
+
         if arm_waypoints is not None:
             if len(arm_waypoints) < 2  and not (len(arm_waypoints[0]) == 3 or len(arm_waypoints[0]) == 4):
                 return False
@@ -569,8 +588,28 @@ class Robot(Device):
         bool
             False if provided malformed waypoints, else True
         """
+
+        #Handle the base first so can latch in encoder start values prior to mapping to motor frame
+        if base_rotate_waypoints is not None and base_translate_waypoints is not None: #mutually exclusive
+            return False
+        if base_translate_waypoints is not None:
+            if len(base_translate_waypoints) < 2  and not (len(base_translate_waypoints[0]) == 3 or len(base_translate_waypoints[0]) == 4):
+                return False
+        if base_rotate_waypoints is not None:
+            if len(base_rotate_waypoints) < 2 and not (len(base_rotate_waypoints[0]) == 3 or len(base_rotate_waypoints[0]) == 4):
+                return False
+        if base_rotate_waypoints is not None or base_translate_waypoints is not None:
+            self.base.enable_waypoint_trajectory_mode(translate_mode=(base_translate_waypoints is not None))
+            self.base.push_command()
+
+        #Now do initial add of waypoints
         if not self.update_trajectory(lift_waypoints,arm_waypoints,head_pan_waypoints,head_tilt_waypoints,base_translate_waypoints,base_rotate_waypoints,wrist_yaw_waypoints):
             return False
+
+        #Next configure controllers to start
+        if base_translate_waypoints is not None or base_rotate_waypoints is not None:
+            self.base.left_wheel.start_waypoint_trajectory()
+            self.base.right_wheel.start_waypoint_trajectory()
 
         if arm_waypoints is not None:
             self.arm.enable_waypoint_trajectory_mode()
