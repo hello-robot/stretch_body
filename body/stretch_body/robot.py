@@ -473,7 +473,7 @@ class Robot(Device):
         self.lift.pull_status()
         self.arm.pull_status()
         self.pimu.pull_status()
-        self.update_status_history(non_dynamixel=True)
+        self.update_status_history(non_dynamixel=True) #Updates timestamps
 
     def _push_non_dynamixel_waypoint_trajectory(self):
         if self.arm.motor.trajectory_manager.trajectory_loaded:

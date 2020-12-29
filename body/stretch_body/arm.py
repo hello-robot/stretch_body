@@ -64,7 +64,7 @@ class Arm(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Arm not calibrated'
+                print 'Arm not homed'
                 return
             x_m=max(self.params['range_m'][0],min(x_m,self.params['range_m'][1]))
 
@@ -114,7 +114,7 @@ class Arm(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Arm not calibrated'
+                print 'Arm not homed'
                 return
 
         if stiffness is not None:
@@ -170,10 +170,14 @@ class Arm(Device):
 
 
     # ############### Waypoint Trajectories #############################################
-    def enable_waypoint_trajectory_mode(self, v_m=None, a_m=None):
+    def enable_waypoint_trajectory_mode(self, v_m=None, a_m=None,req_calibration=True):
         #By default constrain trajectory to factory maximum accel/vel settings
         #The trajectory tracking will not be accurate if the commanded trajectory generates
         #velocities and accelerations beyond these settings
+
+        if req_calibration and not self.motor.status['pos_calibrated']:
+            print 'Arm not homed'
+            return
 
         if v_m is not None:
             v_r = self.translate_to_motor_rad(min(abs(v_m), self.params['motion']['trajectory_max']['vel_m']))

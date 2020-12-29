@@ -60,7 +60,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Lift not calibrated'
+                print 'Lift not homed'
                 return
 
         if stiffness is not None:
@@ -154,10 +154,14 @@ class Lift(Device):
 
     # ######### Trajectories ##############################
 
-    def enable_waypoint_trajectory_mode(self, v_m=None, a_m=None):
+    def enable_waypoint_trajectory_mode(self, v_m=None, a_m=None, req_calibration=True):
         #By default constrain trajectory to factory maximum accel/vel settings
         #The trajectory tracking will not be accurate if the commanded trajectory generates
         #velocities and accelerations beyond these settings
+
+        if req_calibration and not self.motor.status['pos_calibrated']:
+            print 'Lift not homed'
+            return
 
         if v_m is not None:
             v_r = self.translate_to_motor_rad(min(abs(v_m), self.params['motion']['trajectory_max']['vel_m']))

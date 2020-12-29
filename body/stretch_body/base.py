@@ -122,6 +122,7 @@ class Base(Device):
         self.left_wheel.trajectory_manager.add_waypoints_to_trajectory(lw)
         self.right_wheel.trajectory_manager.add_waypoints_to_trajectory(rw)
 
+    # ####### Trajectory Frame Conversions ########3
     def motor_waypoints_to_translate_waypoints(self,waypoints, is_right_wheel=True):
         #Assume each wheel is equal in magnitude and direction in translation
         ww=[]
@@ -156,8 +157,8 @@ class Base(Device):
         lw = []
         rw = []
         for w in waypoints:
-            lw.append([w[0], -1*(self.rotate_to_motor_rad(w[1])-self.traj_start_lw), -1*self.rotate_to_motor_rad(w[2])])
-            rw.append([w[0], self.rotate_to_motor_rad(w[1])-self.traj_start_rw, self.rotate_to_motor_rad(w[2])])
+            rw.append([w[0], self.rotate_to_motor_rad(w[1]) + self.traj_start_rw, self.rotate_to_motor_rad(w[2])])
+            lw.append([w[0], self.traj_start_lw-self.rotate_to_motor_rad(w[1]), -1*self.rotate_to_motor_rad(w[2])])
         return lw,rw
     # ###################################################
 
@@ -365,13 +366,12 @@ class Base(Device):
         self.left_wheel.push_command()
         self.right_wheel.push_command()
 
-    def pull_status(self):
-        """
-        Computes base odometery based on stepper positions / velocities
-        """
+    def pull_status(self,do_update_odometry=True):
         self.left_wheel.pull_status()
         self.right_wheel.pull_status()
         self.status['timestamp_pc'] = time.time()
+        self.status['translation_force'] = self.motor_current_to_translation_force(self.left_wheel.status['current'],self.right_wheel.status['current'])
+        self.status['rotation_torque'] = self.motor_current_to_rotation_torque(self.left_wheel.status['current'],self.right_wheel.status['current'])
 
         p0 = self.status['left_wheel']['pos']
         p1 = self.status['right_wheel']['pos']
@@ -381,8 +381,6 @@ class Base(Device):
         e1 = self.status['right_wheel']['effort']
         t0 = self.status['left_wheel']['timestamp'].to_secs()
         t1 = self.status['right_wheel']['timestamp'].to_secs()
-        self.status['translation_force'] = self.motor_current_to_translation_force(self.left_wheel.status['current'],self.right_wheel.status['current'])
-        self.status['rotation_torque'] = self.motor_current_to_rotation_torque(self.left_wheel.status['current'],self.right_wheel.status['current'])
 
 
         if self.first_step:

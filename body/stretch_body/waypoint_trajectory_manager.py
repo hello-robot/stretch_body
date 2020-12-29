@@ -57,6 +57,7 @@ class WaypointTrajectoryManager:
 
         self.ts_duration=self.waypoints[-1][0] - self.waypoints[0][0]
 
+
     def get_trajectory_type(self,v):
         if len(v) == 4:
             return TRAJECTORY_TYPE_QUINTIC_SPLINE

@@ -56,7 +56,7 @@ class RobotTimestampManager(Device):
             self.robot.status['timestamps']['wacc_acc'] = SystemTimestamp().from_secs(self.robot.wacc.status['timestamp_pc'])
             self.robot.status['timestamps']['hw_sync'] =SystemTimestamp().from_wall_time() #Not meaningful but provide a nominal value
         else:
-            ts_pimu_base =  self.robot.pimu.status['timestamp_line_sync'] #The time that the sync line was toggled
+            ts_pimu_base =  self.robot.pimu.status['timestamp_line_sync'] #The time that the sync line was toggled (In HW usecs)
             dt_pimu_imu = self.robot.pimu.status['timestamp']-ts_pimu_base
 
             ts_wacc_base = self.robot.wacc.status['timestamp_status_sync']  # The time that the status sync RPC was handled

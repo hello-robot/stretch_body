@@ -167,7 +167,7 @@ class DynamixelHelloXL430(Device):
         if not self.servo_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
-            print 'Dynamixel not calibrated:', self.name
+            print 'Dynamixel not homed:', self.name
             return
         self.disable_torque()
         self.motor.enable_vel() #Do trajectority using velocity control
