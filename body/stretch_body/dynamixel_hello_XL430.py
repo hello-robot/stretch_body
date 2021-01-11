@@ -33,6 +33,7 @@ class DynamixelHelloXL430(Device):
         self.is_calibrated=False
         self.trajectory_manager=waypoint_trajectory_manager.WaypointTrajectoryManager()
         self.traj_setpoint=None
+        self.traj_pos_follow = True # False uses velocity follow
     # ###########  Device Methods #############
 
     def do_ping(self, verbose=True):
@@ -171,11 +172,15 @@ class DynamixelHelloXL430(Device):
         if self.params['req_calibration'] and not self.is_calibrated:
             print 'Dynamixel not homed:', self.name
             return
-        self.disable_torque()
-        self.motor.enable_vel() #Do trajectority using velocity control
-        self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
-        self.motor.set_vel_limit(self.rad_per_sec_to_ticks(self.params['motion']['trajectory_max']['vel']))
-        self.enable_torque()
+        if self.traj_pos_follow:
+            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['trajectory_max']['vel']))
+            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
+        else:
+            self.disable_torque()
+            self.motor.enable_vel() #Do trajectority using velocity control
+            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
+            self.motor.set_vel_limit(self.rad_per_sec_to_ticks(self.params['motion']['trajectory_max']['vel']))
+            self.enable_torque()
         #print 'IS',self.motor.get_profile_velocity(),self.motor.get_profile_acceleration()
 
     def start_waypoint_trajectory(self):
@@ -187,12 +192,22 @@ class DynamixelHelloXL430(Device):
         t = time.time() - self.trajectory_manager.ts_start
         self.traj_setpoint = self.trajectory_manager.get_setpoint_at_time(t)
         if self.trajectory_manager.duration_remaining() > 0:
-            v_des = self.world_rad_to_ticks_per_sec(self.traj_setpoint[1])
-            self.motor.go_to_vel(v_des)
+            if self.traj_pos_follow:
+                self.move_to(self.traj_setpoint[0])
+            else:
+                v_des = self.world_rad_to_ticks_per_sec(self.traj_setpoint[1])
+                self.motor.go_to_vel(v_des)
         if self.status['trajectory_active'] and self.trajectory_manager.duration_remaining() == 0:
-            self.motor.enable_pos()
-            self.move_to(self.traj_setpoint[0])
-            self.status['trajectory_active'] = 0
+            if self.traj_pos_follow:
+                self.move_to(self.traj_setpoint[0])
+                self.status['trajectory_active'] = 0
+            else:
+                self.disable_torque()
+                self.motor.disable_watchdog()
+                self.enable_pos()
+                self.enable_torque()
+                self.move_to(self.traj_setpoint[0])
+                self.status['trajectory_active'] = 0
 
     # #####################################
 
