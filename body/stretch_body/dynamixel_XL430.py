@@ -350,12 +350,12 @@ class DynamixelXL430(Device):
     def set_P_gain(self,x):
         with self.pt_lock:
             dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_P_GAIN, x)
-        self.handle_comm_result('XL430_ADDR_TORQUE_ENABLE', dxl_comm_result, dxl_error)
+        self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
 
     def get_D_gain(self):
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_D_GAIN)
-        self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
+        self.handle_comm_result('XL430_ADDR_POS_D_GAIN', dxl_comm_result, dxl_error)
         return p
 
     def set_D_gain(self,x):
