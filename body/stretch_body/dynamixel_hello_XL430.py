@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 
 from dynamixel_XL430 import *
 from stretch_body.device import Device
@@ -34,13 +35,14 @@ class DynamixelHelloXL430(Device):
         self.traj_setpoint=None
     # ###########  Device Methods #############
 
-    def do_ping(self, verbose):
+    def do_ping(self, verbose=True):
         return self.motor.do_ping(verbose)
 
     def startup(self):
         if self.motor.do_ping(verbose=False):
             self.servo_valid = True
             self.motor.disable_torque()
+            self.motor.disable_watchdog()
             self.v_des = self.params['motion']['default']['vel']
             self.a_des = self.params['motion']['default']['accel']
             self.enable_pos()
