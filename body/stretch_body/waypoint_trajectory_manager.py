@@ -9,6 +9,277 @@ TRAJECTORY_TYPE_INVALID = 0
 TRAJECTORY_TYPE_CUBIC_SPLINE = 1
 TRAJECTORY_TYPE_QUINTIC_SPLINE = 2
 
+
+class Waypoint:
+
+    def __init__(self, time=None, position=None, velocity=None, acceleration=None, effort_threshold=None):
+        self.time = time
+        self.position = position
+        self.velocity = velocity
+        self.acceleration = acceleration
+        self.effort_threshold = effort_threshold
+
+    def __repr__(self):
+        return "Waypoint(t={0}, pos={1}, vel={2}, accel={3}, effort_threshold={4})".format(
+            self.time, self.position, self.velocity, self.acceleration, self.effort_threshold)
+
+
+class Trajectory:
+
+    def __init__(self):
+        """Base trajectory representing class.
+
+        Defines a unitless trajectory composed of ``Waypoint``s.
+        Revolute and prismatic joints should extend this class
+        with appropriate units. Enforcing cubic or quintic curve
+        requirements should be done by extending this class.
+
+        Attributes
+        ----------
+        waypoints : list(Waypoint)
+            a set of waypoints defining the trajectory
+        """
+        self.waypoints = []
+
+    def __len__(self):
+        return len(self.waypoints)
+
+    def __repr__(self):
+        return str(self.waypoints)
+
+    def clear_waypoints(self):
+        self.waypoints = []
+
+    def get_waypoint(self, index):
+        if index >= -1 * len(self.waypoints) and index < len(self.waypoints):
+            return self.waypoints[index]
+
+    def delete_waypoint(self, index):
+        if index >= 0 and index < len(self.waypoints):
+            return self.waypoints.pop(index)
+
+    def evaluate_at(self, t_s):
+        """Evaluate a point along the curve at a given time.
+
+        Parameters
+        ----------
+        t_s : float
+            time in seconds
+
+        Returns
+        -------
+        Waypoint
+            a ``Waypoint`` class with populated position, velocity, and acceleration.
+        """
+        if not self.is_valid(ignore_joint_limits=True):
+            return
+
+        # Return bounds for early or late t_s
+        if t_s < self.get_waypoint(0).time:
+            return self.get_waypoint(0)
+        if t_s > self.get_waypoint(-1).time:
+            return self.get_waypoint(-1)
+
+        # Find segment indices
+        for i in range(len(self.waypoints) - 1):
+            if t_s >= self.get_waypoint(i).time and t_s <= self.get_waypoint(i + 1).time:
+                i0, i1 = i, i+1
+                i0_t = self.get_waypoint(i0).time
+
+        # Generate segment and evaluate at t_s
+        if self.get_waypoint(i0).acceleration is not None and self.get_waypoint(i1).acceleration is not None:
+            i0_waypoint = [self.get_waypoint(i0).time, self.get_waypoint(i0).position, self.get_waypoint(i0).velocity, self.get_waypoint(i0).acceleration]
+            i1_waypoint = [self.get_waypoint(i1).time, self.get_waypoint(i1).position, self.get_waypoint(i1).velocity, self.get_waypoint(i1).acceleration]
+            seg = generate_quintic_spline_segment(i0_waypoint, i1_waypoint)
+            ret = evaluate_quintic_spline(seg, t_s - i0_t)
+        elif self.get_waypoint(i0).velocity is not None and self.get_waypoint(i1).velocity is not None:
+            i0_waypoint = [self.get_waypoint(i0).time, self.get_waypoint(i0).position, self.get_waypoint(i0).velocity]
+            i1_waypoint = [self.get_waypoint(i1).time, self.get_waypoint(i1).position, self.get_waypoint(i1).velocity]
+            seg = generate_cubic_spline_segment(i0_waypoint, i1_waypoint)
+            ret = evaluate_cubic_spline(seg, t_s - i0_t)
+        else:
+            i0_waypoint = [self.get_waypoint(i0).time, self.get_waypoint(i0).position]
+            i1_waypoint = [self.get_waypoint(i1).time, self.get_waypoint(i1).position]
+            seg = generate_linear_segment(i0_waypoint, i1_waypoint)
+            ret = evaluate_linear_interpolate(seg, t_s - i0_t)
+
+        return Waypoint(position=ret[0], velocity=ret[1], acceleration=ret[2])
+
+
+class DynamixelTrajectory(Trajectory):
+
+    def __init__(self):
+        Trajectory.__init__(self)
+
+    def add_waypoint(self, t_s, x_r, v_r=None, a_r=None):
+        """Add a waypoint to the trajectory.
+
+        This method will sort through the existing waypoints
+        in the trajectory to insert the waypoint such that
+        waypoint time increases with index in the array.
+
+        Parameters
+        ----------
+        t_s : float
+            time in seconds
+        x_r : float
+            position in radians
+        v_r : float
+            velocity in radians per second
+        a_r : float
+            acceleration in radians per second squared
+        """
+        if t_s is None or x_r is None:
+            return
+        if v_r is None and a_r is not None:
+            return
+
+        if len(self.waypoints) == 0:
+            self.waypoints.append(Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+
+        # Prepend or append for early or late t_s
+        if t_s < self.get_waypoint(0).time:
+            self.waypoints.insert(0, Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+        if t_s > self.get_waypoint(-1).time:
+            self.waypoints.append(Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+
+        # Insert before first later waypoint
+        for i in range(len(self.waypoints)):
+            if t_s <= self.get_waypoint(i).time:
+                self.waypoints.insert(i, Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+                return
+
+    def is_valid(self, ignore_joint_limits=False):
+        """Verifies whether the current trajectory is valid.
+
+        Parameters
+        ----------
+        ignore_joint_limits : bool
+            whether to check if waypoints fall within joint limits
+
+        Returns
+        -------
+        bool
+        """
+        if len(self.waypoints) < 2:
+            return False
+
+        if not ignore_joint_limits:
+            pass # TODO
+
+        return True
+
+
+class DynamixelTrajectoryManager:
+
+    def __init__(self):
+        """Trajectory tracking class for dynamixel joints.
+
+        Provides threaded execution of ``DynamixelTrajectory``
+        trajectories. This class **must** be extended by a
+        dynamixel joint class because it utilizes the status
+        and motor of the extending class.
+
+        Attributes
+        ----------
+        trajectory : DynamixelTrajectory
+            the trajectory that is tracked
+        traj_pos_mode : bool
+            whether to use position or velocity control to track the traj
+        traj_start_time : float
+            wall time at which trajectory execution began
+        traj_curr_time : float
+            wall time at which trajectory is being evaluated
+        traj_curr_goal : Waypoint
+            interpolated point along the trajectory currently being tracked
+        """
+        self.trajectory = DynamixelTrajectory()
+        self.traj_pos_mode = True # False uses velocity follow mode
+        self.traj_start_time = None
+        self.traj_curr_time = None
+        self.traj_curr_goal = None
+
+    def start_trajectory(self, position_follow_mode=True):
+        """Starts execution of the trajectory.
+
+        Parameters
+        ----------
+        position_follow_mode : bool
+            True uses position control to follow traj, False uses velocity control
+        """
+        self.traj_pos_mode = position_follow_mode
+        if not self.servo_valid:
+            return
+        if self.params['req_calibration'] and not self.is_calibrated:
+            print('Dynamixel not homed: {0}'.format(self.name))
+            return
+        if self.traj_pos_mode:
+            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['trajectory_max']['vel']))
+            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
+        else:
+            self.disable_torque()
+            self.motor.enable_watchdog()
+            self.motor.enable_vel()
+            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
+            self.motor.set_vel_limit(self.rad_per_sec_to_ticks(self.params['motion']['trajectory_max']['vel']))
+            self.enable_torque()
+        self.traj_start_time = time.time()
+        self.traj_curr_time = self.traj_start_time
+        self.traj_curr_goal = self.trajectory.evaluate_at(t_s=0.0)
+        self.status['trajectory_active'] = 1
+
+    def push_trajectory(self):
+        """Commands goals to the dynamixel hardware.
+
+        If not using threaded mode, the user is responsible for
+        calling this method a regular frequency. As low as 5hz is
+        acceptable for velocity control. As low as 25 hz is
+        acceptable for position control.
+        """
+        if self.traj_start_time is None:
+            return
+
+        self.traj_curr_time = time.time()
+        self.traj_curr_goal = self.trajectory.evaluate_at(t_s=self.traj_curr_time - self.traj_start_time)
+        if self.duration_remaining() > 0.0:
+            if self.traj_pos_mode:
+                self.move_to(self.traj_curr_goal.position)
+            else:
+                v_des = self.world_rad_to_ticks_per_sec(self.traj_curr_goal.velocity)
+                self.motor.go_to_vel(v_des)
+        if self.status['trajectory_active'] and self.duration_remaining() == 0.0:
+            if not self.traj_pos_mode:
+                self.disable_torque()
+                self.motor.disable_watchdog()
+                self.enable_pos()
+                self.enable_torque()
+            self.move_to(self.traj_curr_goal.position)
+            self.status['trajectory_active'] = 0
+
+    def stop_trajectory(self):
+        self.traj_start_time = None
+        if not self.traj_pos_mode:
+            self.disable_torque()
+            self.motor.disable_watchdog()
+            self.enable_pos()
+            self.enable_torque()
+        self.status['trajectory_active'] = 0
+
+    def duration_remaining(self):
+        if not self.trajectory.is_valid(ignore_joint_limits=True):
+            return
+        traj_duration = self.trajectory.get_waypoint(-1).time - self.trajectory.get_waypoint(0).time
+        if self.traj_start_time is None:
+            return traj_duration
+        if self.traj_curr_time is None:
+            self.traj_curr_time = time.time()
+        traj_elapased = self.traj_curr_time - self.traj_start_time
+        return max(0.0, traj_duration - traj_elapased)
+
+
 class WaypointTrajectoryManager:
     """
     Manage joint trajectories

@@ -130,3 +130,55 @@ class SystemTimestamp:
         return SystemTimestamp(self.secs - ts.secs, self.nsecs-ts.nsecs)
     def __repr__(self):
         return '%.6f' % self.to_secs()
+
+
+def generate_quintic_spline_segment(i, f):
+    # waypoints are [[time, pos,vel,accel],...]
+    duration = f[0] - i[0]
+    a0 = i[1]
+    a1 = i[2]
+    a2 = i[3] / 2
+    a3 = (20 * f[1] - 20 * i[1] - (8 * f[2] + 12 * i[2]) * (f[0] - i[0]) - (3 * i[3] - f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 3))
+    a4 = (30 * i[1] - 30 * f[1] + (14 * f[2] + 16 * i[2]) * (f[0] - i[0]) + (3 * i[3] - 2 * f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 4))
+    a5 = (12 * f[1] - 12 * i[1] - (6 * f[2] + 6 * i[2]) * (f[0] - i[0]) - (i[3] - f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 5))
+    return [duration, a0, a1, a2, a3, a4,a5]
+
+def generate_cubic_spline_segment(i, f):
+    # waypoints are [[time, pos,vel],...]
+    duration =f[0] - i[0]
+    a0 = i[1]
+    a1 = i[2]
+    a2 = (3 / duration ** 2) * (f[1] - i[1]) - (2 / duration) * i[2] - (1 / duration) * f[2]
+    a3 = (-2 / duration ** 3) * (f[1] - i[1]) + (1 / duration ** 2) * (f[2] + i[2])
+    return [duration, a0, a1, a2, a3, 0, 0]
+
+def generate_linear_segment(i, f):
+    # waypoints are [[time, pos],...]
+    duration = f[0] - i[0]
+    return [duration, i[1],f[1]]
+
+def evaluate_cubic_spline(s, t):
+    #TRAJECTORY_TYPE_CUBIC_SPLINE:   [[duration, a0,a1,a2,a3],...]
+    a=s[1:]
+    pos= a[0]+(a[1]*t)+(a[2]*t**2)+(a[3]*t**3)
+    vel= a[1] +(2*a[2]*t)+(3*a[3]*t**2)
+    acc= 2*a[2] + 6*a[3]*t
+    return [pos,vel,acc]
+
+def evaluate_quintic_spline(s, t):
+    #TRAJECTORY_TYPE_QUINTIC_SPLINE: [[duration, a0,a1,a2,a3,a4,a5],...]
+    a=s[1:]
+    pos= a[0]+(a[1]*t)+(a[2]*t**2)+(a[3]*t**3)+(a[4]*t**4)+(a[5]*t**5)
+    vel = a[1] +(2*a[2]*t)+(3*a[3]*t**2) + (4*a[4]*t**3) + (5*a[5]*t*4)
+    accel = 2*a[2] + 6*a[3]*t + 12*a[4]*t**2 + 20*a[5]*t**3
+    return [pos,vel,accel]
+
+def evaluate_linear_interpolate(s, t):
+    #TRAJECTORY_TYPE_LINEAR: [[duration, pos0, pos1], ...]
+    duration = s[0]
+    pos0=s[1]
+    pos1=s[2]
+    pos = pos0 + t*(pos1-pos0)/duration
+    vel = (pos1-pos0)/duration
+    accel = 0.0
+    return [pos, vel, accel]
