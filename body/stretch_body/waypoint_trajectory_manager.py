@@ -4,6 +4,7 @@
 from stretch_body.hello_utils import *
 import time
 import copy
+import threading
 
 TRAJECTORY_TYPE_INVALID = 0
 TRAJECTORY_TYPE_CUBIC_SPLINE = 1
@@ -198,19 +199,26 @@ class DynamixelTrajectoryManager:
         """
         self.trajectory = DynamixelTrajectory()
         self.traj_pos_mode = True # False uses velocity follow mode
+        self.traj_thread_freq = 100 # hz
+        self.traj_thread_shutdown_flag = threading.Event()
+        self.traj_thread = None
+        self.traj_threaded = False
         self.traj_start_time = None
         self.traj_curr_time = None
         self.traj_curr_goal = None
 
-    def start_trajectory(self, position_follow_mode=True):
+    def start_trajectory(self, position_follow_mode=True, threaded=True):
         """Starts execution of the trajectory.
 
         Parameters
         ----------
         position_follow_mode : bool
             True uses position control to follow traj, False uses velocity control
+        threaded : bool
+            True launches a separate thread for ``push_trajectory``, False puts burden on the user
         """
         self.traj_pos_mode = position_follow_mode
+        self.traj_threaded = threaded
         if not self.servo_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
@@ -231,13 +239,18 @@ class DynamixelTrajectoryManager:
         self.traj_curr_goal = self.trajectory.evaluate_at(t_s=0.0)
         self.status['trajectory_active'] = 1
 
+        if self.traj_threaded:
+            self.traj_thread = threading.Thread(target=self._push_trajectory_thread)
+            self.traj_thread_shutdown_flag.clear()
+            self.traj_thread.start()
+
     def push_trajectory(self):
         """Commands goals to the dynamixel hardware.
 
-        If not using threaded mode, the user is responsible for
-        calling this method a regular frequency. As low as 5hz is
-        acceptable for velocity control. As low as 25 hz is
-        acceptable for position control.
+        If not using threaded mode in ``start_trajectory``, the user is
+        responsible for calling this method a regular frequency.
+        As low as 60hz is acceptable for velocity control.
+        As low as 100hz is acceptable for position control.
         """
         if self.traj_start_time is None:
             return
@@ -258,6 +271,8 @@ class DynamixelTrajectoryManager:
                 self.enable_torque()
             self.move_to(self.traj_curr_goal.position)
             self.status['trajectory_active'] = 0
+            if self.traj_threaded:
+                self.traj_thread_shutdown_flag.set()
 
     def stop_trajectory(self):
         self.traj_start_time = None
@@ -267,6 +282,9 @@ class DynamixelTrajectoryManager:
             self.enable_pos()
             self.enable_torque()
         self.status['trajectory_active'] = 0
+        if self.traj_threaded:
+            self.traj_thread_shutdown_flag.set()
+            self.traj_thread.join()
 
     def duration_remaining(self):
         if not self.trajectory.is_valid(ignore_joint_limits=True):
@@ -278,6 +296,15 @@ class DynamixelTrajectoryManager:
             self.traj_curr_time = time.time()
         traj_elapased = self.traj_curr_time - self.traj_start_time
         return max(0.0, traj_duration - traj_elapased)
+
+    def _push_trajectory_thread(self):
+        while not self.traj_thread_shutdown_flag.is_set():
+            ts = time.time()
+            self.push_trajectory()
+            te = time.time()
+            tsleep = max(0, (1 / self.traj_thread_freq) - (te - ts))
+            if not self.traj_thread_shutdown_flag.is_set():
+                time.sleep(tsleep)
 
 
 class WaypointTrajectoryManager:
