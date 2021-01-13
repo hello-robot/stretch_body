@@ -553,6 +553,8 @@ class DynamixelXL430():
         with self.pt_lock:
             v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PRESENT_VELOCITY)
         self.handle_comm_result('XL430_ADDR_PRESENT_VELOCITY', dxl_comm_result, dxl_error)
+        if v > 2 ** 24:
+            v = v - 2 ** 32
         return v
 
     def get_P_gain(self):
