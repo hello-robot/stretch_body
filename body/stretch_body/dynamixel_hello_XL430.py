@@ -93,7 +93,7 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
         self.status['vel_ticks'] = v
         self.status['effort_ticks'] = eff
         self.status['pos'] = self.ticks_to_world_rad(float(x))
-        self.status['vel'] = self.ticks_to_rad_per_sec(float(v))
+        self.status['vel'] = self.ticks_to_world_rad_per_sec(float(v))
         self.status['effort'] = self.ticks_to_pct_load(float(eff))
         self.status['temp'] = float(temp)
         self.status['timestamp_pc'] = ts
