@@ -100,7 +100,9 @@ class TrajectoryScope:
         self.fig.subplots_adjust(right=0.8)
         self.fig.canvas.set_window_title(title)
         self.axes.set_yscale('linear')
-        self.axes.set_ylim(self.yrange[0], self.yrange[1])
+        self.axes.set_ylim(min(self.yrange) - 0.75, max(self.yrange) + 0.75)
+        self.axes.axhspan(min(self.yrange) - 2 ** 32, min(self.yrange), facecolor='0.2', alpha=0.5)
+        self.axes.axhspan(max(self.yrange), max(self.yrange) + 2 ** 32, facecolor='0.2', alpha=0.5)
         self.axes.set_xlabel(xlabel)
         self.axes.set_ylabel(ylabel)
         self.axes.grid(True)
@@ -123,7 +125,8 @@ class TrajectoryScope:
         self.m, = self.axes.plot(self.initx, self.inity, color='gray', linestyle='--', label='Trajectory')
         self.s, = self.axes.plot(self.sensex, self.sensey, color='limegreen', label='Sense')
         self.l, = self.axes.plot(self.initx, self.inity, color='tab:blue', linestyle='none', marker='o', markersize=12)
-        self.axes.legend()
+        self.lfirst, = self.axes.plot(self.initx[0], self.inity[0], color='0.6', linestyle='none', marker='o', markersize=12)
+        self.axes.legend(loc="upper right")
         self._update(self)
 
     def start(self, exec_func, sense_func, waypoints_change_func, stop_func):
@@ -161,7 +164,8 @@ class TrajectoryScope:
 
     def _reset(self, e):
         self.anim.event_source.stop()
-        self.stop_func()
+        stopped_pos = self.stop_func()
+        self.inity[0] = stopped_pos
         self.executing = False
         self.sensex = []
         self.sensey = []
@@ -178,6 +182,8 @@ class TrajectoryScope:
         if self.executing and self.pind is not None or \
            self.executing and isinstance(e, np.float64):
             self.waypoints_change_func(self.x, self.y, self.v)
+        self.lfirst.set_xdata(self.x[0])
+        self.lfirst.set_ydata(self.y[0])
         self.l.set_xdata(self.x)
         self.l.set_ydata(self.y)
         self.s.set_xdata(self.sensex)

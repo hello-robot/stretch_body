@@ -33,9 +33,11 @@ class DynamixelXChain(Device):
         self.readers={}
         self.runstop_last=None
 
-
     def add_motor(self,m):
         self.motors[m.name]=m
+
+    def get_motor(self, motor_name):
+        return self.motors.get(motor_name, None)
 
     def startup(self):
         if len(self.motors.keys()):

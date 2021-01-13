@@ -207,7 +207,7 @@ class DynamixelTrajectoryManager:
         self.traj_curr_time = None
         self.traj_curr_goal = None
 
-    def start_trajectory(self, position_follow_mode=True, threaded=True):
+    def start_trajectory(self, position_follow_mode=True, threaded=True, watchdog_timeout=None):
         """Starts execution of the trajectory.
 
         Parameters
@@ -216,6 +216,8 @@ class DynamixelTrajectoryManager:
             True uses position control to follow traj, False uses velocity control
         threaded : bool
             True launches a separate thread for ``push_trajectory``, False puts burden on the user
+        watchdog_timeout : int
+            See ``DynamixelXL430.enable_watchdog()``
         """
         self.traj_pos_mode = position_follow_mode
         self.traj_threaded = threaded
@@ -229,10 +231,13 @@ class DynamixelTrajectoryManager:
             self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
         else:
             self.disable_torque()
-            self.motor.enable_watchdog()
+            if watchdog_timeout is not None:
+                self.motor.enable_watchdog(watchdog_timeout)
+            else:
+                self.motor.enable_watchdog()
             self.motor.enable_vel()
             self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
-            self.motor.set_vel_limit(self.rad_per_sec_to_ticks(self.params['motion']['trajectory_max']['vel']))
+            self.motor.set_vel_limit(self.rad_per_sec_to_ticks(self.params['motion']['max']['vel']))
             self.enable_torque()
         self.traj_start_time = time.time()
         self.traj_curr_time = self.traj_start_time
