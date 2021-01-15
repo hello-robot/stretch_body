@@ -144,7 +144,7 @@ def generate_quintic_spline_segment(i, f):
     a3 = (20 * f[1] - 20 * i[1] - (8 * f[2] + 12 * i[2]) * (f[0] - i[0]) - (3 * i[3] - f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 3))
     a4 = (30 * i[1] - 30 * f[1] + (14 * f[2] + 16 * i[2]) * (f[0] - i[0]) + (3 * i[3] - 2 * f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 4))
     a5 = (12 * f[1] - 12 * i[1] - (6 * f[2] + 6 * i[2]) * (f[0] - i[0]) - (i[3] - f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 5))
-    return [duration, a0, a1, a2, a3, a4,a5]
+    return [duration, a0, a1, a2, a3, a4, a5]
 
 def generate_cubic_spline_segment(i, f):
     # waypoints are [[time, pos,vel],...]
@@ -158,7 +158,7 @@ def generate_cubic_spline_segment(i, f):
 def generate_linear_segment(i, f):
     # waypoints are [[time, pos],...]
     duration = f[0] - i[0]
-    return [duration, i[1],f[1]]
+    return [duration, i[1], f[1], 0, 0, 0, 0]
 
 def evaluate_cubic_spline(s, t):
     #TRAJECTORY_TYPE_CUBIC_SPLINE:   [[duration, a0,a1,a2,a3],...]

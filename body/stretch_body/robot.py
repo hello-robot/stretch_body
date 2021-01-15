@@ -476,27 +476,27 @@ class Robot(Device):
         self.update_status_history(non_dynamixel=True) #Updates timestamps
 
     def _push_non_dynamixel_waypoint_trajectory(self):
-        if self.arm.motor.trajectory_manager.trajectory_loaded:
-            self.arm.motor.push_waypoint_trajectory()
+        if self.arm.traj_loaded:
+            self.arm.push_trajectory()
 
-        if self.lift.motor.trajectory_manager.trajectory_loaded:
-            self.lift.motor.push_waypoint_trajectory()
+        # if self.lift.motor.trajectory_manager.trajectory_loaded:
+        #     self.lift.motor.push_waypoint_trajectory()
 
-        if self.base.left_wheel.trajectory_manager.trajectory_loaded:
-            self.base.left_wheel.push_waypoint_trajectory()
+        # if self.base.left_wheel.trajectory_manager.trajectory_loaded:
+        #     self.base.left_wheel.push_waypoint_trajectory()
 
-        if self.base.right_wheel.trajectory_manager.trajectory_loaded:
-            self.base.right_wheel.push_waypoint_trajectory()
+        # if self.base.right_wheel.trajectory_manager.trajectory_loaded:
+        #     self.base.right_wheel.push_waypoint_trajectory()
 
     def _push_dynamixel_waypoint_trajectory(self):
-        if self.head.motors['head_pan'].status['trajectory_active']:
-            self.head.motors['head_pan'].push_waypoint_trajectory()
+        if self.head.get_joint('head_pan').status['trajectory_active']:
+            self.head.get_joint('head_pan').push_trajectory()
 
-        if self.head.motors['head_tilt'].status['trajectory_active']:
-            self.head.motors['head_tilt'].push_waypoint_trajectory()
+        if self.head.get_joint('head_tilt').status['trajectory_active']:
+            self.head.get_joint('head_tilt').push_trajectory()
 
         if self.end_of_arm.motors['wrist_yaw'].status['trajectory_active']:
-            self.end_of_arm.motors['wrist_yaw'].push_waypoint_trajectory()
+            self.end_of_arm.motors['wrist_yaw'].push_trajectory()
 
     def is_trajectory_executing(self):
         # Executing is defined as the joint controller is tracking the trajectory
@@ -529,36 +529,14 @@ class Robot(Device):
                 return False
             self.base.add_waypoints_to_trajectory(waypoints=base_rotate_waypoints, translate_mode=False)
 
-        if arm_waypoints is not None:
-            if len(arm_waypoints) < 2  and not (len(arm_waypoints[0]) == 3 or len(arm_waypoints[0]) == 4):
-                return False
-            self.arm.add_waypoints_to_trajectory(arm_waypoints)
-
         if lift_waypoints is not None:
             if len(lift_waypoints) < 2 and not (len(lift_waypoints[0]) == 3 or len(lift_waypoints[0]) == 4):
                 return False
             self.lift.add_waypoints_to_trajectory(lift_waypoints)
 
-        if head_pan_waypoints is not None:
-            if len(head_pan_waypoints) < 2 and not (len(head_pan_waypoints[0]) == 3 or len(head_pan_waypoints[0]) == 4):
-                return False
-            self.head.motors['head_pan'].trajectory_manager.add_waypoints_to_trajectory(head_pan_waypoints)
-
-        if head_tilt_waypoints is not None:
-            if len(head_tilt_waypoints) < 2 and not (len(head_tilt_waypoints[0]) == 3 or len(head_tilt_waypoints[0]) == 4):
-                return False
-            self.head.motors['head_tilt'].trajectory_manager.add_waypoints_to_trajectory(head_tilt_waypoints)
-
-        if wrist_yaw_waypoints is not None:
-            if len(wrist_yaw_waypoints) < 2 and not (len(wrist_yaw_waypoints[0]) == 3 or len(wrist_yaw_waypoints[0]) == 4):
-                return False
-            self.end_of_arm.motors['wrist_yaw'].trajectory_manager.add_waypoints_to_trajectory(wrist_yaw_waypoints)
-
         return True
 
-    def follow_trajectory(self, lift_waypoints=None, arm_waypoints=None,
-                      head_pan_waypoints=None, head_tilt_waypoints=None,
-                      base_translate_waypoints=None, base_rotate_waypoints=None,wrist_yaw_waypoints=None):
+    def start_trajectory(self, lift_waypoints=None, base_translate_waypoints=None, base_rotate_waypoints=None):
         """
         Coordinated multi-joint trajectory following. This requires Sync Mode to be
         enabled (via YAML or API).
@@ -603,7 +581,7 @@ class Robot(Device):
             self.base.push_command()
 
         #Now do initial add of waypoints
-        if not self.update_trajectory(lift_waypoints,arm_waypoints,head_pan_waypoints,head_tilt_waypoints,base_translate_waypoints,base_rotate_waypoints,wrist_yaw_waypoints):
+        if not self.update_trajectory(lift_waypoints, base_translate_waypoints, base_rotate_waypoints):
             return False
 
         #Next configure controllers to start
@@ -611,33 +589,13 @@ class Robot(Device):
             self.base.left_wheel.start_waypoint_trajectory()
             self.base.right_wheel.start_waypoint_trajectory()
 
-        if arm_waypoints is not None:
-            self.arm.enable_waypoint_trajectory_mode()
-            self.arm.push_command()
-            self.arm.motor.start_waypoint_trajectory()
-
-        if lift_waypoints is not None:
-            self.lift.enable_waypoint_trajectory_mode()
-            self.lift.push_command()
-            self.lift.motor.start_waypoint_trajectory()
+        self.arm.start_trajectory(threaded=False)
 
         if self.params['sync_mode_enabled']:
             self.pimu.trigger_motor_sync() #Start motion of non-dynamixel joints
 
-        if head_pan_waypoints is not None:
-            self.head.motors['head_pan'].enable_waypoint_trajectory_mode()
-            self.head.motors['head_pan'].start_waypoint_trajectory()
+        self.head.get_joint('head_pan').start_trajectory(position_follow_mode=False, threaded=False, watchdog_timeout=0)
+        self.head.get_joint('head_tilt').start_trajectory(position_follow_mode=False, threaded=False, watchdog_timeout=0)
+        self.end_of_arm.motors['wrist_yaw'].start_trajectory(position_follow_mode=True, threaded=False)
 
-        if head_tilt_waypoints is not None:
-            self.head.motors['head_tilt'].enable_waypoint_trajectory_mode()
-            self.head.motors['head_tilt'].start_waypoint_trajectory()
-
-        if wrist_yaw_waypoints is not None:
-            self.end_of_arm.motors['wrist_yaw'].enable_waypoint_trajectory_mode()
-            self.end_of_arm.motors['wrist_yaw'].start_waypoint_trajectory()
         return True
-
-
-
-
-

@@ -3,7 +3,6 @@
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
-import stretch_body.waypoint_trajectory_manager as waypoint_trajectory_manager
 
 import time
 import threading
@@ -80,7 +79,7 @@ class Stepper(Device):
     """
     API to the Stretch RE1 stepper board
     """
-    def __init__(self,usb,verbose=False):
+    def __init__(self, usb, trajectory_manager=None, verbose=False):
         Device.__init__(self)
         self.usb=usb
         self.verbose=verbose
@@ -114,9 +113,7 @@ class Stepper(Device):
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
 
-        self.trajectory_manager=waypoint_trajectory_manager.WaypointTrajectoryManager()
-        self.traj_seg_next=None
-
+        self.trajectory_manager = trajectory_manager
 
     # ###########  Device Methods #############
     def startup(self):

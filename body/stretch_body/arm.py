@@ -1,19 +1,21 @@
 
 from stretch_body.stepper import *
 import time
-from device import Device
+from stretch_body.device import Device
 from stretch_body.hello_utils import *
+from stretch_body.waypoint_trajectory_manager import StepperTrajectoryManager
 
-class Arm(Device):
+class Arm(Device, StepperTrajectoryManager):
     """
     API to the Stretch RE1 Arm
     """
     def __init__(self):
         Device.__init__(self)
+        StepperTrajectoryManager.__init__(self)
         self.name='arm'
         self.params = self.robot_params[self.name]
         self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
-        self.motor = Stepper('/dev/hello-motor-arm')
+        self.motor = Stepper('/dev/hello-motor-arm', self)
         self.status = {'pos': 0.0, 'vel': 0.0, 'force':0.0, 'motor': self.motor.status,'timestamp_pc':0}
         # Default controller params
         self.stiffness = 1.0
@@ -157,58 +159,21 @@ class Arm(Device):
     # ######### Utility ##############################
 
     def motor_current_to_translate_force(self,i):
-        return self.params['force_N_per_A']*(i-self.params['i_feedforward'])
+        if i is not None:
+            return self.params['force_N_per_A']*(i-self.params['i_feedforward'])
 
     def translate_force_to_motor_current(self,f):
-        return (f/self.params['force_N_per_A'])+self.params['i_feedforward']
+        if f is not None:
+            return (f/self.params['force_N_per_A'])+self.params['i_feedforward']
 
     def motor_rad_to_translate(self,ang): #input in rad, output m
-        return self.motor_rad_2_arm_m*ang
+        if ang is not None:
+            return self.motor_rad_2_arm_m*ang
 
     def translate_to_motor_rad(self, arm_m):
-        return arm_m/self.motor_rad_2_arm_m
+        if arm_m is not None:
+            return arm_m/self.motor_rad_2_arm_m
 
-
-    # ############### Waypoint Trajectories #############################################
-    def enable_waypoint_trajectory_mode(self, v_m=None, a_m=None,req_calibration=True):
-        #By default constrain trajectory to factory maximum accel/vel settings
-        #The trajectory tracking will not be accurate if the commanded trajectory generates
-        #velocities and accelerations beyond these settings
-
-        if req_calibration and not self.motor.status['pos_calibrated']:
-            print 'Arm not homed'
-            return
-
-        if v_m is not None:
-            v_r = self.translate_to_motor_rad(min(abs(v_m), self.params['motion']['trajectory_max']['vel_m']))
-        else:
-            v_r = self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_m'])
-
-        if a_m is not None:
-            a_r = self.translate_to_motor_rad(min(abs(a_m), self.params['motion']['trajectory_max']['accel_m']))
-        else:
-            a_r = self.translate_to_motor_rad(self.params['motion']['trajectory_max']['accel_m'])
-
-        self.motor.enable_pos_traj_waypoint()
-        self.motor.set_command(v_des=v_r, a_des=a_r, i_feedforward=self.i_feedforward, i_contact_pos=self.i_contact_pos, i_contact_neg=self.i_contact_neg)
-
-    def add_waypoints_to_trajectory(self,waypoints):
-        #A waypoint has form [time (s), position (m), velocity (m)]
-        #Trajectories can be concatenated by calling this multiple times
-        #Trajectories can be overwritten (if they start after any currently executing waypoint target)
-        self.motor.trajectory_manager.add_waypoints_to_trajectory(self.translate_waypoints_to_motor_waypoints(waypoints))
-
-    def motor_waypoints_to_translate_waypoints(self,waypoints):
-        a=[]
-        for w in waypoints:
-            a.append([w[0], self.motor_rad_to_translate(w[1]),self.motor_rad_to_translate(w[2])])
-        return a
-
-    def translate_waypoints_to_motor_waypoints(self,waypoints):
-        m = []
-        for w in waypoints:
-            m.append([w[0], self.translate_to_motor_rad(w[1]), self.translate_to_motor_rad(w[2])])
-        return m
     # ############################################################################################
     def __wait_for_contact(self, timeout=5.0):
         ts=time.time()
@@ -287,7 +252,6 @@ class Arm(Device):
             time.sleep(2.0)
             print 'Arm homing successful'
 
-        #Restore default
         #Restore default
         if not g0:
             self.motor.disable_guarded_mode()

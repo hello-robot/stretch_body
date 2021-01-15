@@ -56,7 +56,7 @@ class Trajectory:
             return self.waypoints[index]
 
     def delete_waypoint(self, index):
-        if index >= 0 and index < len(self.waypoints):
+        if index >= -1 * len(self.waypoints) and index < len(self.waypoints):
             return self.waypoints.pop(index)
 
     def evaluate_at(self, t_s):
@@ -177,7 +177,7 @@ class DynamixelTrajectory(Trajectory):
 class DynamixelTrajectoryManager:
 
     def __init__(self):
-        """Trajectory tracking class for dynamixel joints.
+        """Trajectory tracking class for ``DynamixelHelloXL430`` joints.
 
         Provides threaded execution of ``DynamixelTrajectory``
         trajectories. This class **must** be extended by a
@@ -310,6 +310,260 @@ class DynamixelTrajectoryManager:
             tsleep = max(0, (1 / self.traj_thread_freq) - (te - ts))
             if not self.traj_thread_shutdown_flag.is_set():
                 time.sleep(tsleep)
+
+
+class StepperTrajectory(Trajectory):
+
+    def __init__(self, joint_utilities_class):
+        Trajectory.__init__(self)
+        self.utils = joint_utilities_class
+
+    def __repr__(self):
+        waypoints_meter = []
+        for w in self.waypoints:
+            t_s = w.time
+            x_m = self.utils.motor_rad_to_translate(w.position)
+            v_m = self.utils.motor_rad_to_translate(w.velocity)
+            a_m = self.utils.motor_rad_to_translate(w.acceleration)
+            waypoints_meter.append(Waypoint(time=t_s, position=x_m, velocity=v_m, acceleration=a_m))
+        return str(waypoints_meter)
+
+    def get_waypoint(self, index, motor_rad=False):
+        """Get waypoint by index from a ``StepperTrajectory``.
+
+        Parameters
+        ----------
+        index : int
+            indexes the trajectory in range [-1 * len(trajectory), len(trajectory) - 1]
+        motor_rad : bool
+            returns values as radians in motor joint space if True
+        """
+        if index >= -1 * len(self.waypoints) and index < len(self.waypoints):
+            waypoint_rad = self.waypoints[index]
+            if motor_rad:
+                return waypoint_rad
+            t_s = waypoint_rad.time
+            x_m = self.utils.motor_rad_to_translate(waypoint_rad.position)
+            v_m = self.utils.motor_rad_to_translate(waypoint_rad.velocity)
+            a_m = self.utils.motor_rad_to_translate(waypoint_rad.acceleration)
+            return Waypoint(time=t_s, position=x_m, velocity=v_m, acceleration=a_m)
+
+    def delete_waypoint(self, index):
+        if index >= -1 * len(self.waypoints) and index < len(self.waypoints):
+            waypoint_rad = self.waypoints.pop(index)
+            t_s = waypoint_rad.time
+            x_m = self.utils.motor_rad_to_translate(waypoint_rad.position)
+            v_m = self.utils.motor_rad_to_translate(waypoint_rad.velocity)
+            a_m = self.utils.motor_rad_to_translate(waypoint_rad.acceleration)
+            return Waypoint(time=t_s, position=x_m, velocity=v_m, acceleration=a_m)
+
+    def add_waypoint(self, t_s, x_m, v_m=None, a_m=None):
+        """Add a waypoint to the trajectory.
+
+        This method will sort through the existing waypoints
+        in the trajectory to insert the waypoint such that
+        waypoint time increases with index in the array.
+
+        Parameters
+        ----------
+        t_s : float
+            time in seconds
+        x_m : float
+            position in meters
+        v_m : float
+            velocity in meters per second
+        a_m : float
+            acceleration in meters per second squared
+        """
+        if t_s is None or x_m is None:
+            return
+        if v_m is None and a_m is not None:
+            return
+
+        x_r = self.utils.translate_to_motor_rad(x_m)
+        v_r = self.utils.translate_to_motor_rad(v_m) if v_m is not None else None
+        a_r = self.utils.translate_to_motor_rad(a_m) if a_m is not None else None
+
+        if len(self.waypoints) == 0:
+            self.waypoints.append(Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+
+        # Prepend or append for early or late t_s
+        if t_s < self.get_waypoint(0).time:
+            self.waypoints.insert(0, Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+        if t_s > self.get_waypoint(-1).time:
+            self.waypoints.append(Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+
+        # Insert before first later waypoint
+        for i in range(len(self.waypoints)):
+            if t_s <= self.get_waypoint(i).time:
+                self.waypoints.insert(i, Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+                return
+
+    def is_valid(self, ignore_joint_limits=False):
+        """Verifies whether the current trajectory is valid.
+
+        Parameters
+        ----------
+        ignore_joint_limits : bool
+            whether to check if waypoints fall within joint limits
+
+        Returns
+        -------
+        bool
+        """
+        if len(self.waypoints) < 2:
+            return False
+
+        if not ignore_joint_limits:
+            pass # TODO
+
+        return True
+
+
+class StepperTrajectoryManager:
+
+    def __init__(self):
+        """Trajectory tracking class for ``Stepper`` joints.
+        """
+        self.trajectory = StepperTrajectory(self)
+        self.traj_thread_freq = 100 # hz
+        self.traj_thread_shutdown_flag = threading.Event()
+        self.traj_thread = None
+        self.traj_threaded = False
+        self.traj_segment_idx = 0
+        self.traj_loaded = False
+        self.traj_curr_segment = None
+        self.traj_start_time = None
+        self.traj_curr_time = None
+
+    def _setup_new_trajectory(self):
+        self.trajectory.clear_waypoints()
+        self.traj_segment_idx = 0
+        self.traj_loaded = False
+        self.traj_curr_segment = None
+        self.traj_start_time = None
+        self.traj_curr_time = None
+
+    def start_trajectory(self, threaded=True, req_calibration=True):
+        """Starts execution of the trajectory.
+
+        Parameters
+        ----------
+        threaded : bool
+            True launches a separate thread for ``push_trajectory``, False puts burden on the user
+        req_calibration : bool
+            If True and joint not calibrated, trajectory does not start
+        """
+        self.traj_threaded = threaded
+        if req_calibration and not self.motor.status['pos_calibrated']:
+            print 'Arm not homed'
+            return
+
+        v_r = self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_m'])
+        a_r = self.translate_to_motor_rad(self.params['motion']['trajectory_max']['accel_m'])
+        self.motor.enable_pos_traj_waypoint()
+        self.motor.set_command(v_des=v_r,
+                               a_des=a_r,
+                               i_feedforward=self.i_feedforward,
+                               i_contact_pos=self.i_contact_pos,
+                               i_contact_neg=self.i_contact_neg)
+        self.motor.push_command()
+        self.motor.start_waypoint_trajectory()
+        self.traj_start_time = time.time()
+        self.traj_curr_time = self.traj_start_time
+
+    def push_trajectory(self):
+        """Commands goals to Hello Robot stepper hardware.
+
+        If not using threaded mode in ``start_trajectory``, the user is
+        responsible for calling this method a regular frequency.
+        As low as 25hz is acceptable.
+        """
+        if self.traj_start_time is None:
+            return
+
+        self.traj_curr_time = time.time()
+        self.motor.push_waypoint_trajectory()
+
+    def stop_trajectory(self):
+        # TODO set back into position mode
+        self._setup_new_trajectory()
+
+    def duration_remaining(self):
+        if not self.trajectory.is_valid(ignore_joint_limits=True):
+            return
+        traj_duration = self.trajectory.get_waypoint(-1).time - self.trajectory.get_waypoint(0).time
+        if self.traj_start_time is None:
+            return traj_duration
+        if self.traj_curr_time is None:
+            self.traj_curr_time = time.time()
+        traj_elapased = self.traj_curr_time - self.traj_start_time
+        return max(0.0, traj_duration - traj_elapased)
+
+    def get_first_segment(self):
+        if not self.trajectory.is_valid(ignore_joint_limits=True):
+            return
+
+        i0 = 0
+        i1 = 1
+        waypoint0 = self.trajectory.get_waypoint(i0, motor_rad=True)
+        waypoint1 = self.trajectory.get_waypoint(i1, motor_rad=True)
+        if waypoint0.acceleration is not None and waypoint1.acceleration is not None:
+            i0_waypoint = [waypoint0.time, waypoint0.position, waypoint0.velocity, waypoint0.acceleration]
+            i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity, waypoint1.acceleration]
+            self.traj_curr_segment = generate_quintic_spline_segment(i0_waypoint, i1_waypoint)
+        elif waypoint0.velocity is not None and waypoint1.velocity is not None:
+            i0_waypoint = [waypoint0.time, waypoint0.position, waypoint0.velocity]
+            i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity]
+            self.traj_curr_segment = generate_cubic_spline_segment(i0_waypoint, i1_waypoint)
+        else:
+            i0_waypoint = [waypoint0.time, waypoint0.position]
+            i1_waypoint = [waypoint1.time, waypoint1.position]
+            self.traj_curr_segment = generate_linear_segment(i0_waypoint, i1_waypoint)
+
+        self.traj_segment_idx = 2
+        self.traj_curr_segment.append(self.traj_segment_idx)
+        return self.traj_curr_segment
+
+    def get_next_segment(self, active_id):
+        if active_id == 0 and self.traj_loaded:
+            self._setup_new_trajectory()
+            return
+        if not self.trajectory.is_valid(ignore_joint_limits=True):
+            return
+        if active_id == 1:
+            self.traj_loaded = True
+            return self.traj_curr_segment
+
+        if active_id == self.traj_segment_idx:
+            self.traj_segment_idx = max(2, (self.traj_segment_idx + 1) % 255)
+        if (self.traj_segment_idx - 2) < (len(self.trajectory) - 1):
+            i0 = self.traj_segment_idx - 2
+            i1 = self.traj_segment_idx - 1
+            waypoint0 = self.trajectory.get_waypoint(i0, motor_rad=True)
+            waypoint1 = self.trajectory.get_waypoint(i1, motor_rad=True)
+            if waypoint0.acceleration is not None and waypoint1.acceleration is not None:
+                i0_waypoint = [waypoint0.time, waypoint0.position, waypoint0.velocity, waypoint0.acceleration]
+                i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity, waypoint1.acceleration]
+                self.traj_curr_segment = generate_quintic_spline_segment(i0_waypoint, i1_waypoint)
+            elif waypoint0.velocity is not None and waypoint1.velocity is not None:
+                i0_waypoint = [waypoint0.time, waypoint0.position, waypoint0.velocity]
+                i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity]
+                self.traj_curr_segment = generate_cubic_spline_segment(i0_waypoint, i1_waypoint)
+            else:
+                i0_waypoint = [waypoint0.time, waypoint0.position]
+                i1_waypoint = [waypoint1.time, waypoint1.position]
+                self.traj_curr_segment = generate_linear_segment(i0_waypoint, i1_waypoint)
+            self.traj_curr_segment.append(self.traj_segment_idx)
+        else:
+            self.traj_curr_segment = [0] * 8
+        return self.traj_curr_segment
+
+    def _push_trajectory_thread(self):
+        pass
 
 
 class WaypointTrajectoryManager:
