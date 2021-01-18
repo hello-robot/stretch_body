@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-from dynamixel_XL430 import *
+from stretch_body.dynamixel_XL430 import *
 from stretch_body.device import Device
 import time
 from stretch_body.hello_utils import *
