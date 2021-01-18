@@ -1,7 +1,7 @@
 
 from stretch_body.stepper import *
 import time
-from device import Device
+from stretch_body.device import Device
 from stretch_body.hello_utils import *
 
 class Arm(Device):
