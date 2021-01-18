@@ -66,7 +66,7 @@ class TimerStats():
         return out
 
     def pretty_print(self):
-        print 'Timer Stat -- Avg: ', str(self.av), 'Max: ', str(self.mx)
+        print('Timer Stat -- Avg: {}, Max: {}'.format(self.av, self.mx))
 
     
 class ThreadServiceExit(Exception):

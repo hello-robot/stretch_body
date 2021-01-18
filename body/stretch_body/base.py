@@ -39,20 +39,20 @@ class Base(Device):
         self.right_wheel.stop()
 
     def pretty_print(self):
-        print '----------Base------'
-        print 'X (m)',self.status['x']
-        print 'Y (m)',self.status['y']
-        print 'Theta (rad)',self.status['theta']
-        print 'X_vel (m/s)', self.status['x_vel']
-        print 'Y_vel (m/s)', self.status['y_vel']
-        print 'Theta_vel (rad/s)', self.status['theta_vel']
-        print 'Pose time (s)', self.status['pose_time_s']
-        print 'Translation Force (N)',self.status['translation_force']
-        print 'Rotation Torque (Nm)', self.status['rotation_torque']
-        print 'Timestamp PC (s):', self.status['timestamp_pc']
-        print '-----Left-Wheel-----'
+        print('----------Base------')
+        print('X (m)',self.status['x'])
+        print('Y (m)',self.status['y'])
+        print('Theta (rad)',self.status['theta'])
+        print('X_vel (m/s)', self.status['x_vel'])
+        print('Y_vel (m/s)', self.status['y_vel'])
+        print('Theta_vel (rad/s)', self.status['theta_vel'])
+        print('Pose time (s)', self.status['pose_time_s'])
+        print('Translation Force (N)',self.status['translation_force'])
+        print('Rotation Torque (Nm)', self.status['rotation_torque'])
+        print('Timestamp PC (s):', self.status['timestamp_pc'])
+        print('-----Left-Wheel-----')
         self.left_wheel.pretty_print()
-        print '-----Right-Wheel-----'
+        print('-----Right-Wheel-----')
         self.right_wheel.pretty_print()
 
     # ###################################################

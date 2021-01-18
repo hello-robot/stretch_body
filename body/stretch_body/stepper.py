@@ -113,7 +113,7 @@ class Stepper(Device):
     def stop(self):
         with self.lock:
             if self.verbose:
-                print 'Shutting down Stepper on: ' + self.usb
+                print('Shutting down Stepper on: ' + self.usb)
             self.enable_safety()
             self.push_command(exiting=True)
             self.transport.stop()
@@ -171,37 +171,37 @@ class Stepper(Device):
             self.transport.step(exiting=exiting)
 
     def pretty_print(self):
-        print '-----------'
-        print 'Mode',self.mode_names[self.status['mode']]
-        print 'x_des (rad)', self._command['x_des'], '(deg)',rad_to_deg(self._command['x_des'])
-        print 'v_des (rad)', self._command['v_des'], '(deg)',rad_to_deg(self._command['v_des'])
-        print 'a_des (rad)', self._command['a_des'], '(deg)',rad_to_deg(self._command['a_des'])
-        print 'Stiffness',self._command['stiffness']
-        print 'Feedforward', self._command['i_feedforward']
-        print 'Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos'])
-        print 'Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel'])
-        print 'Effort', self.status['effort']
-        print 'Current (A)', self.status['current']
-        print 'Error (deg)', rad_to_deg(self.status['err'])
-        print 'Debug', self.status['debug']
-        print 'Guarded Events:', self.status['guarded_event']
-        print 'Diag', self.status['diag']
-        print '       Position Calibrated:', self.status['pos_calibrated']
-        print '       Runstop on:', self.status['runstop_on']
-        print '       Near Pos Setpoint:', self.status['near_pos_setpoint']
-        print '       Near Vel Setpoint:', self.status['near_vel_setpoint']
-        print '       Is Moving:', self.status['is_moving']
-        print '       At Current Limit:', self.status['at_current_limit']
-        print '       Is MG Accelerating:', self.status['is_mg_accelerating']
-        print '       Is MG Moving:', self.status['is_mg_moving']
-        print '       Encoder Calibration in Flash:', self.status['calibration_rcvd']
-        print '       In Guarded Event:', self.status['in_guarded_event']
-        print '       In Safety Event:', self.status['in_safety_event']
-        print '       Waiting on Sync:', self.status['waiting_on_sync']
-        print 'Timestamp', self.status['timestamp']
-        print 'Read error', self.transport.status['read_error']
-        print 'Board version:', self.board_info['board_version']
-        print 'Firmware version:', self.board_info['firmware_version']
+        print('-----------')
+        print('Mode',self.mode_names[self.status['mode']])
+        print('x_des (rad) {} (deg) {}'.format(self._command['x_des'], rad_to_deg(self._command['x_des'])))
+        print('v_des (rad) {} (deg) {}'.format(self._command['v_des'], rad_to_deg(self._command['v_des'])))
+        print('a_des (rad) {} (deg) {}'.format(self._command['a_des'], rad_to_deg(self._command['a_des'])))
+        print('Stiffness',self._command['stiffness'])
+        print('Feedforward', self._command['i_feedforward'])
+        print('Pos (rad) {} (deg) {}'.format(self.status['pos'], rad_to_deg(self.status['pos'])))
+        print('Vel (rad/s) {} (deg/s) {}'.format(self.status['vel'], rad_to_deg(self.status['vel'])))
+        print('Effort', self.status['effort'])
+        print('Current (A)', self.status['current'])
+        print('Error (deg)', rad_to_deg(self.status['err']))
+        print('Debug', self.status['debug'])
+        print('Guarded Events:', self.status['guarded_event'])
+        print('Diag', self.status['diag'])
+        print('       Position Calibrated:', self.status['pos_calibrated'])
+        print('       Runstop on:', self.status['runstop_on'])
+        print('       Near Pos Setpoint:', self.status['near_pos_setpoint'])
+        print('       Near Vel Setpoint:', self.status['near_vel_setpoint'])
+        print('       Is Moving:', self.status['is_moving'])
+        print('       At Current Limit:', self.status['at_current_limit'])
+        print('       Is MG Accelerating:', self.status['is_mg_accelerating'])
+        print('       Is MG Moving:', self.status['is_mg_moving'])
+        print('       Encoder Calibration in Flash:', self.status['calibration_rcvd'])
+        print('       In Guarded Event:', self.status['in_guarded_event'])
+        print('       In Safety Event:', self.status['in_safety_event'])
+        print('       Waiting on Sync:', self.status['waiting_on_sync'])
+        print('Timestamp', self.status['timestamp'])
+        print('Read error', self.transport.status['read_error'])
+        print('Board version:', self.board_info['board_version'])
+        print('Firmware version:', self.board_info['firmware_version'])
     # ###########################################################################
 
     def set_load_test(self):
@@ -237,7 +237,7 @@ class Stepper(Device):
 
     def mark_position(self,x):
         if self.status['mode']!=MODE_SAFETY:
-            print 'Can not mark position. Must be in MODE_SAFETY for',self.usb
+            print('Can not mark position. Must be in MODE_SAFETY for',self.usb)
             return
 
         with self.lock:
@@ -416,11 +416,11 @@ class Stepper(Device):
     def read_encoder_calibration_from_flash(self):
         self.turn_menu_interface_on()
         time.sleep(0.5)
-        print 'Reading encoder calibration...'
+        print('Reading encoder calibration...')
         e = self.menu_transaction('q',do_print=False)[19]
         self.turn_rpc_interface_on()
         self.push_command()
-        print 'Reseting board'
+        print('Reseting board')
         self.board_reset()
         self.push_command()
         e = e[:-4]  # We now have string of floats, convert to list of floats
@@ -434,32 +434,32 @@ class Stepper(Device):
                 enc_calib.append(float(e))
                 e = []
         if len(enc_calib)==16384:
-            print 'Successful read of encoder calibration'
+            print('Successful read of encoder calibration')
         else:
-            print 'Failed to read encoder calibration'
+            print('Failed to read encoder calibration')
         return enc_calib
 
     def write_encoder_calibration_to_flash(self,data):
         #This will take a few seconds. Blocks until complete.
         if len(data)!=16384:
-            print 'Bad encoder data'
+            print('Bad encoder data')
         else:
-            print 'Writing encoder calibration...'
+            print('Writing encoder calibration...')
             for p in range(256):
-                print 'Sending page',p,'of 255'
+                print('Sending page {} of 255'.format(p))
                 self.transport.payload_out[0] = RPC_SET_ENC_CALIB
                 self.transport.payload_out[1] = p
                 sidx=2
                 for i in range(64):
                     pack_float_t(self.transport.payload_out, sidx, data[p*64+i])
                     sidx += 4
-                # print 'Sending encoder calibration rpc of size',sidx
+                # print('Sending encoder calibration rpc of size',sidx)
                 self.transport.queue_rpc(sidx, self.rpc_enc_calib_reply)
                 self.transport.step()
 
     def rpc_enc_calib_reply(self,reply):
         if reply[0] != RPC_REPLY_ENC_CALIB:
-            print 'Error RPC_REPLY_ENC_CALIB', reply[0]
+            print('Error RPC_REPLY_ENC_CALIB', reply[0])
 
     # ######################Menu Inteface ################################3
 
@@ -488,7 +488,7 @@ class Stepper(Device):
             while self.transport.ser.inWaiting():
                 r=self.transport.ser.readline()
                 if do_print:
-                    print r,
+                    print(r)
                 reply.append(r)
             return reply
 
@@ -645,46 +645,46 @@ class Stepper(Device):
             d = reply[1:]
             for i in range(1024):
                 if d[i] != self.load_test_payload[(i + 1) % 1024]:
-                        print 'Load test bad data',d[i],self.load_test_payload[(i + 1) % 1024]
+                        print('Load test bad data',d[i],self.load_test_payload[(i + 1) % 1024])
             self.load_test_payload=d
         else:
-            print 'Error RPC_REPLY_LOAD_TEST', reply[0]
+            print('Error RPC_REPLY_LOAD_TEST', reply[0])
 
     def rpc_board_info_reply(self,reply):
         if reply[0] == RPC_REPLY_STEPPER_BOARD_INFO:
             self.unpack_board_info(reply[1:])
         else:
-            print 'Error RPC_REPLY_STEPPER_BOARD_INFO', reply[0]
+            print('Error RPC_REPLY_STEPPER_BOARD_INFO', reply[0])
 
     def rpc_gains_reply(self,reply):
         if reply[0] != RPC_REPLY_GAINS:
-            print 'Error RPC_REPLY_GAINS', reply[0]
+            print('Error RPC_REPLY_GAINS', reply[0])
 
     def rpc_trigger_reply(self,reply):
         if reply[0] != RPC_REPLY_SET_TRIGGER:
-            print 'Error RPC_REPLY_SET_TRIGGER', reply[0]
+            print('Error RPC_REPLY_SET_TRIGGER', reply[0])
 
 
     def rpc_command_reply(self,reply):
         if reply[0] != RPC_REPLY_COMMAND:
-            print 'Error RPC_REPLY_COMMAND', reply[0]
+            print('Error RPC_REPLY_COMMAND', reply[0])
 
     def rpc_motion_limits_reply(self,reply):
         if reply[0] != RPC_REPLY_MOTION_LIMITS:
-            print 'Error RPC_REPLY_MOTION_LIMITS', reply[0]
+            print('Error RPC_REPLY_MOTION_LIMITS', reply[0])
 
     def rpc_menu_on_reply(self,reply):
         if reply[0] != RPC_REPLY_MENU_ON:
-            print 'Error RPC_REPLY_MENU_ON', reply[0]
+            print('Error RPC_REPLY_MENU_ON', reply[0])
 
     def rpc_status_reply(self,reply):
         if reply[0] == RPC_REPLY_STATUS:
             nr=self.unpack_status(reply[1:])
         else:
-            print 'Error RPC_REPLY_STATUS', reply[0]
+            print('Error RPC_REPLY_STATUS', reply[0])
 
     def rpc_read_gains_from_flash_reply(self,reply):
         if reply[0] == RPC_REPLY_READ_GAINS_FROM_FLASH:
             nr=self.unpack_gains(reply[1:])
         else:
-            print 'Error RPC_REPLY_READ_GAINS_FROM_FLASH', reply[0]
+            print('Error RPC_REPLY_READ_GAINS_FROM_FLASH', reply[0])

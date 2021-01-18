@@ -72,11 +72,11 @@ class DynamixelXChain(Device):
                 idx=idx+1
             self.timer_stats.update(time.time()-ts)
         except IOError:
-            print 'IOError on:',self.usb
+            print('IOError on:',self.usb)
 
     def pretty_print(self):
-        print '--- Dynamixel X Chain ---'
-        print 'USB', self.usb
+        print('--- Dynamixel X Chain ---')
+        print('USB', self.usb)
         self.timer_stats.pretty_print()
         for mk in self.motors.keys():
             self.motors[mk].pretty_print()
@@ -120,11 +120,11 @@ class DynamixelXChain(Device):
         """
         if runstop is not self.runstop_last:
             if runstop:
-                #print 'Disabling torque to ',self.name
+                #print('Disabling torque to ', self.name)
                 for mk in self.motors.keys():
                     self.motors[mk].disable_torque()
             else:
-                #print 'Enabling torque to ', self.name
+                #print('Enabling torque to ', self.name)
                 for mk in self.motors.keys():
                     self.motors[mk].enable_torque()
 

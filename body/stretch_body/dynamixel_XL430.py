@@ -108,33 +108,33 @@ class DynamixelXL430(Device):
         self.port_handler.closePort()
 
     def pretty_print(self):
-        print '-----XL430------'
-        print 'ID', self.get_id()
-        print 'Operating Mode',self.get_operating_mode()
-        print 'Drive Mode', self.get_drive_mode()
-        print 'Temp: ', self.get_temp()
-        print 'Position', self.get_pos()
-        print 'Velocity',self.get_vel()
-        print 'Load ', self.get_load()
-        print 'PWM', self.get_pwm()
-        print 'Is Moving', self.is_moving()
-        print 'Is Calibrated',self.is_calibrated()
-        print 'Profile Velocity', self.get_profile_velocity()
-        print 'Profile Acceleration', self.get_profile_acceleration()
+        print('-----XL430------')
+        print('ID', self.get_id())
+        print('Operating Mode',self.get_operating_mode())
+        print('Drive Mode', self.get_drive_mode())
+        print('Temp: ', self.get_temp())
+        print('Position', self.get_pos())
+        print('Velocity',self.get_vel())
+        print('Load ', self.get_load())
+        print('PWM', self.get_pwm())
+        print('Is Moving', self.is_moving())
+        print('Is Calibrated',self.is_calibrated())
+        print('Profile Velocity', self.get_profile_velocity())
+        print('Profile Acceleration', self.get_profile_acceleration())
         h=self.get_hardware_error()
-        print 'Hardware Error Status', h
-        print 'Hardware Error: Input Voltage Error: ', h & 1 is not 0
-        print 'Hardware Error: Overheating Error: ',h & 4 is not 0
-        print 'Hardware Error: Motor Encoder Error: ', h & 8 is not 0
-        print 'Hardware Error: Electrical Shock Error: ', h & 16 is not 0
-        print 'Hardware Error: Overload Error: ', h & 32 is not 0
-        print 'Comm errors', self.comm_errors
+        print('Hardware Error Status', h)
+        print('Hardware Error: Input Voltage Error: ', h & 1 is not 0)
+        print('Hardware Error: Overheating Error: ',h & 4 is not 0)
+        print('Hardware Error: Motor Encoder Error: ', h & 8 is not 0)
+        print('Hardware Error: Electrical Shock Error: ', h & 16 is not 0)
+        print('Hardware Error: Overload Error: ', h & 32 is not 0)
+        print('Comm errors', self.comm_errors)
 
     # ##########################################
 
     def handle_comm_result(self,fx,dxl_comm_result, dxl_error):
         if dxl_comm_result!=0:
-            #print 'DXL Comm Error. ID',self.dxl_id,'Result', dxl_comm_result, 'Err',dxl_error
+            #print('DXL Comm Error. ID {} Result {} Err {}'.format(self.dxl_id, dxl_comm_result, dxl_error))
             self.comm_errors=self.comm_errors+1
             return False
         return True
@@ -457,17 +457,17 @@ class DynamixelXL430(Device):
 
     def zero_position(self,verbose=False):
         if verbose:
-            print 'Previous HOMING_OFFSET in EEPROM', self.get_homing_offset()
+            print('Previous HOMING_OFFSET in EEPROM', self.get_homing_offset())
         self.set_homing_offset(0)
         x=self.get_pos()
         h=-1*x
         if verbose:
-            print 'Setting homing offset to',h
+            print('Setting homing offset to',h)
         self.set_homing_offset(h)
         p = self.read_int32_t(XL430_ADDR_HOMING_OFFSET)
         if verbose:
-            print 'New HOMING_OFFSET in EEPROM', self.get_homing_offset()
-            print 'Current position after homing',self.get_pos()
+            print('New HOMING_OFFSET in EEPROM', self.get_homing_offset())
+            print('Current position after homing',self.get_pos())
         return
 
     def get_homing_offset(self):

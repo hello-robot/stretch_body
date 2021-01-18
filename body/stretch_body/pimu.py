@@ -68,26 +68,26 @@ class IMU(Device):
     # ####################################################
 
     def pretty_print(self):
-        print '----------IMU -------------'
-        print 'AX (m/s^2)', self.status['ax']
-        print 'AY (m/s^2)', self.status['ay']
-        print 'AZ (m/s^2)', self.status['az']
-        print 'GX (rad/s)', self.status['gx']
-        print 'GY (rad/s)', self.status['gy']
-        print 'GZ (rad/s)', self.status['gz']
-        print 'MX (uTesla)', self.status['mx']
-        print 'MY (uTesla)', self.status['my']
-        print 'MZ (uTesla)', self.status['mz']
-        print 'QW', self.status['qw']
-        print 'QX', self.status['qx']
-        print 'QY', self.status['qy']
-        print 'QZ', self.status['qz']
-        print 'Roll (deg)', rad_to_deg(self.status['roll'])
-        print 'Pitch (deg)', rad_to_deg(self.status['pitch'])
-        print 'Heading (deg)', rad_to_deg(self.status['heading'])
-        print 'Bump', self.status['bump']
-        print 'Timestamp', self.status['timestamp']
-        print '-----------------------'
+        print('----------IMU -------------')
+        print('AX (m/s^2)', self.status['ax'])
+        print('AY (m/s^2)', self.status['ay'])
+        print('AZ (m/s^2)', self.status['az'])
+        print('GX (rad/s)', self.status['gx'])
+        print('GY (rad/s)', self.status['gy'])
+        print('GZ (rad/s)', self.status['gz'])
+        print('MX (uTesla)', self.status['mx'])
+        print('MY (uTesla)', self.status['my'])
+        print('MZ (uTesla)', self.status['mz'])
+        print('QW', self.status['qw'])
+        print('QX', self.status['qx'])
+        print('QY', self.status['qy'])
+        print('QZ', self.status['qz'])
+        print('Roll (deg)', rad_to_deg(self.status['roll']))
+        print('Pitch (deg)', rad_to_deg(self.status['pitch']))
+        print('Heading (deg)', rad_to_deg(self.status['heading']))
+        print('Bump', self.status['bump'])
+        print('Timestamp', self.status['timestamp'])
+        print('-----------------------')
 
     #Called by transport thread
     def unpack_status(self, s):
@@ -195,27 +195,27 @@ class Pimu(Device):
             self.transport.step2(exiting=exiting)
 
     def pretty_print(self):
-        print '------ Pimu -----'
-        print 'Voltage',self.status['voltage']
-        print 'Current', self.status['current']
-        print 'CPU Temp',self.status['cpu_temp']
-        print 'Board Temp', self.status['temp']
-        print 'State', self.status['state']
-        print 'At Cliff', self.status['at_cliff']
-        print 'Cliff Range', self.status['cliff_range']
-        print 'Cliff Event', self.status['cliff_event']
-        print 'Runstop Event', self.status['runstop_event']
-        print 'Bump Event Cnt', self.status['bump_event_cnt']
-        print 'Fan On', self.status['fan_on']
-        print 'Buzzer On', self.status['buzzer_on']
-        print 'Low Voltage Alert', self.status['low_voltage_alert']
-        print 'High Current Alert', self.status['high_current_alert']
-        print 'Over Tilt Alert',self.status['over_tilt_alert']
-        print 'Debug', self.status['debug']
-        print 'Timestamp', self.status['timestamp']
-        print 'Read error', self.transport.status['read_error']
-        print 'Board version:',self.board_info['board_version']
-        print 'Firmware version:', self.board_info['firmware_version']
+        print('------ Pimu -----')
+        print('Voltage',self.status['voltage'])
+        print('Current', self.status['current'])
+        print('CPU Temp',self.status['cpu_temp'])
+        print('Board Temp', self.status['temp'])
+        print('State', self.status['state'])
+        print('At Cliff', self.status['at_cliff'])
+        print('Cliff Range', self.status['cliff_range'])
+        print('Cliff Event', self.status['cliff_event'])
+        print('Runstop Event', self.status['runstop_event'])
+        print('Bump Event Cnt', self.status['bump_event_cnt'])
+        print('Fan On', self.status['fan_on'])
+        print('Buzzer On', self.status['buzzer_on'])
+        print('Low Voltage Alert', self.status['low_voltage_alert'])
+        print('High Current Alert', self.status['high_current_alert'])
+        print('Over Tilt Alert',self.status['over_tilt_alert'])
+        print('Debug', self.status['debug'])
+        print('Timestamp', self.status['timestamp'])
+        print('Read error', self.transport.status['read_error'])
+        print('Board version:',self.board_info['board_version'])
+        print('Firmware version:', self.board_info['firmware_version'])
         self.imu.pretty_print()
 
     # ####################### User Functions #######################################################
@@ -391,21 +391,21 @@ class Pimu(Device):
 
     def rpc_motor_sync_reply(self,reply):
         if reply[0] != RPC_REPLY_MOTOR_SYNC:
-            print 'Error RPC_REPLY_MOTOR_SYNC', reply[0]
+            print('Error RPC_REPLY_MOTOR_SYNC', reply[0])
 
     def rpc_config_reply(self,reply):
         if reply[0] != RPC_REPLY_PIMU_CONFIG:
-            print 'Error RPC_REPLY_PIMU_CONFIG', reply[0]
+            print('Error RPC_REPLY_PIMU_CONFIG', reply[0])
 
     def rpc_board_info_reply(self,reply):
         if reply[0] == RPC_REPLY_PIMU_BOARD_INFO:
             self.unpack_board_info(reply[1:])
         else:
-            print 'Error RPC_REPLY_PIMU_BOARD_INFO', reply[0]
+            print('Error RPC_REPLY_PIMU_BOARD_INFO', reply[0])
 
     def rpc_trigger_reply(self,reply):
         if reply[0] != RPC_REPLY_PIMU_TRIGGER:
-            print 'Error RPC_REPLY_PIMU_TRIGGER', reply[0]
+            print('Error RPC_REPLY_PIMU_TRIGGER', reply[0])
         else:
             tt=unpack_uint32_t(reply[1:])
 
@@ -413,7 +413,7 @@ class Pimu(Device):
         if reply[0] == RPC_REPLY_PIMU_STATUS:
             self.unpack_status(reply[1:])
         else:
-            print 'Error RPC_REPLY_PIMU_STATUS', reply[0]
+            print('Error RPC_REPLY_PIMU_STATUS', reply[0])
 
 
     # ################ Sentry #####################
