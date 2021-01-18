@@ -58,7 +58,7 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
         else:
-            print 'DynamixelHelloXL430 Ping failed...', self.name
+            print('DynamixelHelloXL430 Ping failed...', self.name)
 
 
     def stop(self):
@@ -79,7 +79,7 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
                 ts = time.time()
                 err=self.motor.get_hardware_error()
             except termios.error:
-                print 'Dynamixel communiation error at time: ',time.time()
+                print('Dynamixel communiation error at time: ',time.time())
         else:
             x = data['x']
             v = data['v']
@@ -125,7 +125,7 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
         if not self.servo_valid:
             return
         x=self.motor.get_pos()
-        print 'Marking current position of (ticks)',x,' as 0 (rad)'
+        print('Marking current position of (ticks) {} as 0 (rad)'.format(x))
         self.params['zero_t']=x
         self.write_device_params(self.name, self.params)
 
@@ -133,33 +133,34 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
 
     def pretty_print(self):
         if not self.servo_valid:
-            print '----- HelloXL430 ------ '
-            print 'Servo not on bus'
+            print('----- HelloXL430 ------ ')
+            print('Servo not on bus')
             return
-        print '----- HelloXL430 ------ '
-        print 'Name',self.name
-        print 'Position (rad)', self.status['pos']
-        print 'Position (deg)', rad_to_deg(self.status['pos'])
-        print 'Position (ticks)', self.status['pos_ticks']
-        print 'Velocity (rad/s)', self.status['vel']
-        print 'Velocity (ticks/s)', self.status['vel_ticks']
-        print 'Effort (%)', self.status['effort']
-        print 'Effort (ticks)', self.status['effort_ticks']
-        print 'Waypoint Trajectory Active', self.status['trajectory_active']
-        print 'Temp', self.status['temp']
-        print 'Comm Errors', self.motor.comm_errors
-        print 'Hardware Error', self.status['hardware_error']
-        print 'Hardware Error: Input Voltage Error: ',self.status['input_voltage_error']
-        print 'Hardware Error: Overheating Error: ', self.status['overheating_error']
-        print 'Hardware Error: Motor Encoder Error: ',self.status['motor_encoder_error']
-        print 'Hardware Error: Electrical Shock Error: ', self.status['electrical_shock_error']
-        print 'Hardware Error: Overload Error: ', self.status['overload_error']
-        print 'Timestamp PC', self.status['timestamp_pc']
-        print 'Range (ticks)',self.params['range_t']
-        print 'Range (rad) [',self.ticks_to_world_rad(self.params['range_t'][0]), ' , ',self.ticks_to_world_rad(self.params['range_t'][1]),']'
-        print 'Stalled',self.status['stalled']
-        print 'Stall Overload',self.status['stall_overload']
-        print 'Is Calibrated',self.is_calibrated
+        print('----- HelloXL430 ------ ')
+        print('Name',self.name)
+        print('Position (rad)', self.status['pos'])
+        print('Position (deg)', rad_to_deg(self.status['pos']))
+        print('Position (ticks)', self.status['pos_ticks'])
+        print('Velocity (rad/s)', self.status['vel'])
+        print('Velocity (ticks/s)', self.status['vel_ticks'])
+        print('Effort (%)', self.status['effort'])
+        print('Effort (ticks)', self.status['effort_ticks'])
+        print('Waypoint Trajectory Active', self.status['trajectory_active'])
+        print('Temp', self.status['temp'])
+        print('Comm Errors', self.motor.comm_errors)
+        print('Hardware Error', self.status['hardware_error'])
+        print('Hardware Error: Input Voltage Error: ',self.status['input_voltage_error'])
+        print('Hardware Error: Overheating Error: ', self.status['overheating_error'])
+        print('Hardware Error: Motor Encoder Error: ',self.status['motor_encoder_error'])
+        print('Hardware Error: Electrical Shock Error: ', self.status['electrical_shock_error'])
+        print('Hardware Error: Overload Error: ', self.status['overload_error'])
+        print('Timestamp PC', self.status['timestamp_pc'])
+        print('Range (ticks)',self.params['range_t'])
+        print('Range (rad) [{}, {}]'.format(self.ticks_to_world_rad(self.params['range_t'][0]),
+                                            self.ticks_to_world_rad(self.params['range_t'][1])))
+        print('Stalled',self.status['stalled'])
+        print('Stall Overload',self.status['stall_overload'])
+        print('Is Calibrated',self.is_calibrated)
         #self.motor.pretty_print()
 
     # #####################################
@@ -183,7 +184,7 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
         if not self.servo_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
-            print 'Dynamixel not calibrated:', self.name
+            print('Dynamixel not calibrated:', self.name)
             return
         try:
             self.set_motion_params(v_des,a_des)
@@ -191,7 +192,7 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
         except termios.error:
-            print 'Dynamixel communication error at time: ',time.time()
+            print('Dynamixel communication error at time: ',time.time())
 
 
     def set_motion_params(self,v_des=None,a_des=None):
@@ -260,12 +261,12 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
 
         self.pull_status()
         if self.status['overload_error'] or self.status['overheating_error']:
-            print 'Hardware error, unable to home. Exiting'
+            print('Hardware error, unable to home. Exiting')
             return
 
         self.enable_pwm()
 
-        print 'Moving to first hardstop...'
+        print('Moving to first hardstop...')
         self.set_pwm(self.params['pwm_homing'][0])
         ts=time.time()
         time.sleep(1.0)
@@ -273,20 +274,20 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
         while self.motor.is_moving() and not timeout:
             timeout=time.time()-ts>15.0
             time.sleep(0.5)
-            #print 'Pos (ticks)',self.motor.get_pos()
+            #print('Pos (ticks)',self.motor.get_pos())
         time.sleep(delay_at_stop)
         xs=self.motor.get_pos()
         self.set_pwm(0)
 
         if timeout:
-            print 'Timed out moving to first hardstop. Exiting.'
+            print('Timed out moving to first hardstop. Exiting.')
             return
         if self.status['overload_error'] or self.status['overheating_error']:
-            print 'Hardware error, unable to home. Exiting'
+            print('Hardware error, unable to home. Exiting')
             return
 
-        print 'Contact at position:', xs
-        print 'Hit first hardstop, marking to zero ticks'
+        print('Contact at position:', xs)
+        print('Hit first hardstop, marking to zero ticks')
         self.motor.disable_torque()
         self.motor.zero_position(verbose=False)
         self.motor.set_calibrated(1)
@@ -295,11 +296,11 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
 
         self.enable_pwm()
 
-        print 'Raw position:',self.motor.get_pos()
+        print('Raw position:',self.motor.get_pos())
 
         if not single_stop:
             #Measure the range and write to YAML
-            print 'Moving to second hardstop...'
+            print('Moving to second hardstop...')
             self.set_pwm(self.params['pwm_homing'][1])
             ts = time.time()
             time.sleep(1.0)
@@ -307,31 +308,31 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
             while self.motor.is_moving() and not timeout:
                 timeout = time.time() - ts > 15.0
                 time.sleep(0.5)
-                #print 'Pos (ticks)', self.motor.get_pos()
+                #print('Pos (ticks)', self.motor.get_pos())
             time.sleep(delay_at_stop)
             x_dir_1 = self.motor.get_pos()
             self.set_pwm(0)
 
             if timeout:
-                print 'Timed out moving to second hardstop. Exiting.'
+                print('Timed out moving to second hardstop. Exiting.')
                 return
-            print 'Hit second hardstop at: ', x_dir_1
+            print('Hit second hardstop at: ', x_dir_1)
             if self.status['overload_error'] or self.status['overheating_error']:
-                print 'Hardware error, unable to home. Exiting'
+                print('Hardware error, unable to home. Exiting')
                 return
 
             self.params['range_t']=[0,x_dir_1]
-            print 'Homed to range of:'
-            print '   Ticks:',self.params['range_t']
+            print('Homed to range of:')
+            print('   Ticks:',self.params['range_t'])
             r1=self.ticks_to_world_rad(0)
             r2=self.ticks_to_world_rad(x_dir_1)
-            print '   Radians:',[r1,r2]
-            print '   Degrees:',[rad_to_deg(r1),rad_to_deg(r2)]
+            print('   Radians:',[r1,r2])
+            print('   Degrees:',[rad_to_deg(r1),rad_to_deg(r2)])
             self.write_device_params(self.name, self.params)
 
         self.enable_pos()
         if move_to_zero:
-            print 'Moving to calibrated zero: (rad)'
+            print('Moving to calibrated zero: (rad)')
             self.move_to(0)
             time.sleep(3.0)
 # ##########################################

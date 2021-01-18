@@ -21,8 +21,8 @@ class StretchGripper(DynamixelHelloXL430):
         DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero,delay_at_stop=3.0)
 
     def pretty_print(self):
-        print '--- StretchGripper ----'
-        print "Position (%)",self.status['pos_pct']
+        print('--- StretchGripper ----')
+        print("Position (%)",self.status['pos_pct'])
         DynamixelHelloXL430.pretty_print(self)
 
     def pose(self,p,v_r=None, a_r=None):

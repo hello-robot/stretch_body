@@ -279,7 +279,7 @@ class Robot(Device):
         To be called once before exiting a program
         Cleanly stops down motion and communication
         """
-        print 'Shutting down robot...'
+        print('Shutting down robot...')
         if self.rt is not None:
             self.rt.shutdown_flag.set()
             time.sleep(0.1) #Provide time for thread loop to exit
@@ -290,7 +290,7 @@ class Robot(Device):
             self.dt.join()
         for k in self.devices.keys():
             if self.devices[k] is not None:
-                print 'Shutting down',k
+                print('Shutting down',k)
                 self.devices[k].stop()
 
 
@@ -331,10 +331,10 @@ class Robot(Device):
 
     def pretty_print(self):
         s=self.get_status()
-        print '##################### HELLO ROBOT ##################### '
-        print 'Time',time.time()
-        print 'Serial No',self.params['serial_no']
-        print 'Batch', self.params['batch_name']
+        print('##################### HELLO ROBOT ##################### ')
+        print('Time',time.time())
+        print('Serial No',self.params['serial_no'])
+        print('Batch', self.params['batch_name'])
         self._pretty_print_dict('Status',s)
 
 
@@ -373,7 +373,7 @@ class Robot(Device):
 
         lift_stowed=False
         if self.lift.status['pos']<=self.params['stow']['lift']: #Needs to come up before bring in arm
-            print '--------- Stowing Lift ----'
+            print('--------- Stowing Lift ----')
             self.lift.move_to(self.params['stow']['lift'])
             self.push_command()
             time.sleep(0.25)
@@ -383,7 +383,7 @@ class Robot(Device):
             lift_stowed=True
 
         #Bring in arm before bring down
-        print '--------- Stowing Arm ----'
+        print('--------- Stowing Arm ----')
         self.arm.move_to(self.params['stow']['arm'])
         self.push_command()
         time.sleep(0.25)
@@ -392,7 +392,7 @@ class Robot(Device):
             time.sleep(0.1)
 
         # Fold in wrist and gripper
-        print '--------- Stowing Wrist Yaw ----'
+        print('--------- Stowing Wrist Yaw ----')
         self.end_of_arm.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
         if self.end_of_arm.is_tool_present('StretchGripper'):
             self.end_of_arm.move_to('stretch_gripper', self.params['stow']['stretch_gripper'])
@@ -401,7 +401,7 @@ class Robot(Device):
 
         #Now bring lift down
         if not lift_stowed:
-            print '--------- Stowing Lift ----'
+            print('--------- Stowing Lift ----')
             self.lift.move_to(self.params['stow']['lift'])
             self.push_command()
             time.sleep(0.25)
@@ -423,21 +423,20 @@ class Robot(Device):
         self.pimu.disable_sync_mode()
         self.push_command()
 
-
-        print '--------- Homing Head ----'
+        print('--------- Homing Head ----')
         self.head.home()
 
         # Home the lift
-        print '--------- Homing Lift ----'
+        print('--------- Homing Lift ----')
         self.lift.home()
 
         # Home the arm
-        print '--------- Homing Arm ----'
+        print('--------- Homing Arm ----')
         self.arm.home()
 
         # Home the end-of-arm
         for j in self.end_of_arm.joints:
-            print  '--------- Homing ', j, '----'
+            print('--------- Homing {}----'.format(j))
             self.end_of_arm.home(j)
         #Let user know it is done
         if psm:
@@ -447,10 +446,10 @@ class Robot(Device):
     # ################ Helpers #################################
 
     def _pretty_print_dict(self, t, d):
-        print '--------', t, '--------'
+        print('-------- {} --------'.format(t))
         for k in d.keys():
             if type(d[k]) != dict:
-                print k, ' : ', d[k]
+                print('{} : {}'.format(k, d[k]))
         for k in d.keys():
             if type(d[k]) == dict:
                 self._pretty_print_dict(k, d[k])
@@ -461,7 +460,7 @@ class Robot(Device):
             self.head.pull_status()
             self.update_status_history(dynamixel=True)
         except SerialException:
-            print 'Serial Exception on Robot Step_Dynamixel'
+            print('Serial Exception on Robot Step_Dynamixel')
 
     def _pull_status_non_dynamixel(self):
         #Send a status sync message to all slaves, so timestamped at same time

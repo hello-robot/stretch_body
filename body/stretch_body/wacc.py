@@ -124,23 +124,23 @@ class Wacc(Device):
             self.transport.step2(exiting=exiting)
 
     def pretty_print(self):
-        print '------------------------------'
-        print 'Ax (m/s^2)',self.status['ax']
-        print 'Ay (m/s^2)', self.status['ay']
-        print 'Az (m/s^2)', self.status['az']
-        print 'A0', self.status['a0']
-        print 'D0 (In)', self.status['d0']
-        print 'D1 (In)', self.status['d1']
-        print 'D2 (Out)', self.status['d2']
-        print 'D3 (Out)', self.status['d3']
-        print 'Single Tap Count', self.status['single_tap_count']
-        print 'State ', self.status['state']
-        print 'Debug',self.status['debug']
-        print 'Timestamp', self.status['timestamp']
-        print 'Timestamp Status Sync', self.status['timestamp_status_sync']
-        print 'Timestamp PC', self.status['timestamp_pc']
-        print 'Board version:', self.board_info['board_version']
-        print 'Firmware version:', self.board_info['firmware_version']
+        print('------------------------------')
+        print('Ax (m/s^2)',self.status['ax'])
+        print('Ay (m/s^2)', self.status['ay'])
+        print('Az (m/s^2)', self.status['az'])
+        print('A0', self.status['a0'])
+        print('D0 (In)', self.status['d0'])
+        print('D1 (In)', self.status['d1'])
+        print('D2 (Out)', self.status['d2'])
+        print('D3 (Out)', self.status['d3'])
+        print('Single Tap Count', self.status['single_tap_count'])
+        print('State ', self.status['state'])
+        print('Debug',self.status['debug'])
+        print('Timestamp', self.status['timestamp'])
+        print('Timestamp Status Sync', self.status['timestamp_status_sync'])
+        print('Timestamp PC', self.status['timestamp_pc'])
+        print('Board version:', self.board_info['board_version'])
+        print('Firmware version:', self.board_info['firmware_version'])
         self.clock_manager.pretty_print()
     # ####################### Utility functions ####################################################
     def board_reset(self):
@@ -243,28 +243,28 @@ class Wacc(Device):
         if reply[0] == RPC_REPLY_WACC_BOARD_INFO:
             self.unpack_board_info(reply[1:])
         else:
-            print 'Error RPC_REPLY_WACC_BOARD_INFO', reply[0]
+            print('Error RPC_REPLY_WACC_BOARD_INFO', reply[0])
 
     def rpc_command_reply(self,reply):
         if reply[0] != RPC_REPLY_WACC_COMMAND:
-            print 'Error RPC_REPLY_WACC_COMMAND', reply[0]
+            print('Error RPC_REPLY_WACC_COMMAND', reply[0])
 
     def rpc_config_reply(self,reply):
         if reply[0] != RPC_REPLY_WACC_CONFIG:
-            print 'Error RPC_REPLY_WACC_CONFIG', reply[0]
+            print('Error RPC_REPLY_WACC_CONFIG', reply[0])
 
     def rpc_status_reply(self,reply):
         if reply[0] == RPC_REPLY_WACC_STATUS:
             self.unpack_status(reply[1:])
         else:
-            print 'Error RPC_REPLY_WACC_STATUS', reply[0]
+            print('Error RPC_REPLY_WACC_STATUS', reply[0])
 
     def rpc_status_sync_reply(self,reply):
         if reply[0] != RPC_REPLY_STATUS_SYNC:
-            print 'Error RPC_REPLY_STATUS_SYNC', reply[0]
+            print('Error RPC_REPLY_STATUS_SYNC', reply[0])
         else:
             self.status['timestamp_status_sync'] = SystemTimestamp().from_usecs(unpack_uint64_t(reply[1:]))
 
     def rpc_clock_zero_reply(self, reply):
         if reply[0] != RPC_REPLY_CLOCK_ZERO:
-            print 'Error RPC_REPLY_CLOCK_ZERO', reply[0]
+            print('Error RPC_REPLY_CLOCK_ZERO', reply[0])
