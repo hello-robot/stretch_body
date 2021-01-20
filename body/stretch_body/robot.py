@@ -479,8 +479,8 @@ class Robot(Device):
         if self.arm.traj_loaded:
             self.arm.push_trajectory()
 
-        # if self.lift.motor.trajectory_manager.trajectory_loaded:
-        #     self.lift.motor.push_waypoint_trajectory()
+        if self.lift.traj_loaded:
+            self.lift.push_trajectory()
 
         # if self.base.left_wheel.trajectory_manager.trajectory_loaded:
         #     self.base.left_wheel.push_waypoint_trajectory()
@@ -529,14 +529,9 @@ class Robot(Device):
                 return False
             self.base.add_waypoints_to_trajectory(waypoints=base_rotate_waypoints, translate_mode=False)
 
-        if lift_waypoints is not None:
-            if len(lift_waypoints) < 2 and not (len(lift_waypoints[0]) == 3 or len(lift_waypoints[0]) == 4):
-                return False
-            self.lift.add_waypoints_to_trajectory(lift_waypoints)
-
         return True
 
-    def start_trajectory(self, lift_waypoints=None, base_translate_waypoints=None, base_rotate_waypoints=None):
+    def start_trajectory(self, base_translate_waypoints=None, base_rotate_waypoints=None):
         """
         Coordinated multi-joint trajectory following. This requires Sync Mode to be
         enabled (via YAML or API).
@@ -581,7 +576,7 @@ class Robot(Device):
             self.base.push_command()
 
         #Now do initial add of waypoints
-        if not self.update_trajectory(lift_waypoints, base_translate_waypoints, base_rotate_waypoints):
+        if not self.update_trajectory(base_translate_waypoints, base_rotate_waypoints):
             return False
 
         #Next configure controllers to start
@@ -589,6 +584,7 @@ class Robot(Device):
             self.base.left_wheel.start_waypoint_trajectory()
             self.base.right_wheel.start_waypoint_trajectory()
 
+        self.lift.start_trajectory(threaded=False)
         self.arm.start_trajectory(threaded=False)
 
         if self.params['sync_mode_enabled']:
