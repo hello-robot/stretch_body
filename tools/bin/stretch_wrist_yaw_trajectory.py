@@ -42,7 +42,7 @@ if not args.text:
     def start_trajectory(times, positions, velocities):
         for waypoint in zip(times, positions, velocities):
             w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-        w.start_trajectory(position_follow_mode=not args.velocity_ctrl, threaded=False)
+        w.start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=False)
 
     def sense_trajectory():
         w.pull_status()
@@ -88,7 +88,7 @@ else:
                 pass
             if x[0]=='a':
                 print("\nExecuting trajectory: {0}\n".format(w.trajectory))
-                w.start_trajectory(position_follow_mode=not args.velocity_ctrl)
+                w.start_trajectory(position_ctrl=not args.velocity_ctrl)
             if x[0]=='s':
                 w.stop_trajectory()
             if x[0]=='d':

@@ -159,20 +159,24 @@ class Arm(Device, StepperTrajectoryManager):
     # ######### Utility ##############################
 
     def motor_current_to_translate_force(self,i):
-        if i is not None:
-            return self.params['force_N_per_A']*(i-self.params['i_feedforward'])
+        if i is None:
+            return
+        return self.params['force_N_per_A']*(i-self.params['i_feedforward'])
 
     def translate_force_to_motor_current(self,f):
-        if f is not None:
-            return (f/self.params['force_N_per_A'])+self.params['i_feedforward']
+        if f is None:
+            return
+        return (f/self.params['force_N_per_A'])+self.params['i_feedforward']
 
     def motor_rad_to_translate(self,ang): #input in rad, output m
-        if ang is not None:
-            return self.motor_rad_2_arm_m*ang
+        if ang is None:
+            return
+        return self.motor_rad_2_arm_m*ang
 
     def translate_to_motor_rad(self, arm_m):
-        if arm_m is not None:
-            return arm_m/self.motor_rad_2_arm_m
+        if arm_m is None:
+            return
+        return arm_m/self.motor_rad_2_arm_m
 
     # ############################################################################################
     def __wait_for_contact(self, timeout=5.0):

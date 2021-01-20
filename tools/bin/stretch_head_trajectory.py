@@ -56,11 +56,11 @@ if not args.text:
         if args.head_pan:
             for waypoint in zip(times, positions, velocities):
                 h.get_joint('head_pan').trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-            h.get_joint('head_pan').start_trajectory(position_follow_mode=not args.velocity_ctrl, threaded=False)
+            h.get_joint('head_pan').start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=False)
         else:
             for waypoint in zip(times, positions, velocities):
                 h.get_joint('head_tilt').trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-            h.get_joint('head_tilt').start_trajectory(position_follow_mode=not args.velocity_ctrl, threaded=False)
+            h.get_joint('head_tilt').start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=False)
 
     def sense_trajectory():
         h.pull_status()
@@ -131,8 +131,8 @@ else:
             if x[0]=='a':
                 print("\nExecuting trajectory:\nHead_Tilt: {0}\nHead_Pan: {1}\n".format(
                     h.get_joint('head_tilt').trajectory, h.get_joint('head_pan').trajectory))
-                h.get_joint('head_tilt').start_trajectory(position_follow_mode=not args.velocity_ctrl, watchdog_timeout=0)
-                h.get_joint('head_pan').start_trajectory(position_follow_mode=not args.velocity_ctrl, watchdog_timeout=0)
+                h.get_joint('head_tilt').start_trajectory(position_ctrl=not args.velocity_ctrl, watchdog_timeout=0)
+                h.get_joint('head_pan').start_trajectory(position_ctrl=not args.velocity_ctrl, watchdog_timeout=0)
             if x[0]=='s':
                 h.get_joint('head_tilt').stop_trajectory()
                 h.get_joint('head_pan').stop_trajectory()

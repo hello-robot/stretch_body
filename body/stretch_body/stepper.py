@@ -423,7 +423,7 @@ class Stepper(Device):
                     self.traj_seg_next = self.traj_seg_next + [0, 0]  # Pad out to 7 floats for RPC
         else:
             print 'Error RPC_REPLY_START_NEW_TRAJECTORY', reply[0]
-            self.trajectory_manager.__setup_new_trajectory()
+            self.trajectory_manager._setup_new_trajectory()
 
     def rpc_set_next_traj_seg_reply(self, reply):
         if reply[0] == RPC_REPLY_SET_NEXT_TRAJECTORY_SEG:

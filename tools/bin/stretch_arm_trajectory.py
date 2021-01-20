@@ -87,65 +87,75 @@ else:
             if x[0]=='m':
                 pass
             if x[0]=='a':
-                print("\nExecuting trajectory: {0}\n".format(w.trajectory))
-                w.start_trajectory(position_follow_mode=not args.velocity_ctrl)
+                print("\nExecuting trajectory: {0}\n".format(a.trajectory))
+                a.start_trajectory()
             if x[0]=='s':
-                w.stop_trajectory()
+                a.stop_trajectory()
             if x[0]=='d':
-                w.pull_status()
-                if w.status['trajectory_active']:
-                    print("\nDuration Remaining: {0}\nTracking Error: {1}\n".format(w.duration_remaining(), w.traj_curr_goal.position - w.status['pos']))
+                a.pull_status()
+                if a.status['motor']['trajectory_active'] and a.traj_start_time is not None and a.traj_curr_time is not None:
+                    t = a.traj_curr_time - a.traj_start_time
+                    err = a.trajectory.evaluate_at(t).position - a.status['pos']
+                    print("\nDuration Remaining: {0}\nTracking Error: {1}\n".format(a.duration_remaining(), err))
                 else:
                     print("\nTrajectory inactive\n")
             if x[0]=='q':
-                w.stop_trajectory()
-                w.stop()
+                a.stop_trajectory()
+                a.stop()
                 exit()
             if x[0] == '1':
-                w.pull_status()
-                w.traj_start_time = time.time() - 0.07
-                vtime = [0.0, 5.0, 10.0]
-                vpos = [w.status['pos'], deg_to_rad(-45), deg_to_rad(90.0)]
-                vvel = [w.status['vel'], deg_to_rad(0.0), deg_to_rad(10.0)]
-                w.trajectory.clear_waypoints()
-                for waypoint in zip(vtime, vpos, vvel):
-                    w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-                print("\nLoading trajectory: {0}\n".format(w.trajectory))
+                a.pull_status()
+                if a.status['motor']['trajectory_active']:
+                    print("\nCannot change trajectory while active\n")
+                else:
+                    vtime = [0.0, 10.0, 20.0]
+                    vpos = [a.status['pos'], 0.5, 0.0]
+                    vvel = [a.status['vel'], 0.0, 0.0]
+                    a.trajectory.clear_waypoints()
+                    for waypoint in zip(vtime, vpos, vvel):
+                        a.trajectory.add_waypoint(t_s=waypoint[0], x_m=waypoint[1], v_m=waypoint[2])
+                    print("\nLoading trajectory: {0}\n".format(a.trajectory))
             if x[0]=='2':
-                w.pull_status()
-                w.traj_start_time = time.time() - 0.07
-                vtime = [0.0, 3.0, 6.0, 9.0]
-                vpos = [w.status['pos'], deg_to_rad(40.0), deg_to_rad(-40.0), deg_to_rad(90.0)]
-                vvel = [w.status['vel'], deg_to_rad(90.0), deg_to_rad(-90.0), deg_to_rad(0.0)]
-                w.trajectory.clear_waypoints()
-                for waypoint in zip(vtime, vpos, vvel):
-                    w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-                print("\nLoading trajectory: {0}\n".format(w.trajectory))
+                a.pull_status()
+                if a.status['motor']['trajectory_active']:
+                    print("\nCannot change trajectory while active\n")
+                else:
+                    vtime = [0.0, 3.0, 6.0, 9.0]
+                    vpos = [a.status['pos'], 0.10, 0.3, 0.15]
+                    vvel = [a.status['vel'], 0.0,  0.0, 0.0]
+                    a.trajectory.clear_waypoints()
+                    for waypoint in zip(vtime, vpos, vvel):
+                        a.trajectory.add_waypoint(t_s=waypoint[0], x_m=waypoint[1], v_m=waypoint[2])
+                    print("\nLoading trajectory: {0}\n".format(a.trajectory))
             if x[0] == '3':
-                w.pull_status()
-                w.traj_start_time = time.time() - 0.07
-                vtime = [0.0, 30.0, 60.0]
-                vpos = [w.status['pos'], deg_to_rad(0.0), deg_to_rad(90.0)]
-                vvel = [w.status['vel'], deg_to_rad(0.0), deg_to_rad(10.0)]
-                w.trajectory.clear_waypoints()
-                for waypoint in zip(vtime, vpos, vvel):
-                    w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-                print("\nLoading trajectory: {0}\n".format(w.trajectory))
+                a.pull_status()
+                if a.status['motor']['trajectory_active']:
+                    print("\nCannot change trajectory while active\n")
+                else:
+                    vtime = [0.0, 30.0, 60.0]
+                    vpos = [a.status['pos'], 0.5, 0.0]
+                    vvel = [a.status['vel'], 0.0, -0.06]
+                    a.trajectory.clear_waypoints()
+                    for waypoint in zip(vtime, vpos, vvel):
+                        a.trajectory.add_waypoint(t_s=waypoint[0], x_m=waypoint[1], v_m=waypoint[2])
+                    print("\nLoading trajectory: {0}\n".format(a.trajectory))
         else:
-            w.pull_status()
-            if w.status['trajectory_active']:
-                print("\nDuration Remaining: {0}\nTracking Error: {1}\n".format(w.duration_remaining(), w.traj_curr_goal.position - w.status['pos']))
+            a.pull_status()
+            if a.status['motor']['trajectory_active'] and a.traj_start_time is not None and a.traj_curr_time is not None:
+                t = a.traj_curr_time - a.traj_start_time
+                err = a.trajectory.evaluate_at(t).position - a.status['pos']
+                print("\nDuration Remaining: {0}\nTracking Error: {1}\n".format(a.duration_remaining(), err))
             else:
                 print("\nTrajectory inactive\n")
 
     try:
         for waypoint in zip(vtime, vpos, vvel):
-            w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
+            a.trajectory.add_waypoint(t_s=waypoint[0], x_m=waypoint[1], v_m=waypoint[2])
         while True:
             try:
                 step_interaction()
             except (ValueError):
                 print('Bad input...')
     except (ThreadServiceExit, KeyboardInterrupt):
-        w.stop_trajectory()
-        w.stop()
+        a.stop_trajectory()
+        a.stop()

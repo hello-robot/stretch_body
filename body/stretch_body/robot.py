@@ -594,8 +594,8 @@ class Robot(Device):
         if self.params['sync_mode_enabled']:
             self.pimu.trigger_motor_sync() #Start motion of non-dynamixel joints
 
-        self.head.get_joint('head_pan').start_trajectory(position_follow_mode=False, threaded=False, watchdog_timeout=0)
-        self.head.get_joint('head_tilt').start_trajectory(position_follow_mode=False, threaded=False, watchdog_timeout=0)
-        self.end_of_arm.motors['wrist_yaw'].start_trajectory(position_follow_mode=True, threaded=False)
+        self.head.get_joint('head_pan').start_trajectory(position_ctrl=False, threaded=False, watchdog_timeout=0)
+        self.head.get_joint('head_tilt').start_trajectory(position_ctrl=False, threaded=False, watchdog_timeout=0)
+        self.end_of_arm.motors['wrist_yaw'].start_trajectory(position_ctrl=True, threaded=False)
 
         return True

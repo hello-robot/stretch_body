@@ -88,19 +88,21 @@ class Trajectory:
                 i0_t = self.get_waypoint(i0).time
 
         # Generate segment and evaluate at t_s
-        if self.get_waypoint(i0).acceleration is not None and self.get_waypoint(i1).acceleration is not None:
-            i0_waypoint = [self.get_waypoint(i0).time, self.get_waypoint(i0).position, self.get_waypoint(i0).velocity, self.get_waypoint(i0).acceleration]
-            i1_waypoint = [self.get_waypoint(i1).time, self.get_waypoint(i1).position, self.get_waypoint(i1).velocity, self.get_waypoint(i1).acceleration]
+        waypoint0 = self.get_waypoint(i0)
+        waypoint1 = self.get_waypoint(i1)
+        if waypoint0.acceleration is not None and waypoint1.acceleration is not None:
+            i0_waypoint = [waypoint0.time, waypoint0.position, waypoint0.velocity, waypoint0.acceleration]
+            i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity, waypoint1.acceleration]
             seg = generate_quintic_spline_segment(i0_waypoint, i1_waypoint)
             ret = evaluate_quintic_spline(seg, t_s - i0_t)
-        elif self.get_waypoint(i0).velocity is not None and self.get_waypoint(i1).velocity is not None:
-            i0_waypoint = [self.get_waypoint(i0).time, self.get_waypoint(i0).position, self.get_waypoint(i0).velocity]
-            i1_waypoint = [self.get_waypoint(i1).time, self.get_waypoint(i1).position, self.get_waypoint(i1).velocity]
+        elif waypoint0.velocity is not None and waypoint1.velocity is not None:
+            i0_waypoint = [waypoint0.time, waypoint0.position, waypoint0.velocity]
+            i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity]
             seg = generate_cubic_spline_segment(i0_waypoint, i1_waypoint)
             ret = evaluate_cubic_spline(seg, t_s - i0_t)
         else:
-            i0_waypoint = [self.get_waypoint(i0).time, self.get_waypoint(i0).position]
-            i1_waypoint = [self.get_waypoint(i1).time, self.get_waypoint(i1).position]
+            i0_waypoint = [waypoint0.time, waypoint0.position]
+            i1_waypoint = [waypoint1.time, waypoint1.position]
             seg = generate_linear_segment(i0_waypoint, i1_waypoint)
             ret = evaluate_linear_interpolate(seg, t_s - i0_t)
 
@@ -207,20 +209,23 @@ class DynamixelTrajectoryManager:
         self.traj_curr_time = None
         self.traj_curr_goal = None
 
-    def start_trajectory(self, position_follow_mode=True, threaded=True, watchdog_timeout=None):
+    def start_trajectory(self, position_ctrl=True, threaded=True, watchdog_timeout=None):
         """Starts execution of the trajectory.
 
         Parameters
         ----------
-        position_follow_mode : bool
+        position_ctrl : bool
             True uses position control to follow traj, False uses velocity control
         threaded : bool
             True launches a separate thread for ``push_trajectory``, False puts burden on the user
         watchdog_timeout : int
             See ``DynamixelXL430.enable_watchdog()``
         """
-        self.traj_pos_mode = position_follow_mode
+        self.traj_pos_mode = position_ctrl
         self.traj_threaded = threaded
+        if not self.trajectory.is_valid(ignore_joint_limits=True):
+            print('DynamixelTrajectory not valid')
+            return
         if not self.servo_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
@@ -245,6 +250,9 @@ class DynamixelTrajectoryManager:
         self.status['trajectory_active'] = 1
 
         if self.traj_threaded:
+            if self.traj_thread is not None:
+                self.traj_thread_shutdown_flag.set()
+                self.traj_thread.join()
             self.traj_thread = threading.Thread(target=self._push_trajectory_thread)
             self.traj_thread_shutdown_flag.clear()
             self.traj_thread.start()
@@ -458,6 +466,9 @@ class StepperTrajectoryManager:
             If True and joint not calibrated, trajectory does not start
         """
         self.traj_threaded = threaded
+        if not self.trajectory.is_valid(ignore_joint_limits=True):
+            print('StepperTrajectory not valid')
+            return
         if req_calibration and not self.motor.status['pos_calibrated']:
             print 'Arm not homed'
             return
@@ -475,6 +486,14 @@ class StepperTrajectoryManager:
         self.traj_start_time = time.time()
         self.traj_curr_time = self.traj_start_time
 
+        if self.traj_threaded:
+            if self.traj_thread is not None:
+                self.traj_thread_shutdown_flag.set()
+                self.traj_thread.join()
+            self.traj_thread = threading.Thread(target=self._push_trajectory_thread)
+            self.traj_thread_shutdown_flag.clear()
+            self.traj_thread.start()
+
     def push_trajectory(self):
         """Commands goals to Hello Robot stepper hardware.
 
@@ -487,10 +506,17 @@ class StepperTrajectoryManager:
 
         self.traj_curr_time = time.time()
         self.motor.push_waypoint_trajectory()
+        self.pull_status()
+        if not self.status['motor']['trajectory_active']:
+            self.traj_thread_shutdown_flag.set()
 
     def stop_trajectory(self):
-        # TODO set back into position mode
+        self.motor.enable_pos_traj()
+        self.motor.push_command()
         self._setup_new_trajectory()
+        if self.traj_threaded:
+            self.traj_thread_shutdown_flag.set()
+            self.traj_thread.join()
 
     def duration_remaining(self):
         if not self.trajectory.is_valid(ignore_joint_limits=True):
@@ -563,7 +589,13 @@ class StepperTrajectoryManager:
         return self.traj_curr_segment
 
     def _push_trajectory_thread(self):
-        pass
+        while not self.traj_thread_shutdown_flag.is_set():
+            ts = time.time()
+            self.push_trajectory()
+            te = time.time()
+            tsleep = max(0, (1 / self.traj_thread_freq) - (te - ts))
+            if not self.traj_thread_shutdown_flag.is_set():
+                time.sleep(tsleep)
 
 
 class WaypointTrajectoryManager:
