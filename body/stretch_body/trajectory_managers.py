@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 
-
-from stretch_body.hello_utils import *
 import time
 import copy
 import threading
+
+from stretch_body.hello_utils import *
 
 TRAJECTORY_TYPE_INVALID = 0
 TRAJECTORY_TYPE_CUBIC_SPLINE = 1
@@ -109,6 +109,73 @@ class Trajectory:
         return Waypoint(position=ret[0], velocity=ret[1], acceleration=ret[2])
 
 
+class TrajectoryManager:
+
+    def __init__(self):
+        """Basic trajectory manager class that should be extended.
+
+        Provides threading and utility functions for managing
+        the execution of trajectories. This class is extended
+        to support specific joint types.
+
+        Attributes
+        ----------
+        traj_thread_freq : int
+            the frequency in hz that the trajectory is pushed to hardware
+        traj_thread_shutdown_flag : threading.Event
+            signals shutdown to the trajectory pushing thread
+        traj_thread : threading.Thread
+            the trajectory pushing thread
+        traj_threaded : bool
+            if True, trajectory manager takes charge of pushing trajectory
+        traj_start_time : float
+            wall time at which trajectory execution began
+        traj_curr_time : float
+            wall time at which trajectory is being evaluated
+        """
+        self.traj_thread_freq = 100
+        self.traj_thread_shutdown_flag = threading.Event()
+        self.traj_thread = None
+        self.traj_threaded = False
+        self.traj_start_time = None
+        self.traj_curr_time = None
+
+    def _start_trajectory_thread(self):
+        if self.traj_threaded:
+            if self.traj_thread is not None:
+                self.traj_thread_shutdown_flag.set()
+                self.traj_thread.join()
+            self.traj_thread = threading.Thread(target=self._push_trajectory_thread)
+            self.traj_thread_shutdown_flag.clear()
+            self.traj_thread.start()
+
+    def _stop_trajectory_thread(self):
+        if self.traj_threaded:
+            self.traj_thread_shutdown_flag.set()
+            self.traj_thread.join()
+
+    def _push_trajectory_thread(self):
+        while not self.traj_thread_shutdown_flag.is_set():
+            ts = time.time()
+            if not self.push_trajectory():
+                return
+            te = time.time()
+            tsleep = max(0, (1 / self.traj_thread_freq) - (te - ts))
+            if not self.traj_thread_shutdown_flag.is_set():
+                time.sleep(tsleep)
+
+    def duration_remaining(self):
+        if not self.trajectory.is_valid(ignore_joint_limits=True):
+            return
+        traj_duration = self.trajectory.get_waypoint(-1).time - self.trajectory.get_waypoint(0).time
+        if self.traj_start_time is None:
+            return traj_duration
+        if self.traj_curr_time is None:
+            self.traj_curr_time = time.time()
+        traj_elapased = self.traj_curr_time - self.traj_start_time
+        return max(0.0, traj_duration - traj_elapased)
+
+
 class DynamixelTrajectory(Trajectory):
 
     def __init__(self):
@@ -176,12 +243,12 @@ class DynamixelTrajectory(Trajectory):
         return True
 
 
-class DynamixelTrajectoryManager:
+class DynamixelTrajectoryManager(TrajectoryManager):
 
     def __init__(self):
         """Trajectory tracking class for ``DynamixelHelloXL430`` joints.
 
-        Provides threaded execution of ``DynamixelTrajectory``
+        Manages execution of ``DynamixelTrajectory``
         trajectories. This class **must** be extended by a
         dynamixel joint class because it utilizes the status
         and motor of the extending class.
@@ -192,21 +259,12 @@ class DynamixelTrajectoryManager:
             the trajectory that is tracked
         traj_pos_mode : bool
             whether to use position or velocity control to track the traj
-        traj_start_time : float
-            wall time at which trajectory execution began
-        traj_curr_time : float
-            wall time at which trajectory is being evaluated
         traj_curr_goal : Waypoint
             interpolated point along the trajectory currently being tracked
         """
+        TrajectoryManager.__init__(self)
         self.trajectory = DynamixelTrajectory()
-        self.traj_pos_mode = True # False uses velocity follow mode
-        self.traj_thread_freq = 100 # hz
-        self.traj_thread_shutdown_flag = threading.Event()
-        self.traj_thread = None
-        self.traj_threaded = False
-        self.traj_start_time = None
-        self.traj_curr_time = None
+        self.traj_pos_mode = True
         self.traj_curr_goal = None
 
     def start_trajectory(self, position_ctrl=True, threaded=True, watchdog_timeout=None):
@@ -224,7 +282,6 @@ class DynamixelTrajectoryManager:
         self.traj_pos_mode = position_ctrl
         self.traj_threaded = threaded
         if not self.trajectory.is_valid(ignore_joint_limits=True):
-            print('DynamixelTrajectory not valid')
             return
         if not self.servo_valid:
             return
@@ -247,15 +304,8 @@ class DynamixelTrajectoryManager:
         self.traj_start_time = time.time()
         self.traj_curr_time = self.traj_start_time
         self.traj_curr_goal = self.trajectory.evaluate_at(t_s=0.0)
-        self.status['trajectory_active'] = 1
-
-        if self.traj_threaded:
-            if self.traj_thread is not None:
-                self.traj_thread_shutdown_flag.set()
-                self.traj_thread.join()
-            self.traj_thread = threading.Thread(target=self._push_trajectory_thread)
-            self.traj_thread_shutdown_flag.clear()
-            self.traj_thread.start()
+        self.status['trajectory_active'] = True
+        TrajectoryManager._start_trajectory_thread(self)
 
     def push_trajectory(self):
         """Commands goals to the dynamixel hardware.
@@ -264,9 +314,14 @@ class DynamixelTrajectoryManager:
         responsible for calling this method a regular frequency.
         As low as 60hz is acceptable for velocity control.
         As low as 100hz is acceptable for position control.
+
+        Returns
+        -------
+        bool
+            True if trajectory must continue to be pushed, False otherwise
         """
         if self.traj_start_time is None:
-            return
+            return False
 
         self.traj_curr_time = time.time()
         self.traj_curr_goal = self.trajectory.evaluate_at(t_s=self.traj_curr_time - self.traj_start_time)
@@ -283,41 +338,26 @@ class DynamixelTrajectoryManager:
                 self.enable_pos()
                 self.enable_torque()
             self.move_to(self.traj_curr_goal.position)
-            self.status['trajectory_active'] = 0
-            if self.traj_threaded:
-                self.traj_thread_shutdown_flag.set()
+            self.status['trajectory_active'] = False
+            return False
+
+        return True
 
     def stop_trajectory(self):
+        """Stops a currently executing trajectory.
+
+        Restores the dynamixel hardware to position mode,
+        if necessary. Additionally, stops threaded execution,
+        if necessary.
+        """
         self.traj_start_time = None
         if not self.traj_pos_mode:
             self.disable_torque()
             self.motor.disable_watchdog()
             self.enable_pos()
             self.enable_torque()
-        self.status['trajectory_active'] = 0
-        if self.traj_threaded:
-            self.traj_thread_shutdown_flag.set()
-            self.traj_thread.join()
-
-    def duration_remaining(self):
-        if not self.trajectory.is_valid(ignore_joint_limits=True):
-            return
-        traj_duration = self.trajectory.get_waypoint(-1).time - self.trajectory.get_waypoint(0).time
-        if self.traj_start_time is None:
-            return traj_duration
-        if self.traj_curr_time is None:
-            self.traj_curr_time = time.time()
-        traj_elapased = self.traj_curr_time - self.traj_start_time
-        return max(0.0, traj_duration - traj_elapased)
-
-    def _push_trajectory_thread(self):
-        while not self.traj_thread_shutdown_flag.is_set():
-            ts = time.time()
-            self.push_trajectory()
-            te = time.time()
-            tsleep = max(0, (1 / self.traj_thread_freq) - (te - ts))
-            if not self.traj_thread_shutdown_flag.is_set():
-                time.sleep(tsleep)
+        self.status['trajectory_active'] = False
+        TrajectoryManager._stop_trajectory_thread(self)
 
 
 class StepperTrajectory(Trajectory):
@@ -431,24 +471,33 @@ class StepperTrajectory(Trajectory):
         return True
 
 
-class StepperTrajectoryManager:
+class StepperTrajectoryManager(TrajectoryManager):
 
     def __init__(self):
         """Trajectory tracking class for ``Stepper`` joints.
+
+        Manages execution of ``StepperTrajectory`` trajectories.
+        This class **must** be extended by a stepper joint class
+        because it utilizes the status and motor of the extending class.
+
+        Attributes
+        ----------
+        trajectory : StepperTrajectory
+            the trajectory that is tracked
+        traj_segment_idx : int
+            index of the currently active segment on the stepper hardware
+        traj_loaded : bool
+            whether a trajectory segment is currently loaded on the hardware
+        traj_curr_segment : list(float)
+            segment represented as list as [seg_duration, a0-a5 coefficients, seg_id]
         """
+        TrajectoryManager.__init__(self)
         self.trajectory = StepperTrajectory(self)
-        self.traj_thread_freq = 100 # hz
-        self.traj_thread_shutdown_flag = threading.Event()
-        self.traj_thread = None
-        self.traj_threaded = False
         self.traj_segment_idx = 0
         self.traj_loaded = False
         self.traj_curr_segment = None
-        self.traj_start_time = None
-        self.traj_curr_time = None
 
     def _setup_new_trajectory(self):
-        self.trajectory.clear_waypoints()
         self.traj_segment_idx = 0
         self.traj_loaded = False
         self.traj_curr_segment = None
@@ -467,7 +516,6 @@ class StepperTrajectoryManager:
         """
         self.traj_threaded = threaded
         if not self.trajectory.is_valid(ignore_joint_limits=True):
-            print('StepperTrajectory not valid')
             return
         if req_calibration and not self.motor.status['pos_calibrated']:
             print 'Arm not homed'
@@ -485,14 +533,7 @@ class StepperTrajectoryManager:
         self.motor.start_waypoint_trajectory()
         self.traj_start_time = time.time()
         self.traj_curr_time = self.traj_start_time
-
-        if self.traj_threaded:
-            if self.traj_thread is not None:
-                self.traj_thread_shutdown_flag.set()
-                self.traj_thread.join()
-            self.traj_thread = threading.Thread(target=self._push_trajectory_thread)
-            self.traj_thread_shutdown_flag.clear()
-            self.traj_thread.start()
+        TrajectoryManager._start_trajectory_thread(self)
 
     def push_trajectory(self):
         """Commands goals to Hello Robot stepper hardware.
@@ -500,34 +541,35 @@ class StepperTrajectoryManager:
         If not using threaded mode in ``start_trajectory``, the user is
         responsible for calling this method a regular frequency.
         As low as 25hz is acceptable.
+
+        Returns
+        -------
+        bool
+            True if trajectory must continue to be pushed, False otherwise
         """
         if self.traj_start_time is None:
-            return
+            return False
 
         self.traj_curr_time = time.time()
         self.motor.push_waypoint_trajectory()
         self.pull_status()
         if not self.status['motor']['trajectory_active']:
-            self.traj_thread_shutdown_flag.set()
+            return False
+
+        return True
 
     def stop_trajectory(self):
+        """Stop a currently executing trajectory.
+
+        Restores the stepper hardware to position mode and
+        resets trajectory tracking. Additionally, stops
+        threaded execution if necessary.
+        """
+        self.traj_start_time = None
         self.motor.enable_pos_traj()
         self.motor.push_command()
         self._setup_new_trajectory()
-        if self.traj_threaded:
-            self.traj_thread_shutdown_flag.set()
-            self.traj_thread.join()
-
-    def duration_remaining(self):
-        if not self.trajectory.is_valid(ignore_joint_limits=True):
-            return
-        traj_duration = self.trajectory.get_waypoint(-1).time - self.trajectory.get_waypoint(0).time
-        if self.traj_start_time is None:
-            return traj_duration
-        if self.traj_curr_time is None:
-            self.traj_curr_time = time.time()
-        traj_elapased = self.traj_curr_time - self.traj_start_time
-        return max(0.0, traj_duration - traj_elapased)
+        TrajectoryManager._stop_trajectory_thread(self)
 
     def get_first_segment(self):
         if not self.trajectory.is_valid(ignore_joint_limits=True):
@@ -555,8 +597,18 @@ class StepperTrajectoryManager:
         return self.traj_curr_segment
 
     def get_next_segment(self, active_id):
+        """Returns next segment for hardware to execute.
+
+        The active id is the ID of the currently active trajectory segment as reported by the uC.
+        Ids go from 2 to 255 and loop around. Id of 0 marks that the uC is in Idle state. Id of 1
+        marks that a trajectory is loaded but not executing. Id of 2 marks that the first segment
+        has begun executing. The segment that is returned is the subsequent segment after the active
+        segment. A segment is represented by [seg_duration, six coefficients a0 through a5, seg_id].
+        All future segments may be modified until the hardware latches it into the active segment.
+        """
         if active_id == 0 and self.traj_loaded:
             self._setup_new_trajectory()
+            self.traj_start_time = None
             return
         if not self.trajectory.is_valid(ignore_joint_limits=True):
             return
@@ -587,15 +639,6 @@ class StepperTrajectoryManager:
         else:
             self.traj_curr_segment = [0] * 8
         return self.traj_curr_segment
-
-    def _push_trajectory_thread(self):
-        while not self.traj_thread_shutdown_flag.is_set():
-            ts = time.time()
-            self.push_trajectory()
-            te = time.time()
-            tsleep = max(0, (1 / self.traj_thread_freq) - (te - ts))
-            if not self.traj_thread_shutdown_flag.is_set():
-                time.sleep(tsleep)
 
 
 class WaypointTrajectoryManager:

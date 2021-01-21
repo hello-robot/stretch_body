@@ -5,7 +5,7 @@ from stretch_body.device import Device
 import time
 from stretch_body.hello_utils import *
 import termios
-from stretch_body.waypoint_trajectory_manager import DynamixelTrajectoryManager
+from stretch_body.trajectory_managers import DynamixelTrajectoryManager
 
 class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
     """
@@ -19,7 +19,7 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
         self.params=self.robot_params[self.name]
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                     'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'trajectory_active':0}
+                     'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'trajectory_active':False}
         #Share bus resource amongst many XL430s
         if chain is None:
             self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None)

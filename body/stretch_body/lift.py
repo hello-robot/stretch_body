@@ -1,6 +1,6 @@
 from stretch_body.stepper import *
 from stretch_body.device import Device
-from stretch_body.waypoint_trajectory_manager import StepperTrajectoryManager
+from stretch_body.trajectory_managers import StepperTrajectoryManager
 import time
 
 class Lift(Device, StepperTrajectoryManager):

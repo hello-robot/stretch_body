@@ -3,7 +3,7 @@ from stretch_body.stepper import *
 import time
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
-from stretch_body.waypoint_trajectory_manager import StepperTrajectoryManager
+from stretch_body.trajectory_managers import StepperTrajectoryManager
 
 class Arm(Device, StepperTrajectoryManager):
     """
