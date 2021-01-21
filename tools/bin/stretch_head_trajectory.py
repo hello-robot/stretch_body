@@ -129,6 +129,11 @@ else:
             if x[0]=='m':
                 pass
             if x[0]=='a':
+                h.get_joint('head_tilt').trajectory.delete_waypoint(0)
+                h.get_joint('head_pan').trajectory.delete_waypoint(0)
+                h.pull_status()
+                h.get_joint('head_tilt').trajectory.add_waypoint(t_s=0.0, x_r=h.status['head_tilt']['pos'], v_r=h.status['head_tilt']['vel'])
+                h.get_joint('head_pan').trajectory.add_waypoint(t_s=0.0, x_r=h.status['head_pan']['pos'], v_r=h.status['head_pan']['vel'])
                 print("\nExecuting trajectory:\nHead_Tilt: {0}\nHead_Pan: {1}\n".format(
                     h.get_joint('head_tilt').trajectory, h.get_joint('head_pan').trajectory))
                 h.get_joint('head_tilt').start_trajectory(position_ctrl=not args.velocity_ctrl, watchdog_timeout=0)

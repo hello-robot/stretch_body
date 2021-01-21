@@ -87,6 +87,9 @@ else:
             if x[0]=='m':
                 pass
             if x[0]=='a':
+                w.trajectory.delete_waypoint(0)
+                w.pull_status()
+                w.trajectory.add_waypoint(t_s=0.0, x_r=w.status['pos'], v_r=w.status['vel'])
                 print("\nExecuting trajectory: {0}\n".format(w.trajectory))
                 w.start_trajectory(position_ctrl=not args.velocity_ctrl)
             if x[0]=='s':
