@@ -2,16 +2,18 @@ from math import *
 from stretch_body.stepper import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
+from stretch_body.trajectory_managers import MobileBaseTrajectoryManager
 import logging
 import numpy
 import time
 
-class Base(Device):
+class Base(Device, MobileBaseTrajectoryManager):
     """
     API to the Stretch RE1 Mobile Base
     """
     def __init__(self):
         Device.__init__(self)
+        MobileBaseTrajectoryManager.__init__(self)
         self.name='base'
         self.logger = logging.getLogger('robot.base')
         self.params = self.robot_params[self.name]
@@ -60,106 +62,17 @@ class Base(Device):
 
     # ###################################################
     def enable_freewheel_mode(self):
-        """
-        Force motors into freewheel
+        """Force motors into freewheel
         """
         self.left_wheel.enable_freewheel()
         self.right_wheel.enable_freewheel()
 
     def enable_pos_incr_mode(self):
-        """
-                Force motors into incremental position mode
+        """Force motors into incremental position mode
         """
         self.left_wheel.enable_pos_traj_incr()
         self.right_wheel.enable_pos_traj_incr()
 
-
-    # ############### Waypoint Trajectories #############################################
-    def enable_waypoint_trajectory_mode(self, v_m=None, a_m=None,translate_mode=True):
-        #By default constrain trajectory to factory maximum accel/vel settings
-        #The trajectory tracking will not be accurate if the commanded trajectory generates
-        #velocities and accelerations beyond these settings
-
-        if translate_mode:
-            if v_m is not None:
-                v_r = self.translate_to_motor_rad(min(abs(v_m), self.params['motion']['trajectory_translate_max']['vel_m']))
-            else:
-                v_r = self.translate_to_motor_rad(self.params['motion']['trajectory_translate_max']['vel_m'])
-
-            if a_m is not None:
-                a_r = self.translate_to_motor_rad(min(abs(a_m), self.params['motion']['trajectory_translate_max']['accel_m']))
-            else:
-                a_r = self.translate_to_motor_rad(self.params['motion']['trajectory_translate_max']['accel_m'])
-        else:
-            if v_m is not None:
-                v_r = self.rotate_to_motor_rad(min(abs(v_m), self.params['motion']['trajectory_rotate_max']['vel_r']))
-            else:
-                v_r = self.rotate_to_motor_rad(self.params['motion']['trajectory_rotate_max']['vel_r'])
-
-            if a_m is not None:
-                a_r = self.rotate_to_motor_rad(min(abs(a_m), self.params['motion']['trajectory_rotate_max']['accel_r']))
-            else:
-                a_r = self.rotate_to_motor_rad(self.params['motion']['trajectory_rotate_max']['accel_r'])
-
-        self.left_wheel.enable_pos_traj_waypoint()
-        self.left_wheel.set_command(v_des=v_r, a_des=a_r)
-        self.right_wheel.enable_pos_traj_waypoint()
-        self.right_wheel.set_command(v_des=v_r, a_des=a_r)
-        #Latch the current motor position when this mode is enabled
-        #Later subtract off these positions so that waypoints are relative to the start position
-        self.traj_start_rw=self.right_wheel.status['pos']
-        self.traj_start_lw = self.left_wheel.status['pos']
-
-
-    def add_waypoints_to_trajectory(self,waypoints,translate_mode=True):
-        #A waypoint has form [time (s), position (m), velocity (m)]
-        #Trajectories can be concatenated by calling this multiple times
-        #Trajectories can be overwritten (if they start after any currently executing waypoint target)
-        if translate_mode:
-            lw,rw=self.translate_waypoints_to_motor_waypoints(waypoints)
-        else:
-            lw,rw=self.rotate_waypoints_to_motor_waypoints(waypoints)
-        self.left_wheel.trajectory_manager.add_waypoints_to_trajectory(lw)
-        self.right_wheel.trajectory_manager.add_waypoints_to_trajectory(rw)
-
-    # ####### Trajectory Frame Conversions ########3
-    def motor_waypoints_to_translate_waypoints(self,waypoints, is_right_wheel=True):
-        #Assume each wheel is equal in magnitude and direction in translation
-        ww=[]
-        for w in waypoints:
-            if is_right_wheel:
-                ww.append([w[0], self.motor_rad_to_translate(w[1]-self.traj_start_rw),self.motor_rad_to_translate(w[2])])
-            else:
-                ww.append([w[0], self.motor_rad_to_translate(w[1] - self.traj_start_lw), self.motor_rad_to_translate(w[2])])
-        return ww
-
-    def translate_waypoints_to_motor_waypoints(self,waypoints):
-        # Assume each wheel is equal in magnitude and direction in translation
-        lw = []
-        rw = []
-        for w in waypoints:
-            lw.append([w[0], self.translate_to_motor_rad(w[1])+self.traj_start_lw, self.translate_to_motor_rad(w[2])])
-            rw.append([w[0], self.translate_to_motor_rad(w[1])+self.traj_start_rw, self.translate_to_motor_rad(w[2])])
-        return lw,rw
-
-    def motor_waypoints_to_rotate_waypoints(self, waypoints, is_right_wheel=True):
-        # Assume each wheel is equal in magnitude and opposite in direction in rotation
-        ww = []
-        for w in waypoints:
-            if is_right_wheel:
-                ww.append([w[0], self.motor_rad_to_rotate(w[1]-self.traj_start_rw), self.motor_rad_to_rotate(w[2])])
-            else:
-                ww.append([w[0], -1*self.motor_rad_to_rotate(w[1] - self.traj_start_lw), -1*self.motor_rad_to_rotate(w[2])])
-        return ww
-
-    def rotate_waypoints_to_motor_waypoints(self,waypoints):
-        # Assume each wheel is equal in magnitude and opposite in direction in rotation
-        lw = []
-        rw = []
-        for w in waypoints:
-            rw.append([w[0], self.rotate_to_motor_rad(w[1]) + self.traj_start_rw, self.rotate_to_motor_rad(w[2])])
-            lw.append([w[0], self.traj_start_lw-self.rotate_to_motor_rad(w[1]), -1*self.rotate_to_motor_rad(w[2])])
-        return lw,rw
     # ###################################################
 
     def translate_by(self, x_m, v_m=None, a_m=None, stiffness=None, contact_thresh_N=None):

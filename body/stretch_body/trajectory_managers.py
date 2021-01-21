@@ -35,6 +35,7 @@ class Segment:
         return "Segment(duration={0}, a0={1}, a1={2}, a2={3}, a3={4}, a4={5}, a5={6})".format(
             self.duration, self.a0, self.a1, self.a2, self.a3, self.a4, self.a5)
 
+
 class Trajectory:
 
     def __init__(self):
@@ -249,6 +250,203 @@ class RevoluteTrajectory(Trajectory):
         for i in range(len(self.waypoints)):
             if t_s == self.get_waypoint(i).time:
                 return
+
+        if len(self.waypoints) == 0:
+            self.waypoints.append(Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+
+        # Prepend or append for early or late t_s
+        if t_s < self.get_waypoint(0).time:
+            self.waypoints.insert(0, Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+        if t_s > self.get_waypoint(-1).time:
+            self.waypoints.append(Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+            return
+
+        # Insert before first later waypoint
+        for i in range(len(self.waypoints)):
+            if t_s <= self.get_waypoint(i).time:
+                self.waypoints.insert(i, Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
+                return
+
+
+class BasicDiffDriveTrajectory(Trajectory):
+
+    def __init__(self):
+        """Differential drive trajectory representing class.
+
+        Defines a trajectory that allows either translation
+        or rotation waypoints but not both simultaneously.
+
+        Attributes
+        ----------
+        trajectory_type : str or none
+            is one of ['translation', 'rotation', None]
+        """
+        Trajectory.__init__(self)
+        self.trajectory_type = None
+
+    def __repr__(self):
+        return "{0} waypoints: {1}".format(self.trajectory_type, str(self.waypoints))
+
+    def get_wheel_segments(self, index, translate_to_motor_rad=None, rotate_to_motor_rad=None, rwpos=0.0, lwpos=0.0):
+        """Retrieves left and right wheel segments in the trajectory by index.
+
+        Num of segments is one less than number of waypoints in
+        the trajectory. Index bounds are [-1 * num_seg, num_seg).
+
+        Parameters
+        ----------
+        index : int
+            index of segment to return
+        translate_to_motor_rad : func or none
+            used to convert translation waypoints into motor space if not None
+        rotate_to_motor_rad : func or none
+            used to convert rotation waypoints into motor space if not None
+        rwpos : float
+            starting position of right wheel in motor space
+        lwpos : float
+            starting position of left wheel in motor space
+
+        Returns
+        -------
+        Segment
+            coefficients + duration encapsulated in ``Segment`` class
+        """
+        if index >= -1 * len(self.waypoints) + 1 and index < len(self.waypoints) - 1:
+            index = index - 1 if index < 0 else index
+            waypoint0 = self.get_waypoint(index)
+            waypoint1 = self.get_waypoint(index + 1)
+            if waypoint0.acceleration is not None and waypoint1.acceleration is not None:
+                if self.trajectory_type == "translation" and translate_to_motor_rad is not None:
+                    i0_lwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + lwpos, translate_to_motor_rad(waypoint0.velocity), translate_to_motor_rad(waypoint0.acceleration)]
+                    i1_lwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + lwpos, translate_to_motor_rad(waypoint1.velocity), translate_to_motor_rad(waypoint1.acceleration)]
+                    i0_rwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + rwpos, translate_to_motor_rad(waypoint0.velocity), translate_to_motor_rad(waypoint0.acceleration)]
+                    i1_rwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + rwpos, translate_to_motor_rad(waypoint1.velocity), translate_to_motor_rad(waypoint1.acceleration)]
+                elif self.trajectory_type == "rotation" and rotate_to_motor_rad is not None:
+                    i0_lwaypoint = [waypoint0.time, lwpos - rotate_to_motor_rad(waypoint0.position), -1 * rotate_to_motor_rad(waypoint0.velocity), -1 * rotate_to_motor_rad(waypoint0.acceleration)]
+                    i1_lwaypoint = [waypoint1.time, lwpos - rotate_to_motor_rad(waypoint1.position), -1 * rotate_to_motor_rad(waypoint1.velocity), -1 * rotate_to_motor_rad(waypoint1.acceleration)]
+                    i0_rwaypoint = [waypoint0.time, rotate_to_motor_rad(waypoint0.position) + rwpos, rotate_to_motor_rad(waypoint0.velocity), rotate_to_motor_rad(waypoint0.acceleration)]
+                    i1_rwaypoint = [waypoint1.time, rotate_to_motor_rad(waypoint1.position) + rwpos, rotate_to_motor_rad(waypoint1.velocity), rotate_to_motor_rad(waypoint1.acceleration)]
+                else:
+                    return None
+                lsegment_arr = generate_quintic_spline_segment(i0_lwaypoint, i1_lwaypoint)
+                rsegment_arr = generate_quintic_spline_segment(i0_rwaypoint, i1_rwaypoint)
+            elif waypoint0.velocity is not None and waypoint1.velocity is not None:
+                if self.trajectory_type == "translation" and translate_to_motor_rad is not None:
+                    i0_lwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + lwpos, translate_to_motor_rad(waypoint0.velocity)]
+                    i1_lwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + lwpos, translate_to_motor_rad(waypoint1.velocity)]
+                    i0_rwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + rwpos, translate_to_motor_rad(waypoint0.velocity)]
+                    i1_rwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + rwpos, translate_to_motor_rad(waypoint1.velocity)]
+                elif self.trajectory_type == "rotation" and rotate_to_motor_rad is not None:
+                    i0_lwaypoint = [waypoint0.time, lwpos - rotate_to_motor_rad(waypoint0.position), -1 * rotate_to_motor_rad(waypoint0.velocity)]
+                    i1_lwaypoint = [waypoint1.time, lwpos - rotate_to_motor_rad(waypoint1.position), -1 * rotate_to_motor_rad(waypoint1.velocity)]
+                    i0_rwaypoint = [waypoint0.time, rotate_to_motor_rad(waypoint0.position) + rwpos, rotate_to_motor_rad(waypoint0.velocity)]
+                    i1_rwaypoint = [waypoint1.time, rotate_to_motor_rad(waypoint1.position) + rwpos, rotate_to_motor_rad(waypoint1.velocity)]
+                else:
+                    return None
+                lsegment_arr = generate_cubic_spline_segment(i0_lwaypoint, i1_lwaypoint)
+                rsegment_arr = generate_cubic_spline_segment(i0_rwaypoint, i1_rwaypoint)
+            else:
+                if self.trajectory_type == "translation" and translate_to_motor_rad is not None:
+                    i0_lwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + lwpos]
+                    i1_lwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + lwpos]
+                    i0_rwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + rwpos]
+                    i1_rwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + rwpos]
+                elif self.trajectory_type == "rotation" and rotate_to_motor_rad is not None:
+                    i0_lwaypoint = [waypoint0.time, lwpos - rotate_to_motor_rad(waypoint0.position)]
+                    i1_lwaypoint = [waypoint1.time, lwpos - rotate_to_motor_rad(waypoint1.position)]
+                    i0_rwaypoint = [waypoint0.time, rotate_to_motor_rad(waypoint0.position) + rwpos]
+                    i1_rwaypoint = [waypoint1.time, rotate_to_motor_rad(waypoint1.position) + rwpos]
+                else:
+                    return None
+                lsegment_arr = generate_linear_segment(i0_lwaypoint, i1_lwaypoint)
+                rsegment_arr = generate_linear_segment(i0_rwaypoint, i1_rwaypoint)
+            return (Segment(*lsegment_arr), Segment(*rsegment_arr))
+
+        return (Segment(), Segment())
+
+    def add_translate_waypoint(self, t_s, x_m, v_m=None, a_m=None):
+        """Add a translation waypoint to the base trajectory.
+
+        This method will sort through the existing waypoints
+        in the translation trajectory to insert the waypoint
+        such that waypoint time increases with index in the
+        array. This method does nothing if the rotation
+        trajectory is already active.
+
+        Parameters
+        ----------
+        t_s : float
+            time in seconds
+        x_m : float
+            position in meters
+        v_m : float
+            velocity in meters per second
+        a_m : float
+            acceleration in meters per second squared
+        """
+        if t_s is None or x_m is None:
+            return
+        if v_m is None and a_m is not None:
+            return
+        if self.trajectory_type != "translation" and len(self.waypoints) != 0:
+            return
+        for i in range(len(self.waypoints)):
+            if t_s == self.get_waypoint(i).time:
+                return
+
+        self.trajectory_type = "translation"
+
+        if len(self.waypoints) == 0:
+            self.waypoints.append(Waypoint(time=t_s, position=x_m, velocity=v_m, acceleration=a_m))
+            return
+
+        # Prepend or append for early or late t_s
+        if t_s < self.get_waypoint(0).time:
+            self.waypoints.insert(0, Waypoint(time=t_s, position=x_m, velocity=v_m, acceleration=a_m))
+            return
+        if t_s > self.get_waypoint(-1).time:
+            self.waypoints.append(Waypoint(time=t_s, position=x_m, velocity=v_m, acceleration=a_m))
+            return
+
+        # Insert before first later waypoint
+        for i in range(len(self.waypoints)):
+            if t_s <= self.get_waypoint(i).time:
+                self.waypoints.insert(i, Waypoint(time=t_s, position=x_m, velocity=v_m, acceleration=a_m))
+                return
+
+    def add_rotate_waypoint(self, t_s, x_r, v_r=None, a_r=None):
+        """Add a rotation waypoint to the base trajectory.
+
+        This method will sort through the existing waypoints
+        in the rotation trajectory to insert the waypoint
+        such that waypoint time increases with index in the
+        array. This method does nothing if the translation
+        trajectory is already active.
+
+        Parameters
+        ----------
+        t_s : float
+            time in seconds
+        x_r : float
+            position in radians
+        v_r : float
+            velocity in radians per second
+        a_r : float
+            acceleration in radians per second squared
+        """
+        if t_s is None or x_r is None:
+            return
+        if v_r is None and a_r is not None:
+            return
+        if self.trajectory_type != "rotation" and len(self.waypoints) != 0:
+            return
+        for i in range(len(self.waypoints)):
+            if t_s == self.get_waypoint(i).time:
+                return
+
+        self.trajectory_type = "rotation"
 
         if len(self.waypoints) == 0:
             self.waypoints.append(Waypoint(time=t_s, position=x_r, velocity=v_r, acceleration=a_r))
@@ -530,15 +728,114 @@ class StepperTrajectoryManager(TrajectoryManager):
         if self.motor.traj_curr_seg_id == 0 or not self.status['motor']['trajectory_active']:
             self.traj_start_time = None
             return False
-        if self.motor.traj_curr_seg_id == 1:
-            s = self.trajectory.get_segment(0, to_motor_rad=self.translate_to_motor_rad)
-            arr = [s.duration, s.a0, s.a1, s.a2, s.a3, s.a4, s.a5, 2] if s is not None else None
-            self.motor.push_waypoint_trajectory(arr)
-        if self.motor.traj_curr_seg_id > 1:
-            s = self.trajectory.get_segment(self.motor.traj_curr_seg_id - 1, to_motor_rad=self.translate_to_motor_rad)
-            arr = [s.duration, s.a0, s.a1, s.a2, s.a3, s.a4, s.a5, self.motor.traj_curr_seg_id + 1] if s is not None else None
-            self.motor.push_waypoint_trajectory(arr)
 
+        s = self.trajectory.get_segment(self.motor.traj_curr_seg_id - 1, to_motor_rad=self.translate_to_motor_rad)
+        arr = [s.duration, s.a0, s.a1, s.a2, s.a3, s.a4, s.a5, self.motor.traj_curr_seg_id + 1]
+        self.motor.push_waypoint_trajectory(arr)
+        return True
+
+    def stop_trajectory(self):
+        """Stop a currently executing trajectory.
+
+        Restores the stepper hardware to position mode and
+        resets trajectory tracking. Additionally, stops
+        threaded execution if necessary.
+        """
+        self.motor.push_waypoint_trajectory([0, 0, 0, 0, 0, 0, 0, self.motor.traj_curr_seg_id + 1])
+        self.traj_start_time = None
+        self.motor.enable_pos_traj()
+        self.motor.push_command()
+        TrajectoryManager._stop_trajectory_thread(self)
+
+
+class MobileBaseTrajectoryManager(TrajectoryManager):
+
+    def __init__(self):
+        """Trajectory tracking class for ``Base`` joint.
+
+        Manages execution of ``StepperTrajectory`` trajectories.
+        This class **must** be extended by a stepper joint class
+        because it utilizes the status and motor of the extending class.
+
+        Attributes
+        ----------
+        trajectory : BasicDiffDriveTrajectory
+            the trajectory that is tracked
+        """
+        TrajectoryManager.__init__(self)
+        self.trajectory = BasicDiffDriveTrajectory()
+
+    def start_trajectory(self, threaded=True):
+        """Starts execution of the mobile base trajectory.
+
+        Parameters
+        ----------
+        threaded : bool
+            True launches a separate thread for ``push_trajectory``, False puts burden on the user
+        """
+        self.traj_threaded = threaded
+        if len(self.trajectory) < 2:
+            return
+        if self.trajectory.trajectory_type == "translation":
+            v_r = self.translate_to_motor_rad(self.params['motion']['trajectory_translate_max']['vel_m'])
+            a_r = self.translate_to_motor_rad(self.params['motion']['trajectory_translate_max']['accel_m'])
+        elif self.trajectory.trajectory_type == "rotation":
+            v_r = self.translate_to_motor_rad(self.params['motion']['trajectory_rotate_max']['vel_r'])
+            a_r = self.translate_to_motor_rad(self.params['motion']['trajectory_rotate_max']['accel_r'])
+        else:
+            return
+
+        self.left_wheel.enable_pos_traj_waypoint()
+        self.left_wheel.set_command(v_des=v_r, a_des=a_r)
+        self.right_wheel.enable_pos_traj_waypoint()
+        self.right_wheel.set_command(v_des=v_r, a_des=a_r)
+        self.left_wheel.pull_status()
+        self.right_wheel.pull_status()
+        self.traj_start_rwpos = self.right_wheel.status['pos']
+        self.traj_start_lwpos = self.left_wheel.status['pos']
+        self.left_wheel.push_command()
+        self.right_wheel.push_command()
+        ls, rs = self.trajectory.get_wheel_segments(0, translate_to_motor_rad=self.translate_to_motor_rad,
+                                                       rotate_to_motor_rad=self.rotate_to_motor_rad,
+                                                       rwpos=self.traj_start_rwpos,
+                                                       lwpos=self.traj_start_lwpos)
+        self.left_wheel.start_waypoint_trajectory([ls.duration, ls.a0, ls.a1, ls.a2, ls.a3, ls.a4, ls.a5, 2])
+        self.right_wheel.start_waypoint_trajectory([rs.duration, rs.a0, rs.a1, rs.a2, rs.a3, rs.a4, rs.a5, 2])
+        self.traj_start_time = time.time()
+        self.traj_curr_time = self.traj_start_time
+        TrajectoryManager._start_trajectory_thread(self)
+
+    def push_trajectory(self):
+        """Commands goals to Hello Robot mobile base.
+
+        If not using threaded mode in ``start_trajectory``, the user is
+        responsible for calling this method a regular frequency.
+        As low as 25hz is acceptable.
+
+        Returns
+        -------
+        bool
+            True if trajectory must continue to be pushed, False otherwise
+        """
+        if self.traj_start_time is None:
+            return False
+
+        self.pull_status()
+        self.traj_curr_time = time.time()
+        if self.left_wheel.traj_curr_seg_id == 0 or self.right_wheel.traj_curr_seg_id == 0 or \
+           not self.left_wheel.status['trajectory_active'] or not self.right_wheel.status['trajectory_active']:
+           self.traj_start_time = None
+           return False
+
+        ls, rs = self.trajectory.get_wheel_segments(max(self.left_wheel.traj_curr_seg_id - 1, self.right_wheel.traj_curr_seg_id - 1),
+                                                    translate_to_motor_rad=self.translate_to_motor_rad,
+                                                    rotate_to_motor_rad=self.rotate_to_motor_rad,
+                                                    rwpos=self.traj_start_rwpos,
+                                                    lwpos=self.traj_start_lwpos)
+        larr = [ls.duration, ls.a0, ls.a1, ls.a2, ls.a3, ls.a4, ls.a5, self.left_wheel.traj_curr_seg_id + 1]
+        rarr = [rs.duration, rs.a0, rs.a1, rs.a2, rs.a3, rs.a4, rs.a5, self.right_wheel.traj_curr_seg_id + 1]
+        self.left_wheel.push_waypoint_trajectory(larr)
+        self.right_wheel.push_waypoint_trajectory(rarr)
         return True
 
     def stop_trajectory(self):
@@ -549,7 +846,9 @@ class StepperTrajectoryManager(TrajectoryManager):
         threaded execution if necessary.
         """
         self.traj_start_time = None
-        self.motor.enable_pos_traj()
-        self.motor.push_command()
+        self.left_wheel.enable_pos_traj()
+        self.right_wheel.enable_pos_traj()
+        self.left_wheel.push_command()
+        self.right_wheel.push_command()
+        self._setup_new_trajectory()
         TrajectoryManager._stop_trajectory_thread(self)
-

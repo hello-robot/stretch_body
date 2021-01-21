@@ -482,11 +482,9 @@ class Robot(Device):
         if self.lift.motor.status['trajectory_active']:
             self.lift.push_trajectory()
 
-        # if self.base.left_wheel.trajectory_manager.trajectory_loaded:
-        #     self.base.left_wheel.push_waypoint_trajectory()
-
-        # if self.base.right_wheel.trajectory_manager.trajectory_loaded:
-        #     self.base.right_wheel.push_waypoint_trajectory()
+        if self.base.left_wheel.status['trajectory_active'] or \
+           self.base.right_wheel.status['trajectory_active']:
+            self.base.push_trajectory()
 
     def _push_dynamixel_waypoint_trajectory(self):
         if self.head.get_joint('head_pan').status['trajectory_active']:
@@ -506,86 +504,12 @@ class Robot(Device):
                 or self.head.motors['head_pan'].status['trajectory_active'] or self.head.motors['head_tilt'].status['trajectory_active'] \
                 or self.end_of_arm.motors['wrist_yaw'].status['trajectory_active']
 
-    def update_trajectory(self, lift_waypoints=None, arm_waypoints=None,
-                      head_pan_waypoints=None, head_tilt_waypoints=None,
-                      base_translate_waypoints=None, base_rotate_waypoints=None,wrist_yaw_waypoints=None):
+    def start_trajectory(self):
+        """Coordinated multi-joint trajectory following.
         """
-        Append waypoints to an existing trajectory
-        The existing trajectory may already be executing
-        Will overwrite the existing trajectory if the new start time is before the finish of the existing
-        Return true if success, false if malformed
-        """
-        if base_rotate_waypoints is not None and base_translate_waypoints is not None: #mutually exclusive
-            return False
-
-        #TODO: Prevent adding rotate/translate waypoints to same trajectory sequence, Or handle intelligently
-        if base_translate_waypoints is not None:
-            if len(base_translate_waypoints) < 2  and not (len(base_translate_waypoints[0]) == 3 or len(base_translate_waypoints[0]) == 4):
-                return False
-            self.base.add_waypoints_to_trajectory(waypoints=base_translate_waypoints, translate_mode=True)
-
-        if base_rotate_waypoints is not None:
-            if len(base_rotate_waypoints) < 2 and not (len(base_rotate_waypoints[0]) == 3 or len(base_rotate_waypoints[0]) == 4):
-                return False
-            self.base.add_waypoints_to_trajectory(waypoints=base_rotate_waypoints, translate_mode=False)
-
-        return True
-
-    def start_trajectory(self, base_translate_waypoints=None, base_rotate_waypoints=None):
-        """
-        Coordinated multi-joint trajectory following. This requires Sync Mode to be
-        enabled (via YAML or API).
-
-        Lift, Arm, and Base: Quintic  (or cubic, depending on waypoint size) spline trajectories are
-        built for each joint waypoint provided.
-
-        Head, End of Arm: Piecewise linear trajectories are built for each joint waypoint provided.
-
-        Waypoints for quintic splines are defined as Nx4 list of floats, [N x [time, pos, vel, accel]].
-        Waypoints for cubic splines   are defined as Nx3 list of floats, [N x [time, pos, vel]].
-        Waypoints for piecewise linear are defined as Nx4 list of floats, [N x [time, pos]].
-
-        It is up to the calling process to ensure the provided trajectory respects joint position, velocity
-        and acceleration limits. The underlying motor controller will enforce these. Trajectories that exceed
-        these limits will not be tracked accurately.
-
-        Base trajectories are either pure rotation or pure translation (flag is_base_translation)
-
-
-        Valid end effector joints parsed at runtime based on yaml configuration.
-
-        This method initializes the trajectory, triggers its synchronous execution, and then returns.
-
-        Returns
-        -------
-        bool
-            False if provided malformed waypoints, else True
-        """
-
-        #Handle the base first so can latch in encoder start values prior to mapping to motor frame
-        if base_rotate_waypoints is not None and base_translate_waypoints is not None: #mutually exclusive
-            return False
-        if base_translate_waypoints is not None:
-            if len(base_translate_waypoints) < 2  and not (len(base_translate_waypoints[0]) == 3 or len(base_translate_waypoints[0]) == 4):
-                return False
-        if base_rotate_waypoints is not None:
-            if len(base_rotate_waypoints) < 2 and not (len(base_rotate_waypoints[0]) == 3 or len(base_rotate_waypoints[0]) == 4):
-                return False
-        if base_rotate_waypoints is not None or base_translate_waypoints is not None:
-            self.base.enable_waypoint_trajectory_mode(translate_mode=(base_translate_waypoints is not None))
-            self.base.push_command()
-
-        #Now do initial add of waypoints
-        if not self.update_trajectory(base_translate_waypoints, base_rotate_waypoints):
-            return False
-
-        #Next configure controllers to start
-        if base_translate_waypoints is not None or base_rotate_waypoints is not None:
-            self.base.left_wheel.start_waypoint_trajectory()
-            self.base.right_wheel.start_waypoint_trajectory()
-
         self.lift.start_trajectory(threaded=False)
         self.arm.start_trajectory(threaded=False)
+        self.base.start_trajectory(threaded=False)
 
         if self.params['sync_mode_enabled']:
             self.pimu.trigger_motor_sync() #Start motion of non-dynamixel joints
@@ -593,5 +517,3 @@ class Robot(Device):
         self.head.get_joint('head_pan').start_trajectory(position_ctrl=False, threaded=False, watchdog_timeout=0)
         self.head.get_joint('head_tilt').start_trajectory(position_ctrl=False, threaded=False, watchdog_timeout=0)
         self.end_of_arm.motors['wrist_yaw'].start_trajectory(position_ctrl=True, threaded=False)
-
-        return True
