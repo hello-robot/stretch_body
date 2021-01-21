@@ -476,10 +476,10 @@ class Robot(Device):
         self.update_status_history(non_dynamixel=True) #Updates timestamps
 
     def _push_non_dynamixel_waypoint_trajectory(self):
-        if self.arm.traj_loaded:
+        if self.arm.motor.status['trajectory_active']:
             self.arm.push_trajectory()
 
-        if self.lift.traj_loaded:
+        if self.lift.motor.status['trajectory_active']:
             self.lift.push_trajectory()
 
         # if self.base.left_wheel.trajectory_manager.trajectory_loaded:

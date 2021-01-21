@@ -12,7 +12,7 @@ class Lift(Device, StepperTrajectoryManager):
         StepperTrajectoryManager.__init__(self)
         self.name='lift'
         self.params=self.robot_params[self.name]
-        self.motor = Stepper('/dev/hello-motor-lift', self)
+        self.motor = Stepper('/dev/hello-motor-lift')
         self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
         # Default controller params
         self.stiffness = 1.0
