@@ -381,17 +381,17 @@ class Pimu(Device):
             sidx += 4
 
             self.status['at_cliff']=[]
-            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_0) is not 0)
-            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_1) is not 0)
-            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_2) is not 0)
-            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_3) is not 0)
-            self.status['runstop_event'] = (self.status['state'] & STATE_RUNSTOP_EVENT) is not 0
-            self.status['cliff_event'] = (self.status['state'] & STATE_CLIFF_EVENT) is not 0
-            self.status['fan_on'] = (self.status['state'] & STATE_FAN_ON) is not 0
-            self.status['buzzer_on'] = (self.status['state'] & STATE_BUZZER_ON) is not 0
-            self.status['low_voltage_alert'] = (self.status['state'] & STATE_LOW_VOLTAGE_ALERT) is not 0
-            self.status['high_current_alert'] = (self.status['state'] & STATE_HIGH_CURRENT_ALERT) is not 0
-            self.status['over_tilt_alert'] = (self.status['state'] & STATE_OVER_TILT_ALERT) is not 0
+            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_0)  != 0)
+            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_1)  != 0)
+            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_2)  != 0)
+            self.status['at_cliff'].append((self.status['state'] & STATE_AT_CLIFF_3)  != 0)
+            self.status['runstop_event'] = (self.status['state'] & STATE_RUNSTOP_EVENT)  != 0
+            self.status['cliff_event'] = (self.status['state'] & STATE_CLIFF_EVENT)  != 0
+            self.status['fan_on'] = (self.status['state'] & STATE_FAN_ON)  != 0
+            self.status['buzzer_on'] = (self.status['state'] & STATE_BUZZER_ON)  != 0
+            self.status['low_voltage_alert'] = (self.status['state'] & STATE_LOW_VOLTAGE_ALERT)  != 0
+            self.status['high_current_alert'] = (self.status['state'] & STATE_HIGH_CURRENT_ALERT)  != 0
+            self.status['over_tilt_alert'] = (self.status['state'] & STATE_OVER_TILT_ALERT)  != 0
             if self.protocol_id==0:
                 self.status['timestamp'] = SystemTimestamp().from_usecs(unpack_uint32_t(s[sidx:]))
                 sidx += 4
