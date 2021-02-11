@@ -194,8 +194,8 @@ class Robot(Device):
         ts=time.time()
         while not self.rt.first_status and not self.dt.first_status and time.time()-ts<3.0:
             time.sleep(0.1)
-        if not self.rt.first_status  or not self.dt.first_status :
-            self.logger.warning('Failed to startup up robot threads')
+        #if not self.rt.first_status  or not self.dt.first_status :
+        #    self.logger.warning('Failed to startup up robot threads')
 
     def stop(self):
         """
