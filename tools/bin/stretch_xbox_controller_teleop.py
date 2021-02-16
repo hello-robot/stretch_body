@@ -320,9 +320,9 @@ def main():
                         wrist_yaw_target=min(0,wrist_yaw_target+wrist_slew_down)
                 #Or slew up to max
                 if wrist_yaw_left:
-                    wrist_yaw_target=max(wrist_yaw_target+wrist_slew_up,wrist_rotate_rad)
+                    wrist_yaw_target=min(wrist_yaw_target+wrist_slew_up,wrist_rotate_rad)
                 if wrist_yaw_right:
-                    wrist_yaw_target =min(wrist_yaw_target-wrist_slew_up,-wrist_rotate_rad)
+                    wrist_yaw_target =max(wrist_yaw_target-wrist_slew_up,-wrist_rotate_rad)
                 robot.end_of_arm.move_by('wrist_yaw',wrist_yaw_target, wrist_vel, wrist_accel)
 
 
