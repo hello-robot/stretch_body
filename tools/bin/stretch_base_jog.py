@@ -53,24 +53,24 @@ def get_keystroke():
     return ch
 
 def menu():
-    print '--------------'
-    print 'm: menu'
-    print ''
-    print '1: rate slow'
-    print '2: rate default'
-    print '3: rate fast'
-    print '4: rate max'
-    print 'w: CW/CCW 90 deg'
-    print 'x: forward-> back 0.5m'
-    print 'y: spin at 22.5deg/s'
-    print ''
-    print 'f / b / l / r : small forward / back / left / right'
-    print 'F / B / L / R : large forward / back / left / right'
-    print 'o: freewheel'
-    print 'p: pretty print'
-    print 'q: quit'
-    print ''
-    print 'Input?'
+    print('--------------')
+    print('m: menu')
+    print('')
+    print('1: rate slow')
+    print('2: rate default')
+    print('3: rate fast')
+    print('4: rate max')
+    print('w: CW/CCW 90 deg')
+    print('x: forward-> back 0.5m')
+    print('y: spin at 22.5deg/s')
+    print('')
+    print('f / b / l / r : small forward / back / left / right')
+    print('F / B / L / R : large forward / back / left / right')
+    print('o: freewheel')
+    print('p: pretty print')
+    print('q: quit')
+    print('')
+    print('Input?')
 
 rate ='default'
 
@@ -93,7 +93,7 @@ try:
             if c == '4':
                 rate = 'max'
             if c =='x':
-                    print 'Enter pause before starting motion (s)[10]'
+                    print('Enter pause before starting motion (s)[10]')
                     try:
                         x=float(raw_input())
                     except ValueError:
@@ -108,7 +108,7 @@ try:
                     p.trigger_motor_sync()
                     time.sleep(4.0)
             if c =='w':
-                print 'Enter pause before starting motion (s)[10]'
+                print('Enter pause before starting motion (s)[10]')
                 try:
                     x = float(raw_input())
                 except ValueError:
@@ -123,7 +123,7 @@ try:
                 p.trigger_motor_sync()
                 time.sleep(4.0)
             if c =='y':
-                print 'Enter pause before starting motion (s)[10]'
+                print('Enter pause before starting motion (s)[10]')
                 try:
                     x = float(raw_input())
                 except ValueError:
@@ -133,11 +133,11 @@ try:
                 b.push_command()
                 p.trigger_motor_sync()
                 ts=time.time()
-                print 'Starting 30s turn at 90deg/sec'
+                print('Starting 30s turn at 90deg/sec')
                 tsl=time.time()
                 while time.time()-ts<30.0:
                     b.pull_status()
-                    print 'DT:',time.time()-ts,'Vel (deg/s)', rad_to_deg(b.status['theta_vel'])
+                    print('DT:',time.time()-ts,'Vel (deg/s)', rad_to_deg(b.status['theta_vel']))
                     time.sleep(0.5)
                 b.set_rotational_velocity(v_r=0)
                 b.push_command()

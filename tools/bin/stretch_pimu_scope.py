@@ -41,7 +41,7 @@ if args.cliff:
         while True:
             p.pull_status()
             s.step_display(p.status['cliff_range'][0],p.status['cliff_range'][1],p.status['cliff_range'][2],p.status['cliff_range'][3])
-            print p.status['cliff_range']
+            print(p.status['cliff_range'])
             time.sleep(0.02)
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -53,7 +53,7 @@ if args.at_cliff:
         while True:
             p.pull_status()
             s.step_display(p.status['at_cliff'][0],p.status['at_cliff'][1],p.status['at_cliff'][2],p.status['at_cliff'][3])
-            print p.status['at_cliff']
+            print(p.status['at_cliff'])
             time.sleep(0.02)
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -66,7 +66,7 @@ if args.voltage:
         while True:
             p.pull_status()
             s.step_display(p.status['voltage'])
-            print p.status['voltage']
+            print(p.status['voltage'])
             time.sleep(0.02)
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -79,7 +79,7 @@ if args.temp:
         while True:
             p.pull_status()
             s.step_display(p.status['temp'])
-            print p.status['temp']
+            print(p.status['temp'])
             time.sleep(0.02)
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -92,7 +92,7 @@ if args.current:
         while True:
             p.pull_status()
             s.step_display(p.status['current'])
-            print p.status['current']
+            print(p.status['current'])
             time.sleep(0.02)
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -115,7 +115,7 @@ if args.bump:
                 itr=0
                 p.trigger_beep()
                 p.push_command()
-            print 'Bump',p.status['imu']['bump']
+            print('Bump',p.status['imu']['bump'])
             s.step_display(p.status['imu']['bump'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -128,7 +128,7 @@ if args.mx:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'MX',p.status['imu']['mx']
+            print('MX',p.status['imu']['mx'])
             s.step_display(p.status['imu']['mx'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -140,7 +140,7 @@ if args.my:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'MY',p.status['imu']['my']
+            print('MY',p.status['imu']['my'])
             s.step_display(p.status['imu']['my'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -152,7 +152,7 @@ if args.mz:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'MZ',p.status['imu']['mz']
+            print('MZ',p.status['imu']['mz'])
             s.step_display(p.status['imu']['mz'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -165,7 +165,7 @@ if args.ax:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'AX',p.status['imu']['ax']
+            print('AX',p.status['imu']['ax'])
             s.step_display(p.status['imu']['ax'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -177,7 +177,7 @@ if args.ay:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'AY',p.status['imu']['ay']
+            print('AY',p.status['imu']['ay'])
             s.step_display(p.status['imu']['ay'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -189,7 +189,7 @@ if args.az:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'AZ',p.status['imu']['az']
+            print('AZ',p.status['imu']['az'])
             s.step_display(p.status['imu']['az'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -203,7 +203,7 @@ if args.roll:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'Roll',p.status['imu']['roll'] #rad_to_deg(p.status['imu']['roll'])
+            print('Roll',p.status['imu']['roll']) #rad_to_deg(p.status['imu']['roll'])
             s.step_display(p.status['imu']['roll']) #rad_to_deg(p.status['imu']['roll']))
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -215,7 +215,7 @@ if args.pitch:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'Pitch',rad_to_deg(p.status['imu']['pitch'])
+            print('Pitch',rad_to_deg(p.status['imu']['pitch']))
             s.step_display(rad_to_deg(p.status['imu']['pitch']))
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -227,7 +227,7 @@ if args.heading:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'Heading',rad_to_deg(p.status['imu']['heading'])
+            print('Heading',rad_to_deg(p.status['imu']['heading']))
             s.step_display(rad_to_deg(p.status['imu']['heading']))
     except (SystemExit, KeyboardInterrupt):
         p.stop()

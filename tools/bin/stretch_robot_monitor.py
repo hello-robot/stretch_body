@@ -9,7 +9,7 @@ args=parser.parse_args()
 
 r=Robot()
 r.params['log_to_console']=1
-print 'Starting Robot Monitor. Ctrl-C to exit\n'
+print('Starting Robot Monitor. Ctrl-C to exit\n')
 r.startup()
 
 

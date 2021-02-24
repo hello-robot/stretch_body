@@ -25,7 +25,7 @@ def menu():
     print('k: disable sync mode')
     print('l: enable sync mode')
     print('z: zero clock')
-    print '-------------------'
+    print('-------------------')
 
 def step_interaction():
     menu()
@@ -42,7 +42,7 @@ def step_interaction():
         if x[0] == 'd':
             w.set_D3(0)
         if x[0]=='r':
-            print 'Resetting Board. Exiting...'
+            print('Resetting Board. Exiting...')
             w.board_reset()
             w.push_command()
             exit()

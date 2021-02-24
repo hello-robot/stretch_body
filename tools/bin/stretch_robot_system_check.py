@@ -159,3 +159,4 @@ if returned_value==0:
     print(Fore.GREEN + '[Pass] : Device found ')
 else:
     print(Fore.RED + '[Fail] : No device found')
+print(Style.RESET_ALL)

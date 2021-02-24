@@ -4,8 +4,8 @@ import subprocess
 import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 
-print 'Versions'
-print "-------------------------------------------------------------------------"
+print('Versions')
+print("-------------------------------------------------------------------------")
 import stretch_body
 import stretch_body.base as base
 import stretch_body.arm as arm

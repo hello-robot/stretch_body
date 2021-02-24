@@ -25,17 +25,17 @@ def menu_top():
     print('e: ahead')
     print('f: back')
     print('g: tool')
-    print 'h: wheels'
-    print 'i: left'
-    print 'j: up'
-    print 'p: pan go to pos ticks'
-    print 't: tilt go to pos ticks'
-    print 'x: home'
-    print '1: speed slow'
-    print '2: speed default'
-    print '3: speed fast'
-    print '4: speed max'
-    print '-------------------'
+    print('h: wheels')
+    print('i: left')
+    print('j: up')
+    print('p: pan go to pos ticks')
+    print('t: tilt go to pos ticks')
+    print('x: home')
+    print('1: speed slow')
+    print('2: speed default')
+    print('3: speed fast')
+    print('4: speed max')
+    print('-------------------')
 
 def step_interaction():
     global v_des, a_des

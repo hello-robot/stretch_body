@@ -38,7 +38,7 @@ if args.range:
         if i > 0:
             break
         print('%d: Got %d measurments' % (i, len(scan)))
-        print 'Scan',scan
+        print('Scan',scan)
 
 
 if not args.motor_on: #Turn off motor by default

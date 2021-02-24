@@ -76,7 +76,7 @@ if args.sensor_stats:
       ts_hist[3].append(t3)
       ts_hist[4].append(p0)
       ts_hist[5].append(w0)
-      print r.status['timestamps']
+      print(r.status['timestamps'])
       time.sleep(random.random()*0.1) #Randomize timing so get non biased distribution
   r.stop()
   import matplotlib.pyplot as plt

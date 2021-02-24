@@ -232,17 +232,17 @@ if __name__ == "__main__":
         while True:
             try:
                 if not printed_wait_statement and respeaker.is_voice() == 0:
-                    print "\n* waiting for audio..."
+                    print("\n* waiting for audio...")
                     printed_wait_statement = True
                 else:
                     if respeaker.is_voice() == 1:
-                        print "* recording 3 seconds"
+                        print("* recording 3 seconds")
                         frames = record_audio()
-                        print "* done"
+                        print("* done")
                         time.sleep(1)
-                        print "* playing audio"
+                        print("* playing audio")
                         play_audio(frames)
-                        print "* done"
+                        print("* done")
                         time.sleep(1)
                         printed_wait_statement = False
                     time.sleep(0.01)

@@ -7,7 +7,7 @@ hu.print_stretch_re_use()
 parser=argparse.ArgumentParser(description='Reboot all Dynamixel servos on robot')
 args=parser.parse_args()
 
-print '---- Rebooting Head ---- '
+print('---- Rebooting Head ---- ')
 for id in range(15):
     m = DynamixelXL430(id, '/dev/hello-dynamixel-head')
     m.startup()
@@ -16,7 +16,7 @@ for id in range(15):
     else:
         m.stop()
 
-print '---- Rebooting Wrist ---- '
+print('---- Rebooting Wrist ---- ')
 for id in range(15):
     m = DynamixelXL430(id, '/dev/hello-dynamixel-wrist')
     m.startup()
