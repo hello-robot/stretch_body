@@ -103,7 +103,7 @@ class RobotMonitor(Device):
         mn='monitor_guarded_contact'
         for j in joints:
             if j is not None:
-                if not self.monitor_history[mn].has_key(j.name):# Init history
+                if j.name not in self.monitor_history[mn]:# Init history
                     self.monitor_history[mn][j.name] = 0
                 if j is not None:
                     if self.monitor_history[mn][j.name]==0 and j.motor.status['in_guarded_event']:
@@ -118,7 +118,7 @@ class RobotMonitor(Device):
         for c in chains:
             if c is not None:
                 #Init history
-                if not self.monitor_history[mn].has_key(c.name):
+                if c.name not in self.monitor_history[mn]:
                     self.monitor_history[mn][c.name]={}
                     for k in c.motors.keys():
                         self.monitor_history[mn][c.name][k] = {}

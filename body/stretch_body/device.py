@@ -38,7 +38,7 @@ class Device:
 
     def overwrite_params(self,factory_dict,user_dict):
         for k in user_dict.keys():
-            if factory_dict.has_key(k):
+            if k in factory_dict:
                 if type(factory_dict[k])==type(user_dict[k]):
                     if type(factory_dict[k])==dict:
                         self.overwrite_params(factory_dict[k],user_dict[k])

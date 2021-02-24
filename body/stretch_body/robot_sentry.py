@@ -35,7 +35,7 @@ class RobotSentry(Device):
         if self.param['base_fan_control'] and self.robot.pimu is not None:
             self.robot.pimu.step_sentry('base_fan_control')
 
-        if self.param.has_key('dynamixel_stop_on_runstop') and self.param['dynamixel_stop_on_runstop'] and self.robot.pimu is not None:
+        if 'dynamixel_stop_on_runstop' in self.param and self.param['dynamixel_stop_on_runstop'] and self.robot.pimu is not None:
             if self.robot.head is not None:
                 self.robot.head.step_sentry(runstop=self.robot.pimu.status['runstop_event'])
             if self.robot.end_of_arm is not None:

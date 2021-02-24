@@ -155,7 +155,7 @@ class Robot(Device):
         self.status['head']=self.head.status
 
 
-        if self.params.has_key('custom_wacc'):
+        if 'custom_wacc' in self.params:
             module_name = self.params['custom_wacc']['py_module_name']
             class_name = self.params['custom_wacc']['py_class_name']
             self.wacc=getattr(importlib.import_module(module_name), class_name)(self)

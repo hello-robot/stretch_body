@@ -33,7 +33,7 @@ def get_fleet_directory():
     return os.environ['HELLO_FLEET_PATH']+'/'+get_fleet_id()+'/'
 
 def read_fleet_yaml(fn):
-    s = file(get_fleet_directory()+fn, 'r')
+    s = open(get_fleet_directory()+fn, 'r')
     p = yaml.load(s,Loader=yaml.FullLoader)
     if p is None:
         return {}
