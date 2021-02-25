@@ -18,6 +18,7 @@ import stretch_body.hello_utils as hello_utils
 from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
+from stretch_body.robot_collision import RobotCollisionManager
 
 
 # #############################################################
@@ -60,6 +61,8 @@ class RobotThread(threading.Thread):
         self.robot_update_rate_hz = 25.0  #Hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
+        self.collision_downrate_int = 5  # Step the collision manager at every Nth iteration
+
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         self.shutdown_flag = threading.Event()
@@ -72,6 +75,7 @@ class RobotThread(threading.Thread):
             ts = time.time()
             self.robot._pull_status_non_dynamixel()
             self.first_status = True
+
             if self.robot.params['use_monitor']:
                 if (self.titr % self.monitor_downrate_int) == 0:
                     self.robot.monitor.step()
@@ -79,6 +83,10 @@ class RobotThread(threading.Thread):
             if self.robot.params['use_sentry']:
                 if (self.titr % self.sentry_downrate_int) == 0:
                     self.robot._step_sentry()
+
+            if self.robot.params['use_collision_manager']:
+                if (self.titr % self.collision_downrate_int) == 0:
+                    self.robot.collision_manager.step()
 
             self.titr=self.titr+1
             te = time.time()
@@ -95,6 +103,7 @@ class Robot(Device):
     def __init__(self):
         Device.__init__(self, 'robot')
         self.monitor = RobotMonitor(self)
+        self.collision_manager = RobotCollisionManager(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
