@@ -18,7 +18,7 @@ import stretch_body.hello_utils as hello_utils
 from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
-from stretch_body.robot_collision import RobotCollisionManager
+from stretch_body.robot_collision import RobotCollision
 
 
 # #############################################################
@@ -46,6 +46,30 @@ class RobotDynamixelThread(threading.Thread):
                 time.sleep(tsleep)
         print('Shutting down RobotDynamixelThread')
 
+# #############################################################
+class RobotCollisionThread(threading.Thread):
+    """
+    This thread tracks potential body collisions
+    """
+    def __init__(self,robot):
+        threading.Thread.__init__(self)
+        self.robot=robot
+        self.update_rate_hz = 5.0  #Hz
+        self.timer_stats = hello_utils.TimerStats()
+        self.shutdown_flag = threading.Event()
+        self.first_status=False
+        self.robot.collision.startup()
+
+    def run(self):
+        while not self.shutdown_flag.is_set():
+            ts = time.time()
+            self.robot.collision.step()
+            te = time.time()
+            tsleep = max(0.001, (1 / self.update_rate_hz) - (te - ts))
+            if not self.shutdown_flag.is_set():
+                time.sleep(tsleep)
+        print('Shutting down RobotCollisionThread')
+
 
 
 class RobotThread(threading.Thread):
@@ -61,8 +85,6 @@ class RobotThread(threading.Thread):
         self.robot_update_rate_hz = 25.0  #Hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
-        self.collision_downrate_int = 5  # Step the collision manager at every Nth iteration
-
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         self.shutdown_flag = threading.Event()
@@ -84,10 +106,6 @@ class RobotThread(threading.Thread):
                 if (self.titr % self.sentry_downrate_int) == 0:
                     self.robot._step_sentry()
 
-            if self.robot.params['use_collision_manager']:
-                if (self.titr % self.collision_downrate_int) == 0:
-                    self.robot.collision_manager.step()
-
             self.titr=self.titr+1
             te = time.time()
             tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
@@ -103,7 +121,7 @@ class Robot(Device):
     def __init__(self):
         Device.__init__(self, 'robot')
         self.monitor = RobotMonitor(self)
-        self.collision_manager = RobotCollisionManager(self)
+        self.collision = RobotCollision(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
@@ -141,7 +159,7 @@ class Robot(Device):
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
         self.rt=None
         self.dt=None
-
+        self.ct=None
 
     # ###########  Device Methods #############
 
@@ -162,18 +180,26 @@ class Robot(Device):
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
         signal.signal(signal.SIGINT, hello_utils.thread_service_shutdown)
+
         self.rt = RobotThread(self)
         self.rt.setDaemon(True)
         self.rt.start()
+
         self.dt = RobotDynamixelThread(self)
         self.dt.setDaemon(True)
         self.dt.start()
-        #Wait for threads to start reading data
+
+        # Wait for status reading threads to start reading data
         ts=time.time()
         while not self.rt.first_status and not self.dt.first_status and time.time()-ts<3.0:
            time.sleep(0.1)
         #if not self.rt.first_status  or not self.dt.first_status :
         #    self.logger.warning('Failed to startup up robot threads')
+
+        if self.params['use_collision_manager']:
+            self.ct = RobotCollisionThread(self)
+            self.ct.setDaemon(True)
+            self.ct.start()
 
     def stop(self):
         """
@@ -187,6 +213,9 @@ class Robot(Device):
         if self.dt is not None:
             self.dt.shutdown_flag.set()
             self.dt.join()
+        if self.ct is not None:
+            self.ct.shutdown_flag.set()
+            self.ct.join()
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 print('Shutting down',k)

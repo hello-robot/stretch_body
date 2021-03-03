@@ -6,6 +6,7 @@ import logging
 factory_params = {
     "robot": {
         "tool": "tool_stretch_gripper",
+        "use_collision_manager": 0,
     },
     "robot_sentry": {
         "dynamixel_stop_on_runstop": 1,
