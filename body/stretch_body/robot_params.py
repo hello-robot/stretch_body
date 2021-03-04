@@ -15,6 +15,9 @@ factory_params = {
         "stretch_gripper_overload": 1,
         "wrist_yaw_overload": 1,
     },
+    "robot_collision": {
+        'models': ['collision_arm_camera']
+    },
     "head": {
         "use_group_sync_read": 1,
         "retry_on_comm_failure": 1,
@@ -87,7 +90,28 @@ factory_params = {
                 'py_class_name': 'WristYaw',
                 'py_module_name': 'stretch_body.wrist_yaw'
             }
-        }
+        },
+        'collision_models': ['collision_tool_stretch_gripper']
+    },
+    "collision_arm_camera": {
+        'enabled': 1,
+        'head_pan_avoid_clip_neg': -0.51,
+        'head_pan_avoid_clip_pos': 0.38,
+        'head_tilt_avoid_clip': -1.4,
+        'lift_approach_clip': 0.95,
+        'lift_near_clip': 1.02,
+        'py_class_name': 'CollisionArmCamera',
+        'py_module_name': 'stretch_body.robot_collision_models'
+    },
+    "collision_tool_stretch_gripper": {
+        'arm_palm_beyond_base': 0.07,
+        'enabled': 1,
+        'lift_fingertip_above_base': 0.2,
+        'lift_palm_above_base': 0.085,
+        'py_class_name': 'CollisionToolStretchGripper',
+        'py_module_name': 'stretch_body.robot_collision_models',
+        'r_gripper_tips': 0.24,
+        'r_puller': 0.08
     },
     "logging": {
         "version": 1,
