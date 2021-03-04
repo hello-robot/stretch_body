@@ -10,8 +10,8 @@ class EndOfArm(DynamixelXChain):
     simply deriving it from DynamixelHelloXL430 and declaring the class name / Python module name
     in the User YAML file
     """
-    def __init__(self,verbose=False):
-        DynamixelXChain.__init__(self,'/dev/hello-dynamixel-wrist','end_of_arm',verbose)
+    def __init__(self, name='end_of_arm', verbose=False):
+        DynamixelXChain.__init__(self,'/dev/hello-dynamixel-wrist', name, verbose)
         self.params=self.robot_params[self.name]
         self.joints=self.params['devices'].keys()
         for j in self.joints:
