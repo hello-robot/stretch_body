@@ -1,4 +1,5 @@
 from __future__ import print_function
+import stretch_body.robot_params
 import stretch_body.hello_utils as hello_utils
 import time
 
@@ -36,9 +37,9 @@ class Device:
             self.robot_params.update(hello_utils.read_fleet_yaml(self.user_params['tool_params']))
         except KeyError:
             pass
-        self.overwrite_params(self.robot_params,self.user_params)
+        self.overwrite_params(self.robot_params, stretch_body.robot_params.factory_params)
+        self.overwrite_params(self.robot_params, self.user_params)
         self.timestamp = DeviceTimestamp()
-
 
     def overwrite_params(self,factory_dict,user_dict):
         for k in user_dict.keys():
