@@ -6,7 +6,6 @@ import urdfpy
 import numpy as np
 import os
 
-
 # #######################################################################
 
 class RobotCollisionModel(Device):
@@ -63,10 +62,14 @@ class RobotCollision(Device):
                 self.models.append(getattr(importlib.import_module(module_name), class_name)(self))
 
     def step(self):
+        #Compile the list of joints that may be limited
+        #Then compute the limits for each from each model
+        #Take the most conservative limit for each and pass it to the controller
         status=self.robot.get_status()
         limits= { 'head_pan': [None, None],'head_tilt': [None, None],'lift': [None, None],'arm': [None, None]}
         for j in self.robot.end_of_arm.joints:
             limits[j]=[None,None]
+
         for m in self.models:
             new_limits=m.step(status)
             for joint in new_limits.keys():
@@ -76,6 +79,7 @@ class RobotCollision(Device):
                 if new_limits[joint][1] is not None:
                     if limits[joint][1] is None or new_limits[joint][1]<limits[joint][1]:
                         limits[joint][1]=new_limits[joint][1]
+
 
         self.robot.lift.set_soft_motion_limits(limits['lift'][0], limits['lift'][1])
         self.robot.arm.set_soft_motion_limits(limits['arm'][0], limits['arm'][1])
