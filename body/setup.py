@@ -23,7 +23,7 @@ setuptools.setup(
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
     ],
     install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'jupyter', 'pandas', 'sympy', 'nose', 'PyYaml',
-                      'inputs', 'drawnow', 'rplidar', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
+                      'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'llvmlite==0.31.0', 'numba',
                       'scikit-image', 'open3d', 'pyrealsense2', 'jsonschema==2.6.0', 'qtconsole==4.7.7']
 )
