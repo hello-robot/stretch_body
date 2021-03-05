@@ -64,14 +64,14 @@ class CollisionArmCamera(RobotCollisionModel):
         return self.workspaces[self.curr_workspace]
 
 # #############################################
-class CollisionToolStretchGripper(RobotCollisionModel):
+class CollisionStretchGripper(RobotCollisionModel):
     """
     Manage collisions of the standard Stretch Gripper tool with the
     ground and the base
     """
 
     def __init__(self, collision_manager):
-        RobotCollisionModel.__init__(self, collision_manager, 'collision_tool_stretch_gripper')
+        RobotCollisionModel.__init__(self, collision_manager, 'collision_stretch_gripper')
 
     def step(self, status):
         wrist_yaw_limit = [None, None]

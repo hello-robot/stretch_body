@@ -25,10 +25,8 @@ class RobotCollisionModel(Device):
         self.name=name
         self.collision_manager=collision_manager
         self.params = self.robot_params[name]
-        self.workspaces = {'no_limits': {'head_pan': [None, None],'head_tilt': [None, None],'lift': [None, None],'arm': [None, None],'wrist_yaw': [None, None]}} #Example workspace
-        self.curr_workspace = 'no_limits'
     def step(self, status):
-        return self.workspaces[self.curr_workspace]
+        return {'head_pan': [None, None],'head_tilt': [None, None],'lift': [None, None],'arm': [None, None],'wrist_yaw': [None, None]}
 
 # #######################################################################
 
