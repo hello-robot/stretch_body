@@ -184,10 +184,10 @@ class Robot(Device):
         print('---- Shutting down robot ----')
         if self.rt is not None:
             self.rt.shutdown_flag.set()
-            self.rt.join()
+            self.rt.join(1)
         if self.dt is not None:
             self.dt.shutdown_flag.set()
-            self.dt.join()
+            self.dt.join(1)
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 print('Shutting down',k)

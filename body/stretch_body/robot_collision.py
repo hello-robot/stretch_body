@@ -21,10 +21,9 @@ class RobotCollisionModel(Device):
     in the User YAML file
     """
     def __init__(self,collision_manager, name):
-        Device.__init__(self)
-        self.name=name
+        Device.__init__(self, name=name)
         self.collision_manager=collision_manager
-        self.params = self.robot_params[name]
+
     def step(self, status):
         return {'head_pan': [None, None],'head_tilt': [None, None],'lift': [None, None],'arm': [None, None],'wrist_yaw': [None, None]}
 
@@ -39,11 +38,10 @@ class RobotCollision(Device):
     given all models.
     """
     def __init__(self,robot):
-        Device.__init__(self)
+        Device.__init__(self, name='robot_collision')
         #urdf_file = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'],'exported_urdf/stretch.urdf')
         #self.robot_model = urdfpy.URDF.load(urdf_file) #Kinematic model available if needed
         self.robot=robot
-        self.params=self.robot_params['robot_collision']
         self.models=[]
 
     def startup(self):
@@ -110,6 +108,7 @@ class EndOfArmForwardKinematics():
     # Compute the FK for a tool link wrt to the fixed end_of_arm frame (link_arm_l0)
     def __init__(self):
         urdf_file = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'],'exported_urdf/stretch.urdf')
+        np.seterr(divide='ignore', invalid='ignore')
         self.robot_model = urdfpy.URDF.load(urdf_file)
 
     def tool_fk(self,cfg,link):
@@ -127,7 +126,7 @@ class EndOfArmForwardKinematics():
         link_set.add(self.robot_model._link_map[link])
 
         # This is a modified version of link_fk of urdfpy
-        # That stops FK at the 'link_wrist_yaw' of Stretch
+        # That stops FK at the 'link_arm_l0' of Stretch
         for lnk in self.robot_model._reverse_topo:
             if lnk not in link_set:
                 continue
