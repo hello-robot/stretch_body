@@ -182,6 +182,9 @@ class Arm(Device):
         """
         Home to hardstops
         """
+        if not self.motor.hw_valid:
+            print('Not able to home arm. Hardware not present')
+            return
         print 'Homing Arm...'
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()

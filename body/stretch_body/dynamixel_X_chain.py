@@ -2,7 +2,7 @@
 from stretch_body.device import Device
 import stretch_body.hello_utils as hello_utils
 import time
-
+import serial
 
 # The code can be found in the following directory:
 # /opt/ros/melodic/lib/python2.7/dist-packages/dynamixel_sdk/
@@ -24,10 +24,19 @@ class DynamixelXChain(Device):
         self.usb = usb
         self.timer_stats = hello_utils.TimerStats()
         self.pt_lock = threading.RLock()
-        self.port_handler = prh.PortHandler(usb)
-        self.port_handler.openPort()
-        self.port_handler.setBaudRate(57600)
-        self.packet_handler = pch.PacketHandler(2.0)
+
+        try:
+            self.port_handler = prh.PortHandler(usb)
+            self.port_handler.openPort()
+            self.port_handler.setBaudRate(57600)
+            self.packet_handler = pch.PacketHandler(2.0)
+            self.hw_valid = True
+        except serial.SerialException as e:
+            self.packet_handler = None
+            self.port_handler = None
+            self.hw_valid =False
+            print("SerialException({0}): {1}".format(e.errno, e.strerror))
+
         self.status={}
         self.motors = {}
         self.readers={}
@@ -38,6 +47,8 @@ class DynamixelXChain(Device):
         self.motors[m.name]=m
 
     def startup(self):
+        if not self.hw_valid:
+            return
         if len(self.motors.keys()):
             self.readers['pos']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_POSITION,4)
             self.readers['effort']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_LOAD,2)
@@ -53,11 +64,15 @@ class DynamixelXChain(Device):
             self.pull_status()
 
     def stop(self):
+        if not self.hw_valid:
+            return
         for mk in self.motors.keys():
             self.motors[mk].stop()
 
 
     def pull_status(self):
+        if not self.hw_valid:
+            return
         try:
             ts = time.time()
             pos = self.sync_read(self.readers['pos'])
@@ -82,6 +97,8 @@ class DynamixelXChain(Device):
             self.motors[mk].pretty_print()
 
     def sync_read(self, reader):
+        if not self.hw_valid:
+            return
         with self.pt_lock:
             result = reader.txRxPacket()
         if result != COMM_SUCCESS:
@@ -114,6 +131,8 @@ class DynamixelXChain(Device):
 
 
     def step_sentry(self,runstop):
+        if not self.hw_valid:
+            return
         """
         This sentry places the Dynamixel servos in torque_disabled
         mode when the runstop is enabled

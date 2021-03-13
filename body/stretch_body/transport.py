@@ -77,16 +77,15 @@ class Transport():
         try:
             self.ser = serial.Serial(self.usb, 115200)  # , write_timeout=1.0)  # Baud not important since USB comms
         except serial.SerialException as e:
-            if self.verbose:
-                print "SerialException({0}): {1}".format(e.errno, e.strerror)
+            print "SerialException({0}): {1}".format(e.errno, e.strerror)
             self.ser = None
 
         self.framer=cobbs_framing.CobbsFraming( )
         self.status={'rate':0,'read_error':0,'write_error':0,'itr':0,'transaction_time_avg':0,'transaction_time_max':0,'timestamp_pc':0}
 
-    def startup(self):
-        pass
 
+    def startup(self):
+        return self.ser is not None #return if hardware connection valid
 
     def stop(self):
         if self.ser:

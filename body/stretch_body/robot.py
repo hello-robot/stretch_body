@@ -95,14 +95,6 @@ class Robot(Device):
     def __init__(self):
         Device.__init__(self)
         self.params=self.robot_params['robot']
-        self.pimu=None
-        self.wacc=None
-        self.arm=None
-        self.lift=None
-        self.head=None
-        self.base=None
-        self.end_of_arm=None
-
         self.monitor = RobotMonitor(self)
         self.sentry = RobotSentry(self)
         self.dirty_push_command = False
@@ -110,38 +102,32 @@ class Robot(Device):
 
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
 
-        if self.params['use_pimu']:
-            self.pimu=pimu.Pimu()
-            self.status['pimu']=self.pimu.status
 
-        if self.params['use_base']:
-            self.base=base.Base()
-            self.status['base']=self.base.status
+        self.pimu=pimu.Pimu()
+        self.status['pimu']=self.pimu.status
 
-        if self.params['use_lift']:
-            self.lift=lift.Lift()
-            self.status['lift']=self.lift.status
+        self.base=base.Base()
+        self.status['base']=self.base.status
 
-        if self.params['use_arm']:
-            self.arm=arm.Arm()
-            self.status['arm']=self.arm.status
+        self.lift=lift.Lift()
+        self.status['lift']=self.lift.status
 
-        if self.params['use_head']:
-            self.head=head.Head()
-            self.status['head']=self.head.status
+        self.arm=arm.Arm()
+        self.status['arm']=self.arm.status
 
-        if self.params['use_wacc']:
-            if self.params.has_key('custom_wacc'):
-                module_name = self.params['custom_wacc']['py_module_name']
-                class_name = self.params['custom_wacc']['py_class_name']
-                self.wacc=getattr(importlib.import_module(module_name), class_name)(self)
-            else:
-                self.wacc=wacc.Wacc()
-            self.status['wacc']=self.wacc.status
+        self.head=head.Head()
+        self.status['head']=self.head.status
 
-        if self.params['use_end_of_arm']:
-            self.end_of_arm=end_of_arm.EndOfArm()
-            self.status['end_of_arm']=self.end_of_arm.status
+        if self.params.has_key('custom_wacc'):
+            module_name = self.params['custom_wacc']['py_module_name']
+            class_name = self.params['custom_wacc']['py_class_name']
+            self.wacc=getattr(importlib.import_module(module_name), class_name)(self)
+        else:
+            self.wacc=wacc.Wacc()
+        self.status['wacc']=self.wacc.status
+
+        self.end_of_arm=end_of_arm.EndOfArm()
+        self.status['end_of_arm']=self.end_of_arm.status
 
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
         self.rt=None

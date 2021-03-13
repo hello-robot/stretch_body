@@ -188,6 +188,9 @@ class Lift(Device):
 
 
     def home(self, measuring=False):
+        if not self.motor.hw_valid:
+            print('Not able to home lift. Hardware not present')
+            return
         print 'Homing lift...'
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()

@@ -102,7 +102,7 @@ class Stepper(Device):
     def startup(self):
         with self.lock:
             self.gains=self.params['gains'].copy()
-            self.transport.startup()
+            self.hw_valid=self.transport.startup()
             self.enable_safety()
             self._dirty_gains = True
             self.pull_status()
@@ -111,6 +111,8 @@ class Stepper(Device):
 
     #Configure control mode prior to calling this on process shutdown (or default to freewheel)
     def stop(self):
+        if not self.hw_valid:
+            return
         with self.lock:
             if self.verbose:
                 print 'Shutting down Stepper on: ' + self.usb
@@ -119,6 +121,8 @@ class Stepper(Device):
             self.transport.stop()
 
     def push_command(self,exiting=False):
+        if not self.hw_valid:
+            return
         with self.lock:
             if self._dirty_load_test:
                 self.transport.payload_out[0] = RPC_LOAD_TEST
@@ -153,6 +157,8 @@ class Stepper(Device):
             self.transport.step2(exiting=exiting)
 
     def pull_status(self, exiting=False):
+        if not self.hw_valid:
+            return
         with self.lock:
             if self._dirty_board_info:
                 self.transport.payload_out[0] = RPC_GET_STEPPER_BOARD_INFO
@@ -440,6 +446,8 @@ class Stepper(Device):
         return enc_calib
 
     def write_encoder_calibration_to_flash(self,data):
+        if not self.hw_valid:
+            return
         #This will take a few seconds. Blocks until complete.
         if len(data)!=16384:
             print 'Bad encoder data'
@@ -470,6 +478,8 @@ class Stepper(Device):
 
 
     def turn_menu_interface_on(self):
+        if not self.hw_valid:
+            return
         with self.lock:
             # Run immediately rather than queue
             self.transport.payload_out[0] = RPC_SET_MENU_ON
@@ -481,6 +491,8 @@ class Stepper(Device):
             self.menu_transaction('m')
 
     def menu_transaction(self,x,do_print=True):
+        if not self.hw_valid:
+            return
         with self.lock:
             self.transport.ser.write(x)
             time.sleep(0.1)

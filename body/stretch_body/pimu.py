@@ -136,7 +136,7 @@ class Pimu(Device):
         self.frame_id_last = None
         self.frame_id_base = 0
         self.transport = Transport('/dev/hello-pimu',self.verbose)
-        self.status = {'voltage': 0, 'current': 0, 'temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
+        self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'imu': self.imu.status,'debug':0,
@@ -156,17 +156,21 @@ class Pimu(Device):
 
     def startup(self):
         with self.lock:
-            self.transport.startup()
+            self.hw_valid=self.transport.startup()
             self.push_command()
             self.pull_status()
 
     def stop(self):
+        if not self.hw_valid:
+            return
         with self.lock:
             self.set_fan_off()
             self.push_command(exiting=True)
             self.transport.stop()
 
     def pull_status(self,exiting=False):
+        if not self.hw_valid:
+            return
         with self.lock:
             if self._dirty_board_info:
                 self.transport.payload_out[0] = RPC_GET_PIMU_BOARD_INFO
@@ -179,6 +183,8 @@ class Pimu(Device):
             self.transport.step(exiting=exiting)
 
     def push_command(self,exiting=False):
+        if not self.hw_valid:
+            return
         with self.lock:
             if self._dirty_config:
                 self.transport.payload_out[0] = RPC_SET_PIMU_CONFIG
@@ -252,6 +258,8 @@ class Pimu(Device):
 
     def trigger_motor_sync(self):
         #Push out immediately
+        if not self.hw_valid:
+            return
         with self.lock:
             self.transport.payload_out[0] = RPC_SET_MOTOR_SYNC
             self.transport.queue_rpc(1, self.rpc_motor_sync_reply)

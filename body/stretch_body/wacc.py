@@ -48,17 +48,21 @@ class Wacc(Device):
                        'timestamp': 0,
                        'transport': self.transport.status}
         self.ts_last=None
-        self.transport.startup()
+        self.hw_valid=self.transport.startup()
 
     # ###########  Device Methods #############
 
     def startup(self):
+        if not self.hw_valid:
+            return
         with self.lock:
             self.transport.startup()
             self.push_command()
             self.pull_status()
 
     def stop(self):
+        if not self.hw_valid:
+            return
         with self.lock:
             self.push_command(exiting=True)
             self.transport.stop()
@@ -79,6 +83,8 @@ class Wacc(Device):
 
 
     def pull_status(self,exiting=False):
+        if not self.hw_valid:
+            return
         with self.lock:
             if self._dirty_board_info:
                 self.transport.payload_out[0] = RPC_GET_WACC_BOARD_INFO
@@ -92,6 +98,8 @@ class Wacc(Device):
             self.transport.step(exiting=exiting)
 
     def push_command(self,exiting=False):
+        if not self.hw_valid:
+            return
         with self.lock:
             if self._dirty_config:
                 self.transport.payload_out[0] = RPC_SET_WACC_CONFIG

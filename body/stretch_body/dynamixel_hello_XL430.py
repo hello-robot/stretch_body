@@ -12,7 +12,6 @@ class DynamixelHelloXL430(Device):
     def __init__(self,name, chain=None):
         Device.__init__(self)
         self.name=name
-        self.chain=None
         self.params=self.robot_params[self.name]
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
@@ -27,7 +26,7 @@ class DynamixelHelloXL430(Device):
         else:
             self.polarity=1.0
         self.ts_over_eff_start=None
-        self.servo_valid=False
+        self.hw_valid=False
         self.is_calibrated=False
 
     # ###########  Device Methods #############
@@ -37,7 +36,7 @@ class DynamixelHelloXL430(Device):
 
     def startup(self):
         if self.motor.do_ping(verbose=False):
-            self.servo_valid = True
+            self.hw_valid = True
             self.motor.disable_torque()
             if self.params['use_multiturn']:
                 self.motor.enable_multiturn()
@@ -60,11 +59,11 @@ class DynamixelHelloXL430(Device):
 
 
     def stop(self):
-        if self.servo_valid:
+        if self.hw_valid:
             self.disable_torque()
 
     def pull_status(self,data=None):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         #First pull new data from servo
         #Or bring in data from a synchronized read
@@ -120,7 +119,7 @@ class DynamixelHelloXL430(Device):
             self.status['stall_overload'] = False
 
     def mark_zero(self):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         x=self.motor.get_pos()
         print 'Marking current position of (ticks)',x,' as 0 (rad)'
@@ -130,7 +129,7 @@ class DynamixelHelloXL430(Device):
 
 
     def pretty_print(self):
-        if not self.servo_valid:
+        if not self.hw_valid:
             print '----- HelloXL430 ------ '
             print 'Servo not on bus'
             return
@@ -162,22 +161,22 @@ class DynamixelHelloXL430(Device):
     # #####################################
 
     def reboot(self):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         self.motor.do_reboot()
 
     def enable_torque(self):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         self.motor.enable_torque()
 
     def disable_torque(self):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         self.motor.disable_torque()
 
     def move_to(self,x_des, v_des=None, a_des=None):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
             print 'Dynamixel not calibrated:', self.name
@@ -192,7 +191,7 @@ class DynamixelHelloXL430(Device):
 
 
     def set_motion_params(self,v_des=None,a_des=None):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         if v_des is not None:
             v_des = min(self.params['motion']['max']['vel'], v_des)
@@ -207,20 +206,20 @@ class DynamixelHelloXL430(Device):
                 self.a_des = a_des
 
     def move_by(self,x_des, v_des=None, a_des=None):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         if abs(x_des) > 0.00002: #Avoid drift
             cx=self.ticks_to_world_rad(self.motor.get_pos())
             self.move_to(cx + x_des, v_des, a_des)
 
     def quick_stop(self):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
             self.motor.disable_torque()
             self.motor.enable_torque()
 
     def enable_pos(self):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         self.motor.disable_torque()
         if self.params['use_multiturn']:
@@ -230,14 +229,14 @@ class DynamixelHelloXL430(Device):
         self.motor.enable_torque()
 
     def enable_pwm(self):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         self.motor.disable_torque()
         self.motor.enable_pwm()
         self.motor.enable_torque()
 
     def set_pwm(self,x):
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         self.motor.set_pwm(x)
 
@@ -248,7 +247,8 @@ class DynamixelHelloXL430(Device):
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
         # Second hardstop is optional
-        if not self.servo_valid:
+        if not self.hw_valid:
+            print('Not able to home %s. Hardware not present'%self.name)
             return
         if not self.params['req_calibration']:
             print('Homing not required for: '+self.name)
