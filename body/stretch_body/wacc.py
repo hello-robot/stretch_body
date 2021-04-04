@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-
+from __future__ import print_function
 from stretch_body.transport import *
 from stretch_body.device import Device
 import threading
@@ -30,35 +30,58 @@ class Wacc(Device):
     ext_status_cb: Callback to handle custom status data
     ext_command_cb: Callback to handle custom command data
     """
-    def __init__(self,verbose=False,ext_status_cb=None,ext_command_cb=None):
-        Device.__init__(self)
+
+    def __init__(self, verbose=False, ext_status_cb=None, ext_command_cb=None):
+        Device.__init__(self, verbose)
         self.ext_status_cb=ext_status_cb
         self.ext_command_cb=ext_command_cb
         self.lock=threading.RLock()
-        self.verbose=verbose
         self.params=self.robot_params['wacc']
         self.config = self.params['config']
         self._dirty_config = True #Force push down
         self._dirty_command = False
-        self._dirty_board_info = True
         self._command = {'d2':0,'d3':0, 'trigger':0}
-        self.board_info={'board_version':'None', 'firmware_version':'None'}
-        self.transport = Transport('/dev/hello-wacc',verbose=self.verbose)
+        self.name ='hello-wacc'
+        self.transport = Transport('/dev/hello-wacc',verbose=verbose)
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
                        'timestamp': 0,
                        'transport': self.transport.status}
         self.ts_last=None
-        self.hw_valid=self.transport.startup()
+        self.board_info = {'board_version': 'None', 'firmware_version': 'None', 'protocol_version': None}
+        self.valid_firmware_protocols = ['p0']
+        self.hw_valid = False
 
     # ###########  Device Methods #############
 
     def startup(self):
-        if not self.hw_valid:
-            return
         with self.lock:
-            self.transport.startup()
-            self.push_command()
-            self.pull_status()
+            self.hw_valid=self.transport.startup()
+            if self.hw_valid:
+                # Pull board info
+                self.transport.payload_out[0] = RPC_GET_WACC_BOARD_INFO
+                self.transport.queue_rpc(1, self.rpc_board_info_reply)
+                self.transport.step(exiting=False)
+                # Check that protocol matches
+
+                match=False
+                for p in self.valid_firmware_protocols:
+                    if p==self.board_info['protocol_version']:
+                        match=True
+                if not match:
+                    print('----------------')
+                    print('Firmware protocol mismatch on %s. '%self.name)
+                    print('Current protocol is %s.'%self.board_info['protocol_version'])
+                    print('Valid protocols are: %s' %str(self.valid_firmware_protocols))
+                    print('Disabling device')
+                    print('Please upgrade the firmware and or version of Stretch Body')
+                    print('----------------')
+                    self.hw_valid=False
+                    self.transport.stop()
+
+            if self.hw_valid:
+                self.push_command()
+                self.pull_status()
+
 
     def stop(self):
         if not self.hw_valid:
@@ -81,16 +104,10 @@ class Wacc(Device):
         self._command['d3']=bool(on)
         self._dirty_command = True
 
-
     def pull_status(self,exiting=False):
         if not self.hw_valid:
             return
         with self.lock:
-            if self._dirty_board_info:
-                self.transport.payload_out[0] = RPC_GET_WACC_BOARD_INFO
-                self.transport.queue_rpc(1, self.rpc_board_info_reply)
-                self._dirty_board_info=False
-
             # Queue Status RPC
             self.transport.payload_out[0] = RPC_GET_WACC_STATUS
             sidx = 1
@@ -116,21 +133,21 @@ class Wacc(Device):
             self.transport.step2(exiting=exiting)
 
     def pretty_print(self):
-        print '------------------------------'
-        print 'Ax (m/s^2)',self.status['ax']
-        print 'Ay (m/s^2)', self.status['ay']
-        print 'Az (m/s^2)', self.status['az']
-        print 'A0', self.status['a0']
-        print 'D0 (In)', self.status['d0']
-        print 'D1 (In)', self.status['d1']
-        print 'D2 (Out)', self.status['d2']
-        print 'D3 (Out)', self.status['d3']
-        print 'Single Tap Count', self.status['single_tap_count']
-        print 'State ', self.status['state']
-        print 'Debug',self.status['debug']
-        print 'Timestamp', self.status['timestamp']
-        print 'Board version:', self.board_info['board_version']
-        print 'Firmware version:', self.board_info['firmware_version']
+        print('------------------------------')
+        print('Ax (m/s^2)',self.status['ax'])
+        print('Ay (m/s^2)', self.status['ay'])
+        print('Az (m/s^2)', self.status['az'])
+        print('A0', self.status['a0'])
+        print('D0 (In)', self.status['d0'])
+        print('D1 (In)', self.status['d1'])
+        print('D2 (Out)', self.status['d2'])
+        print('D3 (Out)', self.status['d3'])
+        print('Single Tap Count', self.status['single_tap_count'])
+        print('State ', self.status['state'])
+        print('Debug',self.status['debug'])
+        print('Timestamp', self.status['timestamp'])
+        print('Board version:', self.board_info['board_version'])
+        print('Firmware version:', self.board_info['firmware_version'])
 
     # ####################### Utility functions ####################################################
     def board_reset(self):
@@ -146,6 +163,7 @@ class Wacc(Device):
             self.board_info['board_version'] = unpack_string_t(s[sidx:], 20)
             sidx += 20
             self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]
             sidx += 20
             return sidx
 
@@ -200,21 +218,22 @@ class Wacc(Device):
         if reply[0] == RPC_REPLY_WACC_BOARD_INFO:
             self.unpack_board_info(reply[1:])
         else:
-            print 'Error RPC_REPLY_WACC_BOARD_INFO', reply[0]
+            print('Error RPC_REPLY_WACC_BOARD_INFO', reply[0])
 
     def rpc_command_reply(self,reply):
         if reply[0] != RPC_REPLY_WACC_COMMAND:
-            print 'Error RPC_REPLY_WACC_COMMAND', reply[0]
+            print('Error RPC_REPLY_WACC_COMMAND', reply[0])
 
     def rpc_config_reply(self,reply):
         if reply[0] != RPC_REPLY_WACC_CONFIG:
-            print 'Error RPC_REPLY_WACC_CONFIG', reply[0]
+            print('Error RPC_REPLY_WACC_CONFIG', reply[0])
 
     def rpc_status_reply(self,reply):
         if reply[0] == RPC_REPLY_WACC_STATUS:
             self.unpack_status(reply[1:])
         else:
-            print 'Error RPC_REPLY_WACC_STATUS', reply[0]
+            print('Error RPC_REPLY_WACC_STATUS', reply[0])
+
 
 
 

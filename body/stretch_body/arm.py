@@ -1,19 +1,19 @@
-
+from __future__ import print_function
 from stretch_body.stepper import *
 import time
-from device import Device
+from stretch_body.device import Device
 from stretch_body.hello_utils import *
 
 class Arm(Device):
     """
     API to the Stretch RE1 Arm
     """
-    def __init__(self):
-        Device.__init__(self)
+    def __init__(self,verbose=False):
+        Device.__init__(self,verbose)
         self.name='arm'
         self.params = self.robot_params[self.name]
         self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
-        self.motor = Stepper('/dev/hello-motor-arm')
+        self.motor = Stepper('/dev/hello-motor-arm',verbose)
         self.status = {'pos': 0.0, 'vel': 0.0, 'force':0.0, 'motor': self.motor.status,'timestamp_pc':0}
         # Default controller params
         self.stiffness = 1.0
@@ -42,11 +42,11 @@ class Arm(Device):
         self.motor.push_command()
 
     def pretty_print(self):
-        print '----- Arm ------ '
-        print 'Pos (m): ', self.status['pos']
-        print 'Vel (m/s): ', self.status['vel']
-        print 'Force (N): ', self.status['force']
-        print 'Timestamp PC (s):', self.status['timestamp_pc']
+        print('----- Arm ------ ')
+        print('Pos (m): ', self.status['pos'])
+        print('Vel (m/s): ', self.status['vel'])
+        print('Force (N): ', self.status['force'])
+        print('Timestamp PC (s):', self.status['timestamp_pc'])
         self.motor.pretty_print()
 
 
@@ -64,7 +64,7 @@ class Arm(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Arm not calibrated'
+                print('Arm not calibrated')
                 return
             x_m=max(self.params['range_m'][0],min(x_m,self.params['range_m'][1]))
 
@@ -114,7 +114,7 @@ class Arm(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Arm not calibrated'
+                print('Arm not calibrated')
                 return
 
         if stiffness is not None:
@@ -185,7 +185,7 @@ class Arm(Device):
         if not self.motor.hw_valid:
             print('Not able to home arm. Hardware not present')
             return
-        print 'Homing Arm...'
+        print('Homing Arm...')
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
@@ -200,11 +200,11 @@ class Arm(Device):
         self.push_command()
 
         if self.__wait_for_contact(timeout=10.0):
-            print 'Retraction contact detected at motor position (rad)',self.motor.status['pos']
+            print('Retraction contact detected at motor position (rad)',self.motor.status['pos'])
             time.sleep(1.0)
             self.pull_status()
             x=self.translate_to_motor_rad(self.params['range_m'][0])
-            print 'Marking arm position to (m)', self.params['range_m'][0]
+            print('Marking arm position to (m)', self.params['range_m'][0])
             self.motor.mark_position(x)
             self.push_command()
 
@@ -215,27 +215,27 @@ class Arm(Device):
                 self.move_by(x_m=1.0, contact_thresh_pos_N=self.params['homing_force_N'][1], contact_thresh_neg_N=self.params['homing_force_N'][0], req_calibration=False)
                 self.push_command()
                 if self.__wait_for_contact(timeout=10.0):
-                    print 'Extension contact detected at arm position (rad)', self.motor.status['pos']
+                    print('Extension contact detected at arm position (rad)', self.motor.status['pos'])
                     time.sleep(1.0)
                     self.pull_status()
                     if not measuring:
-                        print 'Current arm position (m): ', self.status['pos']
-                        print 'Expected arm position (m): ', self.params['range_m'][1]
+                        print('Current arm position (m): ', self.status['pos'])
+                        print('Expected arm position (m): ', self.params['range_m'][1])
                         if abs(self.status['pos'] - self.params['range_m'][1]) < .010:  # Within 1 cm
                             success = True
                         else:
-                            print 'Arm homing failed. Out of range'
+                            print('Arm homing failed. Out of range')
                             success = False
                     else:
                         extension_m=self.status['pos']
                         success=True
                 else:
-                    print 'Failed to detect contact'
+                    print('Failed to detect contact')
                     success = False
             else:
                 success = True
         else:
-            print 'Failed to detect contact'
+            print('Failed to detect contact')
             success = False
 
         if success:
@@ -245,7 +245,7 @@ class Arm(Device):
             self.move_to(x_m=0.1)
             self.push_command()
             time.sleep(2.0)
-            print 'Arm homing successful'
+            print('Arm homing successful')
 
         #Restore default
         if not self.motor.gains['enable_guarded_mode']:
