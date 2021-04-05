@@ -8,7 +8,8 @@ parser=argparse.ArgumentParser(description='Calibrate the lift position by movin
 args=parser.parse_args()
 
 l=lift.Lift()
-l.startup()
+if not l.startup():
+    exit()
 l.home()
 l.stop()
 

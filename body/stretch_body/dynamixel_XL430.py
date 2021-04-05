@@ -109,6 +109,8 @@ class DynamixelXL430(Device):
     def startup(self):
         if self.hw_valid:
             self.enable_torque()
+            return True
+        return False
 
     def stop(self):
         if self.hw_valid:

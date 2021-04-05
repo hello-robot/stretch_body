@@ -54,8 +54,10 @@ class DynamixelHelloXL430(Device):
             self.a_des=self.params['motion']['default']['accel']
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
+            return True
         else:
             print('DynamixelHelloXL430 Ping failed...', self.name)
+            return False
 
 
     def stop(self):

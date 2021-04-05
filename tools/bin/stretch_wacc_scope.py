@@ -20,7 +20,8 @@ args = parser.parse_args()
 
 
 p=wacc.Wacc()
-p.startup()
+if not p.startup():
+    exit()
 
 
 #Accel

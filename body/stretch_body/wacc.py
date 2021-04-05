@@ -81,6 +81,9 @@ class Wacc(Device):
             if self.hw_valid:
                 self.push_command()
                 self.pull_status()
+                return True
+            return False
+
 
 
     def stop(self):

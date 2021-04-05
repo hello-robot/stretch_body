@@ -53,7 +53,7 @@ class Device:
     # ########### Primary interface #############
 
     def startup(self):
-        pass
+        return True
 
     def stop(self):
         pass

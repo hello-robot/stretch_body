@@ -10,7 +10,8 @@ args=parser.parse_args()
 
 poses = {'zero':0, 'left':deg_to_rad(90), 'right': deg_to_rad(-45)}
 w=wrist_yaw.WristYaw()
-w.startup()
+if not w.startup():
+    exit()
 
 v_des=w.params['motion']['default']['vel']
 a_des=w.params['motion']['default']['accel']

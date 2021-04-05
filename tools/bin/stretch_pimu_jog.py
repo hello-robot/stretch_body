@@ -5,7 +5,8 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 
 p=Pimu()
-p.startup()
+if not p.startup():
+    exit()
 
 import argparse
 parser=argparse.ArgumentParser(description='Comnmand and query the Pimu (Power+IMU) board from the keyboard')

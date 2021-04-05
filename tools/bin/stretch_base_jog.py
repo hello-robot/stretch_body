@@ -17,7 +17,8 @@ small_rotate_rad=deg_to_rad(1.0)
 large_rotate_rad=deg_to_rad(10.0)
 
 b=base.Base()
-b.startup()
+if not b.startup():
+    exit()
 large_move_m=0.1
 small_move_m=large_move_m/8
 

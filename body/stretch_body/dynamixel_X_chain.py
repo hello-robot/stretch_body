@@ -49,7 +49,7 @@ class DynamixelXChain(Device):
 
     def startup(self):
         if not self.hw_valid:
-            return
+            return False
         if len(self.motors.keys()):
             self.readers['pos']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_POSITION,4)
             self.readers['effort']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_LOAD,2)
@@ -63,6 +63,7 @@ class DynamixelXChain(Device):
                 self.motors[mk].startup()
                 self.status[mk]=self.motors[mk].status
             self.pull_status()
+        return True
 
     def stop(self):
         if not self.hw_valid:

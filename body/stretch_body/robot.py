@@ -167,7 +167,10 @@ class Robot(Device):
         self.logger.info('Starting up Robot')
         for k in self.devices.keys():
             if self.devices[k] is not None:
-                self.devices[k].startup()
+                if not self.devices[k].startup():
+                    print('Startup failure on %s. Exiting.'%k)
+                    exit()
+
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)

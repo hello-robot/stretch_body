@@ -18,7 +18,7 @@ class RobotSentry(Device):
         self.param=self.robot_params['robot_sentry']
 
     def startup(self):
-        pass
+        return True
 
     def step(self):
         if self.param['wrist_yaw_overload'] and self.robot.end_of_arm is not None:

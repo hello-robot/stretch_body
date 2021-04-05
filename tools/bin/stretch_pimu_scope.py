@@ -30,7 +30,8 @@ args = parser.parse_args()
 
 
 p=pimu.Pimu()
-p.startup()
+if not p.startup():
+    exit()
 
 
 # Cliff

@@ -9,7 +9,8 @@ parser=argparse.ArgumentParser(description='Comnmand and query the Wacc (Wrist A
 args=parser.parse_args()
 
 w=Wacc()
-w.startup()
+if not w.startup():
+    exit()
 
 
 

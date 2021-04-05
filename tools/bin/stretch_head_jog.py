@@ -10,7 +10,8 @@ parser=argparse.ArgumentParser(description='Jog the head from the keyboard')
 args=parser.parse_args()
 
 h=head.Head()
-h.startup()
+if not h.startup():
+    exit()
 
 v_des=[h.motors['head_pan'].params['motion']['default']['vel'], h.motors['head_tilt'].params['motion']['default']['vel']]
 a_des=[h.motors['head_pan'].params['motion']['default']['accel'], h.motors['head_tilt'].params['motion']['default']['accel']]

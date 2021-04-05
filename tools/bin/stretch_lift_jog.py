@@ -15,7 +15,8 @@ large_move_m=0.3
 
 
 l=lift.Lift()
-l.startup()
+if not l.startup():
+    exit()
 l.motor.disable_sync_mode()
 l.push_command()
 

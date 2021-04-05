@@ -39,6 +39,7 @@ class RobotMonitor(Device):
                               'monitor_guarded_contact':{},'monitor_wrist_single_tap':stc,
                               'monitor_base_cliff_event':0,'monitor_base_bump_event':bec,'monitor_over_tilt_alert':0,'monitor_runstop':0}
         self.logger=logging.getLogger('robot.robot_monitor')
+        return True
 
     def step(self):
         if self.param['monitor_voltage']:

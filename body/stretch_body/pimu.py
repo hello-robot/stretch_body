@@ -57,7 +57,7 @@ class IMU(Device):
         #pitch; //-180 to 180, rolls over
         #roll; //-90 to  90, rolls over at 180
         #heading; //0-360.0, rolls over
-        self.status={'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'roll':0,'pitch':0,'heading':0,'timestamp':0}
+        self.status={'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'roll':0,'pitch':0,'heading':0,'timestamp':0,'qw':0,'qx':0,'qy':0,'qz':0,'bump':0}
 
     def get_status(self):
         s=self.status.copy()
@@ -139,7 +139,7 @@ class Pimu(Device):
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
-                       'imu': self.imu.status,'debug':0,
+                       'imu': self.imu.status,'debug':0,'state':0,
                        'transport': self.transport.status}
         self._trigger=0
         self.ts_last_fan_on=None
@@ -183,6 +183,8 @@ class Pimu(Device):
             if self.hw_valid:
                 self.push_command()
                 self.pull_status()
+                return True
+        return False
 
     def stop(self):
         if not self.hw_valid:

@@ -31,8 +31,7 @@ class Base(Device):
     # ###########  Device Methods #############
 
     def startup(self):
-        self.left_wheel.startup()
-        self.right_wheel.startup()
+        return self.left_wheel.startup() and self.right_wheel.startup()
 
 
     def stop(self):

@@ -24,7 +24,7 @@ class Lift(Device):
     # ###########  Device Methods #############
 
     def startup(self):
-        self.motor.startup()
+        return self.motor.startup()
 
     def stop(self):
         self.motor.stop() #Maintain current mode
