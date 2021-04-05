@@ -12,7 +12,7 @@ parser.add_argument("--info", help="Device info",action="store_true")
 parser.add_argument("--health", help="Get device health",action="store_true")
 parser.add_argument("--reset", help="Reset device",action="store_true")
 parser.add_argument("--range", help="Print range reading",action="store_true")
-args=parser.parse_args()
+args, _ = parser.parse_known_args()
 
 try:
     lidar = RPLidar('/dev/hello-lrf')
@@ -33,20 +33,19 @@ if args.motor_off:
     prev_motor_running=False
 
 if args.health:
-    print(lidar.get_health())
+    health = lidar.get_health()
+    if health[0] == 'Good':
+        print("Lidar's health is Good")
+    else:
+        print("Lidar's health is {0}, with error code {1}".format(*health))
 
 if args.reset:
     print(lidar.reset())
 
 if args.range:
-    for i, scan in enumerate(lidar.iter_scans()):
-        if i > 0:
-            break
-        print('%d: Got %d measurments' % (i, len(scan)))
-        print('Scan',scan)
-
+    scan = next(lidar.iter_scans())
+    print("Got {0} measurements in scan:".format(len(scan)))
+    print(scan)
 
 if not args.motor_on: #Turn off motor by default
     lidar.stop_motor()
-
-
