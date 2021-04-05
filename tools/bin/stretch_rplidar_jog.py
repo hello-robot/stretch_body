@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 from rplidar import *
+import pickle
 import argparse
 import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
@@ -11,7 +12,8 @@ parser.add_argument("--motor_off", help="Turn motor off",action="store_true")
 parser.add_argument("--info", help="Device info",action="store_true")
 parser.add_argument("--health", help="Get device health",action="store_true")
 parser.add_argument("--reset", help="Reset device",action="store_true")
-parser.add_argument("--range", help="Print range reading",action="store_true")
+parser.add_argument("--read_measurements", nargs="?", type=str, dest="read_measurements", const="",
+                    help="Print range reading and save as pickle to given filepath")
 args, _ = parser.parse_known_args()
 
 try:
@@ -42,10 +44,21 @@ if args.health:
 if args.reset:
     print(lidar.reset())
 
-if args.range:
-    scan = next(lidar.iter_scans())
-    print("Got {0} measurements in scan:".format(len(scan)))
-    print(scan)
+if args.read_measurements is not None:
+    scans = []
+    print('Ctrl-C to stop reading scans')
+    try:
+        for scan in lidar.iter_scans():
+            scans.append(scan)
+            print("Got {0} measurements in scan".format(len(scan)))
+    except:
+        scans.pop(0)
+        try:
+            with open(args.read_measurements, 'wb') as file:
+                print('Saving {0} scans to {1}'.format(len(scans), args.read_measurements))
+                pickle.dump(scans, file, protocol=pickle.HIGHEST_PROTOCOL)
+        except:
+            print("Unable to save scans to file '{0}'.".format(args.read_measurements))
 
 if not args.motor_on: #Turn off motor by default
     lidar.stop_motor()
