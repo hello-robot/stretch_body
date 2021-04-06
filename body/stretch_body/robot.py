@@ -168,8 +168,9 @@ class Robot(Device):
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 if not self.devices[k].startup():
-                    print('Startup failure on %s. Exiting.'%k)
-                    exit()
+                    pass
+                #    print('Startup failure on %s. Exiting.'%k)
+                #    exit()
 
 
         # Register the signal handlers

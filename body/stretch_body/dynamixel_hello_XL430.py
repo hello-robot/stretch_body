@@ -217,8 +217,8 @@ class DynamixelHelloXL430(Device):
     def quick_stop(self):
         if not self.hw_valid:
             return
-            self.motor.disable_torque()
-            self.motor.enable_torque()
+        self.motor.disable_torque()
+        self.motor.enable_torque()
 
     def enable_pos(self):
         if not self.hw_valid:
