@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 from __future__ import print_function
 from stretch_body.transport import *
 from stretch_body.device import Device

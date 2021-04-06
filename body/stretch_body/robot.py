@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 from __future__ import print_function
 import threading
 import time
@@ -42,9 +41,9 @@ class RobotDynamixelThread(threading.Thread):
             self.robot._pull_status_dynamixel()
             self.first_status=True
             te = time.time()
-            #tsleep = max(0, (1 / self.robot_update_rate_hz) - (te - ts))
             tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
-            time.sleep(tsleep)
+            if not self.shutdown_flag.is_set():
+                time.sleep(tsleep)
 
 
 
@@ -85,9 +84,9 @@ class RobotThread(threading.Thread):
 
             self.titr=self.titr+1
             te = time.time()
-            #tsleep = max(0, (1 / self.robot_update_rate_hz) - (te - ts))
             tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
-            time.sleep(tsleep)
+            if not self.shutdown_flag.is_set():
+                time.sleep(tsleep)
 
 
 class Robot(Device):
@@ -229,18 +228,12 @@ class Robot(Device):
         Cause all queued up RPC commands to be sent down to Devices
         """
         with self.lock:
-            if self.base is not None:
-                self.base.push_command()
-            if self.arm is not None:
-                self.arm.push_command()
-            if self.lift is not None:
-                self.lift.push_command()
-            if self.pimu is not None:
-                self.pimu.push_command()
-            if self.wacc is not None:
-                self.wacc.push_command()
-            if self.pimu is not None:
-                self.pimu.trigger_motor_sync()
+            self.base.push_command()
+            self.arm.push_command()
+            self.lift.push_command()
+            self.pimu.push_command()
+            self.wacc.push_command()
+            self.pimu.trigger_motor_sync()
 
 # ##################Home and Stow #######################################
 
@@ -248,15 +241,11 @@ class Robot(Device):
         """
         Returns true if homing-calibration has been run all joints that require it
         """
-        ready = True
-        if self.lift is not None:
-            ready = ready and self.lift.motor.status['pos_calibrated']
-        if self.arm is not None:
-            ready = ready and self.arm.motor.status['pos_calibrated']
-        if self.end_of_arm is not None:
-            for j in self.end_of_arm.joints:
-                req = self.end_of_arm.motors[j].params['req_calibration'] and not self.end_of_arm.motors[j].is_calibrated
-                ready = ready and not req
+        ready = self.lift.motor.status['pos_calibrated']
+        ready = ready and self.arm.motor.status['pos_calibrated']
+        for j in self.end_of_arm.joints:
+            req = self.end_of_arm.motors[j].params['req_calibration'] and not self.end_of_arm.motors[j].is_calibrated
+            ready = ready and not req
         return ready
 
     def stow(self):
@@ -349,21 +338,14 @@ class Robot(Device):
 
     def _pull_status_dynamixel(self):
         try:
-            if self.end_of_arm is not None:
-                self.end_of_arm.pull_status()
-            if self.head is not None:
-                self.head.pull_status()
+            self.end_of_arm.pull_status()
+            self.head.pull_status()
         except SerialException:
             print('Serial Exception on Robot Step_Dynamixel')
 
     def _pull_status_non_dynamixel(self):
-        if self.wacc is not None:
-            self.wacc.pull_status()
-        if self.base is not None:
-            self.base.pull_status()
-        if self.lift is not None:
-            self.lift.pull_status()
-        if self.arm is not None:
-            self.arm.pull_status()
-        if self.pimu is not None:
-            self.pimu.pull_status()
+        self.wacc.pull_status()
+        self.base.pull_status()
+        self.lift.pull_status()
+        self.arm.pull_status()
+        self.pimu.pull_status()

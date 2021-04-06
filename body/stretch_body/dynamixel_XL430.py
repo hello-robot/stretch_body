@@ -383,7 +383,7 @@ class DynamixelXL430(Device):
 
     def get_profile_velocity(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_VELOCITY)
         self.handle_comm_result('XL430_ADDR_PROFILE_VELOCITY', dxl_comm_result, dxl_error)
@@ -391,7 +391,7 @@ class DynamixelXL430(Device):
 
     def get_profile_acceleration(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             a, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_ACCELERATION)
         self.handle_comm_result('XL430_ADDR_PROFILE_ACCELERATION', dxl_comm_result, dxl_error)
@@ -407,7 +407,7 @@ class DynamixelXL430(Device):
 
     def get_P_gain(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_P_GAIN)
         self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
@@ -422,10 +422,10 @@ class DynamixelXL430(Device):
 
     def get_D_gain(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_D_GAIN)
-        self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
+        self.handle_comm_result('XL430_ADDR_POS_D_GAIN', dxl_comm_result, dxl_error)
         return p
 
     def set_D_gain(self,x):
@@ -467,6 +467,8 @@ class DynamixelXL430(Device):
 
 
     def get_max_voltage_limit(self):
+        if not self.hw_valid:
+            return 0
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_VOLTAGE_LIMIT)
         self.handle_comm_result('XL430_ADDR_MAX_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
@@ -494,6 +496,20 @@ class DynamixelXL430(Device):
             dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_VOLTAGE_LIMIT, x)
         self.handle_comm_result('XL430_ADDR_MIN_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
 
+    def get_vel_limit(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_LIMIT)
+        self.handle_comm_result('XL430_ADDR_VELOCITY_LIMIT', dxl_comm_result, dxl_error)
+        return p
+
+    def set_vel_limit(self,x):
+        if not self.hw_valid:
+            return
+        with self.pt_lock:
+            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_LIMIT, x)
+        self.handle_comm_result('XL430_ADDR_VELOCITY_LIMIT', dxl_comm_result, dxl_error)
 
     def get_max_pos_limit(self):
         if not self.hw_valid:

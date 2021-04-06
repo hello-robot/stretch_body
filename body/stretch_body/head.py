@@ -18,6 +18,21 @@ class Head(DynamixelXChain):
                       'wheels': [deg_to_rad(0), deg_to_rad(-90)], 'left': [deg_to_rad(90), deg_to_rad(0)],
                       'up': [deg_to_rad(0), deg_to_rad(30)]}
 
+    def get_joint(self, joint_name):
+        """Retrieves joint by name.
+
+        Parameters
+        ----------
+        joint_name : str
+            valid joints defined in ``joints``
+
+        Returns
+        -------
+        DynamixelHelloXL430 or None
+            Motor object on valid joint name, else None
+        """
+        return self.get_motor(joint_name)
+
     def move_to(self, joint, x_r, v_r=None, a_r=None):
         """
         joint: Name of the joint to move ('head_pan' or 'head_tilt')

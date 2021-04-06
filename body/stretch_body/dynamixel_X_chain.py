@@ -1,9 +1,6 @@
-#! /usr/bin/env python
 from __future__ import print_function
-from stretch_body.device import Device
 import stretch_body.hello_utils as hello_utils
 import time
-import serial
 
 # The code can be found in the following directory:
 # /opt/ros/melodic/lib/python2.7/dist-packages/dynamixel_sdk/

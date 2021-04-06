@@ -20,6 +20,8 @@ def deg_to_rad(x):
 def rad_to_deg(x):
     return 180.0*x/math.pi
 
+def get_display():
+    return os.environ.get('DISPLAY', None)
 
 def get_fleet_id():
     return os.environ['HELLO_FLEET_ID']

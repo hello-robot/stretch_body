@@ -1,10 +1,6 @@
-#! /usr/bin/env python
 from __future__ import print_function
-import stretch_body.hello_utils as hu
 from stretch_body.device import Device
-import time
 import logging
-import os
 
 class RobotMonitor(Device):
     """
