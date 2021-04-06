@@ -476,6 +476,7 @@ class Pimu(Device):
         else:
             self.status['timestamp_status_sync'] = SystemTimestamp().from_usecs(unpack_uint64_t(reply[1:]))
 
+
     def rpc_clock_zero_reply(self, reply):
         if reply[0] != RPC_REPLY_CLOCK_ZERO:
             print('Error RPC_REPLY_CLOCK_ZERO', reply[0])

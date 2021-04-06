@@ -42,12 +42,12 @@ if not args.text:
     def start_trajectory(times, positions, velocities):
         for waypoint in zip(times, positions, velocities):
             w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-        w.start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=False)
+        w.start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=True)
 
     def sense_trajectory():
         w.pull_status()
         if w.status['trajectory_active']:
-            w.push_trajectory()
+            #w.push_trajectory()
             return (w.traj_curr_time - w.traj_start_time, w.status['pos'])
 
     def update_trajectory(times, positions, velocities):
@@ -63,7 +63,7 @@ if not args.text:
         return w.status['pos']
 
     s = stretch_body.scope.TrajectoryScope(vtime, vpos, vvel,
-            yrange=w_yrange, vrange=w_vrange, sense_frequency=100,
+            yrange=w_yrange, vrange=w_vrange, sense_frequency=15,
             title="Wrist Yaw Trajectory",
             ylabel="Wrist Yaw Joint Range (rad)")
     s.start(start_trajectory, sense_trajectory, update_trajectory, stop_trajectory)

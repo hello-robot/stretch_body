@@ -190,7 +190,7 @@ class TrajectoryScope:
         self.s.set_ydata(self.sensey)
         splinex = []
         spliney = []
-        a = zip(self.x, self.y, self.v)
+        a = list(zip(self.x, self.y, self.v))
         for (i, f) in zip(a, a[1:]):
             seg = generate_cubic_spline_segment(i, f)
             segx = np.arange(i[0], f[0], 0.05)

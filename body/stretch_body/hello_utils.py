@@ -106,12 +106,12 @@ class SystemTimestamp:
         return SystemTimestamp(s,n)
 
     def from_nsecs(self,nsecs):
-        s=int(nsecs)/1000000000
+        s=int(int(nsecs)/1000000000)
         n=int(nsecs-s*1000000000)
         return SystemTimestamp(s, n)
 
     def from_usecs(self,usecs):
-        s=int(usecs)/1000000
+        s=int(int(usecs)/1000000)
         n=int(usecs-s*1000000)*1000
         return SystemTimestamp(s, n)
 

@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 from __future__ import print_function
 from stretch_body.transport import *
 from stretch_body.device import Device
@@ -598,9 +597,9 @@ class Stepper(Device):
     def unpack_board_info(self,s):
         with self.lock:
             sidx=0
-            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
+            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20)
             sidx += 20
-            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
+            self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20)
             self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]
             sidx += 20
             return sidx

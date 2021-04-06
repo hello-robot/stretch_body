@@ -76,13 +76,14 @@ class RobotTimestampManager(Device):
 
 
 
-        #if self.param['time_align_status']:
-        #    self.time_align_status()
+        if self.param['time_align_status']:
+            self.time_align_status()
 
 
     def time_align_status(self):
         if len(self.robot.status_history)>1:
             #Align sensor data to the time of the most recent Pimu line sync
+            #Interpolate between samples
             s2 = self.robot.status_history[-1][1] #Most recent
             s1 = self.robot.status_history[-2][1] #Prior
             t = s2['timestamps']['hw_sync']

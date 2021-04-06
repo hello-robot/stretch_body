@@ -56,21 +56,21 @@ if not args.text:
         if args.head_pan:
             for waypoint in zip(times, positions, velocities):
                 h.get_joint('head_pan').trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-            h.get_joint('head_pan').start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=False)
+            h.get_joint('head_pan').start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=True)
         else:
             for waypoint in zip(times, positions, velocities):
                 h.get_joint('head_tilt').trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-            h.get_joint('head_tilt').start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=False)
+            h.get_joint('head_tilt').start_trajectory(position_ctrl=not args.velocity_ctrl, threaded=True)
 
     def sense_trajectory():
         h.pull_status()
         if args.head_pan:
             if h.status['head_pan']['trajectory_active']:
-                h.get_joint('head_pan').push_trajectory()
+                #h.get_joint('head_pan').push_trajectory()
                 return (h.get_joint('head_pan').traj_curr_time - h.get_joint('head_pan').traj_start_time, h.status['head_pan']['pos'])
         else:
             if h.status['head_tilt']['trajectory_active']:
-                h.get_joint('head_tilt').push_trajectory()
+                #h.get_joint('head_tilt').push_trajectory()
                 return (h.get_joint('head_tilt').traj_curr_time - h.get_joint('head_tilt').traj_start_time, h.status['head_tilt']['pos'])
 
     def update_trajectory(times, positions, velocities):
@@ -99,13 +99,13 @@ if not args.text:
 
     if args.head_pan:
         s = stretch_body.scope.TrajectoryScope(pan_vtime, pan_vpos, pan_vvel,
-                yrange=hpan_yrange, vrange=hpan_vrange, sense_frequency=100,
+                yrange=hpan_yrange, vrange=hpan_vrange, sense_frequency=15,
                 title="Head Pan Trajectory",
                 ylabel="Head Pan Joint Range (rad)")
         s.start(start_trajectory, sense_trajectory, update_trajectory, stop_trajectory)
     else:
         s = stretch_body.scope.TrajectoryScope(tilt_vtime, tilt_vpos, tilt_vvel,
-                yrange=htilt_yrange, vrange=htilt_vrange, sense_frequency=100,
+                yrange=htilt_yrange, vrange=htilt_vrange, sense_frequency=15,
                 title="Head Tilt Trajectory",
                 ylabel="Head Tilt Joint Range (rad)")
         s.start(start_trajectory, sense_trajectory, update_trajectory, stop_trajectory)

@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 from __future__ import print_function
 import stretch_body.hello_utils as hello_utils
 import time

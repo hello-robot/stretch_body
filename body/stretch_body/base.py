@@ -1,3 +1,4 @@
+from __future__ import print_function
 from math import *
 from stretch_body.stepper import *
 from stretch_body.device import Device
@@ -292,8 +293,8 @@ class Base(Device, MobileBaseTrajectoryManager):
         v1 = self.status['right_wheel']['vel']
         e0 = self.status['left_wheel']['effort']
         e1 = self.status['right_wheel']['effort']
-        t0 = self.status['left_wheel']['timestamp']
-        t1 = self.status['right_wheel']['timestamp']
+        t0 = self.status['left_wheel']['timestamp'].to_secs()
+        t1 = self.status['right_wheel']['timestamp'].to_secs()
         self.status['translation_force'] = self.motor_current_to_translation_force(self.left_wheel.status['current'],self.right_wheel.status['current'])
         self.status['rotation_torque'] = self.motor_current_to_rotation_torque(self.left_wheel.status['current'],self.right_wheel.status['current'])
 

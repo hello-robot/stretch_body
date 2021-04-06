@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 import stretch_body.robot
 import stretch_body.scope
@@ -7,6 +7,7 @@ from stretch_body.hello_utils import *
 
 import argparse
 import stretch_body.hello_utils as hu
+
 hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Tool to check the Stretch timestamps')
@@ -51,7 +52,7 @@ if args.display:
 
 if args.sensor_stats:
   print('Starting sensor timestamp analysis...')
-  print('Sync mode enabled: '+str(r.timestamp_manager.param['sync_mode_enabled']))
+  print('Sync mode enabled: '+str(r.params['sync_mode_enabled']))
   print('Time align status: ' + str(r.timestamp_manager.param['time_align_status']))
   print('Use skew compensation: ' + str(r.pimu.clock_manager.params['use_skew_compensation']))
   print('---------------------------')

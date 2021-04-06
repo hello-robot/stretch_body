@@ -571,7 +571,7 @@ class DynamixelTrajectoryManager(TrajectoryManager):
         self.traj_threaded = threaded
         if len(self.trajectory) < 2:
             return
-        if not self.servo_valid:
+        if not self.hw_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
             print('Dynamixel not homed: {0}'.format(self.name))

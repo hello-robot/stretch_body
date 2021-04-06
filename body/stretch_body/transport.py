@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+from __future__ import print_function
 from __future__ import print_function
 import serial
 import time
@@ -107,7 +107,7 @@ class Transport():
                 print('Transport Serial not present for:',self.usb)
             return
 
-        dbg_buf = bytes()
+        dbg_buf = ''
         try:
             ts = time.time()
             if dbg_on:
@@ -282,7 +282,7 @@ def pack_string_t(s,sidx,x):
     return struct.pack_into(str(n)+'s',s,sidx,x)
 
 def unpack_string_t(s,n):
-    return struct.unpack(str(n)+'s', s[:n])[0].strip('\x00')
+    return (struct.unpack(str(n)+'s', s[:n])[0].strip(b'\x00')).decode('utf-8')
 
 def unpack_int32_t(s):
     return struct.unpack('i',s[:4])[0]
