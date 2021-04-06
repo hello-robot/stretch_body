@@ -1,7 +1,4 @@
-#! /usr/bin/env python
-
-import time
-import copy
+from __future__ import print_function
 import threading
 
 from stretch_body.hello_utils import *

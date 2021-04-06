@@ -11,8 +11,8 @@ class Base(Device, MobileBaseTrajectoryManager):
     """
     API to the Stretch RE1 Mobile Base
     """
-    def __init__(self):
-        Device.__init__(self)
+    def __init__(self,verbose=False):
+        Device.__init__(self,verbose)
         MobileBaseTrajectoryManager.__init__(self)
         self.name='base'
         self.logger = logging.getLogger('robot.base')
@@ -35,8 +35,7 @@ class Base(Device, MobileBaseTrajectoryManager):
     # ###########  Device Methods #############
 
     def startup(self):
-        self.left_wheel.startup()
-        self.right_wheel.startup()
+        return self.left_wheel.startup() and self.right_wheel.startup()
 
 
     def stop(self):
@@ -44,20 +43,20 @@ class Base(Device, MobileBaseTrajectoryManager):
         self.right_wheel.stop()
 
     def pretty_print(self):
-        print '----------Base------'
-        print 'X (m)',self.status['x']
-        print 'Y (m)',self.status['y']
-        print 'Theta (rad)',self.status['theta']
-        print 'X_vel (m/s)', self.status['x_vel']
-        print 'Y_vel (m/s)', self.status['y_vel']
-        print 'Theta_vel (rad/s)', self.status['theta_vel']
-        print 'Pose time (s)', self.status['pose_time_s']
-        print 'Translation Force (N)',self.status['translation_force']
-        print 'Rotation Torque (Nm)', self.status['rotation_torque']
-        print 'Timestamp PC (s):', self.status['timestamp_pc']
-        print '-----Left-Wheel-----'
+        print('----------Base------')
+        print('X (m)',self.status['x'])
+        print('Y (m)',self.status['y'])
+        print('Theta (rad)',self.status['theta'])
+        print('X_vel (m/s)', self.status['x_vel'])
+        print('Y_vel (m/s)', self.status['y_vel'])
+        print('Theta_vel (rad/s)', self.status['theta_vel'])
+        print('Pose time (s)', self.status['pose_time_s'])
+        print('Translation Force (N)',self.status['translation_force'])
+        print('Rotation Torque (Nm)', self.status['rotation_torque'])
+        print('Timestamp PC (s):', self.status['timestamp_pc'])
+        print('-----Left-Wheel-----')
         self.left_wheel.pretty_print()
-        print '-----Right-Wheel-----'
+        print('-----Right-Wheel-----')
         self.right_wheel.pretty_print()
 
     # ###################################################
@@ -279,12 +278,13 @@ class Base(Device, MobileBaseTrajectoryManager):
         self.left_wheel.push_command()
         self.right_wheel.push_command()
 
-    def pull_status(self,do_update_odometry=True):
+    def pull_status(self):
+        """
+        Computes base odometery based on stepper positions / velocities
+        """
         self.left_wheel.pull_status()
         self.right_wheel.pull_status()
         self.status['timestamp_pc'] = time.time()
-        self.status['translation_force'] = self.motor_current_to_translation_force(self.left_wheel.status['current'],self.right_wheel.status['current'])
-        self.status['rotation_torque'] = self.motor_current_to_rotation_torque(self.left_wheel.status['current'],self.right_wheel.status['current'])
 
         p0 = self.status['left_wheel']['pos']
         p1 = self.status['right_wheel']['pos']
@@ -292,8 +292,10 @@ class Base(Device, MobileBaseTrajectoryManager):
         v1 = self.status['right_wheel']['vel']
         e0 = self.status['left_wheel']['effort']
         e1 = self.status['right_wheel']['effort']
-        t0 = self.status['left_wheel']['timestamp'].to_secs()
-        t1 = self.status['right_wheel']['timestamp'].to_secs()
+        t0 = self.status['left_wheel']['timestamp']
+        t1 = self.status['right_wheel']['timestamp']
+        self.status['translation_force'] = self.motor_current_to_translation_force(self.left_wheel.status['current'],self.right_wheel.status['current'])
+        self.status['rotation_torque'] = self.motor_current_to_rotation_torque(self.left_wheel.status['current'],self.right_wheel.status['current'])
 
 
         if self.first_step:

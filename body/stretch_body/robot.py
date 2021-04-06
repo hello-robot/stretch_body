@@ -1,5 +1,4 @@
-#! /usr/bin/env python
-
+from __future__ import print_function
 import threading
 import time
 import signal
@@ -53,7 +52,7 @@ class RobotDynamixelThread(threading.Thread):
 
             self.titr = self.titr + 1
             te = time.time()
-            tsleep = max(0, (1 / self.thread_update_rate_hz) - (te - ts))
+            tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
             if not self.shutdown_flag.is_set():
                 time.sleep(tsleep)
 
@@ -67,7 +66,7 @@ class RobotThread(threading.Thread):
         threading.Thread.__init__(self)
         self.robot=robot
 
-        self.thread_update_rate_hz = 25.0  #Hz
+        self.robot_update_rate_hz = 25.0  #Hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
         self.trajectory_downrate_int = 5 #Step the trajectory manager every Nth iteration
@@ -77,7 +76,6 @@ class RobotThread(threading.Thread):
             self.robot.monitor.startup()
         if self.robot.params['use_sentry']:
             self.robot.sentry.startup()
-
         self.shutdown_flag = threading.Event()
         self.timer_stats = hello_utils.TimerStats()
         self.titr=0
@@ -86,13 +84,12 @@ class RobotThread(threading.Thread):
     def run(self):
         while not self.shutdown_flag.is_set():
             ts = time.time()
-
             if (self.titr % self.status_downrate_int) == 0:
                 self.robot._pull_status_non_dynamixel()
 
             if (self.titr % self.trajectory_downrate_int) == 0:
                 self.robot._push_non_dynamixel_waypoint_trajectory()
-
+            self.first_status = True
             if self.robot.params['use_monitor']:
                 if (self.titr % self.monitor_downrate_int) == 0:
                     self.robot.monitor.step()
@@ -101,11 +98,9 @@ class RobotThread(threading.Thread):
                 if (self.titr % self.sentry_downrate_int) == 0:
                     self.robot.sentry.step()
 
-            self.first_status = True
-
             self.titr=self.titr+1
             te = time.time()
-            tsleep = max(0, (1 / self.thread_update_rate_hz) - (te - ts))
+            tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
             if not self.shutdown_flag.is_set():
                 time.sleep(tsleep)
 
@@ -114,19 +109,11 @@ class Robot(Device):
     """
     API to the Stretch RE1 Robot
     """
-    def __init__(self):
-        Device.__init__(self)
+    def __init__(self,verbose=False):
+        Device.__init__(self,verbose)
         self.params=self.robot_params['robot']
-        self.pimu=None
-        self.wacc=None
-        self.arm=None
-        self.lift=None
-        self.head=None
-        self.base=None
-        self.end_of_arm=None
-
-        self.monitor = RobotMonitor(self)
-        self.sentry = RobotSentry(self)
+        self.monitor = RobotMonitor(self,verbose=verbose)
+        self.sentry = RobotSentry(self,verbose=verbose)
         self.timestamp_manager = RobotTimestampManager(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
@@ -139,38 +126,35 @@ class Robot(Device):
                                      'dynamixel_wall_time':hello_utils.SystemTimestamp(),
                                      'non_dynamixel_wall_time':hello_utils.SystemTimestamp()}}
 
-        self.pimu=pimu.Pimu()
-        self.status['pimu']=self.pimu.status
+        self.pimu = pimu.Pimu(verbose=verbose)
+        self.status['pimu'] = self.pimu.status
 
-        self.base=base.Base()
-        self.status['base']=self.base.status
+        self.base = base.Base(verbose=verbose)
+        self.status['base'] = self.base.status
 
-        self.lift=lift.Lift()
-        self.status['lift']=self.lift.status
+        self.lift = lift.Lift(verbose=verbose)
+        self.status['lift'] = self.lift.status
 
-        self.arm=arm.Arm()
-        self.status['arm']=self.arm.status
+        self.arm = arm.Arm(verbose=verbose)
+        self.status['arm'] = self.arm.status
 
-        self.head=head.Head()
-        self.status['head']=self.head.status
+        self.head = head.Head(verbose=verbose)
+        self.status['head'] = self.head.status
 
-
-        if self.params.has_key('custom_wacc'):
+        if 'custom_wacc' in self.params:
             module_name = self.params['custom_wacc']['py_module_name']
             class_name = self.params['custom_wacc']['py_class_name']
             self.wacc=getattr(importlib.import_module(module_name), class_name)(self)
         else:
-            self.wacc=wacc.Wacc()
+            self.wacc=wacc.Wacc(verbose=verbose)
         self.status['wacc']=self.wacc.status
 
-
-        self.end_of_arm=end_of_arm.EndOfArm()
+        self.end_of_arm=end_of_arm.EndOfArm(verbose=verbose)
         self.status['end_of_arm']=self.end_of_arm.status
 
         self.n_status_history = 25  # Store last 25 status (approx 1 second of data)
         self.status_id = 0
         self.status_history = [[self.status_id ,copy.deepcopy(self.status)]]
-
 
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
         self.rt=None
@@ -249,10 +233,12 @@ class Robot(Device):
         self.logger.info('Starting up Robot')
         for k in self.devices.keys():
             if self.devices[k] is not None:
-                self.devices[k].startup()
+                if not self.devices[k].startup():
+                    pass
+                #    print('Startup failure on %s. Exiting.'%k)
+                #    exit()
 
         self.timestamp_manager.startup()
-
         if self.params['sync_mode_enabled']:
             self.enable_sync_mode()
         else:
@@ -271,26 +257,24 @@ class Robot(Device):
         ts=time.time()
         while not self.rt.first_status and not self.dt.first_status and time.time()-ts<3.0:
             time.sleep(0.1)
-        if not self.rt.first_status  or not self.dt.first_status :
-            self.logger.warning('Failed to startup up robot threads')
+        #if not self.rt.first_status  or not self.dt.first_status :
+        #    self.logger.warning('Failed to startup up robot threads')
 
     def stop(self):
         """
         To be called once before exiting a program
         Cleanly stops down motion and communication
         """
-        print 'Shutting down robot...'
+        print('Shutting down robot...')
         if self.rt is not None:
             self.rt.shutdown_flag.set()
-            time.sleep(0.1) #Provide time for thread loop to exit
             self.rt.join()
         if self.dt is not None:
             self.dt.shutdown_flag.set()
-            time.sleep(0.1) #Provide time for thread loop to exit
             self.dt.join()
         for k in self.devices.keys():
             if self.devices[k] is not None:
-                print 'Shutting down',k
+                print('Shutting down',k)
                 self.devices[k].stop()
 
 
@@ -331,12 +315,11 @@ class Robot(Device):
 
     def pretty_print(self):
         s=self.get_status()
-        print '##################### HELLO ROBOT ##################### '
-        print 'Time',time.time()
-        print 'Serial No',self.params['serial_no']
-        print 'Batch', self.params['batch_name']
+        print('##################### HELLO ROBOT ##################### ')
+        print('Time',time.time())
+        print('Serial No',self.params['serial_no'])
+        print('Batch', self.params['batch_name'])
         self._pretty_print_dict('Status',s)
-
 
     def push_command(self):
         """
@@ -373,7 +356,7 @@ class Robot(Device):
 
         lift_stowed=False
         if self.lift.status['pos']<=self.params['stow']['lift']: #Needs to come up before bring in arm
-            print '--------- Stowing Lift ----'
+            print('--------- Stowing Lift ----')
             self.lift.move_to(self.params['stow']['lift'])
             self.push_command()
             time.sleep(0.25)
@@ -383,7 +366,7 @@ class Robot(Device):
             lift_stowed=True
 
         #Bring in arm before bring down
-        print '--------- Stowing Arm ----'
+        print('--------- Stowing Arm ----')
         self.arm.move_to(self.params['stow']['arm'])
         self.push_command()
         time.sleep(0.25)
@@ -392,7 +375,7 @@ class Robot(Device):
             time.sleep(0.1)
 
         # Fold in wrist and gripper
-        print '--------- Stowing Wrist Yaw ----'
+        print('--------- Stowing Wrist Yaw ----')
         self.end_of_arm.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
         if self.end_of_arm.is_tool_present('StretchGripper'):
             self.end_of_arm.move_to('stretch_gripper', self.params['stow']['stretch_gripper'])
@@ -401,7 +384,7 @@ class Robot(Device):
 
         #Now bring lift down
         if not lift_stowed:
-            print '--------- Stowing Lift ----'
+            print('--------- Stowing Lift ----')
             self.lift.move_to(self.params['stow']['lift'])
             self.push_command()
             time.sleep(0.25)
@@ -423,22 +406,25 @@ class Robot(Device):
         self.pimu.disable_sync_mode()
         self.push_command()
 
-
-        print '--------- Homing Head ----'
-        self.head.home()
+        if self.head is not None:
+            print('--------- Homing Head ----')
+            self.head.home()
 
         # Home the lift
-        print '--------- Homing Lift ----'
-        self.lift.home()
+        if self.lift is not None:
+            print('--------- Homing Lift ----')
+            self.lift.home()
 
         # Home the arm
-        print '--------- Homing Arm ----'
-        self.arm.home()
+        if self.arm is not None:
+            print('--------- Homing Arm ----')
+            self.arm.home()
 
         # Home the end-of-arm
-        for j in self.end_of_arm.joints:
-            print  '--------- Homing ', j, '----'
-            self.end_of_arm.home(j)
+        if self.end_of_arm is not None:
+            for j in self.end_of_arm.joints:
+                print( '--------- Homing ', j, '----')
+                self.end_of_arm.home(j)
         #Let user know it is done
         if psm:
             self.pimu.enable_sync_mode()
@@ -447,10 +433,10 @@ class Robot(Device):
     # ################ Helpers #################################
 
     def _pretty_print_dict(self, t, d):
-        print '--------', t, '--------'
+        print('--------', t, '--------')
         for k in d.keys():
             if type(d[k]) != dict:
-                print k, ' : ', d[k]
+                print(k, ' : ', d[k])
         for k in d.keys():
             if type(d[k]) == dict:
                 self._pretty_print_dict(k, d[k])
@@ -461,7 +447,7 @@ class Robot(Device):
             self.head.pull_status()
             self.update_status_history(dynamixel=True)
         except SerialException:
-            print 'Serial Exception on Robot Step_Dynamixel'
+            print('Serial Exception on Robot Step_Dynamixel')
 
     def _pull_status_non_dynamixel(self):
         #Send a status sync message to all slaves, so timestamped at same time

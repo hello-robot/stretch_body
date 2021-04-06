@@ -1,3 +1,4 @@
+from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.hello_utils import *
 import time
@@ -7,8 +8,8 @@ class WristYaw(DynamixelHelloXL430):
     """
     API to the Stretch RE1 wrist yaw joint
     """
-    def __init__(self, chain=None):
-        DynamixelHelloXL430.__init__(self,'wrist_yaw',chain)
+    def __init__(self, chain=None,verbose=False):
+        DynamixelHelloXL430.__init__(self,'wrist_yaw',chain,verbose=verbose)
         self.logger = logging.getLogger('robot.wrist_yaw')
         self.poses = {'side': deg_to_rad(90.0), 'forward': deg_to_rad(0.0), 'stow': deg_to_rad(180.0)}
         self.sentry_active=False

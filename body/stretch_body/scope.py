@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+from __future__ import print_function
 from matplotlib.widgets import Slider, Button
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation

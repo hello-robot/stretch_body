@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 import stretch_body.hello_utils as hello_utils
 import time
 
@@ -26,9 +26,10 @@ class Device:
     """
     Generic base class for all custom Stretch hardware
     """
-    def __init__(self):
+    def __init__(self,verbose=False):
         #Factory + Tool params form the robot_params
         #User params can overwrite the resulting robot_params
+        self.verbose=verbose
         self.user_params=hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
         self.robot_params=hello_utils.read_fleet_yaml(self.user_params['factory_params'])
         self.robot_params.update(hello_utils.read_fleet_yaml(self.user_params['tool_params']))
@@ -38,7 +39,7 @@ class Device:
 
     def overwrite_params(self,factory_dict,user_dict):
         for k in user_dict.keys():
-            if factory_dict.has_key(k):
+            if k in factory_dict:
                 if type(factory_dict[k])==type(user_dict[k]):
                     if type(factory_dict[k])==dict:
                         self.overwrite_params(factory_dict[k],user_dict[k])
@@ -53,7 +54,7 @@ class Device:
     # ########### Primary interface #############
 
     def startup(self):
-        pass
+        return True
 
     def stop(self):
         pass

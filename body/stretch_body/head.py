@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.hello_utils import *
 from stretch_body.dynamixel_X_chain import DynamixelXChain
@@ -7,12 +7,12 @@ class Head(DynamixelXChain):
     """
     API to the Stretch RE1 Head
     """
-    def __init__(self):
-        DynamixelXChain.__init__(self, '/dev/hello-dynamixel-head')
+    def __init__(self,verbose=False):
+        DynamixelXChain.__init__(self, '/dev/hello-dynamixel-head',verbose)
         self.name = 'head'
         self.joints = ['head_pan', 'head_tilt']
         for j in self.joints:
-            self.add_motor(DynamixelHelloXL430(j, self))
+            self.add_motor(DynamixelHelloXL430(j, self,verbose))
         self.poses = {'ahead': [0, 0], 'back': [deg_to_rad(-180), deg_to_rad(0)],
                       'tool': [deg_to_rad(-90), deg_to_rad(-45)],
                       'wheels': [deg_to_rad(0), deg_to_rad(-90)], 'left': [deg_to_rad(90), deg_to_rad(0)],

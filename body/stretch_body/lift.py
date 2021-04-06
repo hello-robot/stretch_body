@@ -1,3 +1,4 @@
+from __future__ import print_function
 from stretch_body.stepper import *
 from stretch_body.device import Device
 from stretch_body.trajectory_managers import StepperTrajectoryManager
@@ -7,12 +8,12 @@ class Lift(Device, StepperTrajectoryManager):
     """
     API to the Stretch RE1 Lift
     """
-    def __init__(self):
-        Device.__init__(self)
+    def __init__(self,verbose=False):
+        Device.__init__(self,verbose)
         StepperTrajectoryManager.__init__(self)
         self.name='lift'
         self.params=self.robot_params[self.name]
-        self.motor = Stepper('/dev/hello-motor-lift')
+        self.motor = Stepper('/dev/hello-motor-lift',verbose=verbose)
         self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
         # Default controller params
         self.stiffness = 1.0
@@ -25,7 +26,7 @@ class Lift(Device, StepperTrajectoryManager):
     # ###########  Device Methods #############
 
     def startup(self):
-        self.motor.startup()
+        return self.motor.startup()
 
     def stop(self):
         self.motor.stop() #Maintain current mode
@@ -33,19 +34,19 @@ class Lift(Device, StepperTrajectoryManager):
     def pull_status(self):
         self.motor.pull_status()
         self.status['timestamp_pc'] = time.time()
-        self.status['pos']= self.motor_rad_to_translate(self.status['motor']['pos'])
-        self.status['vel'] = self.motor_rad_to_translate(self.status['motor']['vel'])
+        self.status['pos']= self.motor_rad_to_translate_m(self.status['motor']['pos'])
+        self.status['vel'] = self.motor_rad_to_translate_m(self.status['motor']['vel'])
         self.status['force'] = self.motor_current_to_translate_force(self.status['motor']['current'])
 
     def push_command(self):
         self.motor.push_command()
 
     def pretty_print(self):
-        print '----- Lift ------ '
-        print 'Pos (m): ', self.status['pos']
-        print 'Vel (m/s): ', self.status['vel']
-        print 'Force (N): ', self.status['force']
-        print 'Timestamp PC (s):', self.status['timestamp_pc']
+        print('----- Lift ------ ')
+        print('Pos (m): ', self.status['pos'])
+        print('Vel (m/s): ', self.status['vel'])
+        print('Force (N): ', self.status['force'])
+        print('Timestamp PC (s):', self.status['timestamp_pc'])
         #self.motor.pretty_print()
 
     # ###################################################
@@ -62,7 +63,7 @@ class Lift(Device, StepperTrajectoryManager):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Lift not homed'
+                print('Lift not calibrated')
                 return
 
         if stiffness is not None:
@@ -113,7 +114,7 @@ class Lift(Device, StepperTrajectoryManager):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Lift not calibrated'
+                print('Lift not calibrated')
                 return
 
         if stiffness is not None:
@@ -143,7 +144,7 @@ class Lift(Device, StepperTrajectoryManager):
         else:
             i_contact_pos = self.i_contact_pos
 
-        #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate(v_r), self.motor_rad_to_translate(a_r)))
+        #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate_m(v_r), self.motor_rad_to_translate_m(a_r)))
 
         self.motor.set_command(mode = MODE_POS_TRAJ_INCR,
                                 x_des=self.translate_to_motor_rad(x_m),
@@ -153,6 +154,7 @@ class Lift(Device, StepperTrajectoryManager):
                                 i_feedforward=self.i_feedforward,
                                 i_contact_pos=i_contact_pos,
                                 i_contact_neg=i_contact_neg)
+
 
     # ######### Utility ##############################
 
@@ -172,7 +174,7 @@ class Lift(Device, StepperTrajectoryManager):
         #tq=f*r
         #return self.motor.torque_to_current(tq)
 
-    def motor_rad_to_translate(self,ang): #input in rad
+    def motor_rad_to_translate_m(self,ang): #input in rad
         if ang is None:
             return
         d=self.params['pinion_t']*self.params['belt_pitch_m']/math.pi
@@ -197,9 +199,10 @@ class Lift(Device, StepperTrajectoryManager):
 
 
     def home(self, measuring=False):
-        print 'Homing lift...'
-        g0=self.motor.gains['enable_guarded_mode']
-        s0=self.motor.gains['enable_sync_mode']
+        if not self.motor.hw_valid:
+            print('Not able to home lift. Hardware not present')
+            return
+        print('Homing lift...')
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
@@ -212,10 +215,10 @@ class Lift(Device, StepperTrajectoryManager):
         self.move_by(x_m=1.25, contact_thresh_pos_N=self.params['homing_force_N'][1], contact_thresh_neg_N=self.params['homing_force_N'][0], req_calibration=False)
         self.push_command()
         if self.__wait_for_contact(timeout=15.0): #self.__wait_for_contact(timeout=15.0):
-            print 'Upward contact detected at motor position (rad)', self.motor.status['pos'],self.motor_rad_to_translate(self.motor.status['pos'])
+            print('Upward contact detected at motor position (rad)', self.motor.status['pos'],self.motor_rad_to_translate_m(self.motor.status['pos']))
             if not measuring:
                 x = self.translate_to_motor_rad(self.params['range_m'][1])
-                print 'Marking lift position to (m)', self.params['range_m'][1]
+                print('Marking lift position to (m)', self.params['range_m'][1])
                 self.motor.mark_position(x)
                 self.motor.set_pos_calibrated()
                 self.push_command()
@@ -223,7 +226,7 @@ class Lift(Device, StepperTrajectoryManager):
                 self.pull_status()
                 x_up=self.status['pos']-xstart
         else:
-            print 'Failed to detect contact'
+            print('Failed to detect contact')
             return
         #Allow to settle
         time.sleep(1.0)
@@ -234,9 +237,9 @@ class Lift(Device, StepperTrajectoryManager):
         time.sleep(6.0)
 
         #Restore default
-        if not g0:
+        if not self.motor.gains['enable_guarded_mode']:
             self.motor.disable_guarded_mode()
-        if s0:
+        if self.motor.gains['enable_sync_mode']:
             self.motor.enable_sync_mode()
         self.push_command()
 
