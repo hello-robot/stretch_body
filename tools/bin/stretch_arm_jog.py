@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys, tty, termios
 import time
 import stretch_body.arm as arm
@@ -30,20 +31,20 @@ def get_keystroke():
     return ch
 
 def menu():
-    print '--------------'
-    print 'm: menu'
-    print 'i / o : small in out'
-    print 'I / O : large in out'
-    print 'f: stiffness float'
-    print 's: stiffness soft'
-    print 'h: stiffness hard'
-    print '1: rate slow'
-    print '2: rate default'
-    print '3: rate fast'
-    print '4: rate max'
-    print 'q: quit'
-    print ''
-    print 'Input?'
+    print('--------------')
+    print('m: menu')
+    print('i / o : small in out')
+    print('I / O : large in out')
+    print('f: stiffness float')
+    print('s: stiffness soft')
+    print('h: stiffness hard')
+    print('1: rate slow')
+    print('2: rate default')
+    print('3: rate fast')
+    print('4: rate max')
+    print('q: quit')
+    print('')
+    print('Input?')
 
 rate='default'
 req_calibration=False

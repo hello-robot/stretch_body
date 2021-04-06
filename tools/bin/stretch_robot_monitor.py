@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from stretch_body.robot import Robot
 from stretch_body.hello_utils import *
 import argparse
@@ -9,7 +10,7 @@ args=parser.parse_args()
 
 r=Robot()
 r.params['log_to_console']=1
-print 'Starting Robot Monitor. Ctrl-C to exit\n'
+print('Starting Robot Monitor. Ctrl-C to exit')
 r.startup()
 
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import stretch_body.robot as robot
 import argparse
 import stretch_body.hello_utils as hu

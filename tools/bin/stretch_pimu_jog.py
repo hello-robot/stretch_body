@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 from stretch_body.pimu import Pimu
 import stretch_body.hello_utils as hu
@@ -21,10 +22,10 @@ def menu():
     print('p: beep')
     print('t: trigger motor sync')
     print('r: reset board')
-    print 'x: reset runstop event'
-    print 'o: trigger runstop event'
-    print 'y: reset cliff event'
-    print '-------------------'
+    print('x: reset runstop event')
+    print('o: trigger runstop event')
+    print('y: reset cliff event')
+    print('-------------------')
 
 def step_interaction():
     menu()
@@ -34,16 +35,16 @@ def step_interaction():
         if x[0]=='m':
             menu()
         if x[0]=='x':
-            print 'Resetting Runstop Event'
+            print('Resetting Runstop Event')
             p.runstop_event_reset()
         if x[0]=='o':
-            print 'Triggering Runstop Event'
+            print('Triggering Runstop Event')
             p.runstop_event_trigger()
         if x[0]=='y':
-            print 'Resetting Cliff Event'
+            print('Resetting Cliff Event')
             p.cliff_event_reset()
         if x[0]=='r':
-            print 'Resetting Board!!!'
+            print('Resetting Board!!!')
             p.board_reset()
         if x[0]=='i':
             p.imu_reset()

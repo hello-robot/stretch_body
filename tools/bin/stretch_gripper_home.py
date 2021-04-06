@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 import stretch_body.stretch_gripper as gripper
 import time
 import argparse

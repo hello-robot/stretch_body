@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import stretch_body.pimu as pimu
 import stretch_body.head as head
 import stretch_body.end_of_arm as end_of_arm

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys, tty, termios
 import stretch_body.robot as hello_robot
 from stretch_body.hello_utils import *
@@ -37,29 +38,27 @@ def get_keystroke():
     return ch
 
 def menu():
-    print '--------------'
-    print 'Mobile Base'
-    print 'i / , / j / l : small forward / back / left / right'
-    print 'I / < / J / L : large forward / back / left / right'
-    print
-    print 'Arm'
-    print 'w / x / a / d : small up / down / in / out'
-    print 'W / X / A / D : large up / down / in / out'
-    print
-    print 'Head'
-    print 'f / h / t / b : ahead / back / tool / wheels'
-    print
-    print 'Tool'
-    print '8 / 2 / 0 / 5 : forward / stow / open / close'
-    print
-    print 'Mechaduinos'
-    print 'e / p  : effort / pose '
-    print
-    print 'System'
-    print '? / q : help / quit'
-    print '--------------'
-
-
+    print('--------------')
+    print('Mobile Base')
+    print('i / , / j / l : small forward / back / left / right')
+    print('I / < / J / L : large forward / back / left / right')
+    print('')
+    print('Arm')
+    print('w / x / a / d : small up / down / in / out')
+    print('W / X / A / D : large up / down / in / out')
+    print('')
+    print('Head')
+    print('f / h / t / b : ahead / back / tool / wheels')
+    print('')
+    print('Tool')
+    print('8 / 2 / 0 / 5 : forward / stow / open / close')
+    print('')
+    print('Mechaduinos')
+    print('e / p  : effort / pose ')
+    print('')
+    print('System')
+    print('? / q : help / quit')
+    print('--------------')
 
 try:
     menu()
@@ -129,18 +128,18 @@ try:
                 
             # Mechaduino commands
             if c == 'e':
-                print 'Mobile Base Effort: ', robot.base.left_wheel.status['effort'],robot.base.right_wheel.status['effort']
-                print 'Arm Force: ', robot.status['arm']['force']
+                print('Mobile Base Effort: ', robot.base.left_wheel.status['effort'],robot.base.right_wheel.status['effort'])
+                print('Arm Force: ', robot.status['arm']['force'])
             if c == 'p':
-                print 'Mobile Base Pose: ', robot.base.status['pos']
-                print 'Arm Position: ', robot.status['arm']['pos']
+                print('Mobile Base Pose: ', robot.base.status['pos'])
+                print('Arm Position: ', robot.status['arm']['pos'])
 
             robot.push_command()
 
             
             # System commands
             if c=='Q' or c=='q':
-                print 'Quiting'
+                print('Quiting')
                 robot.stop()
                 sys.exit()
             if c=='?':
