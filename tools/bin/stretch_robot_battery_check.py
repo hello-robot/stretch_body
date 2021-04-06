@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import stretch_body.pimu as pimu
 from colorama import Fore, Back, Style
 import argparse
@@ -19,7 +20,8 @@ def val_in_range(val_name, val,vmin, vmax):
 # #####################################################
 
 p=pimu.Pimu(verbose=False)
-p.startup()
+if not p.startup():
+    exit()
 p.pull_status()
 val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.0)
 val_in_range('Current',p.status['current'], vmin=0.1, vmax=p.config['high_current_alert'])

@@ -90,7 +90,7 @@ class Wacc(Device):
                 self.pull_status()
                 self.clock_manager.zero_HW_clock()
                 return True
-            return False
+        return False
 
     def stop(self):
         with self.lock:
@@ -156,8 +156,8 @@ class Wacc(Device):
         print('Timestamp', self.status['timestamp'])
         print('Board version:', self.board_info['board_version'])
         print('Firmware version:', self.board_info['firmware_version'])
-        print 'Timestamp Status Sync', self.status['timestamp_status_sync']
-        print 'Timestamp PC', self.status['timestamp_pc']
+        print('Timestamp Status Sync', self.status['timestamp_status_sync'])
+        print('Timestamp PC', self.status['timestamp_pc'])
         self.clock_manager.pretty_print()
     # ####################### Utility functions ####################################################
     def board_reset(self):

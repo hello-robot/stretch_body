@@ -118,38 +118,37 @@ class Stepper(Device):
 
     # ###########  Device Methods #############
     def startup(self):
-        def startup(self):
-            with self.lock:
-                self.gains = self.params['gains'].copy()
-                self.hw_valid = self.transport.startup()
+        with self.lock:
+            self.gains = self.params['gains'].copy()
+            self.hw_valid = self.transport.startup()
 
-                if self.hw_valid:
-                    # Pull board info
-                    self.transport.payload_out[0] = RPC_GET_STEPPER_BOARD_INFO
-                    self.transport.queue_rpc(1, self.rpc_board_info_reply)
-                    self.transport.step(exiting=False)
-                    # Check that protocol matches
-                    match = False
-                    for p in self.valid_firmware_protocols:
-                        if p == self.board_info['protocol_version']:
-                            match = True
-                    if not match:
-                        print('----------------')
-                        print('Firmware protocol mismatch on %s. ' % self.name)
-                        print('Current protocol is %s.' % self.board_info['protocol_version'])
-                        print('Valid protocols are: %s' % str(self.valid_firmware_protocols))
-                        print('Disabling device')
-                        print('Please upgrade the firmware and or version of Stretch Body')
-                        print('----------------')
-                        self.hw_valid = False
-                        self.transport.stop()
-                if self.hw_valid:
-                    self.enable_safety()
-                    self._dirty_gains = True
-                    self.pull_status()
-                    self.push_command()
-                    return True
-                return False
+            if self.hw_valid:
+                # Pull board info
+                self.transport.payload_out[0] = RPC_GET_STEPPER_BOARD_INFO
+                self.transport.queue_rpc(1, self.rpc_board_info_reply)
+                self.transport.step(exiting=False)
+                # Check that protocol matches
+                match = False
+                for p in self.valid_firmware_protocols:
+                    if p == self.board_info['protocol_version']:
+                        match = True
+                if not match:
+                    print('----------------')
+                    print('Firmware protocol mismatch on %s. ' % self.name)
+                    print('Current protocol is %s.' % self.board_info['protocol_version'])
+                    print('Valid protocols are: %s' % str(self.valid_firmware_protocols))
+                    print('Disabling device')
+                    print('Please upgrade the firmware and or version of Stretch Body')
+                    print('----------------')
+                    self.hw_valid = False
+                    self.transport.stop()
+            if self.hw_valid:
+                self.enable_safety()
+                self._dirty_gains = True
+                self.pull_status()
+                self.push_command()
+                return True
+        return False
 
 
     #Configure control mode prior to calling this on process shutdown (or default to freewheel)
@@ -590,7 +589,7 @@ class Stepper(Device):
             while self.transport.ser.inWaiting():
                 r=self.transport.ser.readline()
                 if do_print:
-                    print r,
+                    print(r, end=' ')
                 reply.append(r)
             return reply
 

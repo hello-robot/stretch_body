@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import print_function
 import stretch_body.scope
 import stretch_body.wrist_yaw
 from stretch_body.hello_utils import *

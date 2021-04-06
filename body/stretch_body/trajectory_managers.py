@@ -679,7 +679,7 @@ class StepperTrajectoryManager(TrajectoryManager):
         if len(self.trajectory) < 2:
             return
         if req_calibration and not self.motor.status['pos_calibrated']:
-            print 'Arm not homed'
+            print('Arm not homed')
             return
 
         v_r = self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_m'])

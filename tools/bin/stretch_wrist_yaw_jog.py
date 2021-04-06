@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from stretch_body.hello_utils import *
 import sys
 import stretch_body.wrist_yaw as wrist_yaw
@@ -10,7 +11,8 @@ args=parser.parse_args()
 
 poses = {'zero':0, 'left':deg_to_rad(90), 'right': deg_to_rad(-45)}
 w=wrist_yaw.WristYaw()
-w.startup()
+if not w.startup():
+    exit()
 
 v_des=w.params['motion']['default']['vel']
 a_des=w.params['motion']['default']['accel']
@@ -24,11 +26,11 @@ def menu_top():
     print('z: zero')
     print('l: left')
     print('r: right')
-    print '1: speed slow'
-    print '2: speed default'
-    print '3: speed fast'
-    print '4: speed max'
-    print '-------------------'
+    print('1: speed slow')
+    print('2: speed default')
+    print('3: speed fast')
+    print('4: speed max')
+    print('-------------------')
 
 def step_interaction():
     global v_des, a_des

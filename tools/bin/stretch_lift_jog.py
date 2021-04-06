@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys, tty, termios
 import time
 import stretch_body.lift as lift
@@ -15,7 +16,10 @@ large_move_m=0.3
 
 
 l=lift.Lift()
-l.startup()
+if not l.startup():
+    exit()
+l.motor.disable_sync_mode()
+l.push_command()
 
 def get_keystroke():
 
@@ -29,20 +33,20 @@ def get_keystroke():
     return ch
 
 def menu():
-    print '--------------'
-    print 'm: menu'
-    print 'u / d : small up down'
-    print 'U / D : large up down'
-    print 'f: stiffness float'
-    print 's: stiffness soft'
-    print 'h: stiffness hard'
-    print '1: rate slow'
-    print '2: rate default'
-    print '3: rate fast'
-    print '4: rate max'
-    print 'q: quit'
-    print ''
-    print 'Input?'
+    print('--------------')
+    print('m: menu')
+    print('u / d : small up down')
+    print('U / D : large up down')
+    print('f: stiffness float')
+    print('s: stiffness soft')
+    print('h: stiffness hard')
+    print('1: rate slow')
+    print('2: rate default')
+    print('3: rate fast')
+    print('4: rate max')
+    print('q: quit')
+    print('')
+    print('Input?')
 
 rate='default'
 req_calibration=False

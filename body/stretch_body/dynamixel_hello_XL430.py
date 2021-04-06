@@ -58,6 +58,7 @@ class DynamixelHelloXL430(Device, DynamixelTrajectoryManager):
             self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
+            return True
         else:
             print('DynamixelHelloXL430 Ping failed...', self.name)
             return False

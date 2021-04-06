@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import pyaudio
 import wave
 import numpy as np
@@ -226,25 +227,28 @@ def play_audio(frames):
 
 if __name__ == "__main__":
     dev = usb.core.find(idVendor=0x2886, idProduct=0x0018)
-    printed_wait_statement = False
-    if dev:
-        respeaker = Tuning(dev)
-        while True:
-            try:
-                if not printed_wait_statement and respeaker.is_voice() == 0:
-                    print "\n* waiting for audio..."
-                    printed_wait_statement = True
-                else:
-                    if respeaker.is_voice() == 1:
-                        print "* recording 3 seconds"
-                        frames = record_audio()
-                        print "* done"
-                        time.sleep(1)
-                        print "* playing audio"
-                        play_audio(frames)
-                        print "* done"
-                        time.sleep(1)
-                        printed_wait_statement = False
-                    time.sleep(0.01)
-            except KeyboardInterrupt:
-                break
+    try:
+        printed_wait_statement = False
+        if dev:
+            respeaker = Tuning(dev)
+            while True:
+                try:
+                    if not printed_wait_statement and respeaker.is_voice() == 0:
+                        print("\n* waiting for audio...")
+                        printed_wait_statement = True
+                    else:
+                        if respeaker.is_voice() == 1:
+                            print("* recording 3 seconds")
+                            frames = record_audio()
+                            print("* done")
+                            time.sleep(1)
+                            print("* playing audio")
+                            play_audio(frames)
+                            print("* done")
+                            time.sleep(1)
+                            printed_wait_statement = False
+                        time.sleep(0.01)
+                except KeyboardInterrupt:
+                    break
+    except usb.core.USBError:
+        print('Respeaker not on USB bus')

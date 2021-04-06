@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import os
 import subprocess
 import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 
-print 'Versions'
-print "-------------------------------------------------------------------------"
+print('Versions')
+print("-------------------------------------------------------------------------")
 import stretch_body
 import stretch_body.base as base
 import stretch_body.arm as arm
@@ -42,7 +43,7 @@ w.stop()
 b.stop()
 l.stop()
 a.stop()
-print ""
+print("")
 
 
 subprocess.call(['echo', 'USB Root Hubs'])

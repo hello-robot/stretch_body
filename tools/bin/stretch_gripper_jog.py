@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-
+from __future__ import print_function
 import sys
 import stretch_body.stretch_gripper as gripper
 import argparse
@@ -11,7 +10,8 @@ parser=argparse.ArgumentParser(description='Jog the griper from the keyboard')
 args=parser.parse_args()
 
 g=gripper.StretchGripper()
-g.startup()
+if not g.startup():
+    exit()
 g.pull_status()
 v_des=g.params['motion']['default']['vel']
 a_des=g.params['motion']['default']['accel']
@@ -28,12 +28,12 @@ def menu_top():
     print('a: open')
     print('b: zero')
     print('c: close')
-    print '-----'
-    print '1: speed slow'
-    print '2: speed default'
-    print '3: speed fast'
-    print '4: speed max'
-    print '-------------------'
+    print('-----')
+    print('1: speed slow')
+    print('2: speed default')
+    print('3: speed fast')
+    print('4: speed max')
+    print('-------------------')
 
 def step_interaction():
     global v_des, a_des

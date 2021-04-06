@@ -313,24 +313,22 @@ class Pimu(Device):
     def trigger_status_sync(self):
         if not self.hw_valid:
             return
-        if self.protocol_id > 0:
-            self.clock_manager.start_skew_measure()
-            #Push out immediately
-            with self.lock:
-                self.transport.payload_out[0] = RPC_SET_STATUS_SYNC
-                self.transport.queue_rpc(1, self.rpc_status_sync_reply)
-                self.transport.step()
-            self.clock_manager.end_skew_measure()
+        self.clock_manager.start_skew_measure()
+        #Push out immediately
+        with self.lock:
+            self.transport.payload_out[0] = RPC_SET_STATUS_SYNC
+            self.transport.queue_rpc(1, self.rpc_status_sync_reply)
+            self.transport.step()
+        self.clock_manager.end_skew_measure()
 
     def trigger_clock_zero(self):
         if not self.hw_valid:
             return
         # Push out immediately
-        if self.protocol_id > 0:
-            with self.lock:
-                self.transport.payload_out[0] = RPC_SET_CLOCK_ZERO
-                self.transport.queue_rpc(1, self.rpc_clock_zero_reply)
-                self.transport.step()
+        with self.lock:
+            self.transport.payload_out[0] = RPC_SET_CLOCK_ZERO
+            self.transport.queue_rpc(1, self.rpc_clock_zero_reply)
+            self.transport.step()
 
     def set_fan_on(self):
         with self.lock:

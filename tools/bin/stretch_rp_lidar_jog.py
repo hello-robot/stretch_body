@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from rplidar import RPLidar
+from __future__ import print_function
+from rplidar import *
 import argparse
 import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
@@ -13,7 +14,11 @@ parser.add_argument("--reset", help="Reset device",action="store_true")
 parser.add_argument("--range", help="Print range reading",action="store_true")
 args=parser.parse_args()
 
-lidar = RPLidar('/dev/hello-lrf')
+try:
+    lidar = RPLidar('/dev/hello-lrf')
+except RPLidarException:
+    print ('RPLidar not present')
+    exit()
 prev_motor_running=lidar.motor_running
 
 if args.info:
@@ -38,7 +43,7 @@ if args.range:
         if i > 0:
             break
         print('%d: Got %d measurments' % (i, len(scan)))
-        print 'Scan',scan
+        print('Scan',scan)
 
 
 if not args.motor_on: #Turn off motor by default

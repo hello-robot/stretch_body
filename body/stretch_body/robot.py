@@ -31,7 +31,7 @@ class RobotDynamixelThread(threading.Thread):
     def __init__(self,robot):
         threading.Thread.__init__(self)
         self.robot=robot
-        self.thread_update_rate_hz = 60.0  #Hz
+        self.robot_update_rate_hz = 60.0  #Hz
         self.trajectory_downrate_int = 1  # Step the trajectory manager at 60hz for smooth vel ctrl
         self.status_downrate_int = 4  # Step the status at 15hz (most bus can handle)
         self.timer_stats = hello_utils.TimerStats()
