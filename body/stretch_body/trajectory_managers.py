@@ -587,7 +587,7 @@ class DynamixelTrajectoryManager(TrajectoryManager):
                 self.motor.enable_watchdog()
             self.motor.enable_vel()
             self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['trajectory_max']['accel']))
-            self.motor.set_vel_limit(self.rad_per_sec_to_ticks(self.params['motion']['max']['vel']))
+            self.motor.set_vel_limit(self.rad_per_sec_to_ticks(self.params['motion']['trajectory_max']['vel']))
             self.enable_torque()
         self.traj_start_time = time.time()
         self.traj_curr_time = self.traj_start_time
@@ -618,6 +618,18 @@ class DynamixelTrajectoryManager(TrajectoryManager):
                 self.move_to(self.traj_curr_goal.position)
             else:
                 v_des = self.world_rad_to_ticks_per_sec(self.traj_curr_goal.velocity)
+                #Honor joint limits in velocity mode
+                lim_lower=min(self.ticks_to_world_rad(self.params['range_t'][0]),self.ticks_to_world_rad(self.params['range_t'][1]))
+                lim_upper=max(self.ticks_to_world_rad(self.params['range_t'][0]),self.ticks_to_world_rad(self.params['range_t'][1]))
+                x_curr=self.status['pos']
+                v_curr=self.status['vel']
+                if self.params['motion']['trajectory_max']['accel']>0:
+                    t_brake = abs(v_curr)/self.params['motion']['trajectory_max']['accel'] #How long to brake from current speed (s)
+                else:
+                    t_brake=0
+                d_brake = t_brake* v_curr / 2 #How far it will go before breaking (pos/neg)
+                if (self.traj_curr_goal.velocity>0 and x_curr+d_brake>=lim_upper) or (self.traj_curr_goal.velocity<0 and x_curr+d_brake<=lim_lower):
+                    v_des=0
                 self.motor.go_to_vel(v_des)
         if self.status['trajectory_active'] and self.duration_remaining() == 0.0:
             if not self.traj_pos_mode:
