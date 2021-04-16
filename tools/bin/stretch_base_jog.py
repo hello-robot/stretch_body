@@ -95,7 +95,7 @@ try:
             if c =='x':
                     print('Enter pause before starting motion (s)[10]')
                     try:
-                        x=float(raw_input())
+                        x=float(input())
                     except ValueError:
                         x=10.0
                     time.sleep(x)
@@ -110,7 +110,7 @@ try:
             if c =='w':
                 print('Enter pause before starting motion (s)[10]')
                 try:
-                    x = float(raw_input())
+                    x = float(input())
                 except ValueError:
                     x = 10.0
                 time.sleep(x)
@@ -125,7 +125,7 @@ try:
             if c =='y':
                 print('Enter pause before starting motion (s)[10]')
                 try:
-                    x = float(raw_input())
+                    x = float(input())
                 except ValueError:
                     x = 10.0
                 time.sleep(x)

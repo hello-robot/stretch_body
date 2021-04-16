@@ -54,8 +54,8 @@ class Wacc(Device):
         # Ignore YAML (legacy setting). Sync mode must be manually enabled via the API
         self.config['sync_mode_enabled'] = 0
         self.clock_manager=HardwareClockManager(self,'wacc_clock_manager')
-        self.board_info = {'board_version': 'None', 'firmware_version': 'None', 'protocol_version': None}
-        self.valid_firmware_protocols = ['p1']
+        self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
+        self.valid_firmware_protocol = 'p1'
         self.hw_valid = False
 
     # ###########  Device Methods #############
@@ -69,12 +69,7 @@ class Wacc(Device):
                 self.transport.queue_rpc(1, self.rpc_board_info_reply)
                 self.transport.step(exiting=False)
                 # Check that protocol matches
-
-                match=False
-                for p in self.valid_firmware_protocols:
-                    if p==self.board_info['protocol_version']:
-                        match=True
-                if not match:
+                if not (self.valid_firmware_protocol == self.board_info['protocol_version']):
                     print('----------------')
                     print('Firmware protocol mismatch on %s. '%self.name)
                     print('Current protocol is %s.'%self.board_info['protocol_version'])

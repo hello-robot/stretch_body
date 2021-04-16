@@ -90,7 +90,7 @@ class Stepper(Device):
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0, 'in_sync_mode':0,
                        'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0,'timestamp_line_sync':SystemTimestamp(),'trajectory_active':False, 'pos_traj': 0}
-        self.board_info={'board_version':'None', 'firmware_version':'None','protocol_version':None}
+        self.board_info={'board_version':None, 'firmware_version':None,'protocol_version':None}
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
                          MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR',
                          MODE_POS_TRAJ_WAYPOINT:'MODE_POS_TRAJ_WAYPOINT'}
@@ -112,7 +112,7 @@ class Stepper(Device):
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.traj_next_seg = [0] * 8
         self.traj_curr_seg_id = None
-        self.valid_firmware_protocols=['p1']
+        self.valid_firmware_protocol='p1'
         self.hw_valid=False
 
     # ###########  Device Methods #############
@@ -127,11 +127,7 @@ class Stepper(Device):
                 self.transport.queue_rpc(1, self.rpc_board_info_reply)
                 self.transport.step(exiting=False)
                 # Check that protocol matches
-                match = False
-                for p in self.valid_firmware_protocols:
-                    if p == self.board_info['protocol_version']:
-                        match = True
-                if not match:
+                if not(self.valid_firmware_protocol == self.board_info['protocol_version']):
                     print('----------------')
                     print('Firmware protocol mismatch on %s. ' % self.name)
                     print('Current protocol is %s.' % self.board_info['protocol_version'])
