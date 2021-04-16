@@ -14,7 +14,7 @@ class CobbsFraming():
     def __init__(self):
         self.packet_marker=0
         self.timeout=.2 #Was .05 but on heavy loads can get starved
-
+        self.warned_last=time.time()
     def sendFramedData(self, data, size, serial):
         crc=self.calc_crc(data,size)
         data[size]=(crc>>8)&0xFF
@@ -28,7 +28,6 @@ class CobbsFraming():
         t_start = time.time()
         rx_buffer=[]
         warning_time=0.1
-        warned=False
         while ((time.time() - t_start) < self.timeout):
             nn=serial.inWaiting()
             if (nn > 0):
@@ -46,9 +45,9 @@ class CobbsFraming():
                         return crc1==crc2, nr
                     else:
                         rx_buffer.append(byte_in)
-            if (time.time() - t_start)>warning_time and not warned:
-                warned=True
-                print('Warning: receiveFramedData packet time exceeds normal limits (%f ms). Cause may be heavy CPU load.'%warning_time*1000)
+            #if (time.time() - t_start)>warning_time and time.time()-self.warned_last>1.0:
+            #    self.warned_last=time.time()
+            #    print('Warning: receiveFramedData packet time exceeds normal limits (%f ms). Cause may be heavy CPU load.'%warning_time*1000)
         return 0,0
 
     def calc_crc(self, buf, nr): #Modbus CRC
