@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import time
 import stretch_body.wacc as wacc
 from stretch_body.hello_utils import *
@@ -20,7 +21,8 @@ args = parser.parse_args()
 
 
 p=wacc.Wacc()
-p.startup()
+if not p.startup():
+    exit()
 
 
 #Accel
@@ -31,7 +33,7 @@ if args.ax:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'AX',p.status['ax']
+            print('AX',p.status['ax'])
             s.step_display(p.status['ax'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -43,7 +45,7 @@ if args.ay:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'AY',p.status['ay']
+            print('AY',p.status['ay'])
             s.step_display(p.status['ay'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -55,7 +57,7 @@ if args.az:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'AZ',p.status['az']
+            print('AZ',p.status['az'])
             s.step_display(p.status['az'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -69,7 +71,7 @@ if args.a0:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'A0',p.status['a0']
+            print('A0',p.status['a0'])
             s.step_display(p.status['a0'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -81,7 +83,7 @@ if args.d0:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'D0',p.status['d0']
+            print('D0',p.status['d0'])
             s.step_display(p.status['d0'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()
@@ -93,7 +95,7 @@ if args.d1:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print 'D1',p.status['d1']
+            print('D1',p.status['d1'])
             s.step_display(p.status['d1'])
     except (SystemExit, KeyboardInterrupt):
         p.stop()

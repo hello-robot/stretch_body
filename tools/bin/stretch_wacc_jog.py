@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 from stretch_body.wacc import Wacc
 import argparse
@@ -9,7 +10,8 @@ parser=argparse.ArgumentParser(description='Comnmand and query the Wacc (Wrist A
 args=parser.parse_args()
 
 w=Wacc()
-w.startup()
+if not w.startup():
+    exit()
 
 
 
@@ -21,7 +23,7 @@ def menu():
     print('b: set D2 off')
     print('c: set D3 on')
     print('d: set D3 off')
-    print '-------------------'
+    print('-------------------')
 
 def step_interaction():
     menu()
@@ -38,7 +40,7 @@ def step_interaction():
         if x[0] == 'd':
             w.set_D3(0)
         if x[0]=='r':
-            print 'Resetting Board. Exiting...'
+            print('Resetting Board. Exiting...')
             w.board_reset()
             w.push_command()
             exit()

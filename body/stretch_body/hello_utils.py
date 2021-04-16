@@ -1,3 +1,4 @@
+from __future__ import print_function
 import yaml
 import math
 import os
@@ -19,6 +20,8 @@ def deg_to_rad(x):
 def rad_to_deg(x):
     return 180.0*x/math.pi
 
+def get_display():
+    return os.environ.get('DISPLAY', None)
 
 def get_fleet_id():
     return os.environ['HELLO_FLEET_ID']
@@ -30,7 +33,7 @@ def get_fleet_directory():
     return os.environ['HELLO_FLEET_PATH']+'/'+get_fleet_id()+'/'
 
 def read_fleet_yaml(fn):
-    s = file(get_fleet_directory()+fn, 'r')
+    s = open(get_fleet_directory()+fn, 'r')
     p = yaml.load(s,Loader=yaml.FullLoader)
     if p is None:
         return {}
@@ -66,7 +69,7 @@ class TimerStats():
         return out
 
     def pretty_print(self):
-        print 'Timer Stat -- Avg: ', str(self.av), 'Max: ', str(self.mx)
+        print('Timer Stat -- Avg: ', str(self.av), 'Max: ', str(self.mx))
 
     
 class ThreadServiceExit(Exception):

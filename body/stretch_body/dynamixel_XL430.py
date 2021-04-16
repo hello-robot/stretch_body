@@ -1,3 +1,4 @@
+from __future__ import print_function
 import struct
 import array as arr
 
@@ -79,8 +80,8 @@ class DynamixelXL430(Device):
     """
     Wrapping of Dynamixel X-Series interface
     """
-    def __init__(self,dxl_id,usb,port_handler=None, pt_lock=None):
-        Device.__init__(self)
+    def __init__(self,dxl_id,usb,port_handler=None, pt_lock=None,verbose=False):
+        Device.__init__(self,verbose)
         self.dxl_id=dxl_id
         self.comm_errors=0
        #Make access to portHandler threadsafe
@@ -101,13 +102,15 @@ class DynamixelXL430(Device):
                 self.port_handler = port_handler
             self.packet_handler = pch.PacketHandler(2.0)
         except serial.SerialException as e:
-            print "SerialException({0}): {1}".format(e.errno, e.strerror)
+            print("SerialException({0}): {1}".format(e.errno, e.strerror))
         self.hw_valid = self.packet_handler is not None
     # ###########  Device Methods #############
 
     def startup(self):
         if self.hw_valid:
             self.enable_torque()
+            return True
+        return False
 
     def stop(self):
         if self.hw_valid:
@@ -115,33 +118,33 @@ class DynamixelXL430(Device):
             self.port_handler.closePort()
 
     def pretty_print(self):
-        print '-----XL430------'
-        print 'ID', self.get_id()
-        print 'Operating Mode',self.get_operating_mode()
-        print 'Drive Mode', self.get_drive_mode()
-        print 'Temp: ', self.get_temp()
-        print 'Position', self.get_pos()
-        print 'Velocity',self.get_vel()
-        print 'Load ', self.get_load()
-        print 'PWM', self.get_pwm()
-        print 'Is Moving', self.is_moving()
-        print 'Is Calibrated',self.is_calibrated()
-        print 'Profile Velocity', self.get_profile_velocity()
-        print 'Profile Acceleration', self.get_profile_acceleration()
+        print('-----XL430------')
+        print('ID', self.get_id())
+        print('Operating Mode',self.get_operating_mode())
+        print('Drive Mode', self.get_drive_mode())
+        print('Temp: ', self.get_temp())
+        print('Position', self.get_pos())
+        print('Velocity',self.get_vel())
+        print('Load ', self.get_load())
+        print('PWM', self.get_pwm())
+        print('Is Moving', self.is_moving())
+        print('Is Calibrated',self.is_calibrated())
+        print('Profile Velocity', self.get_profile_velocity())
+        print('Profile Acceleration', self.get_profile_acceleration())
         h=self.get_hardware_error()
-        print 'Hardware Error Status', h
-        print 'Hardware Error: Input Voltage Error: ', h & 1 is not 0
-        print 'Hardware Error: Overheating Error: ',h & 4 is not 0
-        print 'Hardware Error: Motor Encoder Error: ', h & 8 is not 0
-        print 'Hardware Error: Electrical Shock Error: ', h & 16 is not 0
-        print 'Hardware Error: Overload Error: ', h & 32 is not 0
-        print 'Comm errors', self.comm_errors
+        print('Hardware Error Status', h)
+        print('Hardware Error: Input Voltage Error: ', h & 1 is not 0)
+        print('Hardware Error: Overheating Error: ',h & 4 is not 0)
+        print('Hardware Error: Motor Encoder Error: ', h & 8 is not 0)
+        print('Hardware Error: Electrical Shock Error: ', h & 16 is not 0)
+        print('Hardware Error: Overload Error: ', h & 32 is not 0)
+        print('Comm errors', self.comm_errors)
 
     # ##########################################
 
     def handle_comm_result(self,fx,dxl_comm_result, dxl_error):
         if dxl_comm_result!=0:
-            #print 'DXL Comm Error. ID',self.dxl_id,'Result', dxl_comm_result, 'Err',dxl_error
+            #print('DXL Comm Error. ID',self.dxl_id,'Result', dxl_comm_result, 'Err',dxl_error)
             self.comm_errors=self.comm_errors+1
             return False
         return True
@@ -380,7 +383,7 @@ class DynamixelXL430(Device):
 
     def get_profile_velocity(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_VELOCITY)
         self.handle_comm_result('XL430_ADDR_PROFILE_VELOCITY', dxl_comm_result, dxl_error)
@@ -388,7 +391,7 @@ class DynamixelXL430(Device):
 
     def get_profile_acceleration(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             a, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_ACCELERATION)
         self.handle_comm_result('XL430_ADDR_PROFILE_ACCELERATION', dxl_comm_result, dxl_error)
@@ -396,7 +399,7 @@ class DynamixelXL430(Device):
 
     def get_vel(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PRESENT_VELOCITY)
         self.handle_comm_result('XL430_ADDR_PRESENT_VELOCITY', dxl_comm_result, dxl_error)
@@ -404,7 +407,7 @@ class DynamixelXL430(Device):
 
     def get_P_gain(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_P_GAIN)
         self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
@@ -415,14 +418,14 @@ class DynamixelXL430(Device):
             return
         with self.pt_lock:
             dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_P_GAIN, x)
-        self.handle_comm_result('XL430_ADDR_TORQUE_ENABLE', dxl_comm_result, dxl_error)
+        self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
 
     def get_D_gain(self):
         if not self.hw_valid:
-            return
+            return 0
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_D_GAIN)
-        self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
+        self.handle_comm_result('XL430_ADDR_POS_D_GAIN', dxl_comm_result, dxl_error)
         return p
 
     def set_D_gain(self,x):
@@ -464,6 +467,8 @@ class DynamixelXL430(Device):
 
 
     def get_max_voltage_limit(self):
+        if not self.hw_valid:
+            return 0
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_VOLTAGE_LIMIT)
         self.handle_comm_result('XL430_ADDR_MAX_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
@@ -491,6 +496,20 @@ class DynamixelXL430(Device):
             dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_VOLTAGE_LIMIT, x)
         self.handle_comm_result('XL430_ADDR_MIN_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
 
+    def get_vel_limit(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_LIMIT)
+        self.handle_comm_result('XL430_ADDR_VELOCITY_LIMIT', dxl_comm_result, dxl_error)
+        return p
+
+    def set_vel_limit(self,x):
+        if not self.hw_valid:
+            return
+        with self.pt_lock:
+            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_LIMIT, x)
+        self.handle_comm_result('XL430_ADDR_VELOCITY_LIMIT', dxl_comm_result, dxl_error)
 
     def get_max_pos_limit(self):
         if not self.hw_valid:
@@ -565,17 +584,17 @@ class DynamixelXL430(Device):
         if not self.hw_valid:
             return
         if verbose:
-            print 'Previous HOMING_OFFSET in EEPROM', self.get_homing_offset()
+            print('Previous HOMING_OFFSET in EEPROM', self.get_homing_offset())
         self.set_homing_offset(0)
         x=self.get_pos()
         h=-1*x
         if verbose:
-            print 'Setting homing offset to',h
+            print('Setting homing offset to',h)
         self.set_homing_offset(h)
         p = self.read_int32_t(XL430_ADDR_HOMING_OFFSET)
         if verbose:
-            print 'New HOMING_OFFSET in EEPROM', self.get_homing_offset()
-            print 'Current position after homing',self.get_pos()
+            print('New HOMING_OFFSET in EEPROM', self.get_homing_offset())
+            print('Current position after homing',self.get_pos())
         return
 
     def get_homing_offset(self):

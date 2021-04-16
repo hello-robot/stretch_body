@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from rplidar import *
 import argparse
 import stretch_body.hello_utils as hu
@@ -42,7 +43,7 @@ if args.range:
         if i > 0:
             break
         print('%d: Got %d measurments' % (i, len(scan)))
-        print 'Scan',scan
+        print('Scan',scan)
 
 
 if not args.motor_on: #Turn off motor by default

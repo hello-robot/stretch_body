@@ -1,3 +1,4 @@
+from __future__ import print_function
 from stretch_body.stepper import *
 from stretch_body.device import Device
 import time
@@ -6,11 +7,11 @@ class Lift(Device):
     """
     API to the Stretch RE1 Lift
     """
-    def __init__(self):
-        Device.__init__(self)
+    def __init__(self,verbose=False):
+        Device.__init__(self,verbose)
         self.name='lift'
         self.params=self.robot_params[self.name]
-        self.motor = Stepper('/dev/hello-motor-lift')
+        self.motor = Stepper('/dev/hello-motor-lift',verbose=verbose)
         self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
         # Default controller params
         self.stiffness = 1.0
@@ -23,7 +24,7 @@ class Lift(Device):
     # ###########  Device Methods #############
 
     def startup(self):
-        self.motor.startup()
+        return self.motor.startup()
 
     def stop(self):
         self.motor.stop() #Maintain current mode
@@ -39,11 +40,11 @@ class Lift(Device):
         self.motor.push_command()
 
     def pretty_print(self):
-        print '----- Lift ------ '
-        print 'Pos (m): ', self.status['pos']
-        print 'Vel (m/s): ', self.status['vel']
-        print 'Force (N): ', self.status['force']
-        print 'Timestamp PC (s):', self.status['timestamp_pc']
+        print('----- Lift ------ ')
+        print('Pos (m): ', self.status['pos'])
+        print('Vel (m/s): ', self.status['vel'])
+        print('Force (N): ', self.status['force'])
+        print('Timestamp PC (s):', self.status['timestamp_pc'])
         #self.motor.pretty_print()
 
     # ###################################################
@@ -60,7 +61,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Lift not calibrated'
+                print('Lift not calibrated')
                 return
 
         if stiffness is not None:
@@ -111,7 +112,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print 'Lift not calibrated'
+                print('Lift not calibrated')
                 return
 
         if stiffness is not None:
@@ -191,7 +192,7 @@ class Lift(Device):
         if not self.motor.hw_valid:
             print('Not able to home lift. Hardware not present')
             return
-        print 'Homing lift...'
+        print('Homing lift...')
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
@@ -204,10 +205,10 @@ class Lift(Device):
         self.move_by(x_m=1.25, contact_thresh_pos_N=self.params['homing_force_N'][1], contact_thresh_neg_N=self.params['homing_force_N'][0], req_calibration=False)
         self.push_command()
         if self.__wait_for_contact(timeout=15.0): #self.__wait_for_contact(timeout=15.0):
-            print 'Upward contact detected at motor position (rad)', self.motor.status['pos'],self.motor_rad_to_translate_m(self.motor.status['pos'])
+            print('Upward contact detected at motor position (rad)', self.motor.status['pos'],self.motor_rad_to_translate_m(self.motor.status['pos']))
             if not measuring:
                 x = self.translate_to_motor_rad(self.params['range_m'][1])
-                print 'Marking lift position to (m)', self.params['range_m'][1]
+                print('Marking lift position to (m)', self.params['range_m'][1])
                 self.motor.mark_position(x)
                 self.motor.set_pos_calibrated()
                 self.push_command()
@@ -215,7 +216,7 @@ class Lift(Device):
                 self.pull_status()
                 x_up=self.status['pos']-xstart
         else:
-            print 'Failed to detect contact'
+            print('Failed to detect contact')
             return
         #Allow to settle
         time.sleep(1.0)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import time
 import struct
 
@@ -12,8 +13,8 @@ class CobbsFraming():
     """
     def __init__(self):
         self.packet_marker=0
-        self.timeout=.05
-
+        self.timeout=.2 #Was .05 but on heavy loads can get starved
+        self.warned_last=time.time()
     def sendFramedData(self, data, size, serial):
         crc=self.calc_crc(data,size)
         data[size]=(crc>>8)&0xFF
@@ -26,15 +27,27 @@ class CobbsFraming():
     def receiveFramedData(self,buf, serial):
         t_start = time.time()
         rx_buffer=[]
+        warning_time=0.1
         while ((time.time() - t_start) < self.timeout):
-            if (serial.inWaiting() > 0):
-                byte_in = struct.unpack('B', serial.read(1))[0]
-                if byte_in == self.packet_marker:
-                    crc1, nr=self.decode(buf, rx_buffer,len(rx_buffer))
-                    crc2=self.calc_crc(buf, nr)
-                    return crc1==crc2, nr
-                else:
-                    rx_buffer.append(byte_in)
+            nn=serial.inWaiting()
+            if (nn > 0):
+                rbuf=serial.read(nn)
+                nu=0
+                for byte_in in rbuf:
+                    nu=nu+1
+                    if(type(byte_in)==str): #Py2 needs this, Py3 not
+                        byte_in=struct.unpack('B', byte_in)[0]
+                    if byte_in == self.packet_marker:
+                        crc1, nr=self.decode(buf, rx_buffer,len(rx_buffer))
+                        crc2=self.calc_crc(buf, nr)
+                        if nu<nn:
+                            print('Dropped %d bytes during receiveFramedData'%(nn-nu))
+                        return crc1==crc2, nr
+                    else:
+                        rx_buffer.append(byte_in)
+            #if (time.time() - t_start)>warning_time and time.time()-self.warned_last>1.0:
+            #    self.warned_last=time.time()
+            #    print('Warning: receiveFramedData packet time exceeds normal limits (%f ms). Cause may be heavy CPU load.'%warning_time*1000)
         return 0,0
 
     def calc_crc(self, buf, nr): #Modbus CRC

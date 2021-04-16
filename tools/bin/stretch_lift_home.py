@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import stretch_body.lift as lift
 import argparse
 import stretch_body.hello_utils as hu
@@ -8,7 +9,8 @@ parser=argparse.ArgumentParser(description='Calibrate the lift position by movin
 args=parser.parse_args()
 
 l=lift.Lift()
-l.startup()
+if not l.startup():
+    exit()
 l.home()
 l.stop()
 

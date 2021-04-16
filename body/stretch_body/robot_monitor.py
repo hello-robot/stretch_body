@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-
-import stretch_body.hello_utils as hu
+from __future__ import print_function
 from stretch_body.device import Device
-import time
 import logging
-import os
 
 class RobotMonitor(Device):
     """
@@ -14,8 +10,8 @@ class RobotMonitor(Device):
     The RobotMonitor is managed by the Robot class
     It runs at 5Hz
     """
-    def __init__(self,robot):
-        Device.__init__(self)
+    def __init__(self,robot,verbose=False):
+        Device.__init__(self,verbose=verbose)
         self.robot=robot
         self.param=self.robot_params['robot_monitor']
 
@@ -39,6 +35,7 @@ class RobotMonitor(Device):
                               'monitor_guarded_contact':{},'monitor_wrist_single_tap':stc,
                               'monitor_base_cliff_event':0,'monitor_base_bump_event':bec,'monitor_over_tilt_alert':0,'monitor_runstop':0}
         self.logger=logging.getLogger('robot.robot_monitor')
+        return True
 
     def step(self):
         if self.param['monitor_voltage']:
@@ -103,7 +100,7 @@ class RobotMonitor(Device):
         mn='monitor_guarded_contact'
         for j in joints:
             if j is not None:
-                if not self.monitor_history[mn].has_key(j.name):# Init history
+                if j.name not in self.monitor_history[mn]:# Init history
                     self.monitor_history[mn][j.name] = 0
                 if j is not None:
                     if self.monitor_history[mn][j.name]==0 and j.motor.status['in_guarded_event']:
@@ -118,7 +115,7 @@ class RobotMonitor(Device):
         for c in chains:
             if c is not None:
                 #Init history
-                if not self.monitor_history[mn].has_key(c.name):
+                if c.name not in self.monitor_history[mn]:
                     self.monitor_history[mn][c.name]={}
                     for k in c.motors.keys():
                         self.monitor_history[mn][c.name][k] = {}

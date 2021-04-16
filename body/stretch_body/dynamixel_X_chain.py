@@ -1,13 +1,11 @@
-#! /usr/bin/env python
-from stretch_body.device import Device
+from __future__ import print_function
 import stretch_body.hello_utils as hello_utils
 import time
-import serial
 
 # The code can be found in the following directory:
 # /opt/ros/melodic/lib/python2.7/dist-packages/dynamixel_sdk/
 from dynamixel_sdk.robotis_def import *
-from dynamixel_XL430 import *
+from stretch_body.dynamixel_XL430 import *
 import dynamixel_sdk.port_handler as prh
 import dynamixel_sdk.packet_handler as pch
 import dynamixel_sdk.group_sync_read as gsr
@@ -19,8 +17,8 @@ class DynamixelXChain(Device):
     It allows adding more than one servo at run time
     It allos manage group reading of status data from servos so as to not overload the control bus
     """
-    def __init__(self,usb):
-        Device.__init__(self)
+    def __init__(self,usb,verbose=False):
+        Device.__init__(self,verbose)
         self.usb = usb
         self.timer_stats = hello_utils.TimerStats()
         self.pt_lock = threading.RLock()
@@ -48,7 +46,7 @@ class DynamixelXChain(Device):
 
     def startup(self):
         if not self.hw_valid:
-            return
+            return False
         if len(self.motors.keys()):
             self.readers['pos']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_POSITION,4)
             self.readers['effort']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_LOAD,2)
@@ -62,6 +60,7 @@ class DynamixelXChain(Device):
                 self.motors[mk].startup()
                 self.status[mk]=self.motors[mk].status
             self.pull_status()
+        return True
 
     def stop(self):
         if not self.hw_valid:
@@ -87,11 +86,11 @@ class DynamixelXChain(Device):
                 idx=idx+1
             self.timer_stats.update(time.time()-ts)
         except IOError:
-            print 'IOError on:',self.usb
+            print('IOError on:',self.usb)
 
     def pretty_print(self):
-        print '--- Dynamixel X Chain ---'
-        print 'USB', self.usb
+        print('--- Dynamixel X Chain ---')
+        print('USB', self.usb)
         self.timer_stats.pretty_print()
         for mk in self.motors.keys():
             self.motors[mk].pretty_print()
@@ -139,11 +138,11 @@ class DynamixelXChain(Device):
         """
         if runstop is not self.runstop_last:
             if runstop:
-                #print 'Disabling torque to ',self.name
+                #print('Disabling torque to ',self.name)
                 for mk in self.motors.keys():
                     self.motors[mk].disable_torque()
             else:
-                #print 'Enabling torque to ', self.name
+                #print('Enabling torque to ', self.name)
                 for mk in self.motors.keys():
                     self.motors[mk].enable_torque()
 
