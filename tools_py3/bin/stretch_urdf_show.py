@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import print_function
 from urdfpy import URDF
 import argparse
 import os

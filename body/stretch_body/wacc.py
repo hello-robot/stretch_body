@@ -46,8 +46,8 @@ class Wacc(Device):
                        'timestamp': 0,
                        'transport': self.transport.status}
         self.ts_last=None
-        self.board_info = {'board_version': 'None', 'firmware_version': 'None', 'protocol_version': None}
-        self.valid_firmware_protocols = ['p0']
+        self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
+        self.valid_firmware_protocol = 'p0'
         self.hw_valid = False
 
     # ###########  Device Methods #############
@@ -61,19 +61,15 @@ class Wacc(Device):
                 self.transport.queue_rpc(1, self.rpc_board_info_reply)
                 self.transport.step(exiting=False)
                 # Check that protocol matches
-
-                match=False
-                for p in self.valid_firmware_protocols:
-                    if p==self.board_info['protocol_version']:
-                        match=True
-                if not match:
-                    print('----------------')
-                    print('Firmware protocol mismatch on %s. '%self.name)
-                    print('Current protocol is %s.'%self.board_info['protocol_version'])
-                    print('Valid protocols are: %s' %str(self.valid_firmware_protocols))
-                    print('Disabling device')
-                    print('Please upgrade the firmware and or version of Stretch Body')
-                    print('----------------')
+                if not(self.valid_firmware_protocol == self.board_info['protocol_version']):
+                    if self.verbose:
+                        print('----------------')
+                        print('Firmware protocol mismatch on %s. '%self.name)
+                        print('Current protocol is %s.'%self.board_info['protocol_version'])
+                        print('Valid protocols are: %s' %self.valid_firmware_protocol)
+                        print('Disabling device')
+                        print('Please upgrade the firmware and or version of Stretch Body')
+                        print('----------------')
                     self.hw_valid=False
                     self.transport.stop()
 

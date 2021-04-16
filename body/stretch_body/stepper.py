@@ -3,6 +3,7 @@ from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
 import threading
+import sys
 
 RPC_SET_COMMAND = 1
 RPC_REPLY_COMMAND = 2
@@ -79,7 +80,7 @@ class Stepper(Device):
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0}
-        self.board_info={'board_version':'None', 'firmware_version':'None','protocol_version':None}
+        self.board_info={'board_version':None, 'firmware_version':None,'protocol_version':None}
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
                          MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR'}
         self.motion_limits=[0,0]
@@ -93,7 +94,7 @@ class Stepper(Device):
         self._trigger=0
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
-        self.valid_firmware_protocols=['p0']
+        self.valid_firmware_protocol='p0'
         self.hw_valid=False
 
     # ###########  Device Methods #############
@@ -101,25 +102,21 @@ class Stepper(Device):
         with self.lock:
             self.gains=self.params['gains'].copy()
             self.hw_valid=self.transport.startup()
-
             if self.hw_valid:
                 #Pull board info
                 self.transport.payload_out[0] = RPC_GET_STEPPER_BOARD_INFO
                 self.transport.queue_rpc(1, self.rpc_board_info_reply)
                 self.transport.step(exiting=False)
                 #Check that protocol matches
-                match=False
-                for p in self.valid_firmware_protocols:
-                    if p==self.board_info['protocol_version']:
-                        match=True
-                if not match:
-                    print('----------------')
-                    print('Firmware protocol mismatch on %s. '%self.name)
-                    print('Current protocol is %s.'%self.board_info['protocol_version'])
-                    print('Valid protocols are: %s' %str(self.valid_firmware_protocols))
-                    print('Disabling device')
-                    print('Please upgrade the firmware and or version of Stretch Body')
-                    print('----------------')
+                if not(self.valid_firmware_protocol == self.board_info['protocol_version']):
+                    if self.verbose:
+                        print('----------------')
+                        print('Firmware protocol mismatch on %s. '%self.name)
+                        print('Protocol on board is %s.'%self.board_info['protocol_version'])
+                        print('Valid protocol is: %s' %self.valid_firmware_protocol)
+                        print('Disabling device')
+                        print('Please upgrade the firmware and or version of Stretch Body')
+                        print('----------------')
                     self.hw_valid=False
                     self.transport.stop()
             if self.hw_valid:
@@ -473,7 +470,9 @@ class Stepper(Device):
         else:
             print('Writing encoder calibration...')
             for p in range(256):
-                print('Sending page',p,'of 255')
+                if p%10==0:
+                    sys.stdout.write('.')
+                    sys.stdout.flush()
                 self.transport.payload_out[0] = RPC_SET_ENC_CALIB
                 self.transport.payload_out[1] = p
                 sidx=2
@@ -483,7 +482,7 @@ class Stepper(Device):
                 # print('Sending encoder calibration rpc of size',sidx)
                 self.transport.queue_rpc(sidx, self.rpc_enc_calib_reply)
                 self.transport.step()
-
+            print('')
     def rpc_enc_calib_reply(self,reply):
         if reply[0] != RPC_REPLY_ENC_CALIB:
             print('Error RPC_REPLY_ENC_CALIB', reply[0])
