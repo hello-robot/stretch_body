@@ -49,9 +49,10 @@ RPC_ACK_GET_BLOCK_LAST = 108
 RPC_BLOCK_SIZE = 32
 RPC_DATA_SIZE = 1024
 
-dbg_on = 1
+dbg_on = 0
 
 
+import sys
 
 class Transport():
     """
@@ -75,7 +76,7 @@ class Transport():
         if self.verbose:
             print('Starting TransportConnection on: ' + self.usb)
         try:
-            self.ser = serial.Serial(self.usb)#PosixPollSerial(self.usb)#Serial(self.usb)# 115200)  # , write_timeout=1.0)  # Baud not important since USB comms
+            self.ser = serial.Serial(self.usb, write_timeout=1.0)#PosixPollSerial(self.usb)#Serial(self.usb)# 115200)  # , write_timeout=1.0)  # Baud not important since USB comms
             if self.ser.isOpen():
                 try:
                     fcntl.flock(self.ser.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -211,13 +212,20 @@ class Transport():
             if dbg_on:
                 print('---- Debug Exception')
                 print(dbg_buf)
-            print("Exception: TransportError")
             self.read_error = self.read_error + 1
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
-            #exit()
-
-
+            print("TransportError: %s : %s" % (self.usb, str(e)))
+        except serial.SerialTimeoutException as e:
+            self.write_error += 1
+            self.ser=None
+            print("SerialTimeoutException: %s : %s"%(self.usb, str(e)))
+        except serial.SerialException as e:
+            print("SerialException: %s : %s"%(self.usb, str(e)))
+            self.ser=None
+        except TypeError as e:
+            print("TypeError: %s : %s" % (self.usb, str(e)))
+            self.ser=None
 
     def is_step_complete(self):
         return self.rt.dirty_step==False
@@ -233,25 +241,17 @@ class Transport():
             self.ser.reset_input_buffer()
 
         #This will block until all RPCs have been commpleted
-        try:
-            #called by body thread at cyclic rate
-            self.itr += 1
-            self.itr_time = time.time() - self.tlast
-            self.tlast = time.time()
-            #Now run RPC calls
-            while len(self.rpc_queue):
-                rpc,reply_callback=self.rpc_queue[0]
-                #if dbg_on:
-                #    print('RPC of',reply_callback)
-                self.step_rpc(rpc,reply_callback)
-                self.rpc_queue = self.rpc_queue[1:]
-
-        except IOError as e:
-            print("IOError({0}): {1}".format(e.errno, e.strerror))
-            self.read_error=self.read_error+1
-        except serial.SerialTimeoutException as e:
-            self.write_error += 1
-            print("SerialException({0}): {1}".format(e.errno, e.strerror))
+        #called by body thread at cyclic rate
+        self.itr += 1
+        self.itr_time = time.time() - self.tlast
+        self.tlast = time.time()
+        #Now run RPC calls
+        while len(self.rpc_queue):
+            rpc,reply_callback=self.rpc_queue[0]
+            #if dbg_on:
+            #    print('RPC of',reply_callback)
+            self.step_rpc(rpc,reply_callback)
+            self.rpc_queue = self.rpc_queue[1:]
 
         # Update status
         if self.itr_time != 0:
@@ -269,19 +269,10 @@ class Transport():
             time.sleep(0.1)  # May have been a hard exit, give time for bad data to land, remove, do final RPC
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
-
-        #This will block until all RPCs have been commpleted
-        try:
-            while len(self.rpc_queue2):
-                rpc,reply_callback=self.rpc_queue2[0]
-                self.step_rpc(rpc,reply_callback)
-                self.rpc_queue2 = self.rpc_queue2[1:]
-        except IOError as e:
-            print("IOError({0}): {1}".format(e.errno, e.strerror))
-            self.read_error=self.read_error+1
-        except serial.SerialTimeoutException as e:
-            self.write_error += 1
-            print("SerialException({0}): {1}".format(e.errno, e.strerror))
+        while len(self.rpc_queue2):
+            rpc,reply_callback=self.rpc_queue2[0]
+            self.step_rpc(rpc,reply_callback)
+            self.rpc_queue2 = self.rpc_queue2[1:]
 
 
 # #####################################
