@@ -5,7 +5,7 @@ import struct
 import array as arr
 import stretch_body.cobbs_framing as cobbs_framing
 import copy
-
+import fcntl
 
 """
 
@@ -52,6 +52,7 @@ RPC_DATA_SIZE = 1024
 dbg_on = 1
 
 
+
 class Transport():
     """
     Handle serial communication with Devices
@@ -75,6 +76,13 @@ class Transport():
             print('Starting TransportConnection on: ' + self.usb)
         try:
             self.ser = serial.Serial(self.usb)#PosixPollSerial(self.usb)#Serial(self.usb)# 115200)  # , write_timeout=1.0)  # Baud not important since USB comms
+            if self.ser.isOpen():
+                try:
+                    fcntl.flock(self.ser.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except IOError:
+                    print('Port %s is busy. Check if another Stretch Body process is already running'%self.usb)
+                    self.ser.close()
+                    self.ser=None
         except serial.SerialException as e:
             print("SerialException({0}): {1}".format(e.errno, e.strerror))
             self.ser = None
