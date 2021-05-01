@@ -133,7 +133,7 @@ class Stepper(Device):
                     print('----------------')
                     print('Firmware protocol mismatch on %s. ' % self.name)
                     print('Current protocol is %s.' % self.board_info['protocol_version'])
-                    print('Valid protocols are: %s' % str(self.valid_firmware_protocols))
+                    print('Valid protocols is: %s' % str(self.valid_firmware_protocol))
                     print('Disabling device')
                     print('Please upgrade the firmware and or version of Stretch Body')
                     print('----------------')
