@@ -16,7 +16,8 @@ class Waypoint:
     def __repr__(self):
         return "Waypoint(t={0}, pos={1}, vel={2}, accel={3}, effort_threshold={4})".format(
             self.time, self.position, self.velocity, self.acceleration, self.effort_threshold)
-
+    def __eq__(self,other):
+        return self.time==other.time and self.position==other.position and self.acceleration==other.acceleration and self.effort_threshold==other.effort_threshold
 
 class Segment:
     def __init__(self, duration=0, a0=0, a1=0, a2=0, a3=0, a4=0, a5=0):
@@ -691,7 +692,7 @@ class StepperTrajectoryManager(TrajectoryManager):
         if len(self.trajectory) < 2:
             return
         if req_calibration and not self.motor.status['pos_calibrated']:
-            print('Arm not homed')
+            print('Joint not homed')
             return
 
         v_r = self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_m'])
@@ -706,9 +707,13 @@ class StepperTrajectoryManager(TrajectoryManager):
 
         s = self.trajectory.get_segment(0, to_motor_rad=self.translate_to_motor_rad)
         self.motor.start_waypoint_trajectory([s.duration, s.a0, s.a1, s.a2, s.a3, s.a4, s.a5, 2])
-        self.traj_start_time = time.time()
-        self.traj_curr_time = self.traj_start_time
-        TrajectoryManager._start_trajectory_thread(self)
+        if self.motor.traj_curr_seg_id == 0: #Failed to load
+            print('Stepper failed to start trajectory. One already executing')
+            self.traj_start_time =None
+        else:
+            self.traj_start_time = time.time()
+            self.traj_curr_time = self.traj_start_time
+            TrajectoryManager._start_trajectory_thread(self)
 
     def push_trajectory(self):
         """Commands goals to Hello Robot stepper hardware.
@@ -729,31 +734,27 @@ class StepperTrajectoryManager(TrajectoryManager):
         bool
             True if trajectory must continue to be pushed, False otherwise
         """
-        if self.traj_start_time is None:
-            return False
 
-        self.pull_status()
-        self.traj_curr_time = time.time()
-        if self.motor.traj_curr_seg_id == 0 or not self.status['motor']['trajectory_active']:
-            self.traj_start_time = None
+        if self.traj_threaded:
+            self.pull_status()
+
+        if self.traj_start_time is None or not self.status['motor']['trajectory_active']:
             return False
+        self.traj_curr_time = time.time()
 
         s = self.trajectory.get_segment(self.motor.traj_curr_seg_id - 1, to_motor_rad=self.translate_to_motor_rad)
         arr = [s.duration, s.a0, s.a1, s.a2, s.a3, s.a4, s.a5, self.motor.traj_curr_seg_id + 1]
         self.motor.push_waypoint_trajectory(arr)
+
         return True
 
     def stop_trajectory(self):
         """Stop a currently executing trajectory.
-
-        Restores the stepper hardware to position mode and
-        resets trajectory tracking. Additionally, stops
-        threaded execution if necessary.
+        uC controller remains in trajectory mode.
+        Additionally, stops threaded execution if necessary.
         """
-        self.motor.push_waypoint_trajectory([0, 0, 0, 0, 0, 0, 0, self.motor.traj_curr_seg_id + 1])
+        self.motor.reset_waypoint_trajectory()
         self.traj_start_time = None
-        self.motor.enable_pos_traj()
-        self.motor.push_command()
         TrajectoryManager._stop_trajectory_thread(self)
 
 
@@ -798,8 +799,9 @@ class MobileBaseTrajectoryManager(TrajectoryManager):
         self.left_wheel.set_command(v_des=v_r, a_des=a_r)
         self.right_wheel.enable_pos_traj_waypoint()
         self.right_wheel.set_command(v_des=v_r, a_des=a_r)
-        self.left_wheel.pull_status()
-        self.right_wheel.pull_status()
+        if self.traj_threaded:
+            self.left_wheel.pull_status()
+            self.right_wheel.pull_status()
         self.traj_start_rwpos = self.right_wheel.status['pos']
         self.traj_start_lwpos = self.left_wheel.status['pos']
         self.left_wheel.push_command()
@@ -810,9 +812,15 @@ class MobileBaseTrajectoryManager(TrajectoryManager):
                                                        lwpos=self.traj_start_lwpos)
         self.left_wheel.start_waypoint_trajectory([ls.duration, ls.a0, ls.a1, ls.a2, ls.a3, ls.a4, ls.a5, 2])
         self.right_wheel.start_waypoint_trajectory([rs.duration, rs.a0, rs.a1, rs.a2, rs.a3, rs.a4, rs.a5, 2])
-        self.traj_start_time = time.time()
-        self.traj_curr_time = self.traj_start_time
-        TrajectoryManager._start_trajectory_thread(self)
+        if self.left_wheel.traj_curr_seg_id == 0 or self.right_wheel.traj_curr_seg_id == 0: #Failed to load
+            print('Base failed to start trajectory. One already executing. Stopping trajectory')
+            self.traj_start_time =None
+            self.left_wheel.reset_waypoint_trajectory()
+            self.right_wheel.reset_waypoint_trajectory()
+        else:
+            self.traj_start_time = time.time()
+            self.traj_curr_time = self.traj_start_time
+            TrajectoryManager._start_trajectory_thread(self)
 
     def push_trajectory(self):
         """Commands goals to Hello Robot mobile base.
@@ -826,15 +834,14 @@ class MobileBaseTrajectoryManager(TrajectoryManager):
         bool
             True if trajectory must continue to be pushed, False otherwise
         """
-        if self.traj_start_time is None:
+        if self.traj_threaded:
+            self.left_wheel.pull_status()
+            self.right_wheel.pull_status()
+
+        if self.traj_start_time is None or not self.status['left_wheel']['trajectory_active'] or not self.status['right_wheel']['trajectory_active']:
             return False
 
-        self.pull_status()
         self.traj_curr_time = time.time()
-        if self.left_wheel.traj_curr_seg_id == 0 or self.right_wheel.traj_curr_seg_id == 0 or \
-           not self.left_wheel.status['trajectory_active'] or not self.right_wheel.status['trajectory_active']:
-           self.traj_start_time = None
-           return False
 
         ls, rs = self.trajectory.get_wheel_segments(max(self.left_wheel.traj_curr_seg_id - 1, self.right_wheel.traj_curr_seg_id - 1),
                                                     translate_to_motor_rad=self.translate_to_motor_rad,
@@ -849,15 +856,10 @@ class MobileBaseTrajectoryManager(TrajectoryManager):
 
     def stop_trajectory(self):
         """Stop a currently executing trajectory.
-
-        Restores the stepper hardware to position mode and
-        resets trajectory tracking. Additionally, stops
-        threaded execution if necessary.
+        uC controller remains in trajectory mode.
+        Additionally, stops threaded execution if necessary.
         """
         self.traj_start_time = None
-        self.left_wheel.enable_pos_traj()
-        self.right_wheel.enable_pos_traj()
-        self.left_wheel.push_command()
-        self.right_wheel.push_command()
-        self._setup_new_trajectory()
+        self.left_wheel.reset_waypoint_trajectory()
+        self.right_wheel.reset_waypoint_trajectory()
         TrajectoryManager._stop_trajectory_thread(self)

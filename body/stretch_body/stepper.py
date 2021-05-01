@@ -31,6 +31,8 @@ RPC_SET_NEXT_TRAJECTORY_SEG =21
 RPC_REPLY_SET_NEXT_TRAJECTORY_SEG =22
 RPC_START_NEW_TRAJECTORY =23
 RPC_REPLY_START_NEW_TRAJECTORY =24
+RPC_RESET_TRAJECTORY =25
+RPC_REPLY_RESET_TRAJECTORY =26
 
 MODE_SAFETY=0
 MODE_FREEWHEEL=1
@@ -430,6 +432,16 @@ class Stepper(Device):
                 sidx = self.pack_traj_seg(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_set_next_traj_seg_reply)
             self.transport.step2()
+
+    def reset_waypoint_trajectory(self):
+        with self.lock:
+            self.transport.payload_out[0] = RPC_RESET_TRAJECTORY
+            self.transport.queue_rpc2(1, self.rpc_reset_trajectory_reply)
+            self.transport.step2()
+
+    def rpc_reset_trajectory_reply(self, reply):
+        if reply[0] != RPC_REPLY_RESET_TRAJECTORY:
+            print('Error RPC_REPLY_SET_NEXT_TRAJECTORY_SEG', reply[0])
 
     def rpc_start_new_trajectory_reply(self, reply):
         if reply[0] == RPC_REPLY_START_NEW_TRAJECTORY:

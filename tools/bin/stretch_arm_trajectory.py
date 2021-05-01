@@ -151,6 +151,7 @@ else:
             else:
                 print("\nTrajectory inactive\n")
 
+
     try:
         for waypoint in zip(vtime, vpos, vvel):
             a.trajectory.add_waypoint(t_s=waypoint[0], x_m=waypoint[1], v_m=waypoint[2])

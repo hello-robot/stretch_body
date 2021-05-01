@@ -503,3 +503,13 @@ class Robot(Device):
         self.head.get_joint('head_pan').start_trajectory(position_ctrl=False, threaded=False, watchdog_timeout=0)
         self.head.get_joint('head_tilt').start_trajectory(position_ctrl=False, threaded=False, watchdog_timeout=0)
         self.end_of_arm.motors['wrist_yaw'].start_trajectory(position_ctrl=True, threaded=False)
+
+    def stop_trajectory(self):
+        """Halt executing trajectory
+        """
+        self.lift.stop_trajectory()
+        self.arm.stop_trajectory()
+        self.base.stop_trajectory()
+        self.head.get_joint('head_pan').stop_trajectory()
+        self.head.get_joint('head_tilt').stop_trajectory()
+        self.end_of_arm.motors['wrist_yaw'].stop_trajectory()
