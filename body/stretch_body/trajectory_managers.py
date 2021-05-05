@@ -33,6 +33,12 @@ class Segment:
         return "Segment(duration={0}, a0={1}, a1={2}, a2={3}, a3={4}, a4={5}, a5={6})".format(
             self.duration, self.a0, self.a1, self.a2, self.a3, self.a4, self.a5)
 
+    def __eq__(self, other):
+        return self.duration == other.duration  and self.a0 == other.a0 and \
+               self.a1 == other.a1 and self.a2 == other.a2 and self.a3 == other.a3 and \
+               self.a4 == other.a4  and self.a5 == other.a5
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 class Trajectory:
 
@@ -63,6 +69,9 @@ class Trajectory:
     def get_waypoint(self, index):
         if index >= -1 * len(self.waypoints) and index < len(self.waypoints):
             return self.waypoints[index]
+
+    def get_num_segments(self):
+        return max(0,len(self.waypoints)-1)
 
     def get_segment(self, index, to_motor_rad=None):
         """Retrieves a segment in the trajectory by index.
@@ -677,6 +686,8 @@ class StepperTrajectoryManager(TrajectoryManager):
         """
         TrajectoryManager.__init__(self)
         self.trajectory = PrismaticTrajectory()
+        self.segment_last=None
+        self.segment_id_last=None
 
     def start_trajectory(self, threaded=True, req_calibration=True):
         """Starts execution of the trajectory.
@@ -715,6 +726,7 @@ class StepperTrajectoryManager(TrajectoryManager):
             self.traj_curr_time = self.traj_start_time
             TrajectoryManager._start_trajectory_thread(self)
 
+
     def push_trajectory(self):
         """Commands goals to Hello Robot stepper hardware.
 
@@ -742,10 +754,13 @@ class StepperTrajectoryManager(TrajectoryManager):
             return False
         self.traj_curr_time = time.time()
 
-        s = self.trajectory.get_segment(self.motor.traj_curr_seg_id - 1, to_motor_rad=self.translate_to_motor_rad)
-        arr = [s.duration, s.a0, s.a1, s.a2, s.a3, s.a4, s.a5, self.motor.traj_curr_seg_id + 1]
+        next_segment_id=self.motor.traj_curr_seg_id-1 #Offset due to uC starting at ID 2
+        if next_segment_id>0 and self.trajectory.get_num_segments()>next_segment_id:
+            s = self.trajectory.get_segment(next_segment_id, to_motor_rad=self.translate_to_motor_rad)
+        else:
+            s=Segment()
+        arr = [s.duration, s.a0, s.a1, s.a2, s.a3, s.a4, s.a5, next_segment_id+2]
         self.motor.push_waypoint_trajectory(arr)
-
         return True
 
     def stop_trajectory(self):

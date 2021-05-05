@@ -46,9 +46,9 @@ class CobbsFraming():
                         return crc1==crc2, nr
                     else:
                         rx_buffer.append(byte_in)
-            if (time.time() - t_start)>warning_time and not warned:
-                warned=True
-                print('Warning: receiveFramedData packet time exceeds normal limits (%f ms). Cause may be heavy CPU load.'%warning_time*1000)
+            #if (time.time() - t_start)>warning_time and not warned:
+            #    warned=True
+            #    print('Warning: receiveFramedData packet time exceeds normal limits (%f ms). Cause may be heavy CPU load.'%warning_time*1000)
         return 0,0
 
     def calc_crc(self, buf, nr): #Modbus CRC

@@ -101,6 +101,7 @@ class RobotThread(threading.Thread):
             self.titr=self.titr+1
             te = time.time()
             tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
+            #print('Max rate (hz) %f'%(1/(te-ts)))
             if not self.shutdown_flag.is_set():
                 time.sleep(tsleep)
 
@@ -503,6 +504,7 @@ class Robot(Device):
         self.head.get_joint('head_pan').start_trajectory(position_ctrl=False, threaded=False, watchdog_timeout=0)
         self.head.get_joint('head_tilt').start_trajectory(position_ctrl=False, threaded=False, watchdog_timeout=0)
         self.end_of_arm.motors['wrist_yaw'].start_trajectory(position_ctrl=True, threaded=False)
+        time.sleep(0.1) #Give time for synced trajectories to start
 
     def stop_trajectory(self):
         """Halt executing trajectory

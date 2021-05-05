@@ -17,7 +17,7 @@ class Arm(Device, StepperTrajectoryManager):
         self.params = self.robot_params[self.name]
         self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
         self.motor = Stepper('/dev/hello-motor-arm',verbose)
-        self.status = {'pos': 0.0, 'vel': 0.0, 'force':0.0, 'motor': self.motor.status,'timestamp_pc':0}
+        self.status = {'pos': 0.0, 'vel': 0.0, 'force':0.0, 'motor': self.motor.status,'timestamp_pc':0, 'traj_err':0.0}
         # Default controller params
         self.stiffness = 1.0
         self.i_feedforward = self.params['i_feedforward']
@@ -40,6 +40,7 @@ class Arm(Device, StepperTrajectoryManager):
         self.status['pos']= self.motor_rad_to_translate(self.status['motor']['pos'])
         self.status['vel'] = self.motor_rad_to_translate(self.status['motor']['vel'])
         self.status['force'] = self.motor_current_to_translate_force(self.status['motor']['current'])
+        self.status['traj_error'] = self.motor_rad_to_translate(self.status['motor']['pos_traj']) - self.status['pos']
 
     def push_command(self):
         self.motor.push_command()
@@ -49,6 +50,7 @@ class Arm(Device, StepperTrajectoryManager):
         print('Pos (m): ', self.status['pos'])
         print('Vel (m/s): ', self.status['vel'])
         print('Force (N): ', self.status['force'])
+        print('Trajectory Error (m): ', self.status['traj_error'])
         print('Timestamp PC (s):', self.status['timestamp_pc'])
         self.motor.pretty_print()
 
