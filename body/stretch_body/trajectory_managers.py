@@ -162,17 +162,17 @@ class Trajectory:
             i0_waypoint = [waypoint0.time, waypoint0.position, waypoint0.velocity, waypoint0.acceleration]
             i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity, waypoint1.acceleration]
             seg = generate_quintic_spline_segment(i0_waypoint, i1_waypoint)
-            ret = evaluate_quintic_spline(seg, t_s - i0_t)
+            ret = evaluate_polynomial_at(seg, t_s - i0_t)
         elif waypoint0.velocity is not None and waypoint1.velocity is not None:
             i0_waypoint = [waypoint0.time, waypoint0.position, waypoint0.velocity]
             i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity]
             seg = generate_cubic_spline_segment(i0_waypoint, i1_waypoint)
-            ret = evaluate_cubic_spline(seg, t_s - i0_t)
+            ret = evaluate_polynomial_at(seg, t_s - i0_t)
         else:
             i0_waypoint = [waypoint0.time, waypoint0.position]
             i1_waypoint = [waypoint1.time, waypoint1.position]
             seg = generate_linear_segment(i0_waypoint, i1_waypoint)
-            ret = evaluate_linear_interpolate(seg, t_s - i0_t)
+            ret = evaluate_polynomial_at(seg, t_s - i0_t)
 
         return Waypoint(position=ret[0], velocity=ret[1], acceleration=ret[2])
 

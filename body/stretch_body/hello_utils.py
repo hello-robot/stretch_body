@@ -141,9 +141,9 @@ def generate_quintic_spline_segment(i, f):
     a0 = i[1]
     a1 = i[2]
     a2 = i[3] / 2
-    a3 = (20 * f[1] - 20 * i[1] - (8 * f[2] + 12 * i[2]) * (f[0] - i[0]) - (3 * i[3] - f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 3))
-    a4 = (30 * i[1] - 30 * f[1] + (14 * f[2] + 16 * i[2]) * (f[0] - i[0]) + (3 * i[3] - 2 * f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 4))
-    a5 = (12 * f[1] - 12 * i[1] - (6 * f[2] + 6 * i[2]) * (f[0] - i[0]) - (i[3] - f[3]) * ((f[0] - i[0]) ** 2)) / (2 * ((f[0] - i[0]) ** 5))
+    a3 = (20 * f[1] - 20 * i[1] - (8 * f[2] + 12 * i[2]) * duration - (3 * i[3] - f[3]) * (duration ** 2)) / (2 * (duration ** 3))
+    a4 = (30 * i[1] - 30 * f[1] + (14 * f[2] + 16 * i[2]) * duration + (3 * i[3] - 2 * f[3]) * (duration ** 2)) / (2 * (duration ** 4))
+    a5 = (12 * f[1] - 12 * i[1] - (6 * f[2] + 6 * i[2]) * duration - (i[3] - f[3]) * (duration ** 2)) / (2 * (duration ** 5))
     return [duration, a0, a1, a2, a3, a4, a5]
 
 def generate_cubic_spline_segment(i, f):
@@ -158,30 +158,28 @@ def generate_cubic_spline_segment(i, f):
 def generate_linear_segment(i, f):
     # waypoints are [[time, pos],...]
     duration = f[0] - i[0]
-    return [duration, i[1], f[1], 0, 0, 0, 0]
+    a0 = i[1]
+    a1 = (f[1] - i[1]) / duration
+    return [duration, a0, a1, 0, 0, 0, 0]
 
-def evaluate_cubic_spline(s, t):
-    #TRAJECTORY_TYPE_CUBIC_SPLINE:   [[duration, a0,a1,a2,a3],...]
-    a=s[1:]
-    pos= a[0]+(a[1]*t)+(a[2]*t**2)+(a[3]*t**3)
-    vel= a[1] +(2*a[2]*t)+(3*a[3]*t**2)
-    acc= 2*a[2] + 6*a[3]*t
-    return [pos,vel,acc]
+def evaluate_polynomial_at(s, t):
+    """Evaluate a quintic polynomial at a given time.
 
-def evaluate_quintic_spline(s, t):
-    #TRAJECTORY_TYPE_QUINTIC_SPLINE: [[duration, a0,a1,a2,a3,a4,a5],...]
+    Parameters
+    ----------
+    s : List(float)
+        Represents a quintic polynomial as an array [duration,a0,a1,a2,a3,a4,a5].
+        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
+    t : float
+        the time in seconds at which to evaluate the polynomial
+
+    Returns
+    -------
+    List(float)
+        array with three elements: evaluated position, velocity, and acceleration.
+    """
     a=s[1:]
     pos= a[0]+(a[1]*t)+(a[2]*t**2)+(a[3]*t**3)+(a[4]*t**4)+(a[5]*t**5)
     vel = a[1] +(2*a[2]*t)+(3*a[3]*t**2) + (4*a[4]*t**3) + (5*a[5]*t*4)
     accel = 2*a[2] + 6*a[3]*t + 12*a[4]*t**2 + 20*a[5]*t**3
     return [pos,vel,accel]
-
-def evaluate_linear_interpolate(s, t):
-    #TRAJECTORY_TYPE_LINEAR: [[duration, pos0, pos1], ...]
-    duration = s[0]
-    pos0=s[1]
-    pos1=s[2]
-    pos = pos0 + t*(pos1-pos0)/duration
-    vel = (pos1-pos0)/duration
-    accel = 0.0
-    return [pos, vel, accel]
