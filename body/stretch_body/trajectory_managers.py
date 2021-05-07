@@ -828,10 +828,8 @@ class MobileBaseTrajectoryManager(TrajectoryManager):
         self.left_wheel.start_waypoint_trajectory([ls.duration, ls.a0, ls.a1, ls.a2, ls.a3, ls.a4, ls.a5, 2])
         self.right_wheel.start_waypoint_trajectory([rs.duration, rs.a0, rs.a1, rs.a2, rs.a3, rs.a4, rs.a5, 2])
         if self.left_wheel.traj_curr_seg_id == 0 or self.right_wheel.traj_curr_seg_id == 0: #Failed to load
-            print('Base failed to start trajectory. One already executing. Stopping trajectory')
+            print('Base failed to start trajectory. One already executing.')
             self.traj_start_time =None
-            self.left_wheel.reset_waypoint_trajectory()
-            self.right_wheel.reset_waypoint_trajectory()
         else:
             self.traj_start_time = time.time()
             self.traj_curr_time = self.traj_start_time
@@ -858,13 +856,21 @@ class MobileBaseTrajectoryManager(TrajectoryManager):
 
         self.traj_curr_time = time.time()
 
-        ls, rs = self.trajectory.get_wheel_segments(max(self.left_wheel.traj_curr_seg_id - 1, self.right_wheel.traj_curr_seg_id - 1),
-                                                    translate_to_motor_rad=self.translate_to_motor_rad,
-                                                    rotate_to_motor_rad=self.rotate_to_motor_rad,
-                                                    rwpos=self.traj_start_rwpos,
-                                                    lwpos=self.traj_start_lwpos)
-        larr = [ls.duration, ls.a0, ls.a1, ls.a2, ls.a3, ls.a4, ls.a5, self.left_wheel.traj_curr_seg_id + 1]
-        rarr = [rs.duration, rs.a0, rs.a1, rs.a2, rs.a3, rs.a4, rs.a5, self.right_wheel.traj_curr_seg_id + 1]
+        next_segment_id_rw = self.right_wheel.traj_curr_seg_id - 1  # Offset due to uC starting at ID 2
+        next_segment_id_lw = self.left_wheel.traj_curr_seg_id - 1
+
+        if next_segment_id_rw>0 and self.trajectory.get_num_segments()>next_segment_id_rw and next_segment_id_lw>0 and self.trajectory.get_num_segments()>next_segment_id_lw:
+            ls, rs = self.trajectory.get_wheel_segments(max(next_segment_id_lw, next_segment_id_rw),
+                translate_to_motor_rad=self.translate_to_motor_rad,
+                rotate_to_motor_rad=self.rotate_to_motor_rad,
+                rwpos=self.traj_start_rwpos,
+                lwpos=self.traj_start_lwpos)
+        else:
+            ls=Segment()
+            rs=Segment()
+
+        larr = [ls.duration, ls.a0, ls.a1, ls.a2, ls.a3, ls.a4, ls.a5, next_segment_id_lw + 2]
+        rarr = [rs.duration, rs.a0, rs.a1, rs.a2, rs.a3, rs.a4, rs.a5, next_segment_id_rw + 2]
         self.left_wheel.push_waypoint_trajectory(larr)
         self.right_wheel.push_waypoint_trajectory(rarr)
         return True

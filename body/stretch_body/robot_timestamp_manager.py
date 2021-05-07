@@ -119,27 +119,29 @@ class RobotTimestampManager(Device):
             self.__align_sensor(s2, s1, 'pimu', 'my', 'pimu_imu', t, device_sub='imu')
             self.__align_sensor(s2, s1, 'pimu', 'mz', 'pimu_imu', t, device_sub='imu')
 
-
-            q2=Quaternion(w=s2['pimu']['imu']['qw'],x=s2['pimu']['imu']['qx'],y=s2['pimu']['imu']['qy'],z=s2['pimu']['imu']['qz'])
-            q1 = Quaternion(w=s1['pimu']['imu']['qw'], x=s1['pimu']['imu']['qx'], y=s1['pimu']['imu']['qy'],z=s1['pimu']['imu']['qz'])
-            t2 = s2['timestamps']['pimu_imu'].to_secs()
-            t1 = s1['timestamps']['pimu_imu'].to_secs()
-            if (t2-t1)>0:
-                dt = (t.to_secs()-t1)/(t2-t1) #Amount to interpolate from t1 (prior)
-                if dt>1.0: #extrapolate instead of interpolate (https://answers.unity.com/questions/168779/extrapolating-quaternion-rotation.html)
-                    rot = q2 * q1.inverse
-                    axis = rot.axis
-                    ang = rot.degrees
-                    if (ang > 180):
-                        ang -= 360
-                    ang = ang * dt % 360
-                    qi = Quaternion(axis=axis, degrees=ang) * q1
-                else: #interpolate
-                    qi=Quaternion.slerp(q1,q2,dt)
-                self.robot.status['pimu']['imu']['qw'] = qi.w
-                self.robot.status['pimu']['imu']['qx'] = qi.x
-                self.robot.status['pimu']['imu']['qy'] = qi.y
-                self.robot.status['pimu']['imu']['qz'] = qi.z
+            try:
+                q2=Quaternion(w=s2['pimu']['imu']['qw'],x=s2['pimu']['imu']['qx'],y=s2['pimu']['imu']['qy'],z=s2['pimu']['imu']['qz'])
+                q1 = Quaternion(w=s1['pimu']['imu']['qw'], x=s1['pimu']['imu']['qx'], y=s1['pimu']['imu']['qy'],z=s1['pimu']['imu']['qz'])
+                t2 = s2['timestamps']['pimu_imu'].to_secs()
+                t1 = s1['timestamps']['pimu_imu'].to_secs()
+                if (t2-t1)>0:
+                    dt = (t.to_secs()-t1)/(t2-t1) #Amount to interpolate from t1 (prior)
+                    if dt>1.0: #extrapolate instead of interpolate (https://answers.unity.com/questions/168779/extrapolating-quaternion-rotation.html)
+                        rot = q2 * q1.inverse
+                        axis = rot.axis
+                        ang = rot.degrees
+                        if (ang > 180):
+                            ang -= 360
+                        ang = ang * dt % 360
+                        qi = Quaternion(axis=axis, degrees=ang) * q1
+                    else: #interpolate
+                        qi=Quaternion.slerp(q1,q2,dt)
+                    self.robot.status['pimu']['imu']['qw'] = qi.w
+                    self.robot.status['pimu']['imu']['qx'] = qi.x
+                    self.robot.status['pimu']['imu']['qy'] = qi.y
+                    self.robot.status['pimu']['imu']['qz'] = qi.z
+            except ZeroDivisionError: #On startup Q may be 0
+                pass
 
 
     def __align_sensor(self,status,prior,device,sensor,ts_sensor,to_time,device_sub=None,verbose=False):
