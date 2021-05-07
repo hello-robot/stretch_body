@@ -196,7 +196,7 @@ class TrajectoryScope:
             segx = np.arange(i[0], f[0], 0.05)
             for t in segx:
                 splinex.append(t)
-                spliney.append(evaluate_cubic_spline(seg, t - i[0])[0])
+                spliney.append(evaluate_polynomial_at(seg, t - i[0])[0])
         self.m.set_xdata(splinex)
         self.m.set_ydata(spliney)
         self.fig.canvas.draw_idle()
