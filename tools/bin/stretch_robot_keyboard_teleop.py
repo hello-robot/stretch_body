@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 import sys, tty, termios
 import stretch_body.robot as hello_robot
