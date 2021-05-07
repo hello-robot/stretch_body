@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 import stretch_body.scope
 import stretch_body.wrist_yaw
