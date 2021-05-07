@@ -320,58 +320,69 @@ class BasicDiffDriveTrajectory(Trajectory):
         Segment
             coefficients + duration encapsulated in ``Segment`` class
         """
-        if index >= -1 * len(self.waypoints) + 1 and index < len(self.waypoints) - 1:
-            index = index - 1 if index < 0 else index
-            waypoint0 = self.get_waypoint(index)
-            waypoint1 = self.get_waypoint(index + 1)
+        if index < -1 * len(self.waypoints) + 1 or index >= len(self.waypoints) - 1:
+            # Invalid index
+            return (Segment(), Segment())
+        elif self.trajectory_type is None:
+            return None
+
+        index = index - 1 if index < 0 else index
+        waypoint0 = self.get_waypoint(index)
+        waypoint1 = self.get_waypoint(index + 1)
+
+        i0_lwaypoint = [waypoint0.time]
+        i1_lwaypoint = [waypoint1.time]
+        i0_rwaypoint = [waypoint0.time]
+        i1_rwaypoint = [waypoint1.time]
+
+        if self.trajectory_type == "translation" and translate_to_motor_rad is not None:
+            i0_lwaypoint.append(translate_to_motor_rad(waypoint0.position) + lwpos)
+            i1_lwaypoint.append(translate_to_motor_rad(waypoint1.position) + lwpos)
+            i0_rwaypoint.append(translate_to_motor_rad(waypoint0.position) + rwpos)
+            i1_rwaypoint.append(translate_to_motor_rad(waypoint1.position) + rwpos)
+        elif self.trajectory_type == "rotation" and rotate_to_motor_rad is not None:
+            i0_lwaypoint.append(lwpos - rotate_to_motor_rad(waypoint0.position))
+            i1_lwaypoint.append(lwpos - rotate_to_motor_rad(waypoint1.position))
+            i0_rwaypoint.append(rotate_to_motor_rad(waypoint0.position) + rwpos)
+            i1_rwaypoint.append(rotate_to_motor_rad(waypoint1.position) + rwpos)
+
+        if waypoint0.velocity is not None and waypoint1.velocity is not None:
+            if self.trajectory_type == "translation" and translate_to_motor_rad is not None:
+                i0_lwaypoint.append(translate_to_motor_rad(waypoint0.velocity))
+                i1_lwaypoint.append(translate_to_motor_rad(waypoint1.velocity))
+                i0_rwaypoint.append(translate_to_motor_rad(waypoint0.velocity))
+                i1_rwaypoint.append(translate_to_motor_rad(waypoint1.velocity))
+            elif self.trajectory_type == "rotation" and rotate_to_motor_rad is not None:
+                i0_lwaypoint.append(-1 * rotate_to_motor_rad(waypoint0.velocity))
+                i1_lwaypoint.append(-1 * rotate_to_motor_rad(waypoint1.velocity))
+                i0_rwaypoint.append(rotate_to_motor_rad(waypoint0.velocity))
+                i1_rwaypoint.append(rotate_to_motor_rad(waypoint1.velocity))
+
             if waypoint0.acceleration is not None and waypoint1.acceleration is not None:
                 if self.trajectory_type == "translation" and translate_to_motor_rad is not None:
-                    i0_lwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + lwpos, translate_to_motor_rad(waypoint0.velocity), translate_to_motor_rad(waypoint0.acceleration)]
-                    i1_lwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + lwpos, translate_to_motor_rad(waypoint1.velocity), translate_to_motor_rad(waypoint1.acceleration)]
-                    i0_rwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + rwpos, translate_to_motor_rad(waypoint0.velocity), translate_to_motor_rad(waypoint0.acceleration)]
-                    i1_rwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + rwpos, translate_to_motor_rad(waypoint1.velocity), translate_to_motor_rad(waypoint1.acceleration)]
+                    i0_lwaypoint.append(translate_to_motor_rad(waypoint0.acceleration))
+                    i1_lwaypoint.append(translate_to_motor_rad(waypoint1.acceleration))
+                    i0_rwaypoint.append(translate_to_motor_rad(waypoint0.acceleration))
+                    i1_rwaypoint.append(translate_to_motor_rad(waypoint1.acceleration))
                 elif self.trajectory_type == "rotation" and rotate_to_motor_rad is not None:
-                    i0_lwaypoint = [waypoint0.time, lwpos - rotate_to_motor_rad(waypoint0.position), -1 * rotate_to_motor_rad(waypoint0.velocity), -1 * rotate_to_motor_rad(waypoint0.acceleration)]
-                    i1_lwaypoint = [waypoint1.time, lwpos - rotate_to_motor_rad(waypoint1.position), -1 * rotate_to_motor_rad(waypoint1.velocity), -1 * rotate_to_motor_rad(waypoint1.acceleration)]
-                    i0_rwaypoint = [waypoint0.time, rotate_to_motor_rad(waypoint0.position) + rwpos, rotate_to_motor_rad(waypoint0.velocity), rotate_to_motor_rad(waypoint0.acceleration)]
-                    i1_rwaypoint = [waypoint1.time, rotate_to_motor_rad(waypoint1.position) + rwpos, rotate_to_motor_rad(waypoint1.velocity), rotate_to_motor_rad(waypoint1.acceleration)]
-                else:
-                    return None
+                    i0_lwaypoint.append(-1 * rotate_to_motor_rad(waypoint0.acceleration))
+                    i1_lwaypoint.append(-1 * rotate_to_motor_rad(waypoint1.acceleration))
+                    i0_rwaypoint.append(rotate_to_motor_rad(waypoint0.acceleration))
+                    i1_rwaypoint.append(rotate_to_motor_rad(waypoint1.acceleration))
+
+                # Have position, velocity and acceleration --> Generate Quintic
                 lsegment_arr = generate_quintic_spline_segment(i0_lwaypoint, i1_lwaypoint)
                 rsegment_arr = generate_quintic_spline_segment(i0_rwaypoint, i1_rwaypoint)
-            elif waypoint0.velocity is not None and waypoint1.velocity is not None:
-                if self.trajectory_type == "translation" and translate_to_motor_rad is not None:
-                    i0_lwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + lwpos, translate_to_motor_rad(waypoint0.velocity)]
-                    i1_lwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + lwpos, translate_to_motor_rad(waypoint1.velocity)]
-                    i0_rwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + rwpos, translate_to_motor_rad(waypoint0.velocity)]
-                    i1_rwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + rwpos, translate_to_motor_rad(waypoint1.velocity)]
-                elif self.trajectory_type == "rotation" and rotate_to_motor_rad is not None:
-                    i0_lwaypoint = [waypoint0.time, lwpos - rotate_to_motor_rad(waypoint0.position), -1 * rotate_to_motor_rad(waypoint0.velocity)]
-                    i1_lwaypoint = [waypoint1.time, lwpos - rotate_to_motor_rad(waypoint1.position), -1 * rotate_to_motor_rad(waypoint1.velocity)]
-                    i0_rwaypoint = [waypoint0.time, rotate_to_motor_rad(waypoint0.position) + rwpos, rotate_to_motor_rad(waypoint0.velocity)]
-                    i1_rwaypoint = [waypoint1.time, rotate_to_motor_rad(waypoint1.position) + rwpos, rotate_to_motor_rad(waypoint1.velocity)]
-                else:
-                    return None
+            else:
+                # Have position and velocity, but no acceleration --> Generate Cubic
                 lsegment_arr = generate_cubic_spline_segment(i0_lwaypoint, i1_lwaypoint)
                 rsegment_arr = generate_cubic_spline_segment(i0_rwaypoint, i1_rwaypoint)
-            else:
-                if self.trajectory_type == "translation" and translate_to_motor_rad is not None:
-                    i0_lwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + lwpos]
-                    i1_lwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + lwpos]
-                    i0_rwaypoint = [waypoint0.time, translate_to_motor_rad(waypoint0.position) + rwpos]
-                    i1_rwaypoint = [waypoint1.time, translate_to_motor_rad(waypoint1.position) + rwpos]
-                elif self.trajectory_type == "rotation" and rotate_to_motor_rad is not None:
-                    i0_lwaypoint = [waypoint0.time, lwpos - rotate_to_motor_rad(waypoint0.position)]
-                    i1_lwaypoint = [waypoint1.time, lwpos - rotate_to_motor_rad(waypoint1.position)]
-                    i0_rwaypoint = [waypoint0.time, rotate_to_motor_rad(waypoint0.position) + rwpos]
-                    i1_rwaypoint = [waypoint1.time, rotate_to_motor_rad(waypoint1.position) + rwpos]
-                else:
-                    return None
-                lsegment_arr = generate_linear_segment(i0_lwaypoint, i1_lwaypoint)
-                rsegment_arr = generate_linear_segment(i0_rwaypoint, i1_rwaypoint)
-            return (Segment(*lsegment_arr), Segment(*rsegment_arr))
+        else:
+            # Have just position (no velocity or acceleration) --> Generate Linear
+            lsegment_arr = generate_linear_segment(i0_lwaypoint, i1_lwaypoint)
+            rsegment_arr = generate_linear_segment(i0_rwaypoint, i1_rwaypoint)
 
-        return (Segment(), Segment())
+        return (Segment(*lsegment_arr), Segment(*rsegment_arr))
 
     def add_translate_waypoint(self, t_s, x_m, v_m=None, a_m=None):
         """Add a translation waypoint to the base trajectory.
