@@ -403,9 +403,7 @@ class Robot(Device):
         Blocking.
         """
         #Turn off so homing can happen w/o Pimu
-        psm=self.pimu.config['sync_mode_enabled']
-        self.pimu.disable_sync_mode()
-        self.push_command()
+        self.disable_sync_mode()
 
         if self.head is not None:
             print('--------- Homing Head ----')
@@ -426,9 +424,10 @@ class Robot(Device):
             for j in self.end_of_arm.joints:
                 print( '--------- Homing ', j, '----')
                 self.end_of_arm.home(j)
-        #Let user know it is done
-        if psm:
-            self.pimu.enable_sync_mode()
+
+        if self.params['sync_mode_enabled']:
+            self.enable_sync_mode()
+        # Let user know it is done
         self.pimu.trigger_beep()
         self.push_command()
     # ################ Helpers #################################
