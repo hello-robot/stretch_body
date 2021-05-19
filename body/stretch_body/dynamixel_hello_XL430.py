@@ -10,17 +10,26 @@ class DynamixelHelloXL430(Device):
     Abstract the Dynamixel X-Series to handle calibration, radians, etc
     """
     def __init__(self,name, chain=None,verbose=False):
-        Device.__init__(self,verbose)
-        self.name=name
+        Device.__init__(self,name,verbose)
+        self.chain = chain
         self.params=self.robot_params[self.name]
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
                      'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+
+        #Handle YAML defaults for earlier versions where may not be present
+        if not 'baud' in self.params:
+            self.params['baud']=57600
+        if not 'retry_on_comm_failure' in self.params:
+            self.params['retry_on_comm_failure']=1
+        if not 'verbose' in self.params:
+            self.params['verbose']=0
+
         #Share bus resource amongst many XL430s
         if chain is None:
-            self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None)
+            self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None,baud=self.params['baud'],verbose=self.params['verbose'])
         else:
-            self.motor = DynamixelXL430(dxl_id=self.params['id'], usb=self.params['usb_name'], port_handler=chain.port_handler, pt_lock=chain.pt_lock)
+            self.motor = DynamixelXL430(dxl_id=self.params['id'], usb=self.params['usb_name'], port_handler=chain.port_handler, pt_lock=chain.pt_lock,verbose=self.params['verbose'])
         if self.params['flip_encoder_polarity']:
             self.polarity=-1.0
         else:
@@ -28,8 +37,26 @@ class DynamixelHelloXL430(Device):
         self.ts_over_eff_start=None
         self.hw_valid=False
         self.is_calibrated=False
+        self.set_soft_motion_limits(None, None)
 
     # ###########  Device Methods #############
+    def set_soft_motion_limits(self,x_min=None,x_max=None):
+        if self.params['flip_encoder_polarity']:
+            wr_max = self.ticks_to_world_rad(self.params['range_t'][0])
+            wr_min = self.ticks_to_world_rad(self.params['range_t'][1])
+        else:
+            wr_max = self.ticks_to_world_rad(self.params['range_t'][1])
+            wr_min = self.ticks_to_world_rad(self.params['range_t'][0])
+
+        if x_min is not None:
+            x_min=max(x_min,wr_min)
+        else:
+            x_min=wr_min
+        if x_max is not None:
+            x_max=min(x_max,wr_max)
+        else:
+            x_max=wr_max
+        self.soft_motion_limits=[x_min,x_max]
 
     def do_ping(self, verbose=False):
         return self.motor.do_ping(verbose)
@@ -52,6 +79,7 @@ class DynamixelHelloXL430(Device):
             self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
             self.v_des=self.params['motion']['default']['vel']
             self.a_des=self.params['motion']['default']['accel']
+            self.set_range()
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
             return True
@@ -67,18 +95,50 @@ class DynamixelHelloXL430(Device):
     def pull_status(self,data=None):
         if not self.hw_valid:
             return
+
+        pos_valid = True
+        vel_valid = True
+        eff_valid = True
+        temp_valid = True
+        err_valid = True
+
         #First pull new data from servo
         #Or bring in data from a synchronized read
         if data is None:
             try:
                 x = self.motor.get_pos()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    x = self.motor.get_pos()
+                pos_valid = self.motor.last_comm_success
+
                 v = self.motor.get_vel()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    v = self.motor.get_vel()
+                vel_valid = self.motor.last_comm_success
+
                 eff = self.motor.get_load()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    eff = self.motor.get_load()
+                eff_valid = self.motor.last_comm_success
+
                 temp = self.motor.get_temp()
-                ts = time.time()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    temp = self.motor.get_temp()
+                temp_valid = self.motor.last_comm_success
+
                 err=self.motor.get_hardware_error()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    err=self.motor.get_hardware_error()
+                err_valid = self.motor.last_comm_success
+
+
+                if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid and self.params['verbose']:
+                    print('Failed status communication on %s: POS %d VEL %d EFF %d TEMP %d ERR %d '%(self.name,pos_valid,vel_valid,eff_valid,temp_valid,err_valid))
+
+                ts = time.time()
             except termios.error:
-                print('Dynamixel communiation error at time: ',time.time())
+                print('Dynamixel communication error on %s: '%self.name)
+                return
         else:
             x = data['x']
             v = data['v']
@@ -88,15 +148,21 @@ class DynamixelHelloXL430(Device):
             err = data['err']
 
         #Now update status dictionary
-        self.status['pos_ticks'] = x
-        self.status['vel_ticks'] = v
-        self.status['effort_ticks'] = eff
-        self.status['pos'] = self.ticks_to_world_rad(float(x))
-        self.status['vel'] = self.ticks_to_rad_per_sec(float(v))
-        self.status['effort'] = self.ticks_to_pct_load(float(eff))
-        self.status['temp'] = float(temp)
+        if pos_valid:
+            self.status['pos_ticks'] = x
+            self.status['pos'] = self.ticks_to_world_rad(float(x))
+        if vel_valid:
+            self.status['vel_ticks'] = v
+            self.status['vel'] = self.ticks_to_rad_per_sec(float(v))
+        if eff_valid:
+            self.status['effort_ticks'] = eff
+            self.status['effort'] = self.ticks_to_pct_load(float(eff))
+        if temp_valid:
+            self.status['temp'] = float(temp)
+        if err_valid:
+            self.status['hardware_error'] = err
+
         self.status['timestamp_pc'] = ts
-        self.status['hardware_error'] = err
         self.status['input_voltage_error'] = self.status['hardware_error'] & 1 is not 0
         self.status['overheating_error'] = self.status['hardware_error'] & 4 is not 0
         self.status['motor_encoder_error'] = self.status['hardware_error'] & 8 is not 0
@@ -185,12 +251,26 @@ class DynamixelHelloXL430(Device):
             return
         try:
             self.set_motion_params(v_des,a_des)
+            x_des = min(max(self.soft_motion_limits[0], x_des), self.soft_motion_limits[1])
             t_des = self.world_rad_to_ticks(x_des)
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
         except termios.error:
             print('Dynamixel communication error at time: ',time.time())
 
+
+    def set_range(self,x_min=None,x_max=None):
+        if x_min is not None:
+            t_min=self.world_rad_to_ticks(x_min)
+            t_min=max(t_min,self.params['range_t'][0])
+        else:
+            t_min=self.params['range_t'][0]
+        if x_max is not None:
+            t_max=self.world_rad_to_ticks(x_max)
+            t_max=max(t_max,self.params['range_t'][1])
+        else:
+            t_max=self.params['range_t'][1]
+        self.range=[t_min,t_max]
 
     def set_motion_params(self,v_des=None,a_des=None):
         if not self.hw_valid:
@@ -211,8 +291,16 @@ class DynamixelHelloXL430(Device):
         if not self.hw_valid:
             return
         if abs(x_des) > 0.00002: #Avoid drift
-            cx=self.ticks_to_world_rad(self.motor.get_pos())
-            self.move_to(cx + x_des, v_des, a_des)
+            x=self.motor.get_pos()
+            if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                x = self.motor.get_pos()
+
+            if self.motor.last_comm_success:
+                cx=self.ticks_to_world_rad(x)
+                self.move_to(cx + x_des, v_des, a_des)
+            else:
+                if self.params['verbose']:
+                    print('Move_By comm failure on %s' % self.name)
 
     def quick_stop(self):
         if not self.hw_valid:

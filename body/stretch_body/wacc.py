@@ -31,11 +31,11 @@ class Wacc(Device):
     """
 
     def __init__(self, verbose=False, ext_status_cb=None, ext_command_cb=None):
-        Device.__init__(self, verbose)
+        Device.__init__(self, 'wacc',verbose)
         self.ext_status_cb=ext_status_cb
         self.ext_command_cb=ext_command_cb
         self.lock=threading.RLock()
-        self.params=self.robot_params['wacc']
+        self.params=self.robot_params[self.name]
         self.config = self.params['config']
         self._dirty_config = True #Force push down
         self._dirty_command = False

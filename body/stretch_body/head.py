@@ -8,8 +8,7 @@ class Head(DynamixelXChain):
     API to the Stretch RE1 Head
     """
     def __init__(self,verbose=False):
-        DynamixelXChain.__init__(self, '/dev/hello-dynamixel-head',verbose)
-        self.name = 'head'
+        DynamixelXChain.__init__(self, '/dev/hello-dynamixel-head','head',verbose)
         self.joints = ['head_pan', 'head_tilt']
         for j in self.joints:
             self.add_motor(DynamixelHelloXL430(j, self,verbose))

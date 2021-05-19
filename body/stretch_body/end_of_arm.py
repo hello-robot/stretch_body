@@ -11,8 +11,7 @@ class EndOfArm(DynamixelXChain):
     in the User YAML file
     """
     def __init__(self,verbose=False):
-        DynamixelXChain.__init__(self,'/dev/hello-dynamixel-wrist',verbose)
-        self.name='end_of_arm'
+        DynamixelXChain.__init__(self,'/dev/hello-dynamixel-wrist','end_of_arm',verbose)
         self.params=self.robot_params[self.name]
         self.joints=self.params['devices'].keys()
         for j in self.joints:

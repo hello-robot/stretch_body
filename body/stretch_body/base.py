@@ -11,8 +11,7 @@ class Base(Device):
     API to the Stretch RE1 Mobile Base
     """
     def __init__(self,verbose=False):
-        Device.__init__(self,verbose)
-        self.name='base'
+        Device.__init__(self,'base',verbose)
         self.logger = logging.getLogger('robot.base')
         self.params = self.robot_params[self.name]
         self.left_wheel = Stepper('/dev/hello-motor-left-wheel')
