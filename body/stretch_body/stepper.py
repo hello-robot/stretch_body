@@ -109,14 +109,13 @@ class Stepper(Device):
                 self.transport.step(exiting=False)
                 #Check that protocol matches
                 if not(self.valid_firmware_protocol == self.board_info['protocol_version']):
-                    if self.verbose:
-                        print('----------------')
-                        print('Firmware protocol mismatch on %s. '%self.name)
-                        print('Protocol on board is %s.'%self.board_info['protocol_version'])
-                        print('Valid protocol is: %s' %self.valid_firmware_protocol)
-                        print('Disabling device')
-                        print('Please upgrade the firmware and or version of Stretch Body')
-                        print('----------------')
+                    print('----------------')
+                    print('Firmware protocol mismatch on %s. '%self.name)
+                    print('Protocol on board is %s.'%self.board_info['protocol_version'])
+                    print('Valid protocol is: %s' %self.valid_firmware_protocol)
+                    print('Disabling device')
+                    print('Please upgrade the firmware and or version of Stretch Body')
+                    print('----------------')
                     self.hw_valid=False
                     self.transport.stop()
             if self.hw_valid:
