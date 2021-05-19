@@ -10,10 +10,9 @@ class RobotMonitor(Device):
     The RobotMonitor is managed by the Robot class
     It runs at 5Hz
     """
-    def __init__(self,robot,verbose=False):
-        Device.__init__(self,'robot_monitor',verbose=verbose)
+    def __init__(self,robot):
+        Device.__init__(self,'robot_monitor')
         self.robot=robot
-        self.param=self.robot_params[self.name]
 
     def startup(self):
 
@@ -38,31 +37,31 @@ class RobotMonitor(Device):
         return True
 
     def step(self):
-        if self.param['monitor_voltage']:
+        if self.params['monitor_voltage']:
             self.monitor_voltage()
-        if self.param['monitor_current']:
+        if self.params['monitor_current']:
             self.monitor_current()
-        if self.param['monitor_runstop']:
+        if self.params['monitor_runstop']:
             self.monitor_runstop()
-        if self.param['monitor_dynamixel_flags']:
+        if self.params['monitor_dynamixel_flags']:
             self.monitor_dynamixel_flags()
-        if self.param['monitor_guarded_contact']:
+        if self.params['monitor_guarded_contact']:
             self.monitor_guarded_contact()
-        if self.param['monitor_wrist_single_tap']:
+        if self.params['monitor_wrist_single_tap']:
             self.monitor_wrist_single_tap()
-        if self.param['monitor_base_cliff_event']:
+        if self.params['monitor_base_cliff_event']:
             self.monitor_base_cliff_event()
-        if self.param['monitor_base_bump_event']:
+        if self.params['monitor_base_bump_event']:
             self.monitor_base_bump_event()
-        if self.param['monitor_over_tilt_alert']:
+        if self.params['monitor_over_tilt_alert']:
             self.monitor_over_tilt_alert()
 
 
     #def warning(self,x):
-    #    logging.warning('Hello Robot| %s | %s | %s'%(self.robot.params['serial_no'],time.ctime(),x))
+    #    logging.warning('Hello Robot| %s | %s | %s'%(self.robot.paramss['serial_no'],time.ctime(),x))
 
     #def info(self,x):
-    #    logging.info('Hello Robot| %s | %s | %s'%(self.robot.params['serial_no'], time.ctime(), x))
+    #    logging.info('Hello Robot| %s | %s | %s'%(self.robot.paramss['serial_no'], time.ctime(), x))
 
     # ##################################
     def monitor_base_cliff_event(self):

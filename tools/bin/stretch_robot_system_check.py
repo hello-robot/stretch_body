@@ -50,7 +50,7 @@ for k in robot_devices.keys():
 print(Style.RESET_ALL)
 if robot_devices['hello-pimu']:
     print('---- Checking Pimu ----')
-    p=pimu.Pimu(verbose=False)
+    p=pimu.Pimu()
     p.startup()
     p.pull_status()
     val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
@@ -102,7 +102,7 @@ if robot_devices['hello-dynamixel-head']:
 print(Style.RESET_ALL)
 if robot_devices['hello-wacc']:
     print('---- Checking Wacc ----')
-    w=wacc.Wacc(verbose=False)
+    w=wacc.Wacc()
     w.startup()
     w.pull_status()
     val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0)
@@ -113,7 +113,7 @@ if robot_devices['hello-wacc']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-left-wheel']:
     print('---- Checking hello-motor-left-wheel ----')
-    m = stepper.Stepper('/dev/hello-motor-left-wheel',verbose=False)
+    m = stepper.Stepper('/dev/hello-motor-left-wheel')
     m.startup()
     m.pull_status()
     val_is_not('Position',m.status['pos'], vnot=0)
@@ -123,7 +123,7 @@ if robot_devices['hello-motor-left-wheel']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-right-wheel']:
     print('---- Checking hello-motor-right-wheel ----')
-    m = stepper.Stepper('/dev/hello-motor-right-wheel',verbose=False)
+    m = stepper.Stepper('/dev/hello-motor-right-wheel')
     m.startup()
     m.pull_status()
     val_is_not('Position',m.status['pos'], vnot=0)
@@ -133,7 +133,7 @@ if robot_devices['hello-motor-right-wheel']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-arm']:
     print('---- Checking hello-motor-arm ----')
-    m = stepper.Stepper('/dev/hello-motor-arm',verbose=False)
+    m = stepper.Stepper('/dev/hello-motor-arm')
     m.startup()
     m.pull_status()
     val_is_not('Position',m.status['pos'], vnot=0)
@@ -144,7 +144,7 @@ if robot_devices['hello-motor-arm']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-lift']:
     print('---- Checking hello-motor-lift ----')
-    m = stepper.Stepper('/dev/hello-motor-lift',verbose=False)
+    m = stepper.Stepper('/dev/hello-motor-lift')
     m.startup()
     m.pull_status()
     val_is_not('Position',m.status['pos'], vnot=0)

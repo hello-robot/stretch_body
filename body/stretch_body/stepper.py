@@ -68,13 +68,12 @@ class Stepper(Device):
     """
     API to the Stretch RE1 stepper board
     """
-    def __init__(self,usb,verbose=False):
+    def __init__(self,usb):
         name = usb[5:]
-        Device.__init__(self,name,verbose=verbose)
+        Device.__init__(self,name)
         self.usb=usb
-        self.params=self.robot_params[self.name]
         self.lock=threading.RLock()
-        self.transport = Transport(self.usb,self.verbose)
+        self.transport = Transport(self.usb,self.params['verbose'])
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
@@ -132,7 +131,7 @@ class Stepper(Device):
         if not self.hw_valid:
             return
         with self.lock:
-            if self.verbose:
+            if self.params['verbose']:
                 print('Shutting down Stepper on: ' + self.usb)
             self.enable_safety()
             self.push_command(exiting=True)

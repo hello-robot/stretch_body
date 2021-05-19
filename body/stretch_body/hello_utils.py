@@ -44,6 +44,19 @@ def write_fleet_yaml(fn,rp):
     with open(get_fleet_directory()+fn, 'w') as yaml_file:
         yaml.dump(rp, yaml_file, default_flow_style=False)
 
+def overwrite_dict(overwritee_dict, overwriter_dict):
+    for k in overwriter_dict.keys():
+        if overwritee_dict.has_key(k):
+            if type(overwritee_dict[k])==type(overwriter_dict[k]):
+                if type(overwritee_dict[k])==dict:
+                    overwrite_dict(overwritee_dict[k],overwriter_dict[k])
+                else:
+                    overwritee_dict[k]=overwriter_dict[k]
+            else:
+                print('Overwritting Factory Params with User Params. Type mismatch for key:',k)
+        else: #If key not present, add anyhow (useful for adding new end_of_arm)
+            overwritee_dict[k] = overwriter_dict[k]
+
 class TimerStats():
     def __init__(self):
         self.av = None

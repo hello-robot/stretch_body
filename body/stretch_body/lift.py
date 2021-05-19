@@ -7,10 +7,9 @@ class Lift(Device):
     """
     API to the Stretch RE1 Lift
     """
-    def __init__(self,verbose=False):
-        Device.__init__(self,'lift',verbose)
-        self.params=self.robot_params[self.name]
-        self.motor = Stepper('/dev/hello-motor-lift',verbose=verbose)
+    def __init__(self):
+        Device.__init__(self,'lift')
+        self.motor = Stepper('/dev/hello-motor-lift')
         self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
         # Default controller params
         self.stiffness = 1.0

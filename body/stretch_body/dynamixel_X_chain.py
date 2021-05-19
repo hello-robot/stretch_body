@@ -17,21 +17,9 @@ class DynamixelXChain(Device):
     It allows adding more than one servo at run time
     It allos manage group reading of status data from servos so as to not overload the control bus
     """
-    def __init__(self,usb,name, verbose=False):
-        Device.__init__(self,name,verbose)
+    def __init__(self,usb,name):
+        Device.__init__(self,name)
         self.usb = usb
-        self.params={}
-
-        #Missing on some earlier YAML
-        if self.robot_params.has_key(name):
-            self.params=self.robot_params[name]
-        if not 'use_group_sync_read' in self.params:
-            self.params['use_group_sync_read']=1
-        if not 'baud' in self.params:
-            self.params['baud'] = 57600
-        if not 'retry_on_comm_failure' in self.params:
-            self.params['retry_on_comm_failure'] = 1
-
         self.timer_stats = hello_utils.TimerStats()
         self.pt_lock = threading.RLock()
 

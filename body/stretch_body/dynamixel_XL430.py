@@ -79,12 +79,11 @@ XM430_ADDR_GOAL_CURRENT = 102
 XM430_ADDR_CURRENT_LIMIT = 38
 
 
-class DynamixelXL430(Device):
+class DynamixelXL430():
     """
     Wrapping of Dynamixel X-Series interface
     """
-    def __init__(self,dxl_id,usb,port_handler=None, pt_lock=None,baud=57600, verbose=False):
-        Device.__init__(self,name='',verbose=verbose)
+    def __init__(self,dxl_id,usb,port_handler=None, pt_lock=None,baud=57600):
         self.dxl_id=dxl_id
         self.comm_errors=0
        #Make access to portHandler threadsafe
@@ -146,7 +145,7 @@ class DynamixelXL430(Device):
 
     # ##########################################
 
-    def handle_comm_result(self,fx,dxl_comm_result, dxl_error):
+    def handle_comm_result(self,fx,dxl_comm_result, dxl_error,verbose=False):
         err_msg=''
         if dxl_comm_result==COMM_SUCCESS:
             self.last_comm_success=True
@@ -168,7 +167,7 @@ class DynamixelXL430(Device):
         if dxl_comm_result==COMM_NOT_AVAILABLE:
             err_msg="COMM_NOT_AVAILABLE"
         self.comm_errors = self.comm_errors + 1
-        if self.verbose:
+        if verbose:
             print('DXL Comm Error on %s ID %d. Result %d. Error %d. Code %s Total Errors %d'%(self.usb,self.dxl_id, dxl_comm_result, dxl_error,err_msg,self.comm_errors))
 
         self.last_comm_success = False
@@ -194,7 +193,7 @@ class DynamixelXL430(Device):
             return False
         with self.pt_lock:
             dxl_model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, self.dxl_id)
-        if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error):
+        if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error,verbose):
             if verbose:
                 print("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d" % (self.dxl_id, dxl_model_number))
             return True
