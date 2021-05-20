@@ -48,7 +48,7 @@ class Device:
                     print('Overwritting Factory Params with User Params. Type mismatch for key:',k)
             else: #If key not present, add anyhow (useful for adding new end_of_arm)
                 factory_dict[k] = user_dict[k]
-                
+
     # ########### Primary interface #############
 
     def startup(self):
