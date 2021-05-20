@@ -12,12 +12,20 @@ class EndOfArm(DynamixelXChain):
     """
     def __init__(self, name='end_of_arm'):
         DynamixelXChain.__init__(self, usb='/dev/hello-dynamixel-wrist', name=name)
-        self.joints=self.params['devices'].keys()
-        for j in self.joints:
-            module_name=self.params['devices'][j]['py_module_name']
-            class_name=self.params['devices'][j]['py_class_name']
-            dynamixel_device=getattr(importlib.import_module(module_name), class_name)(self)
-            self.add_motor(dynamixel_device)
+        self.joints = []
+        self.add_joints(self.params)
+
+    def add_joints(self,params):
+        # Adds new servo instances per YAML definition
+        if params.has_key('devices'):
+            new_joints = params['devices'].keys()
+            for j in new_joints:
+                if not j in self.joints:
+                    self.joints.append(j)
+                    module_name = params['devices'][j]['py_module_name']
+                    class_name = params['devices'][j]['py_class_name']
+                    dynamixel_device = getattr(importlib.import_module(module_name), class_name)(self)
+                    self.add_motor(dynamixel_device)
 
     def move_to(self, joint,x_r, v_r=None, a_r=None):
         """
@@ -49,12 +57,21 @@ class EndOfArm(DynamixelXChain):
         with self.pt_lock:
             self.motors[joint].pose(p, v_r, a_r)
 
-    def home(self, joint):
+    def stow(self):
+        print('--------- Stowing Wrist Yaw ----')
+        self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
+
+    def home(self, joint=None):
         """
         Home to hardstops
         """
-        with self.pt_lock:
-            self.motors[joint].home()
+        if joint is None:
+            for j in self.joints:
+                print('--------- Homing %s ----'%j)
+                self.motors[j].home()
+        else:
+            with self.pt_lock:
+                self.motors[joint].home()
 
     def is_tool_present(self,class_name):
         """

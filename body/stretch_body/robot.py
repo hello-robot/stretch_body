@@ -43,6 +43,7 @@ class RobotDynamixelThread(threading.Thread):
             tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
             if not self.shutdown_flag.is_set():
                 time.sleep(tsleep)
+        print('Shutting down RobotDynamixelThread')
 
 
 
@@ -86,6 +87,7 @@ class RobotThread(threading.Thread):
             tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
             if not self.shutdown_flag.is_set():
                 time.sleep(tsleep)
+        print('Shutting down RobotThread')
 
 
 class Robot(Device):
@@ -123,8 +125,15 @@ class Robot(Device):
             self.wacc=wacc.Wacc()
         self.status['wacc']=self.wacc.status
 
-        self.end_of_arm=end_of_arm.EndOfArm()
-        self.status['end_of_arm']=self.end_of_arm.status
+
+        if self.robot_params['end_of_arm'].has_key('tool'):
+            tool_name = self.robot_params['end_of_arm']['tool']
+            module_name = self.robot_params[tool_name]['py_module_name']
+            class_name = self.robot_params[tool_name]['py_class_name']
+            self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
+        else:
+            self.end_of_arm = end_of_arm.EndOfArm()
+        self.status['end_of_arm'] = self.end_of_arm.status
 
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
         self.rt=None
@@ -179,7 +188,7 @@ class Robot(Device):
             if self.devices[k] is not None:
                 print('Shutting down',k)
                 self.devices[k].stop()
-
+        print('---- Shutdown complete ----')
 
     def get_status(self):
         """
@@ -232,9 +241,13 @@ class Robot(Device):
         self.head.move_to('head_tilt',self.params['stow']['head_tilt'])
 
         lift_stowed=False
+        pos_lift = self.params['stow']['lift']
+        if self.end_of_arm.params.has_key('stow'):  # Allow tool defined stow position to take precedence
+            if self.end_of_arm.params['stow'].has_key('lift'):
+                pos_lift = self.end_of_arm.params['stow']['lift']
         if self.lift.status['pos']<=self.params['stow']['lift']: #Needs to come up before bring in arm
             print('--------- Stowing Lift ----')
-            self.lift.move_to(self.params['stow']['lift'])
+            self.lift.move_to(pos_lift)
             self.push_command()
             time.sleep(0.25)
             ts = time.time()
@@ -244,25 +257,26 @@ class Robot(Device):
 
         #Bring in arm before bring down
         print('--------- Stowing Arm ----')
-        self.arm.move_to(self.params['stow']['arm'])
+        pos_arm = self.params['stow']['arm']
+        if self.end_of_arm.params.has_key('stow'):  # Allow tool defined stow position to take precedence
+            if self.end_of_arm.params['stow'].has_key('arm'):
+                pos_arm = self.end_of_arm.params['stow']['arm']
+
+        self.arm.move_to(pos_arm)
         self.push_command()
         time.sleep(0.25)
         ts = time.time()
         while not self.arm.motor.status['near_pos_setpoint'] and time.time() - ts < 3.0:
             time.sleep(0.1)
 
-        # Fold in wrist and gripper
-        print('--------- Stowing Wrist Yaw ----')
-        self.end_of_arm.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
-        if self.end_of_arm.is_tool_present('StretchGripper'):
-            self.end_of_arm.move_to('stretch_gripper', self.params['stow']['stretch_gripper'])
+        self.end_of_arm.stow()
         time.sleep(0.25)
 
 
         #Now bring lift down
         if not lift_stowed:
             print('--------- Stowing Lift ----')
-            self.lift.move_to(self.params['stow']['lift'])
+            self.lift.move_to(pos_lift)
             self.push_command()
             time.sleep(0.25)
             ts = time.time()
@@ -294,9 +308,7 @@ class Robot(Device):
 
         # Home the end-of-arm
         if self.end_of_arm is not None:
-            for j in self.end_of_arm.joints:
-                print( '--------- Homing ', j, '----')
-                self.end_of_arm.home(j)
+            self.end_of_arm.home()
         #Let user know it is done
         self.pimu.trigger_beep()
         self.push_command()
