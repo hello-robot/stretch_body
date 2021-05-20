@@ -250,7 +250,7 @@ class Base(Device):
         self.left_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr)
         self.right_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
 
-    def step_sentry(self, x_lift, x_arm, x_wrist):
+    def step_sentry(self,robot):
         """
         Only allow fast mobile base motion if the lift is low,
         the arm is retracted, and the wrist is stowed. This is
@@ -258,16 +258,24 @@ class Base(Device):
         stability and avoid catching the arm or tool on
         something.
         """
-        if ((x_lift < self.params['sentry_max_velocity']['max_lift_height_m']) and
-                (x_arm < self.params['sentry_max_velocity']['max_arm_extension_m']) and
-                (x_wrist > self.params['sentry_max_velocity']['min_wrist_yaw_rad'])):
-            if not self.fast_motion_allowed:
-                self.logger.debug('Fast motion turned on')
-            self.fast_motion_allowed = True
-        else:
-            if self.fast_motion_allowed:
-                self.logger.debug('Fast motion turned off')
-            self.fast_motion_allowed = False
+        if self.robot_params['robot_sentry']['base_max_velocity']:
+            x_lift=robot.lift.status['pos']
+            x_arm =robot.arm.status['pos']
+            x_wrist =robot.end_of_arm.motors['wrist_yaw'].status['pos']
+
+            if ((x_lift < self.params['sentry_max_velocity']['max_lift_height_m']) and
+                    (x_arm < self.params['sentry_max_velocity']['max_arm_extension_m']) and
+                    (x_wrist > self.params['sentry_max_velocity']['min_wrist_yaw_rad'])):
+                if not self.fast_motion_allowed:
+                    self.logger.debug('Fast motion turned on')
+                self.fast_motion_allowed = True
+            else:
+                if self.fast_motion_allowed:
+                    self.logger.debug('Fast motion turned off')
+                self.fast_motion_allowed = False
+
+        self.left_wheel.step_sentry(robot)
+        self.right_wheel.step_sentry(robot)
 
     # ###################################################
     def push_command(self):

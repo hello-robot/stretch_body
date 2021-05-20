@@ -446,8 +446,8 @@ class Pimu(Device):
             cpu_temp = max(cpu_temp, c.current)
         return cpu_temp
 
-    def step_sentry(self,id):
-        if id=='base_fan_control':
+    def step_sentry(self):
+        if self.hw_valid and self.robot_params['robot_sentry']['base_fan_control']:
             #Manage CPU temp using the mobile base fan
             #See https://www.intel.com/content/www/us/en/support/articles/000005946/intel-nuc.html
             cpu_temp=self.get_cpu_temp()

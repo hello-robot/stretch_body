@@ -53,6 +53,9 @@ class Device:
     def home(self):
         pass
 
+    def step_sentry(self,robot):
+        pass
+
     def pretty_print(self):
         print('----- {0} ------ '.format(self.name))
         hello_utils.pretty_print_dict("params", self.params)

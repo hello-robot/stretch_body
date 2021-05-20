@@ -155,21 +155,22 @@ class DynamixelXChain(Device):
         return values
 
 
-    def step_sentry(self,runstop):
-        if not self.hw_valid:
-            return
+    def step_sentry(self,robot):
+        """This sentry places the Dynamixel servos in torque_disabled
+        mode when the runstop is enabled.
         """
-        This sentry places the Dynamixel servos in torque_disabled
-        mode when the runstop is enabled
-        """
-        if runstop is not self.runstop_last:
-            if runstop:
-                #print('Disabling torque to ',self.name)
-                for mk in self.motors.keys():
-                    self.motors[mk].disable_torque()
-            else:
-                #print('Enabling torque to ', self.name)
-                for mk in self.motors.keys():
-                    self.motors[mk].enable_torque()
+        for k in self.motors.keys():
+            self.motors[k].step_sentry(robot)
 
-        self.runstop_last=runstop
+        if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop']:
+            runstop=robot.pimu.status['runstop_event']
+            if runstop is not self.runstop_last:
+                if runstop:
+                    for mk in self.motors.keys():
+                        self.motors[mk].disable_torque()
+                else:
+                    for mk in self.motors.keys():
+                        self.motors[mk].enable_torque()
+            self.runstop_last=runstop
+
+

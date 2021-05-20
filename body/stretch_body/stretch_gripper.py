@@ -68,15 +68,14 @@ class StretchGripper(DynamixelHelloXL430):
         pct = -1*((t / pct_to_tick)+100)
         return pct
 
-    def step_sentry(self):
+    def step_sentry(self, robot):
+        """This sentry attempts to prevent the gripper servo from overheating during a prolonged grasp
+        When the servo is stalled and exerting an effort above a threshold it will command a 'back off'
+        position (slightly opening the grasp). This reduces the PID steady state error and lowers the
+        commanded current. The gripper's spring design allows it to retain its grasp despite the backoff.
         """
-        This sentry attempts to prevent the gripper servo from overheating during a prolonged grasp
-        When the servo is stalled and exerting an effort obove a threashold it will command a
-        'back off' position (slightly open the grasp)
-        This reduces the PID steady state error and lowers the commanded current
-        The spring design of the gripper allows it retain its grasp despite the backoff
-        """
-        if self.status['stall_overload']:
-            if self.status['effort'] < 0: #Only backoff in open direction
-                self.logger.debug('Backoff at stall overload')
-                self.move_by(self.params['stall_backoff'])
+        if self.hw_valid and self.robot_params['robot_sentry']['stretch_gripper_overload']:
+            if self.status['stall_overload']:
+                if self.status['effort'] < 0: #Only backoff in open direction
+                    self.logger.debug('Backoff at stall overload')
+                    self.move_by(self.params['stall_backoff'])

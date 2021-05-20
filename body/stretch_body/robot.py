@@ -18,7 +18,7 @@ import stretch_body.hello_utils as hello_utils
 from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
-from stretch_body.robot_sentry import RobotSentry
+
 
 # #############################################################
 class RobotDynamixelThread(threading.Thread):
@@ -62,8 +62,6 @@ class RobotThread(threading.Thread):
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
-        if self.robot.params['use_sentry']:
-            self.robot.sentry.startup()
         self.shutdown_flag = threading.Event()
         self.timer_stats = hello_utils.TimerStats()
         self.titr=0
@@ -80,7 +78,7 @@ class RobotThread(threading.Thread):
 
             if self.robot.params['use_sentry']:
                 if (self.titr % self.sentry_downrate_int) == 0:
-                    self.robot.sentry.step()
+                    self.robot._step_sentry()
 
             self.titr=self.titr+1
             te = time.time()
@@ -97,7 +95,6 @@ class Robot(Device):
     def __init__(self):
         Device.__init__(self, 'robot')
         self.monitor = RobotMonitor(self)
-        self.sentry = RobotSentry(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
@@ -324,3 +321,10 @@ class Robot(Device):
         self.lift.pull_status()
         self.arm.pull_status()
         self.pimu.pull_status()
+
+    def _step_sentry(self):
+        self.head.step_sentry(self)
+        self.base.step_sentry(self)
+        self.arm.step_sentry(self)
+        self.lift.step_sentry(self)
+        self.end_of_arm.step_sentry(self)

@@ -255,3 +255,6 @@ class Arm(Device):
         if measuring:
             return extension_m
 
+
+    def step_sentry(self,robot):
+        self.motor.step_sentry(robot)
