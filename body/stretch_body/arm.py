@@ -9,6 +9,7 @@ class Arm(Device):
     """
     def __init__(self):
         Device.__init__(self,'arm')
+        Device.__init__(self,'arm')
         self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
         self.motor = Stepper('/dev/hello-motor-arm')
         self.status = {'pos': 0.0, 'vel': 0.0, 'force':0.0, 'motor': self.motor.status,'timestamp_pc':0}

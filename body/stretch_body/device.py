@@ -35,6 +35,20 @@ class Device:
             print('No robot params found for device %s'%name)
             self.params={}
         self.timestamp = DeviceTimestamp()
+
+    def overwrite_params(self,factory_dict,user_dict):
+        for k in user_dict.keys():
+            if factory_dict.has_key(k):
+                if type(factory_dict[k])==type(user_dict[k]):
+                    if type(factory_dict[k])==dict:
+                        self.overwrite_params(factory_dict[k],user_dict[k])
+                    else:
+                        factory_dict[k]=user_dict[k]
+                else:
+                    print('Overwritting Factory Params with User Params. Type mismatch for key:',k)
+            else: #If key not present, add anyhow (useful for adding new end_of_arm)
+                factory_dict[k] = user_dict[k]
+                
     # ########### Primary interface #############
 
     def startup(self):

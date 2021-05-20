@@ -19,7 +19,8 @@ factory_params = {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'baud':57600,
-        'verbose':0
+        'verbose':0,
+        "tool": "tool_stretch_gripper"
     },
     'wrist_yaw':{
         'retry_on_comm_failure': 1,
@@ -30,6 +31,32 @@ factory_params = {
         'retry_on_comm_failure': 1,
         'baud':57600,
         'verbose':0
+    },
+    "tool_none": {
+        'py_class_name': 'ToolNone',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'stow': {'wrist_yaw': 3.4},
+        'devices': {
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            }
+        }
+    },
+    "tool_stretch_gripper": {
+        'py_class_name': 'ToolStretchGripper',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
+        'devices': {
+            'stretch_gripper': {
+                'py_class_name': 'StretchGripper',
+                'py_module_name': 'stretch_body.stretch_gripper'
+            },
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            }
+        }
     },
     # ######### HEAD ###################
     'head': {
