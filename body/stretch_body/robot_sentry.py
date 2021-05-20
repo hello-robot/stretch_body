@@ -14,26 +14,38 @@ class RobotSentry(Device):
     def __init__(self,robot):
         Device.__init__(self,'robot_sentry')
         self.robot=robot
+        self.sentry_cb={}
 
     def startup(self):
         return True
 
+    add_sentry_cb('wrist_yaw_overload',self.step_sentry)
+    def add_sentry_cb(self,name,cb):
+        try:
+            if self.params[name]:
+                self.sentry_cb[name]=cb
+        except KeyError:
+            print('Incorrect sentry entry of %s'%name)
+
     def step(self):
-        if self.params['wrist_yaw_overload'] and self.robot.end_of_arm is not None:
+        for name in self.sentry_cb.keys():
+            self.sentry_cb[name](self.robot)
+
+        if self.params['wrist_yaw_overload']:
             self.robot.end_of_arm.motors['wrist_yaw'].step_sentry()
 
-        if self.params['stretch_gripper_overload'] and self.robot.end_of_arm is not None:
+        if self.params['stretch_gripper_overload']:
             if self.robot.end_of_arm.is_tool_present('StretchGripper'):
                 self.robot.end_of_arm.motors['stretch_gripper'].step_sentry()
 
-        if self.params['base_max_velocity'] and self.robot.base is not None:
+        if self.params['base_max_velocity']:
             self.robot.base.step_sentry(self.robot.lift.status['pos'], self.robot.arm.status['pos'],self.robot.end_of_arm.motors['wrist_yaw'].status['pos'])
 
 
-        if self.params['base_fan_control'] and self.robot.pimu is not None:
+        if self.params['base_fan_control']:
             self.robot.pimu.step_sentry('base_fan_control')
 
-        if 'dynamixel_stop_on_runstop' in self.params and self.params['dynamixel_stop_on_runstop']:
+        if self.params['dynamixel_stop_on_runstop']:
             if self.robot.head is not None:
                 self.robot.head.step_sentry(runstop=self.robot.pimu.status['runstop_event'])
             if self.robot.end_of_arm is not None:

@@ -46,7 +46,7 @@ def write_fleet_yaml(fn,rp):
 
 def overwrite_dict(overwritee_dict, overwriter_dict):
     for k in overwriter_dict.keys():
-        if overwritee_dict.has_key(k):
+        if k in overwritee_dict:
             if type(overwritee_dict[k])==type(overwriter_dict[k]):
                 if type(overwritee_dict[k])==dict:
                     overwrite_dict(overwritee_dict[k],overwriter_dict[k])

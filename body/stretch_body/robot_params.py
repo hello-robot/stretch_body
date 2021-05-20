@@ -5,7 +5,8 @@ import importlib
 factory_params = {
     # ######### Robot Level ###################
     'robot':{
-        'verbose':0
+        'verbose':0,
+        'tool': 'tool_stretch_gripper'
     },
     'robot_sentry': {
         'dynamixel_stop_on_runstop': 1,
@@ -15,24 +16,21 @@ factory_params = {
         'verbose':0
     },
     # ######### End of Arm ###################
-    'end_of_arm': {
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud':57600,
-        'verbose':0,
-        "tool": "tool_stretch_gripper"
-    },
     'wrist_yaw':{
         'retry_on_comm_failure': 1,
-        'baud':57600,
+        'baud':115200,
         'verbose':0
     },
     'stretch_gripper':{
         'retry_on_comm_failure': 1,
-        'baud':57600,
+        'baud':115200,
         'verbose':0
     },
     "tool_none": {
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud':115200,
+        'verbose':0,
         'py_class_name': 'ToolNone',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'stow': {'wrist_yaw': 3.4},
@@ -44,6 +42,10 @@ factory_params = {
         }
     },
     "tool_stretch_gripper": {
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud':115200,
+        'verbose':0,
         'py_class_name': 'ToolStretchGripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
@@ -62,7 +64,7 @@ factory_params = {
     'head': {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':57600,
+        'baud':115200,
         'verbose':0
     },
     'head_pan':{
@@ -111,6 +113,14 @@ class RobotParams:
 
     @classmethod
     def get_params(self):
+        """
+        Build the parameter dictionary that is common to all Devices as device.robot_params.
+        Overwrite dictionaries in order of ascending priorty
+        1. stretch_re1_factory_params.yaml | Factory YAML settings that shipped with the robot. (Including robot specific calibrations)
+        2. stretch_body.robot_params.params | Factory Python settings (Common across robots. Factory may modify these via Pip updates)
+        3. Outside parameters | (eg, from stretch_tool_share.stretch_dex_wrist.params)
+        4. stretch_re1_user_params.yaml | Place to override all of the above
+        """
         if self._user_params is None:
             self._user_params = hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
         if self._robot_params is None:

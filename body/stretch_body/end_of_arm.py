@@ -10,14 +10,14 @@ class EndOfArm(DynamixelXChain):
     simply deriving it from DynamixelHelloXL430 and declaring the class name / Python module name
     in the User YAML file
     """
-    def __init__(self):
-        DynamixelXChain.__init__(self,'/dev/hello-dynamixel-wrist','end_of_arm')
+    def __init__(self,name='end_of_arm'):
+        DynamixelXChain.__init__(self,'/dev/hello-dynamixel-wrist',name)
         self.joints = []
         self.add_joints(self.params)
 
     def add_joints(self,params):
         # Adds new servo instances per YAML definition
-        if params.has_key('devices'):
+        if 'devices' in params:
             new_joints = params['devices'].keys()
             for j in new_joints:
                 if not j in self.joints:

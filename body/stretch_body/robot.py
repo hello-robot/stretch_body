@@ -130,13 +130,10 @@ class Robot(Device):
         self.status['wacc']=self.wacc.status
 
 
-        if self.robot_params['end_of_arm'].has_key('tool'):
-            tool_name = self.robot_params['end_of_arm']['tool']
-            module_name = self.robot_params[tool_name]['py_module_name']
-            class_name = self.robot_params[tool_name]['py_class_name']
-            self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
-        else:
-            self.end_of_arm = end_of_arm.EndOfArm()
+        tool_name = self.params['tool']
+        module_name = self.robot_params[tool_name]['py_module_name']
+        class_name = self.robot_params[tool_name]['py_class_name']
+        self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
         self.status['end_of_arm'] = self.end_of_arm.status
 
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
@@ -267,8 +264,8 @@ class Robot(Device):
 
         lift_stowed=False
         pos_lift = self.params['stow']['lift']
-        if self.end_of_arm.params.has_key('stow'):  # Allow tool defined stow position to take precedence
-            if self.end_of_arm.params['stow'].has_key('lift'):
+        if 'stow' in self.end_of_arm.params:  # Allow tool defined stow position to take precedence
+            if 'lift' in self.end_of_arm.params['stow']:
                 pos_lift = self.end_of_arm.params['stow']['lift']
         if self.lift.status['pos']<=self.params['stow']['lift']: #Needs to come up before bring in arm
             print('--------- Stowing Lift ----')
@@ -283,8 +280,8 @@ class Robot(Device):
         #Bring in arm before bring down
         print('--------- Stowing Arm ----')
         pos_arm = self.params['stow']['arm']
-        if self.end_of_arm.params.has_key('stow'):  # Allow tool defined stow position to take precedence
-            if self.end_of_arm.params['stow'].has_key('arm'):
+        if 'stow' in self.end_of_arm.params:  # Allow tool defined stow position to take precedence
+            if 'arm' in self.end_of_arm.params['stow']:
                 pos_arm = self.end_of_arm.params['stow']['arm']
 
         self.arm.move_to(pos_arm)
