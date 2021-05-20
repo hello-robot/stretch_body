@@ -193,7 +193,7 @@ class DynamixelXL430():
             return False
         with self.pt_lock:
             dxl_model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, self.dxl_id)
-        if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error,verbose):
+        if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error):
             if verbose:
                 print("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d" % (self.dxl_id, dxl_model_number))
             return True

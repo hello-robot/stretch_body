@@ -29,17 +29,18 @@ class WristYaw(DynamixelHelloXL430):
         """
         self.move_to(self.poses[p],v_r,a_r)
 
-    def step_sentry(self):
+    def step_sentry(self, robot):
         """
         This sentry attempts to prevent the wrist yaw servo from overheating
         if it is pushing against an object for too long
         It works by backing off the commanded position from the current position
         so as to lower the steady state error of the PID controller
         """
-        if self.status['stall_overload']:
-            if self.status['effort']>0:
-                self.move_by(self.params['stall_backoff'])
-                self.logger.info('Backoff at stall overload')
-            else:
-                self.move_by(-1*self.params['stall_backoff'])
-                self.logger.info('Backoff at stall overload')
+        if self.hw_valid and self.robot_params['robot_sentry']['wrist_yaw_overload']:
+            if self.status['stall_overload']:
+                if self.status['effort']>0:
+                    self.move_by(self.params['stall_backoff'])
+                    self.logger.info('Backoff at stall overload')
+                else:
+                    self.move_by(-1*self.params['stall_backoff'])
+                    self.logger.info('Backoff at stall overload')

@@ -232,3 +232,6 @@ class Lift(Device):
         self.push_command()
 
         return x_up
+
+    def step_sentry(self,robot):
+        self.motor.step_sentry(robot)

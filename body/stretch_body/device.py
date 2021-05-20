@@ -47,6 +47,9 @@ class Device:
     def pretty_print(self):
         pass
 
+    def step_sentry(self,robot):
+        pass
+
     def write_device_params(self,device_name, params):
         rp=hello_utils.read_fleet_yaml(self.user_params['factory_params'])
         rp[device_name]=params
