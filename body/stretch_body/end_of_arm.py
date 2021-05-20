@@ -17,7 +17,7 @@ class EndOfArm(DynamixelXChain):
 
     def add_joints(self,params):
         # Adds new servo instances per YAML definition
-        if params.has_key('devices'):
+        if 'devices' in params:
             new_joints = params['devices'].keys()
             for j in new_joints:
                 if not j in self.joints:

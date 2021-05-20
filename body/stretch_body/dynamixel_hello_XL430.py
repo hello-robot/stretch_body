@@ -165,7 +165,6 @@ class DynamixelHelloXL430(Device):
         self.status['electrical_shock_error'] = self.status['hardware_error'] & 16 != 0
         self.status['overload_error'] = self.status['hardware_error'] & 32 != 0
 
-
         #Finally flag if stalled at high effort for too long
         self.status['stalled']=abs(self.status['vel'])<self.params['stall_min_vel']
         over_eff=abs(self.status['effort']) > self.params['stall_max_effort']
