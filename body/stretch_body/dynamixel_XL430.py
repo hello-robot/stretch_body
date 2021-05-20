@@ -133,11 +133,11 @@ class DynamixelXL430(Device):
         print('Profile Acceleration', self.get_profile_acceleration())
         h=self.get_hardware_error()
         print('Hardware Error Status', h)
-        print('Hardware Error: Input Voltage Error: ', h & 1 is not 0)
-        print('Hardware Error: Overheating Error: ',h & 4 is not 0)
-        print('Hardware Error: Motor Encoder Error: ', h & 8 is not 0)
-        print('Hardware Error: Electrical Shock Error: ', h & 16 is not 0)
-        print('Hardware Error: Overload Error: ', h & 32 is not 0)
+        print('Hardware Error: Input Voltage Error: ', h & 1 != 0)
+        print('Hardware Error: Overheating Error: ',h & 4 != 0)
+        print('Hardware Error: Motor Encoder Error: ', h & 8 != 0)
+        print('Hardware Error: Electrical Shock Error: ', h & 16 != 0)
+        print('Hardware Error: Overload Error: ', h & 32 != 0)
         print('Comm errors', self.comm_errors)
 
     # ##########################################

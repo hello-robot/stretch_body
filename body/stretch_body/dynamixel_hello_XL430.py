@@ -97,11 +97,11 @@ class DynamixelHelloXL430(Device):
         self.status['temp'] = float(temp)
         self.status['timestamp_pc'] = ts
         self.status['hardware_error'] = err
-        self.status['input_voltage_error'] = self.status['hardware_error'] & 1 is not 0
-        self.status['overheating_error'] = self.status['hardware_error'] & 4 is not 0
-        self.status['motor_encoder_error'] = self.status['hardware_error'] & 8 is not 0
-        self.status['electrical_shock_error'] = self.status['hardware_error'] & 16 is not 0
-        self.status['overload_error'] = self.status['hardware_error'] & 32 is not 0
+        self.status['input_voltage_error'] = self.status['hardware_error'] & 1 != 0
+        self.status['overheating_error'] = self.status['hardware_error'] & 4 != 0
+        self.status['motor_encoder_error'] = self.status['hardware_error'] & 8 != 0
+        self.status['electrical_shock_error'] = self.status['hardware_error'] & 16 != 0
+        self.status['overload_error'] = self.status['hardware_error'] & 32 != 0
 
         #Finally flag if stalled at high effort for too long
         self.status['stalled']=abs(self.status['vel'])<self.params['stall_min_vel']
