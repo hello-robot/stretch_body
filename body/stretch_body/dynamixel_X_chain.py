@@ -23,7 +23,7 @@ class DynamixelXChain(Device):
         self.params={}
 
         #Missing on some earlier YAML
-        if self.robot_params.has_key(name):
+        if name in self.robot_params:
             self.params=self.robot_params[name]
         if not 'use_group_sync_read' in self.params:
             self.params['use_group_sync_read']=1
