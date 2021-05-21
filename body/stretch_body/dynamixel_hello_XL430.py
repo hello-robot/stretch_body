@@ -42,8 +42,8 @@ class DynamixelHelloXL430(Device):
                 self.motor.enable_multiturn()
             else:
                 self.motor.enable_pos()
-                if self.params['range_t'][0]<0 or self.params['range_t']>4095:
-                    print('Warning: Invalid position rannge for %s'%self.name)
+                if self.params['range_t'][0]<0 or self.params['range_t'][1]>4095:
+                    print('Warning: Invalid position range for %s'%self.name)
             self.motor.set_pwm_limit(self.params['pwm_limit'])
             self.motor.set_temperature_limit(self.params['temperature_limit'])
             self.motor.set_min_voltage_limit(self.params['min_voltage_limit'])
