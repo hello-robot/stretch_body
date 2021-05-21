@@ -40,6 +40,10 @@ class DynamixelHelloXL430(Device):
             self.motor.disable_torque()
             if self.params['use_multiturn']:
                 self.motor.enable_multiturn()
+            else:
+                self.motor.enable_pos()
+                if self.params['range_t'][0]<0 or self.params['range_t']>4095:
+                    print('Warning: Invalid position rannge for %s'%self.name)
             self.motor.set_pwm_limit(self.params['pwm_limit'])
             self.motor.set_temperature_limit(self.params['temperature_limit'])
             self.motor.set_min_voltage_limit(self.params['min_voltage_limit'])
@@ -226,6 +230,8 @@ class DynamixelHelloXL430(Device):
         self.motor.disable_torque()
         if self.params['use_multiturn']:
             self.motor.enable_multiturn()
+        else:
+            self.motor.enable_pos()
         self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
         self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
         self.motor.enable_torque()
@@ -244,7 +250,7 @@ class DynamixelHelloXL430(Device):
 
 # ##########################################
 
-    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0):
+    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0,save_calibration=False):
         # Requires at least one hardstop in the pwm_homing[0] direction
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
@@ -325,6 +331,8 @@ class DynamixelHelloXL430(Device):
             r2=self.ticks_to_world_rad(x_dir_1)
             print('   Radians:',[r1,r2])
             print('   Degrees:',[rad_to_deg(r1),rad_to_deg(r2)])
+
+        if save_calibration:
             self.write_device_params(self.name, self.params)
 
         self.enable_pos()
