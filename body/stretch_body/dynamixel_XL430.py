@@ -78,6 +78,18 @@ XL430_ADDR_HELLO_CALIBRATED = 661 #Appropriate Indirect Data 56 to store calibra
 XM430_ADDR_GOAL_CURRENT = 102
 XM430_ADDR_CURRENT_LIMIT = 38
 
+COMM_CODES = {
+    COMM_SUCCESS: "COMM_SUCCESS",
+    COMM_PORT_BUSY: "COMM_PORT_BUSY",
+    COMM_TX_FAIL: "COMM_TX_FAIL",
+    COMM_RX_FAIL: "COMM_RX_FAIL",
+    COMM_TX_ERROR: "COMM_TX_ERROR",
+    COMM_RX_WAITING: "COMM_RX_WAITING",
+    COMM_RX_TIMEOUT: "COMM_RX_TIMEOUT",
+    COMM_RX_CORRUPT: "COMM_RX_CORRUPT",
+    COMM_NOT_AVAILABLE: "COMM_NOT_AVAILABLE"
+}
+
 
 class DynamixelXL430(Device):
     """
@@ -146,32 +158,32 @@ class DynamixelXL430(Device):
 
     # ##########################################
 
-    def handle_comm_result(self,fx,dxl_comm_result, dxl_error):
-        err_msg=''
+    def handle_comm_result(self, fx, dxl_comm_result, dxl_error):
+        """Handles comm result and tracks comm errors.
+
+        Parameters
+        ----------
+        fx : str
+            control table address label
+        dxl_comm_result : int
+            communication result from options `COMM_CODES`
+        dxl_error : int
+            hardware errors sent by the dynamixel
+
+        Returns
+        -------
+        bool
+            True if successful result, False otherwise
+        """
         if dxl_comm_result==COMM_SUCCESS:
             self.last_comm_success=True
             return True
-        if dxl_comm_result==COMM_PORT_BUSY:
-            err_msg="COMM_PORT_BUSY"
-        if dxl_comm_result==COMM_TX_FAIL:
-            err_msg="COMM_TX_FAIL"
-        if dxl_comm_result==COMM_RX_FAIL:
-            err_msg="COMM_RX_FAIL"
-        if dxl_comm_result==COMM_TX_ERROR:
-            err_msg="COMM_TX_ERROR"
-        if dxl_comm_result==COMM_RX_WAITING:
-            err_msg="COMM_RX_WAITING"
-        if dxl_comm_result==COMM_RX_TIMEOUT:
-            err_msg="COMM_RX_TIMEOUT"
-        if dxl_comm_result==COMM_RX_CORRUPT:
-            err_msg="COMM_RX_CORRUPT"
-        if dxl_comm_result==COMM_NOT_AVAILABLE:
-            err_msg="COMM_NOT_AVAILABLE"
-        self.comm_errors = self.comm_errors + 1
-        if self.verbose:
-            print('DXL Comm Error on %s ID %d. Result %d. Error %d. Code %s Total Errors %d'%(self.usb,self.dxl_id, dxl_comm_result, dxl_error,err_msg,self.comm_errors))
 
         self.last_comm_success = False
+        self.comm_errors = self.comm_errors + 1
+        if self.verbose:
+            print('DXL Comm Error on %s ID %d. Attempted %s. Result %d. Error %d. Code %s. Total Errors %d.' %
+                (self.usb, self.dxl_id, fx, dxl_comm_result, dxl_error, COMM_CODES[dxl_comm_result], self.comm_errors))
         return False
 
     def get_comm_errors(self):
