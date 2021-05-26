@@ -69,9 +69,9 @@ class Stepper(Device):
     API to the Stretch RE1 stepper board
     """
     def __init__(self,usb,verbose=False):
-        Device.__init__(self,verbose=verbose)
+        name = usb[5:]
+        Device.__init__(self,name,verbose=verbose)
         self.usb=usb
-        self.name=usb[5:]
         self.params=self.robot_params[self.name]
         self.lock=threading.RLock()
         self.transport = Transport(self.usb,self.verbose)

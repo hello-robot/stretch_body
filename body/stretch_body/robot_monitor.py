@@ -11,9 +11,9 @@ class RobotMonitor(Device):
     It runs at 5Hz
     """
     def __init__(self,robot,verbose=False):
-        Device.__init__(self,verbose=verbose)
+        Device.__init__(self,'robot_monitor',verbose=verbose)
         self.robot=robot
-        self.param=self.robot_params['robot_monitor']
+        self.param=self.robot_params[self.name]
 
     def startup(self):
 

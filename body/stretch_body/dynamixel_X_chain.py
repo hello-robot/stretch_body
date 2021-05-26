@@ -17,16 +17,28 @@ class DynamixelXChain(Device):
     It allows adding more than one servo at run time
     It allos manage group reading of status data from servos so as to not overload the control bus
     """
-    def __init__(self,usb,verbose=False):
-        Device.__init__(self,verbose)
+    def __init__(self,usb,name, verbose=False):
+        Device.__init__(self,name,verbose)
         self.usb = usb
+        self.params={}
+
+        #Missing on some earlier YAML
+        if name in self.robot_params:
+            self.params=self.robot_params[name]
+        if not 'use_group_sync_read' in self.params:
+            self.params['use_group_sync_read']=1
+        if not 'baud' in self.params:
+            self.params['baud'] = 57600
+        if not 'retry_on_comm_failure' in self.params:
+            self.params['retry_on_comm_failure'] = 1
+
         self.timer_stats = hello_utils.TimerStats()
         self.pt_lock = threading.RLock()
 
         try:
             self.port_handler = prh.PortHandler(usb)
             self.port_handler.openPort()
-            self.port_handler.setBaudRate(57600)
+            self.port_handler.setBaudRate(int(self.params['baud']))
             self.packet_handler = pch.PacketHandler(2.0)
             self.hw_valid = True
         except serial.SerialException as e:
@@ -48,17 +60,19 @@ class DynamixelXChain(Device):
         if not self.hw_valid:
             return False
         if len(self.motors.keys()):
-            self.readers['pos']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_POSITION,4)
-            self.readers['effort']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_LOAD,2)
-            self.readers['vel'] = gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_VELOCITY,4)
-            self.readers['temp'] = gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_TEMPERATURE,1)
-            self.readers['hardware_error'] = gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_HARDWARE_ERROR_STATUS, 1)
+            if self.params['use_group_sync_read']:
+                self.readers['pos']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_POSITION,4)
+                self.readers['effort']=gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_LOAD,2)
+                self.readers['vel'] = gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_VELOCITY,4)
+                self.readers['temp'] = gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_PRESENT_TEMPERATURE,1)
+                self.readers['hardware_error'] = gsr.GroupSyncRead(self.port_handler, self.packet_handler, XL430_ADDR_HARDWARE_ERROR_STATUS, 1)
+                for mk in self.motors.keys():
+                    for k in self.readers.keys():
+                        if not self.readers[k].addParam(self.motors[mk].motor.dxl_id):
+                            raise IOError('Dynamixel X sync read initialization failed.')
             for mk in self.motors.keys():
-                for k in self.readers.keys():
-                    if not self.readers[k].addParam(self.motors[mk].motor.dxl_id):
-                        raise IOError('Dynamixel X sync read initialization failed.')
                 self.motors[mk].startup()
-                self.status[mk]=self.motors[mk].status
+                self.status[mk] = self.motors[mk].status
             self.pull_status()
         return True
 
@@ -74,19 +88,43 @@ class DynamixelXChain(Device):
             return
         try:
             ts = time.time()
-            pos = self.sync_read(self.readers['pos'])
-            effort = self.sync_read(self.readers['effort'])
-            vel = self.sync_read(self.readers['vel'])
-            temp = self.sync_read(self.readers['temp'])
-            hardware_error = self.sync_read(self.readers['hardware_error'])
-            idx=0
-            for mk in self.motors.keys():
-                data = {'x':pos[idx], 'v': vel[idx],'eff': effort[idx], 'ts': ts, 'temp': temp[idx], 'err':hardware_error[idx]}
-                self.motors[mk].pull_status(data)
-                idx=idx+1
+            if self.params['use_group_sync_read']:
+
+                pos = self.sync_read(self.readers['pos'])
+                if pos==None and self.params['retry_on_comm_failure']:
+                    pos = self.sync_read(self.readers['pos'])
+
+                effort = self.sync_read(self.readers['effort'])
+                if effort == None and self.params['retry_on_comm_failure']:
+                    effort = self.sync_read(self.readers['effort'])
+
+                vel = self.sync_read(self.readers['vel'])
+                if vel == None and self.params['retry_on_comm_failure']:
+                    vel = self.sync_read(self.readers['vel'])
+
+                temp = self.sync_read(self.readers['temp'])
+                if temp == None and self.params['retry_on_comm_failure']:
+                    temp = self.sync_read(self.readers['temp'])
+
+                hardware_error = self.sync_read(self.readers['hardware_error'])
+                if hardware_error == None and self.params['retry_on_comm_failure']:
+                    hardware_error = self.sync_read(self.readers['hardware_error'])
+
+                if pos is not None and effort is not None and vel is not None and temp is not None and hardware_error is not None:
+                    idx=0
+                    for mk in self.motors.keys():
+                        data = {'x':pos[idx], 'v': vel[idx],'eff': effort[idx], 'ts': ts, 'temp': temp[idx], 'err':hardware_error[idx]}
+                        self.motors[mk].pull_status(data)
+                        idx=idx+1
+                #else:
+                #    print("Communication error. Failed to pull status on %s"%self.usb)
+            else:
+                for m in self.motors:
+                    with self.pt_lock:
+                        self.motors[m].pull_status()
             self.timer_stats.update(time.time()-ts)
         except IOError:
-            print('IOError on:',self.usb)
+            print('Pull Status IOError on: %s'%self.usb)
 
     def pretty_print(self):
         print('--- Dynamixel X Chain ---')

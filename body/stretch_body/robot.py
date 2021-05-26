@@ -94,8 +94,8 @@ class Robot(Device):
     API to the Stretch RE1 Robot
     """
     def __init__(self,verbose=False):
-        Device.__init__(self,verbose)
-        self.params=self.robot_params['robot']
+        Device.__init__(self,'robot',verbose)
+        self.params=self.robot_params[self.name]
         self.monitor = RobotMonitor(self,verbose=verbose)
         self.sentry = RobotSentry(self,verbose=verbose)
         self.dirty_push_command = False

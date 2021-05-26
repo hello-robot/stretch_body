@@ -12,9 +12,9 @@ class RobotSentry(Device):
     It runs at 12.5Hz
     """
     def __init__(self,robot,verbose=False):
-        Device.__init__(self,verbose=verbose)
+        Device.__init__(self,'robot_sentry',verbose=verbose)
         self.robot=robot
-        self.param=self.robot_params['robot_sentry']
+        self.param=self.robot_params[self.name]
 
     def startup(self):
         return True

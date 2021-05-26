@@ -8,8 +8,7 @@ class Arm(Device):
     API to the Stretch RE1 Arm
     """
     def __init__(self,verbose=False):
-        Device.__init__(self,verbose)
-        self.name='arm'
+        Device.__init__(self,'arm',verbose)
         self.params = self.robot_params[self.name]
         self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
         self.motor = Stepper('/dev/hello-motor-arm',verbose)

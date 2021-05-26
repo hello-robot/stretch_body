@@ -75,13 +75,39 @@ XL430_ADDR_PRESENT_INPUT_VOLTATE = 144
 XL430_ADDR_PRESENT_TEMPERATURE = 146
 XL430_ADDR_HELLO_CALIBRATED = 661 #Appropriate Indirect Data 56 to store calibrated flag
 
+XM430_ADDR_GOAL_CURRENT = 102
+XM430_ADDR_CURRENT_LIMIT = 38
+
+COMM_CODES = {
+    COMM_SUCCESS: "COMM_SUCCESS",
+    COMM_PORT_BUSY: "COMM_PORT_BUSY",
+    COMM_TX_FAIL: "COMM_TX_FAIL",
+    COMM_RX_FAIL: "COMM_RX_FAIL",
+    COMM_TX_ERROR: "COMM_TX_ERROR",
+    COMM_RX_WAITING: "COMM_RX_WAITING",
+    COMM_RX_TIMEOUT: "COMM_RX_TIMEOUT",
+    COMM_RX_CORRUPT: "COMM_RX_CORRUPT",
+    COMM_NOT_AVAILABLE: "COMM_NOT_AVAILABLE"
+}
+
+BAUD_MAP = {
+    9600: 0,
+    57600: 1,
+    115200: 2,
+    1000000: 3,
+    2000000: 4,
+    3000000: 5,
+    4000000: 6,
+    4500000: 7
+}
+
 
 class DynamixelXL430(Device):
     """
     Wrapping of Dynamixel X-Series interface
     """
-    def __init__(self,dxl_id,usb,port_handler=None, pt_lock=None,verbose=False):
-        Device.__init__(self,verbose)
+    def __init__(self,dxl_id,usb,port_handler=None, pt_lock=None,baud=57600, verbose=False):
+        Device.__init__(self,name='',verbose=verbose)
         self.dxl_id=dxl_id
         self.comm_errors=0
        #Make access to portHandler threadsafe
@@ -97,14 +123,41 @@ class DynamixelXL430(Device):
             if port_handler is None:
                 self.port_handler = prh.PortHandler(usb)
                 self.port_handler.openPort()
-                self.port_handler.setBaudRate(57600)
+                self.port_handler.setBaudRate(baud)
             else:
                 self.port_handler = port_handler
             self.packet_handler = pch.PacketHandler(2.0)
         except serial.SerialException as e:
             print("SerialException({0}): {1}".format(e.errno, e.strerror))
         self.hw_valid = self.packet_handler is not None
+        self.last_comm_success = True
     # ###########  Device Methods #############
+
+    @staticmethod
+    def identify_baud_rate(dxl_id, usb):
+        """Identify the baud rate a Dynamixel servo is communicating at.
+
+        Parameters
+        ----------
+        dxl_id : int
+            Dynamixel ID on chain. Must be [0, 25]
+        usb : str
+            the USB port, typically "/dev/something"
+
+        Returns
+        -------
+        int
+            the baud rate the Dynamixel is communicating at
+        """
+        for b in BAUD_MAP.keys():
+            port_h = prh.PortHandler(usb)
+            port_h.openPort()
+            port_h.setBaudRate(b)
+            packet_h = pch.PacketHandler(2.0)
+            _, dxl_comm_result, _ = packet_h.ping(port_h, dxl_id)
+            if dxl_comm_result == COMM_SUCCESS:
+                return b
+        return -1
 
     def startup(self):
         if self.hw_valid:
@@ -142,12 +195,33 @@ class DynamixelXL430(Device):
 
     # ##########################################
 
-    def handle_comm_result(self,fx,dxl_comm_result, dxl_error):
-        if dxl_comm_result!=0:
-            #print('DXL Comm Error. ID',self.dxl_id,'Result', dxl_comm_result, 'Err',dxl_error)
-            self.comm_errors=self.comm_errors+1
-            return False
-        return True
+    def handle_comm_result(self, fx, dxl_comm_result, dxl_error):
+        """Handles comm result and tracks comm errors.
+
+        Parameters
+        ----------
+        fx : str
+            control table address label
+        dxl_comm_result : int
+            communication result from options `COMM_CODES`
+        dxl_error : int
+            hardware errors sent by the dynamixel
+
+        Returns
+        -------
+        bool
+            True if successful result, False otherwise
+        """
+        if dxl_comm_result==COMM_SUCCESS:
+            self.last_comm_success=True
+            return True
+
+        self.last_comm_success = False
+        self.comm_errors = self.comm_errors + 1
+        if self.verbose:
+            print('DXL Comm Error on %s ID %d. Attempted %s. Result %d. Error %d. Code %s. Total Errors %d.' %
+                (self.usb, self.dxl_id, fx, dxl_comm_result, dxl_error, COMM_CODES[dxl_comm_result], self.comm_errors))
+        return False
 
     def get_comm_errors(self):
         return self.comm_errors
@@ -176,7 +250,7 @@ class DynamixelXL430(Device):
         else:
             if verbose:
                 print("[Dynamixel ID:%03d] ping Failed." % (self.dxl_id))
-                return False
+            return False
 
     def get_id(self):
         if not self.hw_valid:
@@ -192,6 +266,46 @@ class DynamixelXL430(Device):
         with self.pt_lock:
             dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_ID, id)
         self.handle_comm_result('XL430_ADDR_ID', dxl_comm_result, dxl_error)
+
+    def get_baud_rate(self):
+        """Retrieves the baud rate of Dynamixel communication.
+
+        Returns
+        -------
+        int
+            baud rate from `BAUD_MAP` if successful communication, else -1
+        """
+        if not self.hw_valid:
+            return -1
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE)
+        if not self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error):
+            return -1
+        return BAUD_MAP.keys()[BAUD_MAP.values().index(p)]
+
+    def set_baud_rate(self, rate):
+        """Sets the baud rate of Dynamixel communication.
+
+        Parameters
+        ----------
+        rate : int
+            baud rate option from `BAUD_MAP`
+
+        Returns
+        -------
+        bool
+            True if the baud rate was set successfully, else False
+        """
+        if not self.hw_valid:
+            return -1
+        if rate not in BAUD_MAP:
+            if self.verbose:
+                print("Invalid baud rate")
+            return False
+
+        with self.pt_lock:
+            dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE, BAUD_MAP[rate])
+        return self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error)
 
     #Hello Robot Specific
     def is_calibrated(self):
@@ -276,6 +390,11 @@ class DynamixelXL430(Device):
             dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_GOAL_PWM, x)
         self.handle_comm_result('XL430_ADDR_GOAL_PWM', dxl_comm_result, dxl_error)
 
+    def set_current_limit(self,i):
+        with self.pt_lock:
+            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_CURRENT_LIMIT, i)
+        self.handle_comm_result('XM430_ADDR_CURRENT_LIMIT', dxl_comm_result, dxl_error)
+
     def enable_multiturn(self):
         if not self.hw_valid:
             return
@@ -303,6 +422,18 @@ class DynamixelXL430(Device):
         with self.pt_lock:
             dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 1)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
+
+    # XM Series
+    def enable_pos_current(self):
+        with self.pt_lock:
+            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 5)
+        self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
+    #XM Series
+    def enable_current(self):
+        with self.pt_lock:
+            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 0)
+        self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
+
 
     def get_operating_mode(self):
         if not self.hw_valid:
@@ -333,6 +464,12 @@ class DynamixelXL430(Device):
             dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_DRIVE_MODE, x)
         self.handle_comm_result('XL430_ADDR_DRIVE_MODE', dxl_comm_result, dxl_error)
 
+    #XM Series
+    def set_goal_current(self,i):
+        with self.pt_lock:
+            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_GOAL_CURRENT, i)
+        self.handle_comm_result('XM430_ADDR_GOAL_CURRENT', dxl_comm_result, dxl_error)
+
 
     def go_to_pos(self,x):
         if not self.hw_valid:
@@ -341,6 +478,12 @@ class DynamixelXL430(Device):
             dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_GOAL_POSITION, x)
         self.handle_comm_result('XL430_ADDR_GOAL_POSITION', dxl_comm_result, dxl_error)
 
+    def set_vel(self, x):
+        with self.pt_lock:
+            dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id,
+                                                                            XL430_ADDR_GOAL_VEL, x)
+        self.handle_comm_result('XL430_ADDR_GOAL_VEL', dxl_comm_result, dxl_error)
+
     def get_pos(self):
         if not self.hw_valid:
             return 0
@@ -348,6 +491,8 @@ class DynamixelXL430(Device):
             xn, dxl_comm_result, dxl_error= self.read_int32_t(XL430_ADDR_PRESENT_POSITION)
         self.handle_comm_result('XL430_ADDR_PRESENT_POSITION', dxl_comm_result, dxl_error)
         return xn
+
+
 
     def get_load(self):
         if not self.hw_valid:

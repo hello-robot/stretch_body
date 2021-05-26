@@ -25,10 +25,11 @@ class Device:
     """
     Generic base class for all custom Stretch hardware
     """
-    def __init__(self,verbose=False):
+    def __init__(self,name='',verbose=False):
         #Factory + Tool params form the robot_params
         #User params can overwrite the resulting robot_params
         self.verbose=verbose
+        self.name=name
         self.user_params=hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
         self.robot_params=hello_utils.read_fleet_yaml(self.user_params['factory_params'])
         self.robot_params.update(hello_utils.read_fleet_yaml(self.user_params['tool_params']))
