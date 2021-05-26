@@ -35,7 +35,7 @@ for outside_params_origin in user_params.get('params', []):
 build_rep('param',user_params,user_origin,rep)
 
 print('#'*60+ ' Parameters for %s '%hello_utils.get_fleet_id()+'#'*60)
-print ("{:<70} {:<70} {:<30}".format('Parameter','Value','Origin'))
+print ("{:<70} {:<70} {:<30}".format('Origin','Parameter','Value'))
 print('-'*170)
 for param in rep.keys():
     print("{:<70} {:<70} {:<30}".format(rep[param][1], param, rep[param][0] ))
