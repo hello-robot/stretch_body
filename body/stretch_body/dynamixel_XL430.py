@@ -90,6 +90,17 @@ COMM_CODES = {
     COMM_NOT_AVAILABLE: "COMM_NOT_AVAILABLE"
 }
 
+BAUD_MAP = {
+    9600: 0,
+    57600: 1,
+    115200: 2,
+    1000000: 3,
+    2000000: 4,
+    3000000: 5,
+    4000000: 6,
+    4500000: 7
+}
+
 
 class DynamixelXL430(Device):
     """
@@ -121,6 +132,32 @@ class DynamixelXL430(Device):
         self.hw_valid = self.packet_handler is not None
         self.last_comm_success = True
     # ###########  Device Methods #############
+
+    @staticmethod
+    def identify_baud_rate(dxl_id, usb):
+        """Identify the baud rate a Dynamixel servo is communicating at.
+
+        Parameters
+        ----------
+        dxl_id : int
+            Dynamixel ID on chain. Must be [0, 25]
+        usb : str
+            the USB port, typically "/dev/something"
+
+        Returns
+        -------
+        int
+            the baud rate the Dynamixel is communicating at
+        """
+        for b in BAUD_MAP.keys():
+            port_h = prh.PortHandler(usb)
+            port_h.openPort()
+            port_h.setBaudRate(b)
+            packet_h = pch.PacketHandler(2.0)
+            _, dxl_comm_result, _ = packet_h.ping(port_h, dxl_id)
+            if dxl_comm_result == COMM_SUCCESS:
+                return b
+        return -1
 
     def startup(self):
         if self.hw_valid:
@@ -213,7 +250,7 @@ class DynamixelXL430(Device):
         else:
             if verbose:
                 print("[Dynamixel ID:%03d] ping Failed." % (self.dxl_id))
-                return False
+            return False
 
     def get_id(self):
         if not self.hw_valid:
@@ -230,32 +267,45 @@ class DynamixelXL430(Device):
             dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_ID, id)
         self.handle_comm_result('XL430_ADDR_ID', dxl_comm_result, dxl_error)
 
-    def set_baud_rate(self,rate):
-        b=None
-        if rate ==4500000:
-            b=7
-        if rate==4000000:
-            b=6
-        if rate==3000000:
-            b=5
-        if rate==2000000:
-            b=4
-        if rate==1000000:
-            b=3
-        if rate==115200:
-            b=2
-        if rate==57600:
-            b=1
-        if rate==9600:
-            b=0
-        if b is not None:
-            pass
-        else:
-            print("Invalid baud rate")
-        if b is not None:
-            with self.pt_lock:
-                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE, b)
-            self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error)
+    def get_baud_rate(self):
+        """Retrieves the baud rate of Dynamixel communication.
+
+        Returns
+        -------
+        int
+            baud rate from `BAUD_MAP` if successful communication, else -1
+        """
+        if not self.hw_valid:
+            return -1
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE)
+        if not self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error):
+            return -1
+        return BAUD_MAP.keys()[BAUD_MAP.values().index(p)]
+
+    def set_baud_rate(self, rate):
+        """Sets the baud rate of Dynamixel communication.
+
+        Parameters
+        ----------
+        rate : int
+            baud rate option from `BAUD_MAP`
+
+        Returns
+        -------
+        bool
+            True if the baud rate was set successfully, else False
+        """
+        if not self.hw_valid:
+            return -1
+        if rate not in BAUD_MAP:
+            if self.verbose:
+                print("Invalid baud rate")
+            return False
+
+        with self.pt_lock:
+            dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE, BAUD_MAP[rate])
+        return self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error)
 
     #Hello Robot Specific
     def is_calibrated(self):
