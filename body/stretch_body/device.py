@@ -31,7 +31,10 @@ class Device:
         self.verbose=verbose
         self.user_params=hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
         self.robot_params=hello_utils.read_fleet_yaml(self.user_params['factory_params'])
-        self.robot_params.update(hello_utils.read_fleet_yaml(self.user_params['tool_params']))
+        try: #May not be present
+            self.robot_params.update(hello_utils.read_fleet_yaml(self.user_params['tool_params']))
+        except KeyError:
+            pass
         self.overwrite_params(self.robot_params,self.user_params)
         self.timestamp = DeviceTimestamp()
 
