@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from stretch_body.hello_utils import *
 import stretch_body.robot
