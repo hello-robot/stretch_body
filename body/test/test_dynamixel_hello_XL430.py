@@ -31,8 +31,10 @@ class TestDynamixelHelloXL430(unittest.TestCase):
     def test_non_multiturn_move_after_home(self):
         """Verify non-multiturn servo responds to move_to commands after homing.
         """
-        servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw", chain=None, verbose=True)
+        servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_tilt", chain=None, verbose=True)
         servo.params['use_multiturn'] = False
+        servo.params['req_calibration']=True
+        servo.params['pwm_homing']=[-200,200]
         self.assertTrue(servo.startup())
 
         servo.home(single_stop=True) # calls servo.enable_pos() internally

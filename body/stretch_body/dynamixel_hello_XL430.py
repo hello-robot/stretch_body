@@ -232,6 +232,7 @@ class DynamixelHelloXL430(Device):
             self.motor.enable_multiturn()
         else:
             self.motor.enable_pos()
+            sf=self.motor.get_pos()
         self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
         self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
         self.motor.enable_torque()
@@ -249,12 +250,43 @@ class DynamixelHelloXL430(Device):
         self.motor.set_pwm(x)
 
 # ##########################################
+    """
+    Servo calibration works by:
+    
+    Homing
+    ==============
+    * Move with a fixed PWM to a hardstop
+    * Store the current position (ticks) in the EEPROM homing offset such that self.motor.status['pos']==0 at that hardstop
+    
+    Calibration to SI / joint range:
+    ===============
+    Once homed, the servo can move to positions within self.params.range_t (ticks).
+    The 'Joint Zero' (self.params.zero_t) is different than the 'Servo Zero'. Per the homing procedure, Servo Zero is at one hardstop
+    Joint Zero is an offset (ticks) from Servo Zero that is added/subtracted to commanded/reported values
+    Thus when self.motor.status['pos']==self.params.zero_t, self.status['pos]=0 (rad)
+    
+    There is an added complexity with how Dynamixels handle position reporting in multi-turn and single-turn mode
+    In multi-turn mode, position values and homing values can be large (+/-2B, +/-1M)
+    In single-turn mode, position values are bound to 0-4095 and homing values to -1,024 ~ 1,024
+    In addition, the home offset stored during a multi-turn homing procedure may not be valid in single turn (out of range)
+    
+    The Home Offset(20) adjusts the home position. The offest value is added to the Present Position(132).
+    Present Position(132) = Actual Position + Homing Offset(20)
+    Range: -1,044,479 ~ 1,044,479
+    
+    ### NOTE ###
+    In case of the Position Control Mode(Joint Mode) that rotates less than 360 degrees, any invalid Homing Offset(20) values will be ignored(valid range : -1,024 ~ 1,024).
+    So when homing in single-turn mode, ensure that the homing offset stored is in range, otherwise unexpected values will appear. 
+    -- It is possible then to not be able to home a single-turn servo as position can range 0-4096 and depending on hardstop location, a valid homing offset can not be found
+    -- Also, homing shouldn't be necessary in single-turn mode as the position reporting is already absolute
+    """
 
     def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0,save_calibration=False):
         # Requires at least one hardstop in the pwm_homing[0] direction
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
         # Second hardstop is optional
+
         if not self.hw_valid:
             print('Not able to home %s. Hardware not present'%self.name)
             return
@@ -277,9 +309,7 @@ class DynamixelHelloXL430(Device):
         while self.motor.is_moving() and not timeout:
             timeout=time.time()-ts>15.0
             time.sleep(0.5)
-            #print('Pos (ticks)',self.motor.get_pos())
         time.sleep(delay_at_stop)
-        xs=self.motor.get_pos()
         self.set_pwm(0)
 
         if timeout:
@@ -289,10 +319,13 @@ class DynamixelHelloXL430(Device):
             print('Hardware error, unable to home. Exiting')
             return
 
-        print('Contact at position:', xs)
+        print('Contact at position: %d'%self.motor.get_pos())
         print('Hit first hardstop, marking to zero ticks')
         self.motor.disable_torque()
         self.motor.zero_position(verbose=False)
+        print("Homing is now  %d"%self.motor.get_homing_offset())
+
+        self.motor.disable_torque()
         self.motor.set_calibrated(1)
         self.is_calibrated=1
         self.motor.enable_torque()
@@ -300,7 +333,6 @@ class DynamixelHelloXL430(Device):
         self.enable_pwm()
 
         print('Raw position:',self.motor.get_pos())
-
         if not single_stop:
             #Measure the range and write to YAML
             print('Moving to second hardstop...')
@@ -311,19 +343,18 @@ class DynamixelHelloXL430(Device):
             while self.motor.is_moving() and not timeout:
                 timeout = time.time() - ts > 15.0
                 time.sleep(0.5)
-                #print('Pos (ticks)', self.motor.get_pos())
             time.sleep(delay_at_stop)
-            x_dir_1 = self.motor.get_pos()
             self.set_pwm(0)
 
             if timeout:
                 print('Timed out moving to second hardstop. Exiting.')
                 return
-            print('Hit second hardstop at: ', x_dir_1)
             if self.status['overload_error'] or self.status['overheating_error']:
                 print('Hardware error, unable to home. Exiting')
                 return
 
+            x_dir_1 = self.motor.get_pos()
+            print('Hit second hardstop at: ', x_dir_1)
             self.params['range_t']=[0,x_dir_1]
             print('Homed to range of:')
             print('   Ticks:',self.params['range_t'])
@@ -340,6 +371,7 @@ class DynamixelHelloXL430(Device):
             print('Moving to calibrated zero: (rad)')
             self.move_to(0)
             time.sleep(3.0)
+
 # ##########################################
 
     def ticks_to_world_rad_per_sec(self,t):
