@@ -16,20 +16,26 @@ factory_params = {
         'verbose':0
     },
     # ######### End of Arm ###################
+    'end_of_arm': {
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud': 57600,
+        'verbose': 0
+    },
     'wrist_yaw':{
         'retry_on_comm_failure': 1,
-        'baud':115200,
+        'baud':57600,
         'verbose':0
     },
     'stretch_gripper':{
         'retry_on_comm_failure': 1,
-        'baud':115200,
+        'baud':57600,
         'verbose':0
     },
     "tool_none": {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
+        'baud':57600,
         'verbose':0,
         'py_class_name': 'ToolNone',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -44,7 +50,7 @@ factory_params = {
     "tool_stretch_gripper": {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
+        'baud':57600,
         'verbose':0,
         'py_class_name': 'ToolStretchGripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -64,7 +70,7 @@ factory_params = {
     'head': {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
+        'baud':57600,
         'verbose':0
     },
     'head_pan':{
