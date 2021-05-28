@@ -59,20 +59,17 @@ factory_params = {
 }
 
 class RobotParams:
-    _user_params = None
-    _robot_params = None
+    _user_params = hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
+    _robot_params = factory_params
+    hello_utils.overwrite_dict(_robot_params, hello_utils.read_fleet_yaml(_user_params.get('factory_params', '')))
+    hello_utils.overwrite_dict(_robot_params, _user_params)
+    for external_params_module in _user_params.get('params', []):
+        hello_utils.overwrite_dict(_robot_params, getattr(importlib.import_module(external_params_module), 'params'))
 
     @classmethod
-    def get_params(self):
-        if self._user_params is None:
-            self._user_params = hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
-        if self._robot_params is None:
-            self._robot_params = hello_utils.read_fleet_yaml(self._user_params.get('factory_params', ''))
-            self._robot_params.update(hello_utils.read_fleet_yaml(self._user_params.get('tool_params', '')))
-            hello_utils.overwrite_dict(self._robot_params, factory_params)
-            hello_utils.overwrite_dict(self._robot_params, self._user_params)
-            for outside_params_module in self._user_params.get('params', []):
-                hello_utils.overwrite_dict(self._robot_params,
-                    getattr(importlib.import_module(outside_params_module), 'params'))
+    def get_params(cls):
+        return (cls._user_params, cls._robot_params)
 
-        return (self._user_params, self._robot_params)
+    @classmethod
+    def add_params(cls, new_params):
+        hello_utils.overwrite_dict(cls._robot_params, new_params)
