@@ -17,14 +17,6 @@ class DynamixelHelloXL430(Device):
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
                      'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
 
-        #Handle YAML defaults for earlier versions where may not be present
-        if not 'baud' in self.params:
-            self.params['baud']=57600
-        if not 'retry_on_comm_failure' in self.params:
-            self.params['retry_on_comm_failure']=1
-        if not 'verbose' in self.params:
-            self.params['verbose']=0
-
         #Share bus resource amongst many XL430s
         if chain is None:
             self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None,baud=self.params['baud'],verbose=self.params['verbose'])

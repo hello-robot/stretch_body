@@ -21,17 +21,6 @@ class DynamixelXChain(Device):
         Device.__init__(self,name,verbose)
         self.usb = usb
         self.params={}
-
-        #Missing on some earlier YAML
-        if name in self.robot_params:
-            self.params=self.robot_params[name]
-        if not 'use_group_sync_read' in self.params:
-            self.params['use_group_sync_read']=1
-        if not 'baud' in self.params:
-            self.params['baud'] = 57600
-        if not 'retry_on_comm_failure' in self.params:
-            self.params['retry_on_comm_failure'] = 1
-
         self.timer_stats = hello_utils.TimerStats()
         self.pt_lock = threading.RLock()
 
