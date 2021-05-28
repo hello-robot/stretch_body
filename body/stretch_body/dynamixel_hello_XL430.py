@@ -232,7 +232,6 @@ class DynamixelHelloXL430(Device):
             self.motor.enable_multiturn()
         else:
             self.motor.enable_pos()
-            sf=self.motor.get_pos()
         self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
         self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
         self.motor.enable_torque()
