@@ -32,13 +32,25 @@ def set_fleet_id(id):
 def get_fleet_directory():
     return os.environ['HELLO_FLEET_PATH']+'/'+get_fleet_id()+'/'
 
-def read_fleet_yaml(fn):
-    with open(get_fleet_directory()+fn, 'r') as s:
-        p = yaml.load(s,Loader=yaml.FullLoader)
-        if p is None:
-            return {}
-        else:
-            return p
+def read_fleet_yaml(f):
+    """Reads yaml by filename from fleet directory
+
+    Parameters
+    ----------
+    f : str
+        filename of the yaml
+
+    Returns
+    -------
+    dict
+        yaml as dictionary if valid file, else empty dict
+    """
+    try:
+        with open(get_fleet_directory()+f, 'r') as s:
+            p = yaml.load(s,Loader=yaml.FullLoader)
+            return {} if p is None else p
+    except IOError:
+        return {}
 
 def write_fleet_yaml(fn,rp):
     with open(get_fleet_directory()+fn, 'w') as yaml_file:

@@ -67,11 +67,8 @@ class RobotParams:
         if self._user_params is None:
             self._user_params = hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
         if self._robot_params is None:
-            self._robot_params = hello_utils.read_fleet_yaml(self._user_params['factory_params'])
-            try: #May not be present
-                self._robot_params.update(hello_utils.read_fleet_yaml(self._user_params['tool_params']))
-            except KeyError:
-                pass
+            self._robot_params = hello_utils.read_fleet_yaml(self._user_params.get('factory_params', ''))
+            self._robot_params.update(hello_utils.read_fleet_yaml(self._user_params.get('tool_params', '')))
             hello_utils.overwrite_dict(self._robot_params, factory_params)
             hello_utils.overwrite_dict(self._robot_params, self._user_params)
             for outside_params_module in self._user_params.get('params', []):
