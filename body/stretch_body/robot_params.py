@@ -3,11 +3,32 @@ import importlib
 
 # Do not override factory params here
 factory_params = {
+    "head": {
+        "use_group_sync_read": 1,
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+    },
     "end_of_arm": {
         "use_group_sync_read": 1,
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "tool": "tool_stretch_gripper"
+    },
+    "head_pan": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+    },
+    "head_tilt": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+    },
+    "wrist_yaw": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+    },
+    "stretch_gripper": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
     },
     "tool_none": {
         'py_class_name': 'ToolNone',
