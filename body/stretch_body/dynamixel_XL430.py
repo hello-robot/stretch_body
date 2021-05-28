@@ -731,12 +731,10 @@ class DynamixelXL430(Device):
         if verbose:
             print('Previous HOMING_OFFSET in EEPROM', self.get_homing_offset())
         self.set_homing_offset(0)
-        x=self.get_pos()
-        h=-1*x
+        h=-1*self.get_pos()
         if verbose:
             print('Setting homing offset to',h)
         self.set_homing_offset(h)
-        p = self.read_int32_t(XL430_ADDR_HOMING_OFFSET)
         if verbose:
             print('New HOMING_OFFSET in EEPROM', self.get_homing_offset())
             print('Current position after homing',self.get_pos())
