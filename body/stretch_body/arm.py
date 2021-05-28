@@ -21,6 +21,7 @@ class Arm(Device):
         self.i_contact_neg = self.translate_force_to_motor_current(self.params['contact_thresh_N'][0])
         self.i_contact_pos = self.translate_force_to_motor_current(self.params['contact_thresh_N'][1])
         self.motor.set_motion_limits(self.translate_to_motor_rad(self.params['range_m'][0]),self.translate_to_motor_rad(self.params['range_m'][1]))
+        self.soft_motion_limits = [self.params['range_m'][0], self.params['range_m'][1]]
     # ###########  Device Methods #############
 
     def startup(self):
@@ -49,6 +50,19 @@ class Arm(Device):
 
 
     # ###################################################
+    def set_soft_motion_limits(self,x_min=None,x_max=None):
+        if x_min is not None:
+            x_min=max(x_min,self.params['range_m'][0])
+        else:
+            x_min=self.params['range_m'][0]
+        if x_max is not None:
+            x_max=min(x_max,self.params['range_m'][1])
+        else:
+            x_max=self.params['range_m'][1]
+        if x_min!=self.soft_motion_limits[0] or x_max!=self.soft_motion_limits[1]:
+            self.motor.set_motion_limits(self.translate_to_motor_rad(x_min),self.translate_to_motor_rad(x_max))
+
+        self.soft_motion_limits=[x_min,x_max]
 
     def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None, req_calibration=True):
         """
@@ -64,7 +78,7 @@ class Arm(Device):
             if not self.motor.status['pos_calibrated']:
                 self.logger.warn('Arm not calibrated')
                 return
-            x_m=max(self.params['range_m'][0],min(x_m,self.params['range_m'][1]))
+            x_m = min(max(self.soft_motion_limits[0], x_m), self.soft_motion_limits[1]) #Only clip motion when calibrated
 
         if stiffness is not None:
             stiffness = max(0, min(1.0, stiffness))
@@ -114,6 +128,11 @@ class Arm(Device):
             if not self.motor.status['pos_calibrated']:
                 self.logger.warn('Arm not calibrated')
                 return
+
+            if self.status['pos'] + x_m < self.soft_motion_limits[0]:  #Only clip motion when calibrated
+                x_m = self.soft_motion_limits[0] - self.status['pos']
+            if self.status['pos'] + x_m > self.soft_motion_limits[1]:
+                x_m = self.soft_motion_limits[1] - self.status['pos']
 
         if stiffness is not None:
             stiffness = max(0, min(1.0, stiffness))
