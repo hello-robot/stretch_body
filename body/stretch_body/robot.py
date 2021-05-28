@@ -87,7 +87,6 @@ class RobotThread(threading.Thread):
             if not self.shutdown_flag.is_set():
                 time.sleep(tsleep)
         print('Shutting down RobotThread')
-        print('Shutting down RobotThread')
 
 
 class Robot(Device):
@@ -196,7 +195,7 @@ class Robot(Device):
         To be called once before exiting a program
         Cleanly stops down motion and communication
         """
-        print('Shutting down robot...')
+        print('---- Shutting down robot ----')
         if self.rt is not None:
             self.rt.shutdown_flag.set()
             self.rt.join()
