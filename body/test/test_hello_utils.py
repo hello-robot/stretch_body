@@ -1,6 +1,8 @@
 import unittest
-import warnings
 import stretch_body.hello_utils
+
+import time
+import warnings
 
 
 class TestHelloUtils(unittest.TestCase):
@@ -67,3 +69,11 @@ class TestHelloUtils(unittest.TestCase):
 
         dict2 = {"robot": {"motion": {"max": 100, "min": -100}, "retry": True}}
         stretch_body.hello_utils.pretty_print_dict("Stretch", dict2)
+
+    def test_create_time_string(self):
+        """Verify time strings match
+        """
+        t = time.localtime()
+        expected_time_string = str(t.tm_year) + str(t.tm_mon).zfill(2) + str(t.tm_mday).zfill(2) + str(t.tm_hour).zfill(2) + str(t.tm_min).zfill(2) + str(t.tm_sec).zfill(2)
+        actual_time_string = stretch_body.hello_utils.create_time_string()
+        self.assertEqual(expected_time_string, actual_time_string)
