@@ -21,7 +21,8 @@ class DynamixelHelloXL430(Device):
                                     usb=self.params['usb_name'],
                                     port_handler=None if chain is None else chain.port_handler,
                                     pt_lock=None if chain is None else chain.pt_lock,
-                                    baud=self.params['baud'])
+                                    baud=self.params['baud'],
+                                    logger=self.logger)
         self.polarity = -1.0 if self.params['flip_encoder_polarity'] else 1.0
         self.ts_over_eff_start=None
         self.hw_valid=False
@@ -47,11 +48,11 @@ class DynamixelHelloXL430(Device):
             x_max=wr_max
         self.soft_motion_limits=[x_min,x_max]
 
-    def do_ping(self, verbose=False):
-        return self.motor.do_ping(verbose)
+    def do_ping(self):
+        return self.motor.do_ping()
 
     def startup(self):
-        if self.motor.do_ping(verbose=False):
+        if self.motor.do_ping():
             self.hw_valid = True
             self.motor.disable_torque()
             if self.params['use_multiturn']:
@@ -59,7 +60,7 @@ class DynamixelHelloXL430(Device):
             else:
                 self.motor.enable_pos()
                 if self.params['range_t'][0]<0 or self.params['range_t'][1]>4095:
-                    print('Warning: Invalid position range for %s'%self.name)
+                    self.logger.warn('Warning: Invalid position range for %s'%self.name)
             self.motor.set_pwm_limit(self.params['pwm_limit'])
             self.motor.set_temperature_limit(self.params['temperature_limit'])
             self.motor.set_min_voltage_limit(self.params['min_voltage_limit'])
@@ -77,7 +78,7 @@ class DynamixelHelloXL430(Device):
             self.enable_torque()
             return True
         else:
-            print('DynamixelHelloXL430 Ping failed...', self.name)
+            self.logger.warn('DynamixelHelloXL430 Ping failed... %s' % self.name)
             return False
 
 
@@ -125,12 +126,12 @@ class DynamixelHelloXL430(Device):
                 err_valid = self.motor.last_comm_success
 
 
-                if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid and self.params['verbose']:
-                    print('Failed status communication on %s: POS %d VEL %d EFF %d TEMP %d ERR %d '%(self.name,pos_valid,vel_valid,eff_valid,temp_valid,err_valid))
+                if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
+                    self.logger.debug('Failed status communication on %s: POS %d VEL %d EFF %d TEMP %d ERR %d '%(self.name,pos_valid,vel_valid,eff_valid,temp_valid,err_valid))
 
                 ts = time.time()
             except termios.error:
-                print('Dynamixel communication error on %s: '%self.name)
+                self.logger.error('Dynamixel communication error on %s: '%self.name)
                 return
         else:
             x = data['x']
@@ -243,7 +244,7 @@ class DynamixelHelloXL430(Device):
         if not self.hw_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
-            print('Dynamixel not calibrated:', self.name)
+            self.logger.warn('Dynamixel not calibrated: %s' % self.name)
             return
         try:
             self.set_motion_params(v_des,a_des)
@@ -252,7 +253,7 @@ class DynamixelHelloXL430(Device):
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
         except termios.error:
-            print('Dynamixel communication error at time: ',time.time())
+            self.logger.error('Dynamixel communication error at time: %f' % time.time())
 
 
     def set_range(self,x_min=None,x_max=None):
@@ -295,8 +296,7 @@ class DynamixelHelloXL430(Device):
                 cx=self.ticks_to_world_rad(x)
                 self.move_to(cx + x_des, v_des, a_des)
             else:
-                if self.params['verbose']:
-                    print('Move_By comm failure on %s' % self.name)
+                self.logger.debug('Move_By comm failure on %s' % self.name)
 
     def quick_stop(self):
         if not self.hw_valid:
@@ -367,7 +367,7 @@ class DynamixelHelloXL430(Device):
         # Second hardstop is optional
 
         if not self.hw_valid:
-            print('Not able to home %s. Hardware not present'%self.name)
+            self.logger.warn('Not able to home %s. Hardware not present'%self.name)
             return
         if not self.params['req_calibration']:
             print('Homing not required for: '+self.name)
@@ -375,7 +375,7 @@ class DynamixelHelloXL430(Device):
 
         self.pull_status()
         if self.status['overload_error'] or self.status['overheating_error']:
-            print('Hardware error, unable to home. Exiting')
+            self.logger.warn('Hardware error, unable to home. Exiting')
             return
 
         self.enable_pwm()
@@ -392,16 +392,16 @@ class DynamixelHelloXL430(Device):
         self.set_pwm(0)
 
         if timeout:
-            print('Timed out moving to first hardstop. Exiting.')
+            self.logger.warn('Timed out moving to first hardstop. Exiting.')
             return
         if self.status['overload_error'] or self.status['overheating_error']:
-            print('Hardware error, unable to home. Exiting')
+            self.logger.warn('Hardware error, unable to home. Exiting')
             return
 
         print('Contact at position: %d'%self.motor.get_pos())
         print('Hit first hardstop, marking to zero ticks')
         self.motor.disable_torque()
-        self.motor.zero_position(verbose=False)
+        self.motor.zero_position()
         print("Homing is now  %d"%self.motor.get_homing_offset())
 
         self.motor.disable_torque()
@@ -426,10 +426,10 @@ class DynamixelHelloXL430(Device):
             self.set_pwm(0)
 
             if timeout:
-                print('Timed out moving to second hardstop. Exiting.')
+                self.logger.warn('Timed out moving to second hardstop. Exiting.')
                 return
             if self.status['overload_error'] or self.status['overheating_error']:
-                print('Hardware error, unable to home. Exiting')
+                self.logger.warn('Hardware error, unable to home. Exiting')
                 return
 
             x_dir_1 = self.motor.get_pos()

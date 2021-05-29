@@ -33,7 +33,7 @@ class DynamixelXChain(Device):
             self.packet_handler = None
             self.port_handler = None
             self.hw_valid =False
-            print("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
 
         self.status={}
         self.motors = {}
@@ -112,7 +112,7 @@ class DynamixelXChain(Device):
                         self.motors[m].pull_status()
             self.timer_stats.update(time.time()-ts)
         except IOError:
-            print('Pull Status IOError on: %s'%self.usb)
+            self.logger.error('Pull Status IOError on: %s'%self.usb)
 
     def pretty_print(self):
         print('--- Dynamixel X Chain ---')

@@ -1,6 +1,7 @@
 from __future__ import print_function
 import struct
 import array as arr
+import logging
 
 from dynamixel_sdk.robotis_def import *
 import dynamixel_sdk.port_handler as prh
@@ -106,11 +107,12 @@ class DynamixelXL430():
     """
     Wrapping of Dynamixel X-Series interface
     """
-    def __init__(self, dxl_id, usb, port_handler=None, pt_lock=None, baud=57600):
+    def __init__(self, dxl_id, usb, port_handler=None, pt_lock=None, baud=57600, logger=logging.getLogger()):
         self.dxl_id = dxl_id
         self.usb = usb
         self.comm_errors = 0
         self.last_comm_success = True
+        self.logger = logger
 
         # Make access to portHandler threadsafe
         self.pt_lock = threading.RLock() if pt_lock is None else pt_lock
@@ -126,7 +128,7 @@ class DynamixelXL430():
                 self.port_handler = port_handler
             self.packet_handler = pch.PacketHandler(2.0)
         except serial.SerialException as e:
-            print("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
         self.hw_valid = self.packet_handler is not None
 
     @staticmethod
@@ -151,6 +153,7 @@ class DynamixelXL430():
             port_h.setBaudRate(b)
             packet_h = pch.PacketHandler(2.0)
             _, dxl_comm_result, _ = packet_h.ping(port_h, dxl_id)
+            port_h.closePort()
             if dxl_comm_result == COMM_SUCCESS:
                 return b
         return -1
@@ -214,9 +217,8 @@ class DynamixelXL430():
 
         self.last_comm_success = False
         self.comm_errors = self.comm_errors + 1
-        if self.verbose:
-            print('DXL Comm Error on %s ID %d. Attempted %s. Result %d. Error %d. Code %s. Total Errors %d.' %
-                (self.usb, self.dxl_id, fx, dxl_comm_result, dxl_error, COMM_CODES[dxl_comm_result], self.comm_errors))
+        self.logger.debug('DXL Comm Error on %s ID %d. Attempted %s. Result %d. Error %d. Code %s. Total Errors %d.' %
+            (self.usb, self.dxl_id, fx, dxl_comm_result, dxl_error, COMM_CODES[dxl_comm_result], self.comm_errors))
         return False
 
     def get_comm_errors(self):
@@ -234,18 +236,16 @@ class DynamixelXL430():
         xn = struct.unpack('h', arr.array('B',[DXL_LOBYTE(x), DXL_HIBYTE(x)]))[0]
         return xn, dxl_comm_result, dxl_error
 
-    def do_ping(self,verbose=True):
+    def do_ping(self):
         if not self.hw_valid:
             return False
         with self.pt_lock:
             dxl_model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, self.dxl_id)
         if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error):
-            if verbose:
-                print("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d" % (self.dxl_id, dxl_model_number))
+            self.logger.debug("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d" % (self.dxl_id, dxl_model_number))
             return True
         else:
-            if verbose:
-                print("[Dynamixel ID:%03d] ping Failed." % (self.dxl_id))
+            self.logger.debug("[Dynamixel ID:%03d] ping Failed." % (self.dxl_id))
             return False
 
     def get_id(self):
@@ -295,8 +295,7 @@ class DynamixelXL430():
         if not self.hw_valid:
             return -1
         if rate not in BAUD_MAP:
-            if self.verbose:
-                print("Invalid baud rate")
+            self.logger.debug("Invalid baud rate")
             return False
 
         with self.pt_lock:
@@ -721,19 +720,16 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_MOVING', dxl_comm_result, dxl_error)
         return p
 
-    def zero_position(self,verbose=False):
+    def zero_position(self):
         if not self.hw_valid:
             return
-        if verbose:
-            print('Previous HOMING_OFFSET in EEPROM', self.get_homing_offset())
+        self.logger.debug('Previous HOMING_OFFSET in EEPROM {0}'.format(self.get_homing_offset()))
         self.set_homing_offset(0)
         h=-1*self.get_pos()
-        if verbose:
-            print('Setting homing offset to',h)
+        self.logger.debug('Setting homing offset to {0}'.format(h))
         self.set_homing_offset(h)
-        if verbose:
-            print('New HOMING_OFFSET in EEPROM', self.get_homing_offset())
-            print('Current position after homing',self.get_pos())
+        self.logger.debug('New HOMING_OFFSET in EEPROM {0}'.format(self.get_homing_offset()))
+        self.logger.debug('Current position after homing {0}'.format(self.get_pos()))
         return
 
     def get_homing_offset(self):

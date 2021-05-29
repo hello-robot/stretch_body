@@ -1,6 +1,6 @@
 from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
-import logging
+
 
 class StretchGripper(DynamixelHelloXL430):
     """
@@ -78,5 +78,5 @@ class StretchGripper(DynamixelHelloXL430):
         """
         if self.status['stall_overload']:
             if self.status['effort'] < 0: #Only backoff in open direction
-                self.logger.info('Backoff at stall overload')
+                self.logger.debug('Backoff at stall overload')
                 self.move_by(self.params['stall_backoff'])

@@ -2,7 +2,7 @@ from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.hello_utils import *
 import time
-import logging
+
 
 class WristYaw(DynamixelHelloXL430):
     """
@@ -39,7 +39,7 @@ class WristYaw(DynamixelHelloXL430):
         if self.status['stall_overload']:
             if self.status['effort']>0:
                 self.move_by(self.params['stall_backoff'])
-                self.logger.info('Backoff at stall overload')
+                self.logger.debug('Backoff at stall overload')
             else:
                 self.move_by(-1*self.params['stall_backoff'])
-                self.logger.info('Backoff at stall overload')
+                self.logger.debug('Backoff at stall overload')
