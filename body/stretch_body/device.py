@@ -2,6 +2,7 @@ from __future__ import print_function
 from stretch_body.robot_params import RobotParams
 import stretch_body.hello_utils as hello_utils
 import time
+import logging, logging.config
 
 
 class DeviceTimestamp:
@@ -21,7 +22,10 @@ class DeviceTimestamp:
         s=(self.timestamp_base + ts - self.timestamp_first) / 1000000.0
         return self.ts_start+s
 
+
 class Device:
+    logging_params = RobotParams.get_params()[1]['logging']
+    logging.config.dictConfig(logging_params)
     """
     Generic base class for all custom Stretch hardware
     """
@@ -29,6 +33,7 @@ class Device:
         self.name = name
         self.user_params, self.robot_params = RobotParams.get_params()
         self.params = self.robot_params.get(self.name, {})
+        self.logger = logging.getLogger(self.name)
         self.timestamp = DeviceTimestamp()
 
     # ########### Primary interface #############

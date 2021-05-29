@@ -59,6 +59,30 @@ factory_params = {
             }
         }
     },
+    "logging": {
+        "version": 1,
+        "disable_existing_loggers": True,
+        "root": {
+            "level": "DEBUG",
+            "handlers": ["console_handler"],
+            "propagate": False
+        },
+        "handlers": {
+            "console_handler": {
+                "class": "logging.StreamHandler",
+                "level": "INFO",
+                "formatter": "default_console_formatter",
+            }
+        },
+        "formatters": {
+            "default_console_formatter": {
+                "format": "[%(levelname)s] [%(name)s]: %(message)s"
+            },
+            "brief_console_formatter": {
+                "format": "%(message)s"
+            }
+        }
+    },
 }
 
 class RobotParams:
