@@ -19,9 +19,9 @@ class DynamixelHelloXL430(Device):
 
         #Share bus resource amongst many XL430s
         if chain is None:
-            self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None,baud=self.params['baud'],verbose=self.params['verbose'])
+            self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None,baud=self.params['baud'],verbose=verbose)
         else:
-            self.motor = DynamixelXL430(dxl_id=self.params['id'], usb=self.params['usb_name'], port_handler=chain.port_handler, pt_lock=chain.pt_lock,verbose=self.params['verbose'])
+            self.motor = DynamixelXL430(dxl_id=self.params['id'], usb=self.params['usb_name'], port_handler=chain.port_handler, pt_lock=chain.pt_lock,verbose=verbose)
         if self.params['flip_encoder_polarity']:
             self.polarity=-1.0
         else:

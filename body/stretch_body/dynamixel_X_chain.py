@@ -20,7 +20,7 @@ class DynamixelXChain(Device):
     def __init__(self,usb,name, verbose=False):
         Device.__init__(self,name,verbose)
         self.usb = usb
-        self.params={}
+        self.params=self.robot_params[self.name]
         self.timer_stats = hello_utils.TimerStats()
         self.pt_lock = threading.RLock()
 

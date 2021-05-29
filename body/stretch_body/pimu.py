@@ -52,7 +52,7 @@ class IMU(Device):
     API to the Stretch RE1 IMU found in the base
     """
     def __init__(self,verbose=False):
-        Device.__init__(self,verbose)
+        Device.__init__(self, 'imu', verbose)
         #pitch; //-180 to 180, rolls over
         #roll; //-90 to  90, rolls over at 180
         #heading; //0-360.0, rolls over

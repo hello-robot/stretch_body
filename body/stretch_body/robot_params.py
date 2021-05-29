@@ -3,6 +3,9 @@ import importlib
 
 # Do not override factory params here
 factory_params = {
+    "robot_sentry": {
+        "dynamixel_stop_on_runstop": 1
+    },
     "head": {
         "use_group_sync_read": 1,
         "retry_on_comm_failure": 1,
