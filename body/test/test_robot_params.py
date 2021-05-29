@@ -29,3 +29,21 @@ class TestRobotParams(unittest.TestCase):
         self.assertNotEqual(r3_motion_params, {})
         self.assertDictEqual(r1_motion_params, r3_motion_params)
         # stretch_body.robot_params.RobotParams.add_params({'wrist_yaw': {'motion': {'nothing': 123}}})
+
+    def test_setting_log_level(self):
+        """Test RobotParams.set_logging_level()
+        """
+        up, rp = stretch_body.robot_params.RobotParams.get_params()
+        self.assertEqual(rp['logging']['handlers']['console_handler']['level'], "INFO")
+
+        stretch_body.robot_params.RobotParams.set_logging_level("NONEXISTANT")
+        self.assertEqual(rp['logging']['handlers']['console_handler']['level'], "INFO")
+
+        stretch_body.robot_params.RobotParams.set_logging_level(-1000)
+        self.assertEqual(rp['logging']['handlers']['console_handler']['level'], "INFO")
+
+        stretch_body.robot_params.RobotParams.set_logging_level("CRITICAL")
+        self.assertEqual(rp['logging']['handlers']['console_handler']['level'], "CRITICAL")
+
+        stretch_body.robot_params.RobotParams.set_logging_level(10)
+        self.assertEqual(rp['logging']['handlers']['console_handler']['level'], 10)

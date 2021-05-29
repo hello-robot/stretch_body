@@ -1,5 +1,6 @@
 import stretch_body.hello_utils as hello_utils
 import importlib
+import logging
 
 # Do not override factory params here
 factory_params = {
@@ -100,3 +101,8 @@ class RobotParams:
     @classmethod
     def add_params(cls, new_params):
         hello_utils.overwrite_dict(cls._robot_params, new_params)
+
+    @classmethod
+    def set_logging_level(cls, level, handler='console_handler'):
+        if level in logging._levelNames and handler in cls._robot_params['logging']['handlers']:
+            cls._robot_params['logging']['handlers'][handler]['level'] = level
