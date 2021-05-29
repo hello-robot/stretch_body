@@ -12,7 +12,7 @@ print('---- Rebooting Head ---- ')
 for id in range(15):
     m = DynamixelXL430(id, '/dev/hello-dynamixel-head')
     m.startup()
-    if (m.do_ping(verbose=False)):
+    if (m.do_ping()):
         m.do_reboot()
     else:
         m.stop()
@@ -21,7 +21,7 @@ print('---- Rebooting Wrist ---- ')
 for id in range(15):
     m = DynamixelXL430(id, '/dev/hello-dynamixel-wrist')
     m.startup()
-    if (m.do_ping(verbose=False)):
+    if (m.do_ping()):
         m.do_reboot()
     else:
         m.stop()
