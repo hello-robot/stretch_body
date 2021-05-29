@@ -10,15 +10,13 @@ class EndOfArm(DynamixelXChain):
     simply deriving it from DynamixelHelloXL430 and declaring the class name / Python module name
     in the User YAML file
     """
-    def __init__(self, name='end_of_arm', verbose=False):
-        DynamixelXChain.__init__(self,'/dev/hello-dynamixel-wrist', name, verbose)
-        self.params=self.robot_params[self.name]
+    def __init__(self, name='end_of_arm'):
+        DynamixelXChain.__init__(self, usb='/dev/hello-dynamixel-wrist', name=name)
         self.joints=self.params['devices'].keys()
         for j in self.joints:
             module_name=self.params['devices'][j]['py_module_name']
             class_name=self.params['devices'][j]['py_class_name']
             dynamixel_device=getattr(importlib.import_module(module_name), class_name)(self)
-            dynamixel_device.verbose=verbose
             self.add_motor(dynamixel_device)
 
     def move_to(self, joint,x_r, v_r=None, a_r=None):

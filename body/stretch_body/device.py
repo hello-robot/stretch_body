@@ -4,7 +4,6 @@ import stretch_body.hello_utils as hello_utils
 import time
 
 
-
 class DeviceTimestamp:
     def __init__(self):
         self.timestamp_last = None
@@ -26,10 +25,10 @@ class Device:
     """
     Generic base class for all custom Stretch hardware
     """
-    def __init__(self,name='',verbose=False):
-        self.verbose=verbose
-        self.name=name
+    def __init__(self, name=''):
+        self.name = name
         self.user_params, self.robot_params = RobotParams.get_params()
+        self.params = self.robot_params.get(self.name, {})
         self.timestamp = DeviceTimestamp()
 
     # ########### Primary interface #############
@@ -40,16 +39,9 @@ class Device:
     def stop(self):
         pass
 
-    def push_command(self):
-        pass
-    def pull_status(self):
-        pass
-
-    def home(self):
-        pass
-
     def pretty_print(self):
-        pass
+        print('----- {0} ------ '.format(self.name))
+        hello_utils.pretty_print_dict("params", self.params)
 
     def write_device_params(self,device_name, params):
         rp=hello_utils.read_fleet_yaml(self.user_params['factory_params'])

@@ -51,8 +51,8 @@ class IMU(Device):
     """
     API to the Stretch RE1 IMU found in the base
     """
-    def __init__(self,verbose=False):
-        Device.__init__(self, 'imu', verbose)
+    def __init__(self):
+        Device.__init__(self, 'imu')
         #pitch; //-180 to 180, rolls over
         #roll; //-90 to  90, rolls over at 180
         #heading; //0-360.0, rolls over
@@ -113,28 +113,22 @@ class IMU(Device):
         self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
         return sidx
 
-    def queue_rpc(self,transport):
-        pass
-
 
 class Pimu(Device):
     """
     API to the Stretch RE1 Power and IMU board (Pimu)
     """
-    def __init__(self,verbose=False, event_reset=False):
-        Device.__init__(self,'pimu',verbose)
-        self.logger = logging.getLogger('robot.pimu')
+    def __init__(self, event_reset=False):
+        Device.__init__(self, 'pimu')
         self.lock = threading.RLock()
-        self.verbose=verbose
         self.imu = IMU()
-        self.config = self.robot_params[self.name]['config']
-        self.params = self.robot_params[self.name]
+        self.config = self.params['config']
         self._dirty_config = True
         self._dirty_trigger = False
         self.frame_id_last = None
         self.frame_id_base = 0
         self.name = 'hello-pimu'
-        self.transport = Transport('/dev/hello-pimu',self.verbose)
+        self.transport = Transport(usb='/dev/hello-pimu')
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,

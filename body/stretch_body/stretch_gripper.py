@@ -10,11 +10,12 @@ class StretchGripper(DynamixelHelloXL430):
     The Pct ranges from approximately -100 (fully closed) to approximately +50 (fully open)
     A Pct of zero is the fingertips just touching
     """
-    def __init__(self, chain=None,verbose=False):
-        DynamixelHelloXL430.__init__(self,'stretch_gripper',chain,verbose=verbose)
-        self.logger = logging.getLogger('robot.stretch_gripper')
+    def __init__(self, chain=None):
+        DynamixelHelloXL430.__init__(self, 'stretch_gripper', chain)
         self.status['pos_pct']= 0.0
-        self.poses = {'zero':0,'open': 50, 'close': -100}
+        self.poses = {'zero': 0,
+                      'open': 50,
+                      'close': -100}
 
     def home(self,move_to_zero=True):
         DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero,delay_at_stop=3.0)

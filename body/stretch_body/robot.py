@@ -93,30 +93,27 @@ class Robot(Device):
     """
     API to the Stretch RE1 Robot
     """
-    def __init__(self,verbose=False):
-        Device.__init__(self,'robot',verbose)
-        self.params=self.robot_params[self.name]
-        self.monitor = RobotMonitor(self,verbose=verbose)
-        self.sentry = RobotSentry(self,verbose=verbose)
+    def __init__(self):
+        Device.__init__(self, 'robot')
+        self.monitor = RobotMonitor(self)
+        self.sentry = RobotSentry(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
-
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
 
-
-        self.pimu=pimu.Pimu(verbose=verbose)
+        self.pimu=pimu.Pimu()
         self.status['pimu']=self.pimu.status
 
-        self.base=base.Base(verbose=verbose)
+        self.base=base.Base()
         self.status['base']=self.base.status
 
-        self.lift=lift.Lift(verbose=verbose)
+        self.lift=lift.Lift()
         self.status['lift']=self.lift.status
 
-        self.arm=arm.Arm(verbose=verbose)
+        self.arm=arm.Arm()
         self.status['arm']=self.arm.status
 
-        self.head=head.Head(verbose=verbose)
+        self.head=head.Head()
         self.status['head']=self.head.status
 
         if 'custom_wacc' in self.params:
@@ -124,10 +121,10 @@ class Robot(Device):
             class_name = self.params['custom_wacc']['py_class_name']
             self.wacc=getattr(importlib.import_module(module_name), class_name)(self)
         else:
-            self.wacc=wacc.Wacc(verbose=verbose)
+            self.wacc=wacc.Wacc()
         self.status['wacc']=self.wacc.status
 
-        self.end_of_arm=end_of_arm.EndOfArm(verbose=verbose)
+        self.end_of_arm=end_of_arm.EndOfArm()
         self.status['end_of_arm']=self.end_of_arm.status
 
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}

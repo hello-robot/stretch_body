@@ -30,18 +30,17 @@ class Wacc(Device):
     ext_command_cb: Callback to handle custom command data
     """
 
-    def __init__(self, verbose=False, ext_status_cb=None, ext_command_cb=None):
-        Device.__init__(self, 'wacc',verbose)
+    def __init__(self, ext_status_cb=None, ext_command_cb=None):
+        Device.__init__(self, 'wacc')
         self.ext_status_cb=ext_status_cb
         self.ext_command_cb=ext_command_cb
         self.lock=threading.RLock()
-        self.params=self.robot_params[self.name]
         self.config = self.params['config']
         self._dirty_config = True #Force push down
         self._dirty_command = False
         self._command = {'d2':0,'d3':0, 'trigger':0}
         self.name ='hello-wacc'
-        self.transport = Transport('/dev/hello-wacc',verbose=verbose)
+        self.transport = Transport(usb='/dev/hello-wacc')
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
                        'timestamp': 0,
                        'transport': self.transport.status}

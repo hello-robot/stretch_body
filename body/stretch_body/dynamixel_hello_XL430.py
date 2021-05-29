@@ -9,23 +9,20 @@ class DynamixelHelloXL430(Device):
     """
     Abstract the Dynamixel X-Series to handle calibration, radians, etc
     """
-    def __init__(self,name, chain=None,verbose=False):
-        Device.__init__(self,name,verbose)
+    def __init__(self, name, chain=None):
+        Device.__init__(self, name)
         self.chain = chain
-        self.params=self.robot_params[self.name]
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
                      'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
 
         #Share bus resource amongst many XL430s
-        if chain is None:
-            self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None,baud=self.params['baud'],verbose=verbose)
-        else:
-            self.motor = DynamixelXL430(dxl_id=self.params['id'], usb=self.params['usb_name'], port_handler=chain.port_handler, pt_lock=chain.pt_lock,verbose=verbose)
-        if self.params['flip_encoder_polarity']:
-            self.polarity=-1.0
-        else:
-            self.polarity=1.0
+        self.motor = DynamixelXL430(dxl_id=self.params['id'],
+                                    usb=self.params['usb_name'],
+                                    port_handler=None if chain is None else chain.port_handler,
+                                    pt_lock=None if chain is None else chain.pt_lock,
+                                    baud=self.params['baud'])
+        self.polarity = -1.0 if self.params['flip_encoder_polarity'] else 1.0
         self.ts_over_eff_start=None
         self.hw_valid=False
         self.is_calibrated=False

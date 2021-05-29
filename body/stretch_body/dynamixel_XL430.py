@@ -102,22 +102,20 @@ BAUD_MAP = {
 }
 
 
-class DynamixelXL430(Device):
+class DynamixelXL430():
     """
     Wrapping of Dynamixel X-Series interface
     """
-    def __init__(self,dxl_id,usb,port_handler=None, pt_lock=None,baud=57600, verbose=False):
-        Device.__init__(self,name='',verbose=verbose)
-        self.dxl_id=dxl_id
-        self.comm_errors=0
-       #Make access to portHandler threadsafe
-        if pt_lock is None:
-            self.pt_lock = threading.RLock()
-        else:
-            self.pt_lock=pt_lock
-
+    def __init__(self, dxl_id, usb, port_handler=None, pt_lock=None, baud=57600):
+        self.dxl_id = dxl_id
         self.usb = usb
-        #Allow sharing of port handler across multiple servos
+        self.comm_errors = 0
+        self.last_comm_success = True
+
+        # Make access to portHandler threadsafe
+        self.pt_lock = threading.RLock() if pt_lock is None else pt_lock
+
+        # Allow sharing of port handler across multiple servos
         self.packet_handler=None
         try:
             if port_handler is None:
@@ -130,8 +128,6 @@ class DynamixelXL430(Device):
         except serial.SerialException as e:
             print("SerialException({0}): {1}".format(e.errno, e.strerror))
         self.hw_valid = self.packet_handler is not None
-        self.last_comm_success = True
-    # ###########  Device Methods #############
 
     @staticmethod
     def identify_baud_rate(dxl_id, usb):

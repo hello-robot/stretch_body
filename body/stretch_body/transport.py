@@ -58,9 +58,8 @@ class Transport():
     """
     Handle serial communication with Devices
     """
-    def __init__(self, usb,verbose=False):
+    def __init__(self, usb):
         self.usb=usb
-        self.verbose=verbose
         self.payload_out = arr.array('B', [0] * (RPC_DATA_SIZE+1))
         self.payload_in = arr.array('B', [0] * (RPC_DATA_SIZE+1))
         self.buf = arr.array('B', [0] *(RPC_BLOCK_SIZE*2))
