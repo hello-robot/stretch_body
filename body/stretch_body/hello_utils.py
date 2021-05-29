@@ -41,6 +41,23 @@ def set_fleet_id(id):
 def get_fleet_directory():
     return os.environ['HELLO_FLEET_PATH']+'/'+get_fleet_id()+'/'
 
+def get_stretch_directory(sub_directory=''):
+    """Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists
+
+    Parameters
+    ----------
+    sub_directory : str
+        valid sub_directory within stretch_user/
+
+    Returns
+    -------
+    str
+        dirpath to stretch_user/ or dir within it if stretch_user/ exists, else /tmp
+    """
+    base_path = os.environ.get('HELLO_FLEET_PATH', None)
+    full_path = base_path + '/' + sub_directory if base_path is not None else '/tmp/'
+    return full_path
+
 def read_fleet_yaml(f):
     """Reads yaml by filename from fleet directory
 

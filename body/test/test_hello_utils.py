@@ -77,3 +77,16 @@ class TestHelloUtils(unittest.TestCase):
         expected_time_string = str(t.tm_year) + str(t.tm_mon).zfill(2) + str(t.tm_mday).zfill(2) + str(t.tm_hour).zfill(2) + str(t.tm_min).zfill(2) + str(t.tm_sec).zfill(2)
         actual_time_string = stretch_body.hello_utils.create_time_string()
         self.assertEqual(expected_time_string, actual_time_string)
+
+    def test_get_stretch_directory(self):
+        """
+        """
+        import os
+        if os.environ.get('HELLO_FLEET_PATH', None) is not None:
+            self.assertNotEqual(stretch_body.hello_utils.get_stretch_directory(), "/tmp/")
+            original_fleet_path = os.environ['HELLO_FLEET_PATH']
+            del os.environ['HELLO_FLEET_PATH']
+            self.assertEqual(stretch_body.hello_utils.get_stretch_directory(), "/tmp/")
+            os.environ['HELLO_FLEET_PATH'] = original_fleet_path
+        else:
+            self.assertEqual(stretch_body.hello_utils.get_stretch_directory(), "/tmp/")
