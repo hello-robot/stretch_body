@@ -2,6 +2,7 @@ from __future__ import print_function
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
+import textwrap
 import threading
 import psutil
 import logging
@@ -128,7 +129,7 @@ class Pimu(Device):
         self.frame_id_last = None
         self.frame_id_base = 0
         self.name = 'hello-pimu'
-        self.transport = Transport(usb='/dev/hello-pimu')
+        self.transport = Transport(usb='/dev/hello-pimu', logger=self.logger)
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
@@ -158,13 +159,16 @@ class Pimu(Device):
                 self.transport.step(exiting=False)
                 # Check that protocol matches
                 if not(self.valid_firmware_protocol == self.board_info['protocol_version']):
-                    print('----------------')
-                    print('Firmware protocol mismatch on %s. '%self.name)
-                    print('Current protocol is %s.'%self.board_info['protocol_version'])
-                    print('Valid protocols are: %s' %self.valid_firmware_protocol)
-                    print('Disabling device')
-                    print('Please upgrade the firmware and or version of Stretch Body')
-                    print('----------------')
+                    protocol_msg = """
+                    ----------------
+                    Firmware protocol mismatch on {0}.
+                    Protocol on board is {1}.
+                    Valid protocol is: {2}.
+                    Disabling device.
+                    Please upgrade the firmware and/or version of Stretch Body.
+                    ----------------
+                    """.format(self.name, self.board_info['protocol_version'], self.valid_firmware_protocol)
+                    self.logger.warn(textwrap.dedent(protocol_msg))
                     self.hw_valid=False
                     self.transport.stop()
 
@@ -453,10 +457,10 @@ class Pimu(Device):
                     self.push_command()
                     self.ts_last_fan_on = time.time()
                 if  not self.status['fan_on']:
-                    self.logger.info('Base fan turned on')
+                    self.logger.debug('Base fan turned on')
 
             if self.fan_on_last and not self.status['fan_on']:
-                self.logger.info('Base fan turned off')
+                self.logger.debug('Base fan turned off')
 
             if cpu_temp<self.params['base_fan_off']and self.status['fan_on']:
                 self.set_fan_off()

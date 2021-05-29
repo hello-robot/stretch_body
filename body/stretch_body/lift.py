@@ -60,7 +60,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print('Lift not calibrated')
+                self.logger.warn('Lift not calibrated')
                 return
 
         if stiffness is not None:
@@ -111,7 +111,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print('Lift not calibrated')
+                self.logger.warn('Lift not calibrated')
                 return
 
         if stiffness is not None:
@@ -189,7 +189,7 @@ class Lift(Device):
 
     def home(self, measuring=False):
         if not self.motor.hw_valid:
-            print('Not able to home lift. Hardware not present')
+            self.logger.warn('Not able to home lift. Hardware not present')
             return
         print('Homing lift...')
         self.motor.enable_guarded_mode()

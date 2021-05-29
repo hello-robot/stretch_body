@@ -44,6 +44,15 @@ class Device:
     def stop(self):
         pass
 
+    def push_command(self):
+        pass
+
+    def pull_status(self):
+        pass
+
+    def home(self):
+        pass
+
     def pretty_print(self):
         print('----- {0} ------ '.format(self.name))
         hello_utils.pretty_print_dict("params", self.params)

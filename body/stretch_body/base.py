@@ -262,11 +262,11 @@ class Base(Device):
                 (x_arm < self.params['sentry_max_velocity']['max_arm_extension_m']) and
                 (x_wrist > self.params['sentry_max_velocity']['min_wrist_yaw_rad'])):
             if not self.fast_motion_allowed:
-                self.logger.info('Fast motion turned on')
+                self.logger.debug('Fast motion turned on')
             self.fast_motion_allowed = True
         else:
             if self.fast_motion_allowed:
-                self.logger.info('Fast motion turned off')
+                self.logger.debug('Fast motion turned off')
             self.fast_motion_allowed = False
 
     # ###################################################

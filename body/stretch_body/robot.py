@@ -2,7 +2,6 @@ from __future__ import print_function
 import threading
 import time
 import signal
-import logging
 import os
 import importlib
 
@@ -139,28 +138,7 @@ class Robot(Device):
         To be called once after class instantiation.
         Prepares devices for communications and motion
         """
-
-        # Set up logging
-        t = time.localtime()
-        capture_date = str(t.tm_year) + str(t.tm_mon).zfill(2) + str(t.tm_mday).zfill(2) + str(t.tm_hour).zfill(
-            2) + str(t.tm_min).zfill(2)
-        self.log_filename = os.environ['HELLO_FLEET_PATH'] + '/log/' + self.params[
-            'serial_no'] + '_monitor_' + capture_date + '.log'
-        self.logger = logging.getLogger('robot')
-        self.logger.setLevel(logging.DEBUG)
-        fh = logging.FileHandler(self.log_filename)
-        fh.setLevel(logging.DEBUG)
-        formatter = logging.Formatter(
-            '%(asctime)s - ' + hello_utils.get_fleet_id() + ' - %(name)s - %(levelname)s - %(message)s')
-        fh.setFormatter(formatter)
-        self.logger.addHandler(fh)
-        if self.params['log_to_console']:
-            ch = logging.StreamHandler()
-            ch.setLevel(logging.DEBUG)
-            ch.setFormatter(formatter)
-            self.logger.addHandler(ch)
-
-        self.logger.info('Starting up Robot')
+        self.logger.debug('Starting up Robot {0} of batch {1}'.format(self.params['serial_no'], self.params['batch_name']))
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 if not self.devices[k].startup():
