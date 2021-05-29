@@ -1,6 +1,11 @@
+# Logging level must be set before importing any stretch_body class
+import stretch_body.robot_params
+stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
+
 import unittest
 import stretch_body.dynamixel_XL430
 
+import logging
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -9,12 +14,14 @@ class TestDynamixelXL430(unittest.TestCase):
     def test_concurrent_access(self):
         """Verify zero comms errors in concurrent access.
         """
-        servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=12, usb="/dev/hello-dynamixel-head", verbose=True)
+        servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=12,
+            usb="/dev/hello-dynamixel-head",
+            logger=logging.getLogger("test_dynamixel"))
         self.assertTrue(servo.startup())
 
         def ping_n(n):
             # servo.pretty_print() # causes many more servo communications
-            servo.do_ping(verbose=False)
+            servo.do_ping()
 
         ns = [1,2,3,4,5]
         with ThreadPoolExecutor(max_workers = 2) as executor:
@@ -27,7 +34,9 @@ class TestDynamixelXL430(unittest.TestCase):
     def test_handle_comm_result(self):
         """Verify comm results correctly handled.
         """
-        servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=12, usb="/dev/hello-dynamixel-head", verbose=False)
+        servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=12,
+            usb="/dev/hello-dynamixel-head",
+            logger=logging.getLogger("test_dynamixel"))
         self.assertTrue(servo.startup())
 
         ret = servo.handle_comm_result('DXL_TEST', 0, 0)
@@ -50,13 +59,14 @@ class TestDynamixelXL430(unittest.TestCase):
     def test_change_baud_rate(self, dxl_id=13, usb="/dev/hello-dynamixel-wrist"):
         """Verify can change baud rate.
         """
+        logger = logging.getLogger("test_dynamixel")
         start_baud = stretch_body.dynamixel_XL430.DynamixelXL430.identify_baud_rate(dxl_id=dxl_id, usb=usb)
-        servo1 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, verbose=False)
-        self.assertTrue(servo1.do_ping(verbose=False))
+        servo1 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, logger=logger)
+        self.assertTrue(servo1.do_ping())
 
         curr_baud = servo1.get_baud_rate()
         self.assertEqual(curr_baud, start_baud)
-        self.assertTrue(servo1.do_ping(verbose=False))
+        self.assertTrue(servo1.do_ping())
 
         # invalid baud goal
         goal_baud = 9000
@@ -64,30 +74,30 @@ class TestDynamixelXL430(unittest.TestCase):
         self.assertFalse(succeeded)
         curr_baud = servo1.get_baud_rate()
         self.assertNotEqual(curr_baud, goal_baud)
-        self.assertTrue(servo1.do_ping(verbose=False))
+        self.assertTrue(servo1.do_ping())
 
         # change the baud
         goal_baud = 115200 if start_baud != 115200 else 57600
         succeeded = servo1.set_baud_rate(goal_baud)
         self.assertTrue(succeeded)
-        servo2 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=goal_baud, verbose=False)
+        servo2 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=goal_baud, logger=logger)
         curr_baud = servo2.get_baud_rate()
         self.assertEqual(curr_baud, goal_baud)
-        self.assertTrue(servo2.do_ping(verbose=False))
-        servo3 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, verbose=False)
+        self.assertTrue(servo2.do_ping())
+        servo3 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, logger=logger)
         curr_baud = servo3.get_baud_rate()
         self.assertNotEqual(curr_baud, goal_baud)
-        self.assertFalse(servo3.do_ping(verbose=False))
+        self.assertFalse(servo3.do_ping())
 
         # reset baud to its starting baud
-        servo4 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=goal_baud, verbose=False)
-        self.assertTrue(servo4.do_ping(verbose=False))
+        servo4 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=goal_baud, logger=logger)
+        self.assertTrue(servo4.do_ping())
         succeeded = servo4.set_baud_rate(start_baud)
         self.assertTrue(succeeded)
-        servo5 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, verbose=False)
+        servo5 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, logger=logger)
         curr_baud = servo5.get_baud_rate()
         self.assertEqual(curr_baud, start_baud)
-        self.assertTrue(servo5.do_ping(verbose=False))
+        self.assertTrue(servo5.do_ping())
 
         servo1.stop()
         servo2.stop()
