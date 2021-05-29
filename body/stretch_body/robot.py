@@ -220,7 +220,7 @@ class Robot(Device):
         print('Time',time.time())
         print('Serial No',self.params['serial_no'])
         print('Batch', self.params['batch_name'])
-        self._pretty_print_dict('Status',s)
+        hello_utils.pretty_print_dict('Status',s)
 
 
     def push_command(self):
@@ -326,15 +326,6 @@ class Robot(Device):
         self.pimu.trigger_beep()
         self.push_command()
     # ################ Helpers #################################
-
-    def _pretty_print_dict(self, t, d):
-        print('--------', t, '--------')
-        for k in d.keys():
-            if type(d[k]) != dict:
-                print(k, ' : ', d[k])
-        for k in d.keys():
-            if type(d[k]) == dict:
-                self._pretty_print_dict(k, d[k])
 
     def _pull_status_dynamixel(self):
         try:

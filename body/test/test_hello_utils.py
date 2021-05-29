@@ -60,3 +60,10 @@ class TestHelloUtils(unittest.TestCase):
         overidee2 = {"robot": {"motion": {"min": -100}}}
         overidee2.update(overider2)
         self.assertNotEqual(overidee1, overidee2)
+
+    def test_pretty_print_dict(self):
+        dict1 = {"param1": 1, "param2": 2}
+        stretch_body.hello_utils.pretty_print_dict("params", dict1)
+
+        dict2 = {"robot": {"motion": {"max": 100, "min": -100}, "retry": True}}
+        stretch_body.hello_utils.pretty_print_dict("Stretch", dict2)

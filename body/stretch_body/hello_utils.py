@@ -69,6 +69,24 @@ def overwrite_dict(overwritee_dict, overwriter_dict):
         else: #If key not present, add anyhow (useful for adding new end_of_arm)
             overwritee_dict[k] = overwriter_dict[k]
 
+def pretty_print_dict(title, d):
+    """Print human readable representation of dictionary to terminal
+
+    Parameters
+    ----------
+    title : str
+        header title under which the dictionary is printed
+    d : dict
+        the dictionary to pretty print
+    """
+    print('-------- {0} --------'.format(title))
+    for k in d.keys():
+        if type(d[k]) != dict:
+            print(k, ' : ', d[k])
+    for k in d.keys():
+        if type(d[k]) == dict:
+            pretty_print_dict(k, d[k])
+
 class TimerStats():
     def __init__(self):
         self.av = None
