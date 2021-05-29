@@ -65,7 +65,7 @@ factory_params = {
         "disable_existing_loggers": True,
         "root": {
             "level": "DEBUG",
-            "handlers": ["console_handler"],
+            "handlers": ["console_handler", "file_handler"],
             "propagate": False
         },
         "handlers": {
@@ -73,6 +73,12 @@ factory_params = {
                 "class": "logging.StreamHandler",
                 "level": "INFO",
                 "formatter": "default_console_formatter",
+            },
+            "file_handler": {
+                "class": "logging.FileHandler",
+                "level": "DEBUG",
+                "formatter": "default_file_formatter",
+                "filename": hello_utils.get_stretch_directory('log/') + 'stretchbody_{0}.log'.format(hello_utils.create_time_string())
             }
         },
         "formatters": {
@@ -81,6 +87,10 @@ factory_params = {
             },
             "brief_console_formatter": {
                 "format": "%(message)s"
+            },
+            "default_file_formatter": {
+                "format": "[%(levelname)-8s] [%(asctime)s.%(msecs)03d] [%(name)s]: %(message)s",
+                "datefmt": "%m/%d/%Y %H:%M:%S"
             }
         }
     },

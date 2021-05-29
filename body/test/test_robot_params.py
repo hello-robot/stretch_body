@@ -47,3 +47,7 @@ class TestRobotParams(unittest.TestCase):
 
         stretch_body.robot_params.RobotParams.set_logging_level(10)
         self.assertEqual(rp['logging']['handlers']['console_handler']['level'], 10)
+
+    def test_logging_filename_param(self):
+        _, rp = stretch_body.robot_params.RobotParams.get_params()
+        self.assertTrue(rp['logging']['handlers']['file_handler']['filename'].endswith('.log'))
