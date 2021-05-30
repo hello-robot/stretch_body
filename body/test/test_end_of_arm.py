@@ -4,7 +4,7 @@ stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
 import unittest
 import stretch_body.end_of_arm
-import pdb
+
 
 class TestEndOfArm(unittest.TestCase):
 
