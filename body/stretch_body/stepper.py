@@ -96,11 +96,11 @@ class Stepper(Device):
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.valid_firmware_protocol='p0'
         self.hw_valid=False
+        self.gains = self.params['gains'].copy()
 
     # ###########  Device Methods #############
     def startup(self):
         with self.lock:
-            self.gains=self.params['gains'].copy()
             self.hw_valid=self.transport.startup()
             if self.hw_valid:
                 #Pull board info

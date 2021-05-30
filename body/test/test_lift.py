@@ -14,11 +14,32 @@ class TestLift(unittest.TestCase):
         """Test lift homes correctly.
         """
         l = stretch_body.lift.Lift()
-        l.startup()
+        self.assertTrue(l.startup())
 
         l.home()
         time.sleep(2)
         l.pull_status()
         self.assertAlmostEqual(l.status['pos'], 0.58, places=1)
+
+        l.stop()
+
+    def test_move_lift_with_soft_limits(self):
+        """Ensure that soft limits actual clip range of motion.
+        """
+        l = stretch_body.lift.Lift()
+        l.motor.disable_sync_mode()
+        self.assertTrue(l.startup())
+        l.pull_status()
+        if not l.motor.status['pos_calibrated']:
+            self.fail('test requires lift to be homed')
+
+        limit_pos = 0.8
+        l.set_soft_motion_limits(0,limit_pos)
+        l.push_command()
+        l.move_to(x_m=0.9)
+        l.push_command()
+        time.sleep(3.0)
+        l.pull_status()
+        self.assertAlmostEqual(l.status['pos'], limit_pos, places=1)
 
         l.stop()
