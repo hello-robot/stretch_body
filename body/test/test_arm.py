@@ -30,7 +30,8 @@ class TestArm(unittest.TestCase):
         a.motor.disable_sync_mode()
         self.assertTrue(a.startup())
         a.pull_status()
-        self.assertTrue(a.motor.status['pos_calibrated'])
+        if not a.motor.status['pos_calibrated']:
+            self.fail('test requires arm to be homed')
 
         limit_pos = 0.2
         a.set_soft_motion_limits(0,limit_pos)

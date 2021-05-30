@@ -48,19 +48,13 @@ class Lift(Device):
         #self.motor.pretty_print()
 
     # ###################################################
-
     def set_soft_motion_limits(self,x_min=None,x_max=None):
-        if x_min is not None:
-            x_min=max(x_min,self.params['range_m'][0])
-        else:
-            x_min=self.params['range_m'][0]
-        if x_max is not None:
-            x_max=min(x_max,self.params['range_m'][1])
-        else:
-            x_max=self.params['range_m'][1]
-        if x_min!=self.soft_motion_limits[0] or x_max!=self.soft_motion_limits[1]:
-            self.motor.set_motion_limits(self.translate_to_motor_rad(x_min),self.translate_to_motor_rad(x_max))
-        self.soft_motion_limits=[x_min,x_max]
+        x_min = max(x_min,self.params['range_m'][0]) if x_min is not None else self.params['range_m'][0]
+        x_max = min(x_max,self.params['range_m'][1]) if x_max is not None else self.params['range_m'][1]
+        if x_min != self.soft_motion_limits[0] or x_max != self.soft_motion_limits[1]:
+            self.motor.set_motion_limits(self.translate_to_motor_rad(x_min), self.translate_to_motor_rad(x_max))
+
+        self.soft_motion_limits=[x_min, x_max]
 
     def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None, req_calibration=True):
         """
