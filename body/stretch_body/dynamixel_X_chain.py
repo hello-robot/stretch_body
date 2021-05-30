@@ -17,10 +17,9 @@ class DynamixelXChain(Device):
     It allows adding more than one servo at run time
     It allos manage group reading of status data from servos so as to not overload the control bus
     """
-    def __init__(self,usb,name, verbose=False):
-        Device.__init__(self,name,verbose)
+    def __init__(self, usb, name):
+        Device.__init__(self, name)
         self.usb = usb
-        self.params=self.robot_params[self.name]
         self.timer_stats = hello_utils.TimerStats()
         self.pt_lock = threading.RLock()
 
@@ -34,7 +33,7 @@ class DynamixelXChain(Device):
             self.packet_handler = None
             self.port_handler = None
             self.hw_valid =False
-            print("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
 
         self.status={}
         self.motors = {}
@@ -68,6 +67,7 @@ class DynamixelXChain(Device):
     def stop(self):
         if not self.hw_valid:
             return
+        self.hw_valid = False
         for mk in self.motors.keys():
             self.motors[mk].stop()
 
@@ -113,7 +113,7 @@ class DynamixelXChain(Device):
                         self.motors[m].pull_status()
             self.timer_stats.update(time.time()-ts)
         except IOError:
-            print('Pull Status IOError on: %s'%self.usb)
+            self.logger.error('Pull Status IOError on: %s'%self.usb)
 
     def pretty_print(self):
         print('--- Dynamixel X Chain ---')
@@ -156,21 +156,22 @@ class DynamixelXChain(Device):
         return values
 
 
-    def step_sentry(self,runstop):
-        if not self.hw_valid:
-            return
+    def step_sentry(self,robot):
+        """This sentry places the Dynamixel servos in torque_disabled
+        mode when the runstop is enabled.
         """
-        This sentry places the Dynamixel servos in torque_disabled
-        mode when the runstop is enabled
-        """
-        if runstop is not self.runstop_last:
-            if runstop:
-                #print('Disabling torque to ',self.name)
-                for mk in self.motors.keys():
-                    self.motors[mk].disable_torque()
-            else:
-                #print('Enabling torque to ', self.name)
-                for mk in self.motors.keys():
-                    self.motors[mk].enable_torque()
+        for k in self.motors.keys():
+            self.motors[k].step_sentry(robot)
 
-        self.runstop_last=runstop
+        if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop']:
+            runstop=robot.pimu.status['runstop_event']
+            if runstop is not self.runstop_last:
+                if runstop:
+                    for mk in self.motors.keys():
+                        self.motors[mk].disable_torque()
+                else:
+                    for mk in self.motors.keys():
+                        self.motors[mk].enable_torque()
+            self.runstop_last=runstop
+
+

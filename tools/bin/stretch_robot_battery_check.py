@@ -19,7 +19,7 @@ def val_in_range(val_name, val,vmin, vmax):
 
 # #####################################################
 
-p=pimu.Pimu(verbose=False)
+p=pimu.Pimu()
 if not p.startup():
     exit()
 p.pull_status()

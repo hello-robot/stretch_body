@@ -7,12 +7,12 @@ class Arm(Device):
     """
     API to the Stretch RE1 Arm
     """
-    def __init__(self,verbose=False):
-        Device.__init__(self,'arm',verbose)
-        self.params = self.robot_params[self.name]
-        self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
-        self.motor = Stepper('/dev/hello-motor-arm',verbose)
+    def __init__(self):
+        Device.__init__(self, 'arm')
+        self.motor = Stepper(usb='/dev/hello-motor-arm')
         self.status = {'pos': 0.0, 'vel': 0.0, 'force':0.0, 'motor': self.motor.status,'timestamp_pc':0}
+        self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
+
         # Default controller params
         self.stiffness = 1.0
         self.i_feedforward = self.params['i_feedforward']
@@ -62,7 +62,7 @@ class Arm(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print('Arm not calibrated')
+                self.logger.warn('Arm not calibrated')
                 return
             x_m=max(self.params['range_m'][0],min(x_m,self.params['range_m'][1]))
 
@@ -112,7 +112,7 @@ class Arm(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print('Arm not calibrated')
+                self.logger.warn('Arm not calibrated')
                 return
 
         if stiffness is not None:
@@ -181,7 +181,7 @@ class Arm(Device):
         Home to hardstops
         """
         if not self.motor.hw_valid:
-            print('Not able to home arm. Hardware not present')
+            self.logger.warn('Not able to home arm. Hardware not present')
             return
         print('Homing Arm...')
         self.motor.enable_guarded_mode()
@@ -207,7 +207,7 @@ class Arm(Device):
             self.push_command()
 
             #Out direction
-            if  not single_stop:
+            if not single_stop:
                 # Out direction
                 self.pull_status()
                 self.move_by(x_m=1.0, contact_thresh_pos_N=self.params['homing_force_N'][1], contact_thresh_neg_N=self.params['homing_force_N'][0], req_calibration=False)
@@ -222,18 +222,18 @@ class Arm(Device):
                         if abs(self.status['pos'] - self.params['range_m'][1]) < .010:  # Within 1 cm
                             success = True
                         else:
-                            print('Arm homing failed. Out of range')
+                            self.logger.warn('Arm homing failed. Out of range')
                             success = False
                     else:
                         extension_m=self.status['pos']
                         success=True
                 else:
-                    print('Failed to detect contact')
+                    self.logger.warn('Arm homing failed. Failed to detect contact')
                     success = False
             else:
                 success = True
         else:
-            print('Failed to detect contact')
+            self.logger.warn('Arm homing failed. Failed to detect contact')
             success = False
 
         if success:
@@ -255,3 +255,6 @@ class Arm(Device):
         if measuring:
             return extension_m
 
+
+    def step_sentry(self,robot):
+        self.motor.step_sentry(robot)

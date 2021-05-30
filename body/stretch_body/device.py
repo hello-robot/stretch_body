@@ -2,7 +2,7 @@ from __future__ import print_function
 from stretch_body.robot_params import RobotParams
 import stretch_body.hello_utils as hello_utils
 import time
-
+import logging, logging.config
 
 
 class DeviceTimestamp:
@@ -22,14 +22,18 @@ class DeviceTimestamp:
         s=(self.timestamp_base + ts - self.timestamp_first) / 1000000.0
         return self.ts_start+s
 
+
 class Device:
+    logging_params = RobotParams.get_params()[1]['logging']
+    logging.config.dictConfig(logging_params)
     """
     Generic base class for all custom Stretch hardware
     """
-    def __init__(self,name='',verbose=False):
-        self.verbose=verbose
-        self.name=name
+    def __init__(self, name=''):
+        self.name = name
         self.user_params, self.robot_params = RobotParams.get_params()
+        self.params = self.robot_params.get(self.name, {})
+        self.logger = logging.getLogger(self.name)
         self.timestamp = DeviceTimestamp()
 
     # ########### Primary interface #############
@@ -42,14 +46,19 @@ class Device:
 
     def push_command(self):
         pass
+
     def pull_status(self):
         pass
 
     def home(self):
         pass
 
-    def pretty_print(self):
+    def step_sentry(self,robot):
         pass
+
+    def pretty_print(self):
+        print('----- {0} ------ '.format(self.name))
+        hello_utils.pretty_print_dict("params", self.params)
 
     def write_device_params(self,device_name, params):
         rp=hello_utils.read_fleet_yaml(self.user_params['factory_params'])

@@ -7,11 +7,11 @@ class Lift(Device):
     """
     API to the Stretch RE1 Lift
     """
-    def __init__(self,verbose=False):
-        Device.__init__(self,'lift',verbose)
-        self.params=self.robot_params[self.name]
-        self.motor = Stepper('/dev/hello-motor-lift',verbose=verbose)
+    def __init__(self):
+        Device.__init__(self, 'lift')
+        self.motor = Stepper(usb='/dev/hello-motor-lift')
         self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
+
         # Default controller params
         self.stiffness = 1.0
         self.i_feedforward=self.params['i_feedforward']
@@ -60,7 +60,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print('Lift not calibrated')
+                self.logger.warn('Lift not calibrated')
                 return
 
         if stiffness is not None:
@@ -111,7 +111,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                print('Lift not calibrated')
+                self.logger.warn('Lift not calibrated')
                 return
 
         if stiffness is not None:
@@ -189,7 +189,7 @@ class Lift(Device):
 
     def home(self, measuring=False):
         if not self.motor.hw_valid:
-            print('Not able to home lift. Hardware not present')
+            self.logger.warn('Not able to home lift. Hardware not present')
             return
         print('Homing lift...')
         self.motor.enable_guarded_mode()
@@ -233,3 +233,6 @@ class Lift(Device):
         self.push_command()
 
         return x_up
+
+    def step_sentry(self,robot):
+        self.motor.step_sentry(robot)

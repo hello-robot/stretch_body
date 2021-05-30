@@ -8,11 +8,20 @@ import time
 def print_stretch_re_use():
     print("For use with S T R E T C H (TM) RESEARCH EDITION from Hello Robot Inc.\n")
 
-def create_time_string():
-    t = time.localtime()
-    time_string = str(t.tm_year) + str(t.tm_mon).zfill(2) + str(t.tm_mday).zfill(2) + str(t.tm_hour).zfill(2) + str(t.tm_min).zfill(2) + str(t.tm_sec).zfill(2)
-    return time_string
+def create_time_string(time_format='%Y%m%d%H%M%S'):
+    """Returns current time formatted as `time_format`
 
+    Parameters
+    ----------
+    time_format : str
+        Refer https://docs.python.org/3/library/time.html#time.strftime for options
+
+    Returns
+    -------
+    str
+        time as string in requested format
+    """
+    return time.strftime(time_format)
 
 def deg_to_rad(x):
     return math.pi*x/180.0
@@ -31,6 +40,23 @@ def set_fleet_id(id):
 
 def get_fleet_directory():
     return os.environ['HELLO_FLEET_PATH']+'/'+get_fleet_id()+'/'
+
+def get_stretch_directory(sub_directory=''):
+    """Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists
+
+    Parameters
+    ----------
+    sub_directory : str
+        valid sub_directory within stretch_user/
+
+    Returns
+    -------
+    str
+        dirpath to stretch_user/ or dir within it if stretch_user/ exists, else /tmp
+    """
+    base_path = os.environ.get('HELLO_FLEET_PATH', None)
+    full_path = base_path + '/' + sub_directory if base_path is not None else '/tmp/'
+    return full_path
 
 def read_fleet_yaml(f):
     """Reads yaml by filename from fleet directory
@@ -58,7 +84,7 @@ def write_fleet_yaml(fn,rp):
 
 def overwrite_dict(overwritee_dict, overwriter_dict):
     for k in overwriter_dict.keys():
-        if overwritee_dict.has_key(k):
+        if k in overwritee_dict:
             if type(overwritee_dict[k])==type(overwriter_dict[k]):
                 if type(overwritee_dict[k])==dict:
                     overwrite_dict(overwritee_dict[k],overwriter_dict[k])
@@ -68,6 +94,24 @@ def overwrite_dict(overwritee_dict, overwriter_dict):
                 print('Overwritting Factory Params with User Params. Type mismatch for key:',k)
         else: #If key not present, add anyhow (useful for adding new end_of_arm)
             overwritee_dict[k] = overwriter_dict[k]
+
+def pretty_print_dict(title, d):
+    """Print human readable representation of dictionary to terminal
+
+    Parameters
+    ----------
+    title : str
+        header title under which the dictionary is printed
+    d : dict
+        the dictionary to pretty print
+    """
+    print('-------- {0} --------'.format(title))
+    for k in d.keys():
+        if type(d[k]) != dict:
+            print(k, ' : ', d[k])
+    for k in d.keys():
+        if type(d[k]) == dict:
+            pretty_print_dict(k, d[k])
 
 class TimerStats():
     def __init__(self):
