@@ -67,6 +67,7 @@ class DynamixelXChain(Device):
     def stop(self):
         if not self.hw_valid:
             return
+        self.hw_valid = False
         for mk in self.motors.keys():
             self.motors[mk].stop()
 

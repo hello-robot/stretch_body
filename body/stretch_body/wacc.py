@@ -87,6 +87,7 @@ class Wacc(Device):
         if not self.hw_valid:
             return
         with self.lock:
+            self.hw_valid = False
             self.push_command(exiting=True)
             self.transport.stop()
 

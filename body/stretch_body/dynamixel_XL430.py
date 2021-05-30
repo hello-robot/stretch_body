@@ -166,6 +166,7 @@ class DynamixelXL430():
 
     def stop(self):
         if self.hw_valid:
+            self.hw_valid = False
             self.disable_torque()
             self.port_handler.closePort()
 
