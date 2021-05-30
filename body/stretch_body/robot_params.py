@@ -4,9 +4,15 @@ import logging
 
 # Do not override factory params here
 factory_params = {
+    "robot": {
+        "tool": "tool_stretch_gripper",
+    },
     "robot_sentry": {
         "dynamixel_stop_on_runstop": 1,
-        "tool": "tool_stretch_gripper"
+        "base_fan_control": 1,
+        "base_max_velocity": 1,
+        "stretch_gripper_overload": 1,
+        "wrist_yaw_overload": 1,
     },
     "head": {
         "use_group_sync_read": 1,
@@ -16,7 +22,14 @@ factory_params = {
     "end_of_arm": {
         "use_group_sync_read": 1,
         "retry_on_comm_failure": 1,
-        "baud": 57600
+        "baud": 57600,
+        'stow': {'wrist_yaw': 3.4},
+        'devices': {
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            }
+        }
     },
     "head_pan": {
         "retry_on_comm_failure": 1,
@@ -34,11 +47,19 @@ factory_params = {
         "retry_on_comm_failure": 1,
         "baud": 57600,
     },
+    "base": {
+        "sentry_max_velocity": {
+            "limit_accel_m": 0.15,
+            "limit_vel_m": 0.1,
+            "max_arm_extension_m": 0.03,
+            "max_lift_height_m": 0.3,
+            "min_wrist_yaw_rad": 2.54,
+        }
+    },
     "tool_none": {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
-        'verbose':0,
+        'baud':57600,
         'py_class_name': 'ToolNone',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'stow': {'wrist_yaw': 3.4},
@@ -52,8 +73,7 @@ factory_params = {
     "tool_stretch_gripper": {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
-        'verbose':0,
+        'baud':57600,
         'py_class_name': 'ToolStretchGripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},

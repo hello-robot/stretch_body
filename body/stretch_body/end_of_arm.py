@@ -12,20 +12,12 @@ class EndOfArm(DynamixelXChain):
     """
     def __init__(self, name='end_of_arm'):
         DynamixelXChain.__init__(self, usb='/dev/hello-dynamixel-wrist', name=name)
-        self.joints = []
-        self.add_joints(self.params)
-
-    def add_joints(self,params):
-        # Adds new servo instances per YAML definition
-        if 'devices' in params:
-            new_joints = params['devices'].keys()
-            for j in new_joints:
-                if not j in self.joints:
-                    self.joints.append(j)
-                    module_name = params['devices'][j]['py_module_name']
-                    class_name = params['devices'][j]['py_class_name']
-                    dynamixel_device = getattr(importlib.import_module(module_name), class_name)(self)
-                    self.add_motor(dynamixel_device)
+        self.joints = self.params.get('devices', {}).keys()
+        for j in self.joints:
+            module_name = self.params['devices'][j]['py_module_name']
+            class_name = self.params['devices'][j]['py_class_name']
+            dynamixel_device = getattr(importlib.import_module(module_name), class_name)(chain=self)
+            self.add_motor(dynamixel_device)
 
     def move_to(self, joint,x_r, v_r=None, a_r=None):
         """
