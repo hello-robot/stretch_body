@@ -233,8 +233,9 @@ class Stepper(Device):
 
     def set_motion_limits(self,limit_neg, limit_pos):
         with self.lock:
-            self.motion_limits=[limit_neg, limit_pos]
-            self._dirty_motion_limits=True
+            if limit_neg!=self.motion_limits[0] or limit_pos!=self.motion_limits[1]:
+                self.motion_limits=[limit_neg, limit_pos]
+                self._dirty_motion_limits=True
 
 
     def set_gains(self,g):

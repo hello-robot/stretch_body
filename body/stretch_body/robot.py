@@ -18,6 +18,7 @@ import stretch_body.hello_utils as hello_utils
 from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
+from stretch_body.robot_collision import RobotCollision
 
 
 # #############################################################
@@ -46,7 +47,6 @@ class RobotDynamixelThread(threading.Thread):
         print('Shutting down RobotDynamixelThread')
 
 
-
 class RobotThread(threading.Thread):
     """
     This thread runs at 25Hz.
@@ -59,9 +59,12 @@ class RobotThread(threading.Thread):
 
         self.robot_update_rate_hz = 25.0  #Hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
+        self.collision_downrate_int = 5  # Step the monitor at every Nth iteration
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
+        if self.robot.params['use_collision_manager']:
+            self.robot.collision.startup()
         self.shutdown_flag = threading.Event()
         self.timer_stats = hello_utils.TimerStats()
         self.titr=0
@@ -72,9 +75,13 @@ class RobotThread(threading.Thread):
             ts = time.time()
             self.robot._pull_status_non_dynamixel()
             self.first_status = True
+
             if self.robot.params['use_monitor']:
                 if (self.titr % self.monitor_downrate_int) == 0:
                     self.robot.monitor.step()
+
+            if self.robot.params['use_collision_manager']:
+                    self.robot.collision.step()
 
             if self.robot.params['use_sentry']:
                 if (self.titr % self.sentry_downrate_int) == 0:
@@ -95,6 +102,7 @@ class Robot(Device):
     def __init__(self):
         Device.__init__(self, 'robot')
         self.monitor = RobotMonitor(self)
+        self.collision = RobotCollision(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
@@ -133,7 +141,6 @@ class Robot(Device):
         self.rt=None
         self.dt=None
 
-
     # ###########  Device Methods #############
 
     def startup(self):
@@ -153,13 +160,16 @@ class Robot(Device):
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
         signal.signal(signal.SIGINT, hello_utils.thread_service_shutdown)
+
         self.rt = RobotThread(self)
         self.rt.setDaemon(True)
         self.rt.start()
+
         self.dt = RobotDynamixelThread(self)
         self.dt.setDaemon(True)
         self.dt.start()
-        #Wait for threads to start reading data
+
+        # Wait for status reading threads to start reading data
         ts=time.time()
         while not self.rt.first_status and not self.dt.first_status and time.time()-ts<3.0:
            time.sleep(0.1)
@@ -174,10 +184,10 @@ class Robot(Device):
         print('---- Shutting down robot ----')
         if self.rt is not None:
             self.rt.shutdown_flag.set()
-            self.rt.join()
+            self.rt.join(1)
         if self.dt is not None:
             self.dt.shutdown_flag.set()
-            self.dt.join()
+            self.dt.join(1)
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 print('Shutting down',k)
