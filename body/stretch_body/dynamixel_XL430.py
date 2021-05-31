@@ -237,16 +237,20 @@ class DynamixelXL430():
         xn = struct.unpack('h', arr.array('B',[DXL_LOBYTE(x), DXL_HIBYTE(x)]))[0]
         return xn, dxl_comm_result, dxl_error
 
-    def do_ping(self):
+    def do_ping(self,verbose=True):
         if not self.hw_valid:
             return False
         with self.pt_lock:
             dxl_model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, self.dxl_id)
         if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error):
             self.logger.debug("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d" % (self.dxl_id, dxl_model_number))
+            if verbose:
+                print("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d" % (self.dxl_id, dxl_model_number))
             return True
         else:
             self.logger.debug("[Dynamixel ID:%03d] ping Failed." % (self.dxl_id))
+            if verbose:
+                print("[Dynamixel ID:%03d] ping Failed." % (self.dxl_id))
             return False
 
     def get_id(self):
@@ -721,16 +725,23 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_MOVING', dxl_comm_result, dxl_error)
         return p
 
-    def zero_position(self):
+    def zero_position(self,verbose=False):
         if not self.hw_valid:
             return
         self.logger.debug('Previous HOMING_OFFSET in EEPROM {0}'.format(self.get_homing_offset()))
+        if verbose:
+            print('Previous HOMING_OFFSET in EEPROM', self.get_homing_offset())
         self.set_homing_offset(0)
         h=-1*self.get_pos()
         self.logger.debug('Setting homing offset to {0}'.format(h))
+        if verbose:
+            print('Setting homing offset to',h)
         self.set_homing_offset(h)
         self.logger.debug('New HOMING_OFFSET in EEPROM {0}'.format(self.get_homing_offset()))
         self.logger.debug('Current position after homing {0}'.format(self.get_pos()))
+        if verbose:
+            print('New HOMING_OFFSET in EEPROM', self.get_homing_offset())
+            print('Current position after homing',self.get_pos())
         return
 
     def get_homing_offset(self):

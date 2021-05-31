@@ -81,7 +81,7 @@ try:
         if c=='m':
             menu()
         if c=="Q" or c=='q':
-            sys.exit()
+            break
         if c == 'i':
             a.move_by(x_m= -1*small_move_m, v_m=a.params['motion'][rate]['vel_m'], a_m=a.params['motion'][rate]['accel_m'],stiffness=stiffness, req_calibration=req_calibration)
         if c == 'o':
@@ -93,4 +93,5 @@ try:
         a.push_command()
         time.sleep(0.1)
 except (KeyboardInterrupt, SystemExit):
-    a.stop()
+    pass
+a.stop()

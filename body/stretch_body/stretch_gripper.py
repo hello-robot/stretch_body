@@ -13,8 +13,9 @@ class StretchGripper(DynamixelHelloXL430):
     def __init__(self, chain=None):
         DynamixelHelloXL430.__init__(self, 'stretch_gripper', chain)
         self.status['pos_pct']= 0.0
+        self.pct_max_open=self.world_rad_to_pct(self.ticks_to_world_rad(self.params['range_t'][1])) #May be a bit greater than 50 given non-linear calibration
         self.poses = {'zero': 0,
-                      'open': 50,
+                      'open': self.pct_max_open,
                       'close': -100}
 
     def home(self,move_to_zero=True):
@@ -74,7 +75,7 @@ class StretchGripper(DynamixelHelloXL430):
         position (slightly opening the grasp). This reduces the PID steady state error and lowers the
         commanded current. The gripper's spring design allows it to retain its grasp despite the backoff.
         """
-        if self.hw_valid and self.robot_params['robot_sentry']['stretch_gripper_overload']:
+        if self.hw_valid and self.robot_params['robot_sentry']['stretch_gripper_overload'] and not self.is_homing:
             if self.status['stall_overload']:
                 if self.status['effort'] < 0: #Only backoff in open direction
                     self.logger.debug('Backoff at stall overload')

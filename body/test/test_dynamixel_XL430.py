@@ -14,6 +14,7 @@ class TestDynamixelXL430(unittest.TestCase):
     def test_concurrent_access(self):
         """Verify zero comms errors in concurrent access.
         """
+        print('Testing Concurrent Access')
         servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=12,
             usb="/dev/hello-dynamixel-head",
             logger=logging.getLogger("test_dynamixel"))
@@ -34,6 +35,7 @@ class TestDynamixelXL430(unittest.TestCase):
     def test_handle_comm_result(self):
         """Verify comm results correctly handled.
         """
+        print('Testing Handle Comm Result')
         servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=12,
             usb="/dev/hello-dynamixel-head",
             logger=logging.getLogger("test_dynamixel"))
@@ -59,6 +61,8 @@ class TestDynamixelXL430(unittest.TestCase):
     def test_change_baud_rate(self, dxl_id=13, usb="/dev/hello-dynamixel-wrist"):
         """Verify can change baud rate.
         """
+        #TODO AE: Restarting a new connection to a just changecd baudrate does not always succeed. Need to close port?
+        print('Testing Change Baud Rate')
         logger = logging.getLogger("test_dynamixel")
         start_baud = stretch_body.dynamixel_XL430.DynamixelXL430.identify_baud_rate(dxl_id=dxl_id, usb=usb)
         servo1 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, logger=logger)
@@ -80,6 +84,7 @@ class TestDynamixelXL430(unittest.TestCase):
         goal_baud = 115200 if start_baud != 115200 else 57600
         succeeded = servo1.set_baud_rate(goal_baud)
         self.assertTrue(succeeded)
+
         servo2 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=goal_baud, logger=logger)
         curr_baud = servo2.get_baud_rate()
         self.assertEqual(curr_baud, goal_baud)

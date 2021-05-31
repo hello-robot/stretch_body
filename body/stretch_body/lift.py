@@ -234,7 +234,7 @@ class Lift(Device):
         time.sleep(1.0)
 
         # Down direction
-        self.move_by(x_m=-0.5, req_calibration=False)
+        self.move_to(x_m=0.6, req_calibration=False)
         self.push_command()
         time.sleep(6.0)
 

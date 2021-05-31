@@ -15,12 +15,11 @@ class TestLift(unittest.TestCase):
         """
         l = stretch_body.lift.Lift()
         self.assertTrue(l.startup())
-
         l.home()
-        time.sleep(2)
+        l.push_command()
+        time.sleep(1)
         l.pull_status()
-        self.assertAlmostEqual(l.status['pos'], 0.58, places=1)
-
+        self.assertAlmostEqual(l.status['pos'], 0.6, places=1)
         l.stop()
 
     def test_move_lift_with_soft_limits(self):

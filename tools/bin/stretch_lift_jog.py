@@ -79,11 +79,10 @@ try:
             rate = 'fast'
         if c == '4':
             rate = 'max'
-
         if c=='m':
             menu()
         if c=="Q" or c=='q':
-            sys.exit()
+            break
         if c == 'u':
             l.move_by(x_m= small_move_m, v_m=l.params['motion'][rate]['vel_m'], a_m=l.params['motion'][rate]['accel_m'],stiffness=stiffness, req_calibration=req_calibration)
         if c == 'd':
@@ -95,4 +94,5 @@ try:
         l.push_command()
         time.sleep(0.1)
 except (KeyboardInterrupt, SystemExit):
-    l.stop()
+    pass
+l.stop()

@@ -28,6 +28,7 @@ class DynamixelHelloXL430(Device):
         self.hw_valid=False
         self.is_calibrated=False
         self.set_soft_motion_limits(None, None)
+        self.is_homing=False
 
     # ###########  Device Methods #############
     def set_soft_motion_limits(self,x_min=None,x_max=None):
@@ -48,11 +49,11 @@ class DynamixelHelloXL430(Device):
             x_max=wr_max
         self.soft_motion_limits=[x_min,x_max]
 
-    def do_ping(self):
-        return self.motor.do_ping()
+    def do_ping(self, verbose=False):
+        return self.motor.do_ping(verbose)
 
     def startup(self):
-        if self.motor.do_ping():
+        if self.motor.do_ping(verbose=False):
             self.hw_valid = True
             self.motor.disable_torque()
             if self.params['use_multiturn']:
@@ -79,6 +80,7 @@ class DynamixelHelloXL430(Device):
             return True
         else:
             self.logger.warn('DynamixelHelloXL430 Ping failed... %s' % self.name)
+            print('DynamixelHelloXL430 Ping failed...', self.name)
             return False
 
 
@@ -245,6 +247,7 @@ class DynamixelHelloXL430(Device):
             return
         if self.params['req_calibration'] and not self.is_calibrated:
             self.logger.warn('Dynamixel not calibrated: %s' % self.name)
+            print('Dynamixel not calibrated:', self.name)
             return
         try:
             self.set_motion_params(v_des,a_des)
@@ -378,6 +381,7 @@ class DynamixelHelloXL430(Device):
             self.logger.warn('Hardware error, unable to home. Exiting')
             return
 
+        self.is_homing=True
         self.enable_pwm()
 
         print('Moving to first hardstop...')
@@ -450,6 +454,7 @@ class DynamixelHelloXL430(Device):
             print('Moving to calibrated zero: (rad)')
             self.move_to(0)
             time.sleep(3.0)
+        self.is_homing=False
 
 # ##########################################
 
