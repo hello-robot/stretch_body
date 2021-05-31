@@ -22,7 +22,7 @@ def menu_top():
     print('h: home')
     print('x: close by 10')
     print('y: open by 10')
-    print('p: go to position (50 to -100)')
+    print('p: go to position (%6.2f to -100)'%g.pct_max_open)
     print('r: reboot')
     print('-----')
     print('a: open')
@@ -50,14 +50,14 @@ def step_interaction():
             g.move_by(10.0, v_des, a_des)
         if x[0]=='p':
             ff = int(sys.stdin.readline())
-            ff=min(max(-100,ff),50)
+            ff=min(max(-100,ff),g.pct_max_open)
             g.move_to(ff, v_des, a_des)
         if x[0] == 'a':
-            g.move_to(50, v_des, a_des)
+            g.move_to(g.poses['open'], v_des, a_des)
         if x[0] == 'b':
-            g.move_to(0, v_des, a_des)
+            g.move_to(g.poses['zero'], v_des, a_des)
         if x[0] == 'c':
-            g.move_to(-100, v_des, a_des)
+            g.move_to(g.poses['close'], v_des, a_des)
         if x[0]=='r':
             g.do_reboot()
             

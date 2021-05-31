@@ -9,7 +9,7 @@ parser=argparse.ArgumentParser(description='Reboot all Dynamixel servos on robot
 args=parser.parse_args()
 
 print('---- Rebooting Head ---- ')
-for id in range(15):
+for id in range(25):
     m = DynamixelXL430(id, '/dev/hello-dynamixel-head')
     m.startup()
     if (m.do_ping(verbose=False)):
@@ -18,7 +18,7 @@ for id in range(15):
         m.stop()
 
 print('---- Rebooting Wrist ---- ')
-for id in range(15):
+for id in range(25):
     m = DynamixelXL430(id, '/dev/hello-dynamixel-wrist')
     m.startup()
     if (m.do_ping(verbose=False)):

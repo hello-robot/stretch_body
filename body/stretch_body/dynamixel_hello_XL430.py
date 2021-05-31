@@ -9,27 +9,45 @@ class DynamixelHelloXL430(Device):
     """
     Abstract the Dynamixel X-Series to handle calibration, radians, etc
     """
-    def __init__(self,name, chain=None,verbose=False):
-        Device.__init__(self,verbose)
-        self.name=name
-        self.params=self.robot_params[self.name]
+    def __init__(self, name, chain=None):
+        Device.__init__(self, name)
+        self.chain = chain
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
                      'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+
         #Share bus resource amongst many XL430s
-        if chain is None:
-            self.motor = DynamixelXL430(dxl_id=self.params['id'],usb=self.params['usb_name'],port_handler=None)
-        else:
-            self.motor = DynamixelXL430(dxl_id=self.params['id'], usb=self.params['usb_name'], port_handler=chain.port_handler, pt_lock=chain.pt_lock)
-        if self.params['flip_encoder_polarity']:
-            self.polarity=-1.0
-        else:
-            self.polarity=1.0
+        self.motor = DynamixelXL430(dxl_id=self.params['id'],
+                                    usb=self.params['usb_name'],
+                                    port_handler=None if chain is None else chain.port_handler,
+                                    pt_lock=None if chain is None else chain.pt_lock,
+                                    baud=self.params['baud'],
+                                    logger=self.logger)
+        self.polarity = -1.0 if self.params['flip_encoder_polarity'] else 1.0
         self.ts_over_eff_start=None
         self.hw_valid=False
         self.is_calibrated=False
+        self.set_soft_motion_limits(None, None)
+        self.is_homing=False
 
     # ###########  Device Methods #############
+    def set_soft_motion_limits(self,x_min=None,x_max=None):
+        if self.params['flip_encoder_polarity']:
+            wr_max = self.ticks_to_world_rad(self.params['range_t'][0])
+            wr_min = self.ticks_to_world_rad(self.params['range_t'][1])
+        else:
+            wr_max = self.ticks_to_world_rad(self.params['range_t'][1])
+            wr_min = self.ticks_to_world_rad(self.params['range_t'][0])
+
+        if x_min is not None:
+            x_min=max(x_min,wr_min)
+        else:
+            x_min=wr_min
+        if x_max is not None:
+            x_max=min(x_max,wr_max)
+        else:
+            x_max=wr_max
+        self.soft_motion_limits=[x_min,x_max]
 
     def do_ping(self, verbose=False):
         return self.motor.do_ping(verbose)
@@ -40,6 +58,10 @@ class DynamixelHelloXL430(Device):
             self.motor.disable_torque()
             if self.params['use_multiturn']:
                 self.motor.enable_multiturn()
+            else:
+                self.motor.enable_pos()
+                if self.params['range_t'][0]<0 or self.params['range_t'][1]>4095:
+                    self.logger.warn('Warning: Invalid position range for %s'%self.name)
             self.motor.set_pwm_limit(self.params['pwm_limit'])
             self.motor.set_temperature_limit(self.params['temperature_limit'])
             self.motor.set_min_voltage_limit(self.params['min_voltage_limit'])
@@ -52,33 +74,68 @@ class DynamixelHelloXL430(Device):
             self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
             self.v_des=self.params['motion']['default']['vel']
             self.a_des=self.params['motion']['default']['accel']
+            self.set_range()
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
             return True
         else:
+            self.logger.warn('DynamixelHelloXL430 Ping failed... %s' % self.name)
             print('DynamixelHelloXL430 Ping failed...', self.name)
             return False
 
 
     def stop(self):
         if self.hw_valid:
+            self.hw_valid = False
             self.disable_torque()
 
     def pull_status(self,data=None):
         if not self.hw_valid:
             return
+
+        pos_valid = True
+        vel_valid = True
+        eff_valid = True
+        temp_valid = True
+        err_valid = True
+
         #First pull new data from servo
         #Or bring in data from a synchronized read
         if data is None:
             try:
                 x = self.motor.get_pos()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    x = self.motor.get_pos()
+                pos_valid = self.motor.last_comm_success
+
                 v = self.motor.get_vel()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    v = self.motor.get_vel()
+                vel_valid = self.motor.last_comm_success
+
                 eff = self.motor.get_load()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    eff = self.motor.get_load()
+                eff_valid = self.motor.last_comm_success
+
                 temp = self.motor.get_temp()
-                ts = time.time()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    temp = self.motor.get_temp()
+                temp_valid = self.motor.last_comm_success
+
                 err=self.motor.get_hardware_error()
+                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    err=self.motor.get_hardware_error()
+                err_valid = self.motor.last_comm_success
+
+
+                if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
+                    self.logger.debug('Failed status communication on %s: POS %d VEL %d EFF %d TEMP %d ERR %d '%(self.name,pos_valid,vel_valid,eff_valid,temp_valid,err_valid))
+
+                ts = time.time()
             except termios.error:
-                print('Dynamixel communiation error at time: ',time.time())
+                self.logger.error('Dynamixel communication error on %s: '%self.name)
+                return
         else:
             x = data['x']
             v = data['v']
@@ -88,20 +145,28 @@ class DynamixelHelloXL430(Device):
             err = data['err']
 
         #Now update status dictionary
-        self.status['pos_ticks'] = x
-        self.status['vel_ticks'] = v
-        self.status['effort_ticks'] = eff
-        self.status['pos'] = self.ticks_to_world_rad(float(x))
-        self.status['vel'] = self.ticks_to_rad_per_sec(float(v))
-        self.status['effort'] = self.ticks_to_pct_load(float(eff))
-        self.status['temp'] = float(temp)
+        if pos_valid:
+            self.status['pos_ticks'] = x
+            self.status['pos'] = self.ticks_to_world_rad(float(x))
+        if vel_valid:
+            self.status['vel_ticks'] = v
+            self.status['vel'] = self.ticks_to_rad_per_sec(float(v))
+        if eff_valid:
+            self.status['effort_ticks'] = eff
+            self.status['effort'] = self.ticks_to_pct_load(float(eff))
+        if temp_valid:
+            self.status['temp'] = float(temp)
+        if err_valid:
+            self.status['hardware_error'] = err
+
         self.status['timestamp_pc'] = ts
+
         self.status['hardware_error'] = err
-        self.status['input_voltage_error'] = self.status['hardware_error'] & 1 is not 0
-        self.status['overheating_error'] = self.status['hardware_error'] & 4 is not 0
-        self.status['motor_encoder_error'] = self.status['hardware_error'] & 8 is not 0
-        self.status['electrical_shock_error'] = self.status['hardware_error'] & 16 is not 0
-        self.status['overload_error'] = self.status['hardware_error'] & 32 is not 0
+        self.status['input_voltage_error'] = self.status['hardware_error'] & 1 != 0
+        self.status['overheating_error'] = self.status['hardware_error'] & 4 != 0
+        self.status['motor_encoder_error'] = self.status['hardware_error'] & 8 != 0
+        self.status['electrical_shock_error'] = self.status['hardware_error'] & 16 != 0
+        self.status['overload_error'] = self.status['hardware_error'] & 32 != 0
 
         #Finally flag if stalled at high effort for too long
         self.status['stalled']=abs(self.status['vel'])<self.params['stall_min_vel']
@@ -181,16 +246,31 @@ class DynamixelHelloXL430(Device):
         if not self.hw_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
+            self.logger.warn('Dynamixel not calibrated: %s' % self.name)
             print('Dynamixel not calibrated:', self.name)
             return
         try:
             self.set_motion_params(v_des,a_des)
+            x_des = min(max(self.soft_motion_limits[0], x_des), self.soft_motion_limits[1])
             t_des = self.world_rad_to_ticks(x_des)
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
         except termios.error:
-            print('Dynamixel communication error at time: ',time.time())
+            self.logger.error('Dynamixel communication error at time: %f' % time.time())
 
+
+    def set_range(self,x_min=None,x_max=None):
+        if x_min is not None:
+            t_min=self.world_rad_to_ticks(x_min)
+            t_min=max(t_min,self.params['range_t'][0])
+        else:
+            t_min=self.params['range_t'][0]
+        if x_max is not None:
+            t_max=self.world_rad_to_ticks(x_max)
+            t_max=max(t_max,self.params['range_t'][1])
+        else:
+            t_max=self.params['range_t'][1]
+        self.range=[t_min,t_max]
 
     def set_motion_params(self,v_des=None,a_des=None):
         if not self.hw_valid:
@@ -211,8 +291,15 @@ class DynamixelHelloXL430(Device):
         if not self.hw_valid:
             return
         if abs(x_des) > 0.00002: #Avoid drift
-            cx=self.ticks_to_world_rad(self.motor.get_pos())
-            self.move_to(cx + x_des, v_des, a_des)
+            x=self.motor.get_pos()
+            if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                x = self.motor.get_pos()
+
+            if self.motor.last_comm_success:
+                cx=self.ticks_to_world_rad(x)
+                self.move_to(cx + x_des, v_des, a_des)
+            else:
+                self.logger.debug('Move_By comm failure on %s' % self.name)
 
     def quick_stop(self):
         if not self.hw_valid:
@@ -226,6 +313,8 @@ class DynamixelHelloXL430(Device):
         self.motor.disable_torque()
         if self.params['use_multiturn']:
             self.motor.enable_multiturn()
+        else:
+            self.motor.enable_pos()
         self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
         self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
         self.motor.enable_torque()
@@ -243,14 +332,45 @@ class DynamixelHelloXL430(Device):
         self.motor.set_pwm(x)
 
 # ##########################################
+    """
+    Servo calibration works by:
+    
+    Homing
+    ==============
+    * Move with a fixed PWM to a hardstop
+    * Store the current position (ticks) in the EEPROM homing offset such that self.motor.status['pos']==0 at that hardstop
+    
+    Calibration to SI / joint range:
+    ===============
+    Once homed, the servo can move to positions within self.params.range_t (ticks).
+    The 'Joint Zero' (self.params.zero_t) is different than the 'Servo Zero'. Per the homing procedure, Servo Zero is at one hardstop
+    Joint Zero is an offset (ticks) from Servo Zero that is added/subtracted to commanded/reported values
+    Thus when self.motor.status['pos']==self.params.zero_t, self.status['pos]=0 (rad)
+    
+    There is an added complexity with how Dynamixels handle position reporting in multi-turn and single-turn mode
+    In multi-turn mode, position values and homing values can be large (+/-2B, +/-1M)
+    In single-turn mode, position values are bound to 0-4095 and homing values to -1,024 ~ 1,024
+    In addition, the home offset stored during a multi-turn homing procedure may not be valid in single turn (out of range)
+    
+    The Home Offset(20) adjusts the home position. The offest value is added to the Present Position(132).
+    Present Position(132) = Actual Position + Homing Offset(20)
+    Range: -1,044,479 ~ 1,044,479
+    
+    ### NOTE ###
+    In case of the Position Control Mode(Joint Mode) that rotates less than 360 degrees, any invalid Homing Offset(20) values will be ignored(valid range : -1,024 ~ 1,024).
+    So when homing in single-turn mode, ensure that the homing offset stored is in range, otherwise unexpected values will appear. 
+    -- It is possible then to not be able to home a single-turn servo as position can range 0-4096 and depending on hardstop location, a valid homing offset can not be found
+    -- Also, homing shouldn't be necessary in single-turn mode as the position reporting is already absolute
+    """
 
-    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0):
+    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0,save_calibration=False):
         # Requires at least one hardstop in the pwm_homing[0] direction
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
         # Second hardstop is optional
+
         if not self.hw_valid:
-            print('Not able to home %s. Hardware not present'%self.name)
+            self.logger.warn('Not able to home %s. Hardware not present'%self.name)
             return
         if not self.params['req_calibration']:
             print('Homing not required for: '+self.name)
@@ -258,9 +378,10 @@ class DynamixelHelloXL430(Device):
 
         self.pull_status()
         if self.status['overload_error'] or self.status['overheating_error']:
-            print('Hardware error, unable to home. Exiting')
+            self.logger.warn('Hardware error, unable to home. Exiting')
             return
 
+        self.is_homing=True
         self.enable_pwm()
 
         print('Moving to first hardstop...')
@@ -271,22 +392,23 @@ class DynamixelHelloXL430(Device):
         while self.motor.is_moving() and not timeout:
             timeout=time.time()-ts>15.0
             time.sleep(0.5)
-            #print('Pos (ticks)',self.motor.get_pos())
         time.sleep(delay_at_stop)
-        xs=self.motor.get_pos()
         self.set_pwm(0)
 
         if timeout:
-            print('Timed out moving to first hardstop. Exiting.')
+            self.logger.warn('Timed out moving to first hardstop. Exiting.')
             return
         if self.status['overload_error'] or self.status['overheating_error']:
-            print('Hardware error, unable to home. Exiting')
+            self.logger.warn('Hardware error, unable to home. Exiting')
             return
 
-        print('Contact at position:', xs)
+        print('Contact at position: %d'%self.motor.get_pos())
         print('Hit first hardstop, marking to zero ticks')
         self.motor.disable_torque()
-        self.motor.zero_position(verbose=False)
+        self.motor.zero_position()
+        print("Homing is now  %d"%self.motor.get_homing_offset())
+
+        self.motor.disable_torque()
         self.motor.set_calibrated(1)
         self.is_calibrated=1
         self.motor.enable_torque()
@@ -294,7 +416,6 @@ class DynamixelHelloXL430(Device):
         self.enable_pwm()
 
         print('Raw position:',self.motor.get_pos())
-
         if not single_stop:
             #Measure the range and write to YAML
             print('Moving to second hardstop...')
@@ -305,19 +426,18 @@ class DynamixelHelloXL430(Device):
             while self.motor.is_moving() and not timeout:
                 timeout = time.time() - ts > 15.0
                 time.sleep(0.5)
-                #print('Pos (ticks)', self.motor.get_pos())
             time.sleep(delay_at_stop)
-            x_dir_1 = self.motor.get_pos()
             self.set_pwm(0)
 
             if timeout:
-                print('Timed out moving to second hardstop. Exiting.')
+                self.logger.warn('Timed out moving to second hardstop. Exiting.')
                 return
-            print('Hit second hardstop at: ', x_dir_1)
             if self.status['overload_error'] or self.status['overheating_error']:
-                print('Hardware error, unable to home. Exiting')
+                self.logger.warn('Hardware error, unable to home. Exiting')
                 return
 
+            x_dir_1 = self.motor.get_pos()
+            print('Hit second hardstop at: ', x_dir_1)
             self.params['range_t']=[0,x_dir_1]
             print('Homed to range of:')
             print('   Ticks:',self.params['range_t'])
@@ -325,6 +445,8 @@ class DynamixelHelloXL430(Device):
             r2=self.ticks_to_world_rad(x_dir_1)
             print('   Radians:',[r1,r2])
             print('   Degrees:',[rad_to_deg(r1),rad_to_deg(r2)])
+
+        if save_calibration:
             self.write_device_params(self.name, self.params)
 
         self.enable_pos()
@@ -332,6 +454,8 @@ class DynamixelHelloXL430(Device):
             print('Moving to calibrated zero: (rad)')
             self.move_to(0)
             time.sleep(3.0)
+        self.is_homing=False
+
 # ##########################################
 
     def ticks_to_world_rad_per_sec(self,t):

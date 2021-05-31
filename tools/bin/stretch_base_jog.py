@@ -164,10 +164,11 @@ try:
             if c=='m':
                 menu()
             if c=="Q" or c=='q':
-                sys.exit()
+                break
 
             b.push_command()
             p.trigger_motor_sync()
             time.sleep(0.1)
 except (KeyboardInterrupt, SystemExit):
-    b.stop()
+    pass
+b.stop()

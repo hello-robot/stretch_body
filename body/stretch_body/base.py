@@ -10,19 +10,17 @@ class Base(Device):
     """
     API to the Stretch RE1 Mobile Base
     """
-    def __init__(self,verbose=False):
-        Device.__init__(self,verbose)
-        self.name='base'
-        self.logger = logging.getLogger('robot.base')
-        self.params = self.robot_params[self.name]
-        self.left_wheel = Stepper('/dev/hello-motor-left-wheel')
-        self.right_wheel = Stepper('/dev/hello-motor-right-wheel')
+    def __init__(self):
+        Device.__init__(self, 'base')
+        self.left_wheel = Stepper(usb='/dev/hello-motor-left-wheel')
+        self.right_wheel = Stepper(usb='/dev/hello-motor-right-wheel')
         self.status = {'timestamp_pc':0,'x':0,'y':0,'theta':0,'x_vel':0,'y_vel':0,'theta_vel':0, 'pose_time_s':0,'effort': [0, 0], 'left_wheel': self.left_wheel.status, 'right_wheel': self.right_wheel.status}
         self.first_step=True
         wheel_circumference_m = self.params['wheel_diameter_m'] * pi
         self.meters_per_motor_rad = (wheel_circumference_m / (2.0 * pi)) / self.params['gr']
         self.wheel_separation_m = self.params['wheel_separation_m']
-        #Default controller params
+
+        # Default controller params
         self.stiffness=1.0
         self.vel_mr=self.translate_to_motor_rad(self.params['motion']['default']['vel_m'])
         self.accel_mr=self.translate_to_motor_rad(self.params['motion']['default']['accel_m'])
@@ -252,7 +250,7 @@ class Base(Device):
         self.left_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr)
         self.right_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
 
-    def step_sentry(self, x_lift, x_arm, x_wrist):
+    def step_sentry(self,robot):
         """
         Only allow fast mobile base motion if the lift is low,
         the arm is retracted, and the wrist is stowed. This is
@@ -260,16 +258,24 @@ class Base(Device):
         stability and avoid catching the arm or tool on
         something.
         """
-        if ((x_lift < self.params['sentry_max_velocity']['max_lift_height_m']) and
-                (x_arm < self.params['sentry_max_velocity']['max_arm_extension_m']) and
-                (x_wrist > self.params['sentry_max_velocity']['min_wrist_yaw_rad'])):
-            if not self.fast_motion_allowed:
-                self.logger.info('Fast motion turned on')
-            self.fast_motion_allowed = True
-        else:
-            if self.fast_motion_allowed:
-                self.logger.info('Fast motion turned off')
-            self.fast_motion_allowed = False
+        if self.robot_params['robot_sentry']['base_max_velocity']:
+            x_lift=robot.lift.status['pos']
+            x_arm =robot.arm.status['pos']
+            x_wrist =robot.end_of_arm.motors['wrist_yaw'].status['pos']
+
+            if ((x_lift < self.params['sentry_max_velocity']['max_lift_height_m']) and
+                    (x_arm < self.params['sentry_max_velocity']['max_arm_extension_m']) and
+                    (x_wrist > self.params['sentry_max_velocity']['min_wrist_yaw_rad'])):
+                if not self.fast_motion_allowed:
+                    self.logger.debug('Fast motion turned on')
+                self.fast_motion_allowed = True
+            else:
+                if self.fast_motion_allowed:
+                    self.logger.debug('Fast motion turned off')
+                self.fast_motion_allowed = False
+
+        self.left_wheel.step_sentry(robot)
+        self.right_wheel.step_sentry(robot)
 
     # ###################################################
     def push_command(self):

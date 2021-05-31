@@ -2,6 +2,7 @@ from __future__ import print_function
 from stretch_body.transport import *
 from stretch_body.device import Device
 import threading
+import textwrap
 
 RPC_SET_WACC_CONFIG = 1
 RPC_REPLY_WACC_CONFIG = 2
@@ -30,18 +31,17 @@ class Wacc(Device):
     ext_command_cb: Callback to handle custom command data
     """
 
-    def __init__(self, verbose=False, ext_status_cb=None, ext_command_cb=None):
-        Device.__init__(self, verbose)
+    def __init__(self, ext_status_cb=None, ext_command_cb=None):
+        Device.__init__(self, 'wacc')
         self.ext_status_cb=ext_status_cb
         self.ext_command_cb=ext_command_cb
         self.lock=threading.RLock()
-        self.params=self.robot_params['wacc']
         self.config = self.params['config']
         self._dirty_config = True #Force push down
         self._dirty_command = False
         self._command = {'d2':0,'d3':0, 'trigger':0}
         self.name ='hello-wacc'
-        self.transport = Transport('/dev/hello-wacc',verbose=verbose)
+        self.transport = Transport(usb='/dev/hello-wacc', logger=self.logger)
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
                        'timestamp': 0,
                        'transport': self.transport.status}
@@ -62,14 +62,16 @@ class Wacc(Device):
                 self.transport.step(exiting=False)
                 # Check that protocol matches
                 if not(self.valid_firmware_protocol == self.board_info['protocol_version']):
-                    if self.verbose:
-                        print('----------------')
-                        print('Firmware protocol mismatch on %s. '%self.name)
-                        print('Current protocol is %s.'%self.board_info['protocol_version'])
-                        print('Valid protocols are: %s' %self.valid_firmware_protocol)
-                        print('Disabling device')
-                        print('Please upgrade the firmware and or version of Stretch Body')
-                        print('----------------')
+                    protocol_msg = """
+                    ----------------
+                    Firmware protocol mismatch on {0}.
+                    Protocol on board is {1}.
+                    Valid protocol is: {2}.
+                    Disabling device.
+                    Please upgrade the firmware and/or version of Stretch Body.
+                    ----------------
+                    """.format(self.name, self.board_info['protocol_version'], self.valid_firmware_protocol)
+                    self.logger.warn(textwrap.dedent(protocol_msg))
                     self.hw_valid=False
                     self.transport.stop()
 
@@ -85,6 +87,7 @@ class Wacc(Device):
         if not self.hw_valid:
             return
         with self.lock:
+            self.hw_valid = False
             self.push_command(exiting=True)
             self.transport.stop()
 

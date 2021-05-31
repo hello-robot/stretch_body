@@ -2,6 +2,7 @@ from __future__ import print_function
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
+import textwrap
 import threading
 import psutil
 import logging
@@ -51,8 +52,8 @@ class IMU(Device):
     """
     API to the Stretch RE1 IMU found in the base
     """
-    def __init__(self,verbose=False):
-        Device.__init__(self,verbose)
+    def __init__(self):
+        Device.__init__(self, 'imu')
         #pitch; //-180 to 180, rolls over
         #roll; //-90 to  90, rolls over at 180
         #heading; //0-360.0, rolls over
@@ -113,28 +114,22 @@ class IMU(Device):
         self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
         return sidx
 
-    def queue_rpc(self,transport):
-        pass
-
 
 class Pimu(Device):
     """
     API to the Stretch RE1 Power and IMU board (Pimu)
     """
-    def __init__(self,verbose=False, event_reset=False):
-        Device.__init__(self,verbose)
-        self.logger = logging.getLogger('robot.pimu')
+    def __init__(self, event_reset=False):
+        Device.__init__(self, 'pimu')
         self.lock = threading.RLock()
-        self.verbose=verbose
         self.imu = IMU()
-        self.config = self.robot_params['pimu']['config']
-        self.params = self.robot_params['pimu']
+        self.config = self.params['config']
         self._dirty_config = True
         self._dirty_trigger = False
         self.frame_id_last = None
         self.frame_id_base = 0
         self.name = 'hello-pimu'
-        self.transport = Transport('/dev/hello-pimu',self.verbose)
+        self.transport = Transport(usb='/dev/hello-pimu', logger=self.logger)
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
@@ -164,14 +159,16 @@ class Pimu(Device):
                 self.transport.step(exiting=False)
                 # Check that protocol matches
                 if not(self.valid_firmware_protocol == self.board_info['protocol_version']):
-                    if self.verbose:
-                        print('----------------')
-                        print('Firmware protocol mismatch on %s. '%self.name)
-                        print('Current protocol is %s.'%self.board_info['protocol_version'])
-                        print('Valid protocols are: %s' %self.valid_firmware_protocol)
-                        print('Disabling device')
-                        print('Please upgrade the firmware and or version of Stretch Body')
-                        print('----------------')
+                    protocol_msg = """
+                    ----------------
+                    Firmware protocol mismatch on {0}.
+                    Protocol on board is {1}.
+                    Valid protocol is: {2}.
+                    Disabling device.
+                    Please upgrade the firmware and/or version of Stretch Body.
+                    ----------------
+                    """.format(self.name, self.board_info['protocol_version'], self.valid_firmware_protocol)
+                    self.logger.warn(textwrap.dedent(protocol_msg))
                     self.hw_valid=False
                     self.transport.stop()
 
@@ -185,6 +182,7 @@ class Pimu(Device):
         if not self.hw_valid:
             return
         with self.lock:
+            self.hw_valid = False
             self.set_fan_off()
             self.push_command(exiting=True)
             self.transport.stop()
@@ -449,8 +447,8 @@ class Pimu(Device):
             cpu_temp = max(cpu_temp, c.current)
         return cpu_temp
 
-    def step_sentry(self,id):
-        if id=='base_fan_control':
+    def step_sentry(self):
+        if self.hw_valid and self.robot_params['robot_sentry']['base_fan_control']:
             #Manage CPU temp using the mobile base fan
             #See https://www.intel.com/content/www/us/en/support/articles/000005946/intel-nuc.html
             cpu_temp=self.get_cpu_temp()
@@ -460,10 +458,10 @@ class Pimu(Device):
                     self.push_command()
                     self.ts_last_fan_on = time.time()
                 if  not self.status['fan_on']:
-                    self.logger.info('Base fan turned on')
+                    self.logger.debug('Base fan turned on')
 
             if self.fan_on_last and not self.status['fan_on']:
-                self.logger.info('Base fan turned off')
+                self.logger.debug('Base fan turned off')
 
             if cpu_temp<self.params['base_fan_off']and self.status['fan_on']:
                 self.set_fan_off()

@@ -2,6 +2,7 @@ from __future__ import print_function
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
+import textwrap
 import threading
 import sys
 
@@ -68,13 +69,12 @@ class Stepper(Device):
     """
     API to the Stretch RE1 stepper board
     """
-    def __init__(self,usb,verbose=False):
-        Device.__init__(self,verbose=verbose)
+    def __init__(self, usb):
+        name = usb[5:]
+        Device.__init__(self,name)
         self.usb=usb
-        self.name=usb[5:]
-        self.params=self.robot_params[self.name]
         self.lock=threading.RLock()
-        self.transport = Transport(self.usb,self.verbose)
+        self.transport = Transport(usb=self.usb, logger=self.logger)
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
@@ -96,11 +96,11 @@ class Stepper(Device):
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.valid_firmware_protocol='p0'
         self.hw_valid=False
+        self.gains = self.params['gains'].copy()
 
     # ###########  Device Methods #############
     def startup(self):
         with self.lock:
-            self.gains=self.params['gains'].copy()
             self.hw_valid=self.transport.startup()
             if self.hw_valid:
                 #Pull board info
@@ -109,14 +109,16 @@ class Stepper(Device):
                 self.transport.step(exiting=False)
                 #Check that protocol matches
                 if not(self.valid_firmware_protocol == self.board_info['protocol_version']):
-                    if self.verbose:
-                        print('----------------')
-                        print('Firmware protocol mismatch on %s. '%self.name)
-                        print('Protocol on board is %s.'%self.board_info['protocol_version'])
-                        print('Valid protocol is: %s' %self.valid_firmware_protocol)
-                        print('Disabling device')
-                        print('Please upgrade the firmware and or version of Stretch Body')
-                        print('----------------')
+                    protocol_msg = """
+                    ----------------
+                    Firmware protocol mismatch on {0}.
+                    Protocol on board is {1}.
+                    Valid protocol is: {2}.
+                    Disabling device.
+                    Please upgrade the firmware and/or version of Stretch Body.
+                    ----------------
+                    """.format(self.name, self.board_info['protocol_version'], self.valid_firmware_protocol)
+                    self.logger.warn(textwrap.dedent(protocol_msg))
                     self.hw_valid=False
                     self.transport.stop()
             if self.hw_valid:
@@ -133,8 +135,8 @@ class Stepper(Device):
         if not self.hw_valid:
             return
         with self.lock:
-            if self.verbose:
-                print('Shutting down Stepper on: ' + self.usb)
+            self.hw_valid = False
+            self.logger.debug('Shutting down Stepper on: ' + self.usb)
             self.enable_safety()
             self.push_command(exiting=True)
             self.transport.stop()
@@ -231,8 +233,9 @@ class Stepper(Device):
 
     def set_motion_limits(self,limit_neg, limit_pos):
         with self.lock:
-            self.motion_limits=[limit_neg, limit_pos]
-            self._dirty_motion_limits=True
+            if limit_neg!=self.motion_limits[0] or limit_pos!=self.motion_limits[1]:
+                self.motion_limits=[limit_neg, limit_pos]
+                self._dirty_motion_limits=True
 
 
     def set_gains(self,g):

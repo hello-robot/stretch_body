@@ -1,6 +1,6 @@
 from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
-import logging
+
 
 class StretchGripper(DynamixelHelloXL430):
     """
@@ -10,11 +10,13 @@ class StretchGripper(DynamixelHelloXL430):
     The Pct ranges from approximately -100 (fully closed) to approximately +50 (fully open)
     A Pct of zero is the fingertips just touching
     """
-    def __init__(self, chain=None,verbose=False):
-        DynamixelHelloXL430.__init__(self,'stretch_gripper',chain,verbose=verbose)
-        self.logger = logging.getLogger('robot.stretch_gripper')
+    def __init__(self, chain=None):
+        DynamixelHelloXL430.__init__(self, 'stretch_gripper', chain)
         self.status['pos_pct']= 0.0
-        self.poses = {'zero':0,'open': 50, 'close': -100}
+        self.pct_max_open=self.world_rad_to_pct(self.ticks_to_world_rad(self.params['range_t'][1])) #May be a bit greater than 50 given non-linear calibration
+        self.poses = {'zero': 0,
+                      'open': self.pct_max_open,
+                      'close': -100}
 
     def home(self,move_to_zero=True):
         DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero,delay_at_stop=3.0)
@@ -67,15 +69,14 @@ class StretchGripper(DynamixelHelloXL430):
         pct = -1*((t / pct_to_tick)+100)
         return pct
 
-    def step_sentry(self):
+    def step_sentry(self, robot):
+        """This sentry attempts to prevent the gripper servo from overheating during a prolonged grasp
+        When the servo is stalled and exerting an effort above a threshold it will command a 'back off'
+        position (slightly opening the grasp). This reduces the PID steady state error and lowers the
+        commanded current. The gripper's spring design allows it to retain its grasp despite the backoff.
         """
-        This sentry attempts to prevent the gripper servo from overheating during a prolonged grasp
-        When the servo is stalled and exerting an effort obove a threashold it will command a
-        'back off' position (slightly open the grasp)
-        This reduces the PID steady state error and lowers the commanded current
-        The spring design of the gripper allows it retain its grasp despite the backoff
-        """
-        if self.status['stall_overload']:
-            if self.status['effort'] < 0: #Only backoff in open direction
-                self.logger.info('Backoff at stall overload')
-                self.move_by(self.params['stall_backoff'])
+        if self.hw_valid and self.robot_params['robot_sentry']['stretch_gripper_overload'] and not self.is_homing:
+            if self.status['stall_overload']:
+                if self.status['effort'] < 0: #Only backoff in open direction
+                    self.logger.debug('Backoff at stall overload')
+                    self.move_by(self.params['stall_backoff'])
