@@ -20,7 +20,6 @@ class DynamixelXChain(Device):
     def __init__(self, usb, name):
         Device.__init__(self, name)
         self.usb = usb
-        self.timer_stats = hello_utils.TimerStats()
         self.pt_lock = threading.RLock()
 
         try:
@@ -111,14 +110,12 @@ class DynamixelXChain(Device):
                 for m in self.motors:
                     with self.pt_lock:
                         self.motors[m].pull_status()
-            self.timer_stats.update(time.time()-ts)
         except IOError:
             self.logger.error('Pull Status IOError on: %s'%self.usb)
 
     def pretty_print(self):
         print('--- Dynamixel X Chain ---')
         print('USB', self.usb)
-        self.timer_stats.pretty_print()
         for mk in self.motors.keys():
             self.motors[mk].pretty_print()
 

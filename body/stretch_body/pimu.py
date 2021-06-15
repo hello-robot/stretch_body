@@ -442,10 +442,15 @@ class Pimu(Device):
     # ################ Sentry #####################
     def get_cpu_temp(self):
         cpu_temp = 0
-        t = psutil.sensors_temperatures()['coretemp']
-        for c in t:
-            cpu_temp = max(cpu_temp, c.current)
+        try:
+            t = psutil.sensors_temperatures()['coretemp']
+            for c in t:
+                cpu_temp = max(cpu_temp, c.current)
+        except KeyError: #May not be available on virtual machines
+            cpu_temp=25.0
         return cpu_temp
+
+
 
     def step_sentry(self):
         if self.hw_valid and self.robot_params['robot_sentry']['base_fan_control']:
