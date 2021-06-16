@@ -35,7 +35,6 @@ class DXLStatusThread(threading.Thread):
         self.stats = hello_utils.LoopStats(loop_name='DXLStatusThread',target_loop_rate=self.robot_update_rate_hz)
         self.shutdown_flag = threading.Event()
         self.first_status=False
-        self.logger = logging.getLogger()
 
     def run(self):
         while not self.shutdown_flag.is_set():
@@ -45,7 +44,7 @@ class DXLStatusThread(threading.Thread):
             self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
                 time.sleep(self.stats.get_loop_sleep_time())
-        self.logger.debug('Shutting down DXLStatusThread')
+        self.robot.logger.debug('Shutting down DXLStatusThread')
 
 
 class NonDXLStatusThread(threading.Thread):
@@ -57,7 +56,6 @@ class NonDXLStatusThread(threading.Thread):
     def __init__(self,robot):
         threading.Thread.__init__(self)
         self.robot=robot
-        self.logger = logging.getLogger()
 
         self.robot_update_rate_hz = 25.0  #Hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
@@ -91,7 +89,7 @@ class NonDXLStatusThread(threading.Thread):
             self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
                 time.sleep(self.stats.get_loop_sleep_time())
-        self.logger.debug('Shutting down NonDXLStatusThread')
+        self.robot.logger.debug('Shutting down NonDXLStatusThread')
 
 
 class Robot(Device):
@@ -172,8 +170,7 @@ class Robot(Device):
         ts=time.time()
         while not self.non_dxl_thread.first_status and not self.dxl_thread.first_status and time.time()-ts<3.0:
            time.sleep(0.1)
-        #if not self.non_dxl_thread.first_status  or not self.dxl_thread.first_status :
-        #    self.logger.warninging('Failed to startup up robot threads')
+
 
     def stop(self):
         """
