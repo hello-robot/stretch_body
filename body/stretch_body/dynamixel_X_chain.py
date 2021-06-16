@@ -112,6 +112,8 @@ class DynamixelXChain(Device):
                         self.motors[m].pull_status()
         except IOError:
             self.logger.error('Pull Status IOError on: %s'%self.usb)
+        except IndexError:
+            self.logger.error('Pull Status IndexError on: %s'%self.usb)
 
     def pretty_print(self):
         print('--- Dynamixel X Chain ---')
