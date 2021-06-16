@@ -118,7 +118,7 @@ class Stepper(Device):
                     Please upgrade the firmware and/or version of Stretch Body.
                     ----------------
                     """.format(self.name, self.board_info['protocol_version'], self.valid_firmware_protocol)
-                    self.logger.warn(textwrap.dedent(protocol_msg))
+                    self.logger.warning(textwrap.dedent(protocol_msg))
                     self.hw_valid=False
                     self.transport.stop()
             if self.hw_valid:
@@ -262,7 +262,7 @@ class Stepper(Device):
 
     def mark_position(self,x):
         if self.status['mode']!=MODE_SAFETY:
-            print('Can not mark position. Must be in MODE_SAFETY for',self.usb)
+            self.logger.warning('Can not mark position. Must be in MODE_SAFETY for',self.usb)
             return
 
         with self.lock:
@@ -441,11 +441,11 @@ class Stepper(Device):
     def read_encoder_calibration_from_flash(self):
         self.turn_menu_interface_on()
         time.sleep(0.5)
-        print('Reading encoder calibration...')
+        self.logger.debug('Reading encoder calibration...')
         e = self.menu_transaction('q',do_print=False)[19]
         self.turn_rpc_interface_on()
         self.push_command()
-        print('Reseting board')
+        self.logger.debug('Reseting board')
         self.board_reset()
         self.push_command()
         e = e[:-4]  # We now have string of floats, convert to list of floats
@@ -459,9 +459,9 @@ class Stepper(Device):
                 enc_calib.append(float(e))
                 e = []
         if len(enc_calib)==16384:
-            print('Successful read of encoder calibration')
+            self.logger.debug('Successful read of encoder calibration')
         else:
-            print('Failed to read encoder calibration')
+            self.logger.debug('Failed to read encoder calibration')
         return enc_calib
 
     def write_encoder_calibration_to_flash(self,data):
@@ -469,9 +469,9 @@ class Stepper(Device):
             return
         #This will take a few seconds. Blocks until complete.
         if len(data)!=16384:
-            print('Bad encoder data')
+            self.logger.debug('Bad encoder data')
         else:
-            print('Writing encoder calibration...')
+            self.logger.debug('Writing encoder calibration...')
             for p in range(256):
                 if p%10==0:
                     sys.stdout.write('.')
@@ -482,13 +482,13 @@ class Stepper(Device):
                 for i in range(64):
                     pack_float_t(self.transport.payload_out, sidx, data[p*64+i])
                     sidx += 4
-                # print('Sending encoder calibration rpc of size',sidx)
+                # self.logger.debug('Sending encoder calibration rpc of size',sidx)
                 self.transport.queue_rpc(sidx, self.rpc_enc_calib_reply)
                 self.transport.step()
-            print('')
+            self.logger.debug('')
     def rpc_enc_calib_reply(self,reply):
         if reply[0] != RPC_REPLY_ENC_CALIB:
-            print('Error RPC_REPLY_ENC_CALIB', reply[0])
+            self.logger.debug('Error RPC_REPLY_ENC_CALIB', reply[0])
 
     # ######################Menu Inteface ################################3
 
