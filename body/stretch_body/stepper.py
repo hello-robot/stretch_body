@@ -118,7 +118,7 @@ class Stepper(Device):
                     Please upgrade the firmware and/or version of Stretch Body.
                     ----------------
                     """.format(self.name, self.board_info['protocol_version'], self.valid_firmware_protocol)
-                    self.logger.warn(textwrap.dedent(protocol_msg))
+                    self.logger.warning(textwrap.dedent(protocol_msg))
                     self.hw_valid=False
                     self.transport.stop()
             if self.hw_valid:
@@ -262,7 +262,7 @@ class Stepper(Device):
 
     def mark_position(self,x):
         if self.status['mode']!=MODE_SAFETY:
-            self.logger.warn('Can not mark position. Must be in MODE_SAFETY for',self.usb)
+            self.logger.warning('Can not mark position. Must be in MODE_SAFETY for',self.usb)
             return
 
         with self.lock:

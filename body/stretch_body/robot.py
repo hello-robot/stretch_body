@@ -173,7 +173,7 @@ class Robot(Device):
         while not self.non_dxl_thread.first_status and not self.dxl_thread.first_status and time.time()-ts<3.0:
            time.sleep(0.1)
         #if not self.non_dxl_thread.first_status  or not self.dxl_thread.first_status :
-        #    self.logger.warning('Failed to startup up robot threads')
+        #    self.logger.warninging('Failed to startup up robot threads')
 
     def stop(self):
         """
@@ -322,7 +322,7 @@ class Robot(Device):
             self.end_of_arm.pull_status()
             self.head.pull_status()
         except SerialException:
-            self.logger.warn('Serial Exception on Robot Step_Dynamixel')
+            self.logger.warning('Serial Exception on Robot Step_Dynamixel')
 
     def _pull_status_non_dynamixel(self):
         self.wacc.pull_status()

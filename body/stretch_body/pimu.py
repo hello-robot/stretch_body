@@ -168,7 +168,7 @@ class Pimu(Device):
                     Please upgrade the firmware and/or version of Stretch Body.
                     ----------------
                     """.format(self.name, self.board_info['protocol_version'], self.valid_firmware_protocol)
-                    self.logger.warn(textwrap.dedent(protocol_msg))
+                    self.logger.warning(textwrap.dedent(protocol_msg))
                     self.hw_valid=False
                     self.transport.stop()
 
@@ -414,21 +414,21 @@ class Pimu(Device):
 
     def rpc_motor_sync_reply(self,reply):
         if reply[0] != RPC_REPLY_MOTOR_SYNC:
-            self.logger.warn('Error RPC_REPLY_MOTOR_SYNC', reply[0])
+            self.logger.warning('Error RPC_REPLY_MOTOR_SYNC', reply[0])
 
     def rpc_config_reply(self,reply):
         if reply[0] != RPC_REPLY_PIMU_CONFIG:
-            self.logger.warn('Error RPC_REPLY_PIMU_CONFIG', reply[0])
+            self.logger.warning('Error RPC_REPLY_PIMU_CONFIG', reply[0])
 
     def rpc_board_info_reply(self,reply):
         if reply[0] == RPC_REPLY_PIMU_BOARD_INFO:
             self.unpack_board_info(reply[1:])
         else:
-            self.logger.warn('Error RPC_REPLY_PIMU_BOARD_INFO', reply[0])
+            self.logger.warning('Error RPC_REPLY_PIMU_BOARD_INFO', reply[0])
 
     def rpc_trigger_reply(self,reply):
         if reply[0] != RPC_REPLY_PIMU_TRIGGER:
-            self.logger.warn('Error RPC_REPLY_PIMU_TRIGGER', reply[0])
+            self.logger.warning('Error RPC_REPLY_PIMU_TRIGGER', reply[0])
         else:
             tt=unpack_uint32_t(reply[1:])
 
@@ -436,7 +436,7 @@ class Pimu(Device):
         if reply[0] == RPC_REPLY_PIMU_STATUS:
             self.unpack_status(reply[1:])
         else:
-            self.logger.warn('Error RPC_REPLY_PIMU_STATUS', reply[0])
+            self.logger.warning('Error RPC_REPLY_PIMU_STATUS', reply[0])
 
 
     # ################ Sentry #####################

@@ -123,7 +123,7 @@ class LoopStats():
         self.target_loop_rate=target_loop_rate
         self.ts_loop_start=None
         self.ts_loop_end=None
-        self.status={'loop_rate_hz':0, 'loop_rate_avg_hz':0, 'loop_rate_min_hz':1000000, 'loop_rate_std':0, 'execution_time_ms':0, 'loop_warns':0}
+        self.status={'loop_rate_hz':0, 'loop_rate_avg_hz':0, 'loop_rate_min_hz':10000000, 'loop_rate_max_hz':0,'loop_rate_std':0, 'execution_time_ms':0, 'loop_warns':0}
         self.logger = logging.getLogger()
         self.n_log=100
         self.log_idx=0
@@ -139,8 +139,9 @@ class LoopStats():
         print('Current rate (Hz): %f' % self.status['loop_rate_hz'])
         print('Average rate (Hz): %f' % self.status['loop_rate_avg_hz'])
         print('Min rate (Hz): %f' % self.status['loop_rate_min_hz'])
-        print('Execution time (ms): %f' % self.status['execution_time_ms'])
-        print('Execution max rate (Hz) %f'%(1000.0/self.status['execution_time_ms']))
+        print('Max rate (Hz): %f' % self.status['loop_rate_max_hz'])
+        print('Current execution time (ms): %f' % self.status['execution_time_ms'])
+        print('Execution time supports rate of (Hz) %f'%(1000.0/self.status['execution_time_ms']))
         print('Warnings: %d out of %d'%(self.status['loop_warns'],self.loop_cycles))
 
     def mark_loop_start(self):
@@ -159,6 +160,7 @@ class LoopStats():
         self.status['execution_time_ms']=(self.ts_loop_end-self.ts_loop_start)*1000
         self.status['loop_rate_hz']=1.0/(self.ts_loop_end-end_last)
         self.status['loop_rate_min_hz']=min(self.status['loop_rate_hz'], self.status['loop_rate_min_hz'])
+        self.status['loop_rate_max_hz'] = max(self.status['loop_rate_hz'], self.status['loop_rate_max_hz'])
         if type(self.rate_log)==type(None):
             self.rate_log=numpy.array([self.status['loop_rate_hz']] * self.n_log)
         self.rate_log[self.log_idx]=self.status['loop_rate_hz']
@@ -170,7 +172,7 @@ class LoopStats():
             self.status['loop_warns'] += 1
             if not self.warned_yet:
                 self.warned_yet=True
-                self.logger.warn('Target loop rate for %s not possible. Capable of %.2f ms' % (self.loop_name,(1000.0/self.status['execution_time_ms'])))
+                self.logger.warning('Target loop rate for %s not possible. Capable of %.2f ms' % (self.loop_name,(1000.0/self.status['execution_time_ms'])))
 
 
     def display_rate_histogram(self):
