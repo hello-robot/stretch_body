@@ -68,7 +68,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                self.logger.warn('Lift not calibrated')
+                self.logger.warning('Lift not calibrated')
                 return
             x_m = min(max(self.soft_motion_limits[0], x_m), self.soft_motion_limits[1]) #Only clip motion when calibrated
         if stiffness is not None:
@@ -119,7 +119,7 @@ class Lift(Device):
         """
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
-                self.logger.warn('Lift not calibrated')
+                self.logger.warning('Lift not calibrated')
                 return
 
             if self.status['pos'] + x_m < self.soft_motion_limits[0]:  #Only clip motion when calibrated
@@ -202,7 +202,7 @@ class Lift(Device):
 
     def home(self, measuring=False):
         if not self.motor.hw_valid:
-            self.logger.warn('Not able to home lift. Hardware not present')
+            self.logger.warning('Not able to home lift. Hardware not present')
             return
         print('Homing lift...')
         self.motor.enable_guarded_mode()

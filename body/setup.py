@@ -25,6 +25,6 @@ setuptools.setup(
     install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'jupyter', 'pandas', 'sympy', 'nose', 'PyYaml',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'llvmlite==0.31.0', 'numba',
-                      'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'jsonschema==2.6.0', 'qtconsole==4.7.7',
+                      'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'psutil', 'jsonschema==2.6.0', 'qtconsole==4.7.7',
                       'gitpython', 'urdfpy', 'dynamixel-sdk >= 3.1; python_version >= "3.2.0"', 'pyyaml>=5.1', 'hello-robot-stretch-body-tools','hello-robot-stretch-factory']
 )

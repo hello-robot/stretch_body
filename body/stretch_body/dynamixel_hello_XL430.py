@@ -61,7 +61,7 @@ class DynamixelHelloXL430(Device):
             else:
                 self.motor.enable_pos()
                 if self.params['range_t'][0]<0 or self.params['range_t'][1]>4095:
-                    self.logger.warn('Warning: Invalid position range for %s'%self.name)
+                    self.logger.warning('Warning: Invalid position range for %s'%self.name)
             self.motor.set_pwm_limit(self.params['pwm_limit'])
             self.motor.set_temperature_limit(self.params['temperature_limit'])
             self.motor.set_min_voltage_limit(self.params['min_voltage_limit'])
@@ -79,7 +79,7 @@ class DynamixelHelloXL430(Device):
             self.enable_torque()
             return True
         else:
-            self.logger.warn('DynamixelHelloXL430 Ping failed... %s' % self.name)
+            self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
             print('DynamixelHelloXL430 Ping failed...', self.name)
             return False
 
@@ -246,7 +246,7 @@ class DynamixelHelloXL430(Device):
         if not self.hw_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
-            self.logger.warn('Dynamixel not calibrated: %s' % self.name)
+            self.logger.warning('Dynamixel not calibrated: %s' % self.name)
             print('Dynamixel not calibrated:', self.name)
             return
         try:
@@ -370,7 +370,7 @@ class DynamixelHelloXL430(Device):
         # Second hardstop is optional
 
         if not self.hw_valid:
-            self.logger.warn('Not able to home %s. Hardware not present'%self.name)
+            self.logger.warning('Not able to home %s. Hardware not present'%self.name)
             return
         if not self.params['req_calibration']:
             print('Homing not required for: '+self.name)
@@ -378,7 +378,7 @@ class DynamixelHelloXL430(Device):
 
         self.pull_status()
         if self.status['overload_error'] or self.status['overheating_error']:
-            self.logger.warn('Hardware error, unable to home. Exiting')
+            self.logger.warning('Hardware error, unable to home. Exiting')
             return
 
         self.is_homing=True
@@ -396,10 +396,10 @@ class DynamixelHelloXL430(Device):
         self.set_pwm(0)
 
         if timeout:
-            self.logger.warn('Timed out moving to first hardstop. Exiting.')
+            self.logger.warning('Timed out moving to first hardstop. Exiting.')
             return
         if self.status['overload_error'] or self.status['overheating_error']:
-            self.logger.warn('Hardware error, unable to home. Exiting')
+            self.logger.warning('Hardware error, unable to home. Exiting')
             return
 
         print('Contact at position: %d'%self.motor.get_pos())
@@ -430,10 +430,10 @@ class DynamixelHelloXL430(Device):
             self.set_pwm(0)
 
             if timeout:
-                self.logger.warn('Timed out moving to second hardstop. Exiting.')
+                self.logger.warning('Timed out moving to second hardstop. Exiting.')
                 return
             if self.status['overload_error'] or self.status['overheating_error']:
-                self.logger.warn('Hardware error, unable to home. Exiting')
+                self.logger.warning('Hardware error, unable to home. Exiting')
                 return
 
             x_dir_1 = self.motor.get_pos()
