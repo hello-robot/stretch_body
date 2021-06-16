@@ -446,7 +446,7 @@ class Pimu(Device):
             t = psutil.sensors_temperatures()['coretemp']
             for c in t:
                 cpu_temp = max(cpu_temp, c.current)
-        except KeyError: #May not be available on virtual machines
+        except(KeyError, IOError): #May not be available on virtual machines
             cpu_temp=25.0
         return cpu_temp
 

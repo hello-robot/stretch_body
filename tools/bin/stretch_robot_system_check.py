@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import stretch_body.pimu as pimu
-import stretch_body.head as head
-import stretch_body.end_of_arm as end_of_arm
-import stretch_body.wacc as wacc
-import stretch_body.stepper as stepper
+import time
 import stretch_body.robot as robot
 import os, fnmatch
 import subprocess
@@ -31,6 +27,9 @@ def val_is_not(val_name, val,vnot):
     else:
         print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val))
 
+#Turn off logging so get a clean output
+import logging
+logging.disable(logging.CRITICAL)
 r=robot.Robot()
 r.startup()
 
@@ -55,7 +54,7 @@ for k in robot_devices.keys():
 print(Style.RESET_ALL)
 if robot_devices['hello-pimu']:
     print('---- Checking Pimu ----')
-    p=robot.pimu
+    p=r.pimu
     val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
     val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert'])
     val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40)
@@ -73,7 +72,7 @@ print(Style.RESET_ALL)
 
 if robot_devices['hello-dynamixel-wrist']:
     print('---- Checking EndOfArm ----')
-    w = robot.end_of_arm
+    w = r.end_of_arm
     try:
         for mk in w.motors.keys():
             if w.motors[mk].do_ping():
@@ -91,7 +90,7 @@ if robot_devices['hello-dynamixel-wrist']:
 print(Style.RESET_ALL)
 if robot_devices['hello-dynamixel-head']:
     print('---- Checking Head ----')
-    h = robot.head
+    h = r.head
     for mk in h.motors.keys():
         if h.motors[mk].do_ping():
             print(Fore.GREEN +'[Pass] Ping of: '+mk)
@@ -103,7 +102,7 @@ if robot_devices['hello-dynamixel-head']:
 print(Style.RESET_ALL)
 if robot_devices['hello-wacc']:
     print('---- Checking Wacc ----')
-    w=robot.wacc
+    w=r.wacc
     val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0)
     print(Style.RESET_ALL)
 
@@ -111,7 +110,7 @@ if robot_devices['hello-wacc']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-left-wheel']:
     print('---- Checking hello-motor-left-wheel ----')
-    m = robot.base.left_wheel
+    m = r.base.left_wheel
     val_is_not('Position',m.status['pos'], vnot=0)
     print(Style.RESET_ALL)
     m.stop()
@@ -119,7 +118,7 @@ if robot_devices['hello-motor-left-wheel']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-right-wheel']:
     print('---- Checking hello-motor-right-wheel ----')
-    m = robot.base.right_wheel
+    m = r.base.right_wheel
     val_is_not('Position',m.status['pos'], vnot=0)
     print(Style.RESET_ALL)
 
@@ -127,7 +126,7 @@ if robot_devices['hello-motor-right-wheel']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-arm']:
     print('---- Checking hello-motor-arm ----')
-    m = robot.arm.motor
+    m = r.arm.motor
     val_is_not('Position',m.status['pos'], vnot=0)
     val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)
@@ -136,7 +135,7 @@ if robot_devices['hello-motor-arm']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-lift']:
     print('---- Checking hello-motor-lift ----')
-    m = robot.lift.motor
+    m = r.lift.motor
     val_is_not('Position',m.status['pos'], vnot=0)
     val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)

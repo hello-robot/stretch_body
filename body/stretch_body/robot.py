@@ -189,7 +189,7 @@ class Robot(Device):
             self.dxl_thread.join(1)
         for k in self.devices.keys():
             if self.devices[k] is not None:
-                self.logger.debug('Shutting down',k)
+                self.logger.debug('Shutting down %s'%k)
                 self.devices[k].stop()
         self.logger.debug('---- Shutdown complete ----')
 
