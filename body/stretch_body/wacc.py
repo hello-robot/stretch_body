@@ -219,21 +219,21 @@ class Wacc(Device):
         if reply[0] == RPC_REPLY_WACC_BOARD_INFO:
             self.unpack_board_info(reply[1:])
         else:
-            print('Error RPC_REPLY_WACC_BOARD_INFO', reply[0])
+            self.logger.warn('Error RPC_REPLY_WACC_BOARD_INFO', reply[0])
 
     def rpc_command_reply(self,reply):
         if reply[0] != RPC_REPLY_WACC_COMMAND:
-            print('Error RPC_REPLY_WACC_COMMAND', reply[0])
+            self.logger.warn('Error RPC_REPLY_WACC_COMMAND', reply[0])
 
     def rpc_config_reply(self,reply):
         if reply[0] != RPC_REPLY_WACC_CONFIG:
-            print('Error RPC_REPLY_WACC_CONFIG', reply[0])
+            self.logger.warn('Error RPC_REPLY_WACC_CONFIG', reply[0])
 
     def rpc_status_reply(self,reply):
         if reply[0] == RPC_REPLY_WACC_STATUS:
             self.unpack_status(reply[1:])
         else:
-            print('Error RPC_REPLY_WACC_STATUS', reply[0])
+            self.logger.warn('Error RPC_REPLY_WACC_STATUS', reply[0])
 
 
 

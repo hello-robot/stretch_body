@@ -12,7 +12,8 @@ import stretch_body.lift as lift
 import stretch_body.pimu as pimu
 import stretch_body.head as head
 import stretch_body.wacc as wacc
-import stretch_body.end_of_arm as end_of_arm
+
+import logging
 import stretch_body.hello_utils as hello_utils
 
 from serial import SerialException
@@ -34,6 +35,7 @@ class DXLStatusThread(threading.Thread):
         self.stats = hello_utils.LoopStats(loop_name='DXLStatusThread',target_loop_rate=self.robot_update_rate_hz)
         self.shutdown_flag = threading.Event()
         self.first_status=False
+        self.logger = logging.getLogger()
 
     def run(self):
         while not self.shutdown_flag.is_set():
@@ -43,7 +45,7 @@ class DXLStatusThread(threading.Thread):
             self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
                 time.sleep(self.stats.get_loop_sleep_time())
-        print('Shutting down DXLStatusThread')
+        self.logger.debug('Shutting down DXLStatusThread')
 
 
 class NonDXLStatusThread(threading.Thread):
@@ -55,6 +57,7 @@ class NonDXLStatusThread(threading.Thread):
     def __init__(self,robot):
         threading.Thread.__init__(self)
         self.robot=robot
+        self.logger = logging.getLogger()
 
         self.robot_update_rate_hz = 25.0  #Hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
@@ -88,7 +91,7 @@ class NonDXLStatusThread(threading.Thread):
             self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
                 time.sleep(self.stats.get_loop_sleep_time())
-        print('Shutting down NonDXLStatusThread')
+        self.logger.debug('Shutting down NonDXLStatusThread')
 
 
 class Robot(Device):
@@ -177,7 +180,7 @@ class Robot(Device):
         To be called once before exiting a program
         Cleanly stops down motion and communication
         """
-        print('---- Shutting down robot ----')
+        self.logger.debug('---- Shutting down robot ----')
         if self.non_dxl_thread is not None:
             self.non_dxl_thread.shutdown_flag.set()
             self.non_dxl_thread.join(1)
@@ -186,9 +189,9 @@ class Robot(Device):
             self.dxl_thread.join(1)
         for k in self.devices.keys():
             if self.devices[k] is not None:
-                print('Shutting down',k)
+                self.logger.debug('Shutting down',k)
                 self.devices[k].stop()
-        print('---- Shutdown complete ----')
+        self.logger.debug('---- Shutdown complete ----')
 
     def get_status(self):
         """
@@ -319,7 +322,7 @@ class Robot(Device):
             self.end_of_arm.pull_status()
             self.head.pull_status()
         except SerialException:
-            print('Serial Exception on Robot Step_Dynamixel')
+            self.logger.warn('Serial Exception on Robot Step_Dynamixel')
 
     def _pull_status_non_dynamixel(self):
         self.wacc.pull_status()
