@@ -28,7 +28,7 @@ setuptools.setup(
     install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'jupyter', 'pandas', 'sympy', 'nose', 'PyYaml',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'numba',
-                      'scikit-image', 'open3d', 'pyrealsense2', 'hello-robot-stretch-body', 'jsonschema==2.6.0']
+                      'scikit-image', 'open3d', 'pyrealsense2', 'hello-robot-stretch-body', 'jsonschema>=2.6.0']
 )
 
 #classifiers = [
