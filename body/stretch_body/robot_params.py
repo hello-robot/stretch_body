@@ -161,9 +161,9 @@ class RobotParams:
     _user_params = hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
     _robot_params = factory_params
     hello_utils.overwrite_dict(_robot_params, hello_utils.read_fleet_yaml(_user_params.get('factory_params', '')))
-    hello_utils.overwrite_dict(_robot_params, _user_params)
     for external_params_module in _user_params.get('params', []):
         hello_utils.overwrite_dict(_robot_params, getattr(importlib.import_module(external_params_module), 'params'))
+    hello_utils.overwrite_dict(_robot_params, _user_params)
 
     @classmethod
     def get_params(cls):
