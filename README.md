@@ -1,4 +1,4 @@
-![](./images/banner.png)
+![](./docs/images/banner.png)
 
 # Overview
 
@@ -7,23 +7,20 @@ The stretch_body repository includes Python packages that allow a developer to i
  * hello-robot-stretch_body-tools
  * hello-robot-stretch_body-tools_py3
 
-These packages can be installed by:
-
+Python2 version of packages can be installed by:
 ```
 pip2 install  hello-robot-stretch-body
 pip2 install  hello-robot-stretch-body-tools
+```
+Python3 version of packages can be installed by:
+
+```
+pip3 install  hello-robot-stretch-body
+pip3 install  hello-robot-stretch-body-tools
 pip3 install hello-robot-stretch-body-tools-py3
 ```
 
-User documentation can be found at https://hello-robot.github.io/stretch_body_guide/
-
-## Tutorials
-
-| Tutorial                                               | Description                                                  |
-| ------------------------------------------------------ | ------------------------------------------------------------ |
-| [Extending Wrist DOF](./tutorial/extending_wrist_dof/README.md) | How to extend the Stretch wrist with additional degrees-of-freedom |
-|                                                        |                                                              |
-|                                                        |                                                              |
+User documentation can be found in the [Stretch Body User Guide](./docs/stretch_body_guide.md)
 
 ## License
 
