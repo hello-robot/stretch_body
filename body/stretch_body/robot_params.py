@@ -23,6 +23,18 @@ factory_params = {
     "robot_collision": {
         'models': ['collision_arm_camera']
     },
+    'hello-motor-arm':{
+    'gains':{'vel_near_setpoint_d': 3.5}
+    },
+    'hello-motor-lift':{
+    'gains':{'vel_near_setpoint_d': 3.5}
+    },
+    'hello-motor-right-wheel':{
+    'gains':{'vel_near_setpoint_d': 3.5}
+    },
+    'hello-motor-left-wheel':{
+    'gains':{'vel_near_setpoint_d': 3.5}
+    },
     "head": {
         "use_group_sync_read": 1,
         "retry_on_comm_failure": 1,
