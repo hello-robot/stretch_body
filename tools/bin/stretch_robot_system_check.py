@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import stretch_body.pimu as pimu
-import stretch_body.head as head
-import stretch_body.end_of_arm as end_of_arm
-import stretch_body.wacc as wacc
-import stretch_body.stepper as stepper
+import time
+import stretch_body.robot as robot
 import os, fnmatch
 import subprocess
 from colorama import Fore, Back, Style
@@ -30,6 +27,12 @@ def val_is_not(val_name, val,vnot):
     else:
         print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val))
 
+#Turn off logging so get a clean output
+import logging
+logging.disable(logging.CRITICAL)
+r=robot.Robot()
+r.startup()
+
 # #####################################################
 print(Style.RESET_ALL)
 print('---- Checking Devices ----')
@@ -47,12 +50,11 @@ for k in robot_devices.keys():
     else:
         print(Fore.RED +'[Fail] : '+ k)
 # #####################################################
+
 print(Style.RESET_ALL)
 if robot_devices['hello-pimu']:
     print('---- Checking Pimu ----')
-    p=pimu.Pimu()
-    p.startup()
-    p.pull_status()
+    p=r.pimu
     val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
     val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert'])
     val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40)
@@ -64,14 +66,14 @@ if robot_devices['hello-pimu']:
     val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12)
     val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12)
     print(Style.RESET_ALL)
-    p.stop()
+
 # #####################################################
 print(Style.RESET_ALL)
+
 if robot_devices['hello-dynamixel-wrist']:
     print('---- Checking EndOfArm ----')
-    w = end_of_arm.EndOfArm()
+    w = r.end_of_arm
     try:
-        #w.startup()
         for mk in w.motors.keys():
             if w.motors[mk].do_ping():
                 print(Fore.GREEN +'[Pass] Ping of: '+mk)
@@ -82,40 +84,33 @@ if robot_devices['hello-dynamixel-wrist']:
             else:
                 print(Fore.RED + '[Fail] Not Calibrated: ' + mk)
             print(Style.RESET_ALL)
-        # w.stop()
     except IOError:
         print(Fore.RED + '[Fail] Startup of EndOfArm')
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-dynamixel-head']:
     print('---- Checking Head ----')
-    h = head.Head()
-    #h.startup()
+    h = r.head
     for mk in h.motors.keys():
         if h.motors[mk].do_ping():
             print(Fore.GREEN +'[Pass] Ping of: '+mk)
         else:
             print(Fore.RED + '[Fail] Ping of: ' + mk)
         print(Style.RESET_ALL)
-    #h.stop()
+
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-wacc']:
     print('---- Checking Wacc ----')
-    w=wacc.Wacc()
-    w.startup()
-    w.pull_status()
+    w=r.wacc
     val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0)
     print(Style.RESET_ALL)
-    w.stop()
 
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-left-wheel']:
     print('---- Checking hello-motor-left-wheel ----')
-    m = stepper.Stepper('/dev/hello-motor-left-wheel')
-    m.startup()
-    m.pull_status()
+    m = r.base.left_wheel
     val_is_not('Position',m.status['pos'], vnot=0)
     print(Style.RESET_ALL)
     m.stop()
@@ -123,34 +118,28 @@ if robot_devices['hello-motor-left-wheel']:
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-right-wheel']:
     print('---- Checking hello-motor-right-wheel ----')
-    m = stepper.Stepper('/dev/hello-motor-right-wheel')
-    m.startup()
-    m.pull_status()
+    m = r.base.right_wheel
     val_is_not('Position',m.status['pos'], vnot=0)
     print(Style.RESET_ALL)
-    m.stop()
+
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-arm']:
     print('---- Checking hello-motor-arm ----')
-    m = stepper.Stepper('/dev/hello-motor-arm')
-    m.startup()
-    m.pull_status()
+    m = r.arm.motor
     val_is_not('Position',m.status['pos'], vnot=0)
     val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)
-    m.stop()
+
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-lift']:
     print('---- Checking hello-motor-lift ----')
-    m = stepper.Stepper('/dev/hello-motor-lift')
-    m.startup()
-    m.pull_status()
+    m = r.lift.motor
     val_is_not('Position',m.status['pos'], vnot=0)
     val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)
-    m.stop()
+
 # #####################################################
 print(Style.RESET_ALL)
 print ('---- Checking for Intel D435i ----')
@@ -160,3 +149,4 @@ if returned_value==0:
     print(Fore.GREEN + '[Pass] : Device found ')
 else:
     print(Fore.RED + '[Fail] : No device found')
+r.stop()
