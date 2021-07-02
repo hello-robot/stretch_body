@@ -4,6 +4,11 @@ import logging
 
 # Do not override factory params here
 factory_params = {
+    "dxl_comm_errors":{
+        "warn_every_s":1.0,
+        "warn_above_rate":0.1,
+        'verbose':0
+    },
     "robot": {
         "tool": "tool_stretch_gripper",
         "use_collision_manager": 0,
@@ -22,11 +27,13 @@ factory_params = {
         "use_group_sync_read": 1,
         "retry_on_comm_failure": 1,
         "baud": 57600,
+        "dxl_latency_timer":64
     },
     "end_of_arm": {
         "use_group_sync_read": 1,
         "retry_on_comm_failure": 1,
         "baud": 57600,
+        "dxl_latency_timer": 64,
         'stow': {'wrist_yaw': 3.4},
         'devices': {
             'wrist_yaw': {
@@ -64,6 +71,7 @@ factory_params = {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'baud':57600,
+        "dxl_latency_timer": 64,
         'py_class_name': 'ToolNone',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'stow': {'wrist_yaw': 3.4},
@@ -78,6 +86,7 @@ factory_params = {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'baud':57600,
+        "dxl_latency_timer": 64,
         'py_class_name': 'ToolStretchGripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
