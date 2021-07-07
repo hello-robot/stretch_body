@@ -19,21 +19,22 @@ factory_params = {
         "base_max_velocity": 1,
         "stretch_gripper_overload": 1,
         "wrist_yaw_overload": 1,
+        "stepper_is_moving_filter": 1,
     },
     "robot_collision": {
         'models': ['collision_arm_camera']
     },
     'hello-motor-arm':{
-    'gains':{'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5}
     },
     'hello-motor-lift':{
-    'gains':{'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5}
     },
     'hello-motor-right-wheel':{
-    'gains':{'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5}
     },
     'hello-motor-left-wheel':{
-    'gains':{'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5}
     },
     "head": {
         "use_group_sync_read": 1,
