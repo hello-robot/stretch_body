@@ -4,7 +4,7 @@ import math
 import os
 import time
 import logging
-import numpy
+
 
 def print_stretch_re_use():
     print("For use with S T R E T C H (TM) RESEARCH EDITION from Hello Robot Inc.\n")
@@ -125,11 +125,10 @@ class LoopStats():
         self.target_loop_rate=target_loop_rate
         self.ts_loop_start=None
         self.ts_loop_end=None
-        self.status={'loop_rate_hz':0, 'loop_rate_avg_hz':0, 'loop_rate_min_hz':10000000, 'loop_rate_max_hz':0,'loop_rate_std':0, 'execution_time_ms':0, 'loop_warns':0}
-        self.logger = logging.getLogger()
-        self.n_log=100
-        self.log_idx=0
-        self.rate_log=None
+        self.status={'execution_time_s':0, 'loop_rate_hz':0, 'loop_rate_avg_hz':0, 'loop_rate_min_hz':10000000, 'loop_rate_max_hz':0, 'loop_rate_std':0, 'loop_warns':0}
+        self.logger = logging.getLogger(self.loop_name)
+        self.loop_rate_history=[]
+        self.n_history=100
         self.log_rate_hz=1.0
         self.warned_yet=False
         self.sleep_time_s =0.001
@@ -137,14 +136,12 @@ class LoopStats():
 
     def pretty_print(self):
         print('--------- TimingStats %s -----------'%self.loop_name)
-        print('Target rate: %f'%self.target_loop_rate)
+        print('Target rate: %f' % self.target_loop_rate)
         print('Current rate (Hz): %f' % self.status['loop_rate_hz'])
         print('Average rate (Hz): %f' % self.status['loop_rate_avg_hz'])
         print('Min rate (Hz): %f' % self.status['loop_rate_min_hz'])
         print('Max rate (Hz): %f' % self.status['loop_rate_max_hz'])
-        print('Current execution time (ms): %f' % self.status['execution_time_ms'])
-        print('Execution time supports rate of (Hz) %f'%(1000.0/self.status['execution_time_ms']))
-        print('Warnings: %d out of %d'%(self.status['loop_warns'],self.loop_cycles))
+        print('Warnings: %d out of %d' % (self.status['loop_warns'], self.loop_cycles))
 
     def mark_loop_start(self):
         self.ts_loop_start=time.time()
@@ -157,39 +154,43 @@ class LoopStats():
         if self.ts_loop_end is None:
             self.ts_loop_end=time.time()
             return
-        end_last=self.ts_loop_end
-        self.ts_loop_end=time.time()
-        self.status['execution_time_ms']=(self.ts_loop_end-self.ts_loop_start)*1000
-        self.status['loop_rate_hz']=1.0/(self.ts_loop_end-end_last)
-        self.status['loop_rate_min_hz']=min(self.status['loop_rate_hz'], self.status['loop_rate_min_hz'])
-        self.status['loop_rate_max_hz'] = max(self.status['loop_rate_hz'], self.status['loop_rate_max_hz'])
-        if type(self.rate_log)==type(None):
-            self.rate_log=numpy.array([self.status['loop_rate_hz']] * self.n_log)
-        self.rate_log[self.log_idx]=self.status['loop_rate_hz']
-        self.log_idx=(self.log_idx+1)%self.n_log
-        self.status['loop_rate_avg_hz']=numpy.average(self.rate_log)
 
-        self.sleep_time_s = (1 / self.target_loop_rate) - (self.status['execution_time_ms'] / 1000)
-        if self.sleep_time_s < .001:
+        # Calculate current loop rate & execution time
+        ts_loop_last_end = self.ts_loop_end
+        self.ts_loop_end = time.time()
+        self.status['execution_time_s'] = self.ts_loop_end - self.ts_loop_start
+        self.status['loop_rate_hz'] = 1.0 / (self.ts_loop_end - ts_loop_last_end)
+        self.status['loop_rate_min_hz'] = min(self.status['loop_rate_hz'], self.status['loop_rate_min_hz'])
+        self.status['loop_rate_max_hz'] = max(self.status['loop_rate_hz'], self.status['loop_rate_max_hz'])
+
+        # Calculate average loop rate
+        if len(self.loop_rate_history) >= self.n_history:
+            self.loop_rate_history.pop(0)
+        self.loop_rate_history.append(self.status['loop_rate_hz'])
+        self.status['loop_rate_avg_hz'] = sum(self.loop_rate_history) / len(self.loop_rate_history)
+
+        # Calculate sleep time to achieve desired loop rate
+        self.sleep_time_s = (1 / self.target_loop_rate) - self.status['execution_time_s']
+        if self.sleep_time_s < 0.0:
             self.status['loop_warns'] += 1
             if not self.warned_yet:
                 self.warned_yet=True
-                self.logger.debug('Target loop rate of %f Hz for %s not possible. Capable of %.2f Hz' % (self.target_loop_rate,self.loop_name,(1000.0/self.status['execution_time_ms'])))
-
+                self.logger.debug('Missed target loop rate of %.2f Hz for %s. Currently %.2f Hz' % (self.target_loop_rate, self.loop_name, self.status['loop_rate_hz']))
 
     def display_rate_histogram(self):
         import matplotlib.pyplot as plt
         fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True)
         fig.suptitle('Distribution of loop rate (Hz). Target of %f '%self.target_loop_rate)
-        axs.hist(x=self.rate_log, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
+        axs.hist(x=self.loop_rate_history, bins='auto', color='#0504aa', alpha=0.7, rwidth=0.85)
         plt.show()
 
     def get_loop_sleep_time(self):
         """
-        :return: Time to sleep for to hit target loop rate
+        Returns
+        -------
+        float : Time to sleep for to hit target loop rate
         """
-        return max(.001,self.sleep_time_s)
-
+        return max(0.0, self.sleep_time_s)
 
     
 class ThreadServiceExit(Exception):

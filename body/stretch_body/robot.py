@@ -2,7 +2,6 @@ from __future__ import print_function
 import threading
 import time
 import signal
-import os
 import importlib
 
 from stretch_body.device import Device
@@ -12,8 +11,6 @@ import stretch_body.lift as lift
 import stretch_body.pimu as pimu
 import stretch_body.head as head
 import stretch_body.wacc as wacc
-
-import logging
 import stretch_body.hello_utils as hello_utils
 
 from serial import SerialException
