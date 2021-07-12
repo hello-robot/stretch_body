@@ -307,6 +307,7 @@ class DynamixelXL430():
             self.logger.debug("Invalid baud rate")
             return False
 
+        self.disable_torque()
         with self.pt_lock:
             dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE, BAUD_MAP[rate])
         return self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error)

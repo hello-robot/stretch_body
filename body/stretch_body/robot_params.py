@@ -19,21 +19,22 @@ factory_params = {
         "base_max_velocity": 1,
         "stretch_gripper_overload": 1,
         "wrist_yaw_overload": 1,
+        "stepper_is_moving_filter": 1,
     },
     "robot_collision": {
         'models': ['collision_arm_camera']
     },
     'hello-motor-arm':{
-    'gains':{'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5}
     },
     'hello-motor-lift':{
-    'gains':{'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5}
     },
     'hello-motor-right-wheel':{
-    'gains':{'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5}
     },
     'hello-motor-left-wheel':{
-    'gains':{'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5}
     },
     "head": {
         "use_group_sync_read": 1,
@@ -174,17 +175,17 @@ class RobotParams:
     """Build the parameter dictionary that is availale as stretch_body.Device().robot_params.
 
     Overwrite dictionaries in order of ascending priorty
-    1. stretch_body.robot_params.factory_params | Factory Python settings (Common across robots. Factory may modify these via Pip updates)
-    2. stretch_re1_factory_params.yaml | Factory YAML settings that shipped with the robot. (Including robot specific calibrations)
-    4. stretch_re1_user_params.yaml | Place to override factory defaults
+    1. stretch_re1_factory_params.yaml | Factory YAML settings that shipped with the robot. (Including robot specific calibrations)
+    2. stretch_body.robot_params.factory_params | Factory Python settings (Common across robots. Factory may modify these via Pip updates)
     3. Outside parameters | (eg, from stretch_tool_share.stretch_dex_wrist.params)
+    4. stretch_re1_user_params.yaml | Place to override factory defaults
     """
     _user_params = hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
-    _robot_params = factory_params
-    hello_utils.overwrite_dict(_robot_params, hello_utils.read_fleet_yaml(_user_params.get('factory_params', '')))
-    hello_utils.overwrite_dict(_robot_params, _user_params)
+    _robot_params = hello_utils.read_fleet_yaml(_user_params.get('factory_params', ''))
+    hello_utils.overwrite_dict(_robot_params, factory_params)
     for external_params_module in _user_params.get('params', []):
         hello_utils.overwrite_dict(_robot_params, getattr(importlib.import_module(external_params_module), 'params'))
+    hello_utils.overwrite_dict(_robot_params, _user_params)
 
     @classmethod
     def get_params(cls):

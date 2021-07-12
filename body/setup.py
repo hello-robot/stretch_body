@@ -27,5 +27,6 @@ setuptools.setup(
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'numba',
                       'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'psutil',
                       'jsonschema>=2.6.0', 'qtconsole>=4.7.7', 'llvmlite == 0.31.0; python_version < "3.0"',
-                      'gitpython', 'urdfpy', 'dynamixel-sdk >= 3.1; python_version >= "3.2.0"', 'pyyaml>=5.1', 'hello-robot-stretch-factory']
+                      'gitpython', 'urdfpy', 'dynamixel-sdk >= 3.1; python_version >= "3.2.0"', 'pyyaml>=5.1',
+                      'hello-robot-stretch-factory', 'hello-robot-stretch-tool-share']
 )
