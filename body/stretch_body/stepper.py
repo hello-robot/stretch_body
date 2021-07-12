@@ -84,7 +84,7 @@ class Stepper(Device):
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
                          MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR'}
         self.motion_limits=[0,0]
-        self.is_moving_history = []
+        self.is_moving_history = [False] * 10
 
         self._dirty_command = False
         self._dirty_gains = False
@@ -230,8 +230,7 @@ class Stepper(Device):
 
     def step_sentry(self, robot):
         if self.robot_params['robot_sentry']['stepper_is_moving_filter']:
-            if len(self.is_moving_history) > 10:
-                self.is_moving_history.pop(0)
+            self.is_moving_history.pop(0)
             self.is_moving_history.append(self.status['is_moving'])
             self.status['is_moving_filtered'] = max(set(self.is_moving_history), key=self.is_moving_history.count)
     # ###########################################################################
