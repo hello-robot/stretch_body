@@ -71,19 +71,20 @@ class Stepper(Device):
     """
     def __init__(self, usb):
         name = usb[5:]
-        Device.__init__(self,name)
+        Device.__init__(self, name)
         self.usb=usb
         self.lock=threading.RLock()
         self.transport = Transport(usb=self.usb, logger=self.logger)
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
-                       'is_moving':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0, 'calibration_rcvd': 0, 'in_guarded_event':0,
+                       'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0}
         self.board_info={'board_version':None, 'firmware_version':None,'protocol_version':None}
         self.mode_names={MODE_SAFETY:'MODE_SAFETY', MODE_FREEWHEEL:'MODE_FREEWHEEL',MODE_HOLD:'MODE_HOLD',MODE_POS_PID:'MODE_POS_PID',
                          MODE_VEL_PID:'MODE_VEL_PID',MODE_POS_TRAJ:'MODE_POS_TRAJ',MODE_VEL_TRAJ:'MODE_VEL_TRAJ',MODE_CURRENT:'MODE_CURRENT', MODE_POS_TRAJ_INCR:'MODE_POS_TRAJ_INCR'}
         self.motion_limits=[0,0]
+        self.is_moving_history = []
 
         self._dirty_command = False
         self._dirty_gains = False
@@ -118,7 +119,7 @@ class Stepper(Device):
                     Please upgrade the firmware and/or version of Stretch Body.
                     ----------------
                     """.format(self.name, self.board_info['protocol_version'], self.valid_firmware_protocol)
-                    self.logger.warn(textwrap.dedent(protocol_msg))
+                    self.logger.warning(textwrap.dedent(protocol_msg))
                     self.hw_valid=False
                     self.transport.stop()
             if self.hw_valid:
@@ -214,6 +215,7 @@ class Stepper(Device):
         print('       Near Pos Setpoint:', self.status['near_pos_setpoint'])
         print('       Near Vel Setpoint:', self.status['near_vel_setpoint'])
         print('       Is Moving:', self.status['is_moving'])
+        print('       Is Moving Filtered:', self.status['is_moving_filtered'])
         print('       At Current Limit:', self.status['at_current_limit'])
         print('       Is MG Accelerating:', self.status['is_mg_accelerating'])
         print('       Is MG Moving:', self.status['is_mg_moving'])
@@ -225,6 +227,13 @@ class Stepper(Device):
         print('Read error', self.transport.status['read_error'])
         print('Board version:', self.board_info['board_version'])
         print('Firmware version:', self.board_info['firmware_version'])
+
+    def step_sentry(self, robot):
+        if self.robot_params['robot_sentry']['stepper_is_moving_filter']:
+            if len(self.is_moving_history) > 10:
+                self.is_moving_history.pop(0)
+            self.is_moving_history.append(self.status['is_moving'])
+            self.status['is_moving_filtered'] = max(set(self.is_moving_history), key=self.is_moving_history.count)
     # ###########################################################################
     # ###########################################################################
 
@@ -262,7 +271,7 @@ class Stepper(Device):
 
     def mark_position(self,x):
         if self.status['mode']!=MODE_SAFETY:
-            print('Can not mark position. Must be in MODE_SAFETY for',self.usb)
+            self.logger.warning('Can not mark position. Must be in MODE_SAFETY for',self.usb)
             return
 
         with self.lock:
@@ -441,11 +450,11 @@ class Stepper(Device):
     def read_encoder_calibration_from_flash(self):
         self.turn_menu_interface_on()
         time.sleep(0.5)
-        print('Reading encoder calibration...')
+        self.logger.debug('Reading encoder calibration...')
         e = self.menu_transaction('q',do_print=False)[19]
         self.turn_rpc_interface_on()
         self.push_command()
-        print('Reseting board')
+        self.logger.debug('Reseting board')
         self.board_reset()
         self.push_command()
         e = e[:-4]  # We now have string of floats, convert to list of floats
@@ -459,9 +468,9 @@ class Stepper(Device):
                 enc_calib.append(float(e))
                 e = []
         if len(enc_calib)==16384:
-            print('Successful read of encoder calibration')
+            self.logger.debug('Successful read of encoder calibration')
         else:
-            print('Failed to read encoder calibration')
+            self.logger.debug('Failed to read encoder calibration')
         return enc_calib
 
     def write_encoder_calibration_to_flash(self,data):
@@ -469,9 +478,9 @@ class Stepper(Device):
             return
         #This will take a few seconds. Blocks until complete.
         if len(data)!=16384:
-            print('Bad encoder data')
+            self.logger.debug('Bad encoder data')
         else:
-            print('Writing encoder calibration...')
+            self.logger.debug('Writing encoder calibration...')
             for p in range(256):
                 if p%10==0:
                     sys.stdout.write('.')
@@ -482,13 +491,13 @@ class Stepper(Device):
                 for i in range(64):
                     pack_float_t(self.transport.payload_out, sidx, data[p*64+i])
                     sidx += 4
-                # print('Sending encoder calibration rpc of size',sidx)
+                # self.logger.debug('Sending encoder calibration rpc of size',sidx)
                 self.transport.queue_rpc(sidx, self.rpc_enc_calib_reply)
                 self.transport.step()
-            print('')
+            self.logger.debug('')
     def rpc_enc_calib_reply(self,reply):
         if reply[0] != RPC_REPLY_ENC_CALIB:
-            print('Error RPC_REPLY_ENC_CALIB', reply[0])
+            self.logger.debug('Error RPC_REPLY_ENC_CALIB', reply[0])
 
     # ######################Menu Inteface ################################3
 

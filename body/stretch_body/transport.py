@@ -85,7 +85,7 @@ class Transport():
             self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
             self.ser = None
         if self.ser==None:
-            self.logger.warn('Unable to open serial port for device %s'%self.usb)
+            self.logger.warning('Unable to open serial port for device %s'%self.usb)
         self.framer=cobbs_framing.CobbsFraming( )
         self.status={'rate':0,'read_error':0,'write_error':0,'itr':0,'transaction_time_avg':0,'transaction_time_max':0,'timestamp_pc':0}
 
