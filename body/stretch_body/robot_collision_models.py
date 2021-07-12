@@ -112,7 +112,6 @@ class CollisionStretchGripper(RobotCollisionModel):
             else:
                 arm_retract_limit=self.params['arm_palm_beyond_base']
 
-
         w={ 'lift':[lift_lower_limit, None], 'arm': [arm_retract_limit,None], 'wrist_yaw':wrist_yaw_limit}
 
         return w
