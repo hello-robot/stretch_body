@@ -58,18 +58,22 @@ factory_params = {
     "head_pan": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
+        "enable_runstop": 1
     },
     "head_tilt": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
+        "enable_runstop": 1
     },
     "wrist_yaw": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
+        "enable_runstop": 1
     },
     "stretch_gripper": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
+        "enable_runstop": 1
     },
     "base": {
         "sentry_max_velocity": {
