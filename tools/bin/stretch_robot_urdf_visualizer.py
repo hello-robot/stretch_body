@@ -1,99 +1,73 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from urdfpy import URDF
 import argparse
-import os
 import math
 import yaml
-# import stretch_body.hello_utils as hu
-# hu.print_stretch_re_use()
-print("For use with S T R E T C H (TM) RESEARCH EDITION from Hello Robot Inc.\n")
+import pathlib
+import urdfpy
+import pyrender
+import warnings
 
-########################################################################################
-### The classes below demonstrate how the robot mechanisms are modeled relative to the URDF
-### Currently the stretch_body package relies on Python2.7 and the visualization tool Python3
-### For now we use FakeRobot as a placeholder until stretch_body moves to Python3
+from hello_helpers.gripper_conversion import GripperConversion
+import stretch_body.robot
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
+warnings.filterwarnings("ignore")
 
-#import stretch_body.robot as rb
-class FakeRobot:
-    def __init__(self):
-        pass
+class URDFVisualizer:
+    """The `show` method in this class is modified from the
+    original implementation of `urdfpy.URDF.show`. This class
+    exists temporarily while the PR for this modification is
+    in review.
+    """
 
-    def startup(self):
-        pass
+    def __init__(self, urdf):
+        self.urdf = urdf
+        self.nodes = None
+        self.scene = None
+        self.viewer = None
 
-    def is_calibrated(self):
-        return True
+    def show(self, cfg=None, use_collision=False):
+        """Visualize the URDF in a given configuration.
+        Parameters
+        ----------
+        cfg : dict or (n), float
+            A map from joints or joint names to configuration values for
+            each joint, or a list containing a value for each actuated joint
+            in sorted order from the base link.
+            If not specified, all joints are assumed to be in their default
+            configurations.
+        use_collision : bool
+            If True, the collision geometry is visualized instead of
+            the visual geometry.
+        """
+        if use_collision:
+            fk = self.urdf.collision_trimesh_fk(cfg=cfg)
+        else:
+            fk = self.urdf.visual_trimesh_fk(cfg=cfg)
 
-    def stop(self):
-        pass
+        self.scene = pyrender.Scene()
+        self.nodes = []
+        for tm in fk:
+            pose = fk[tm]
+            mesh = pyrender.Mesh.from_trimesh(tm, smooth=False)
+            mesh_node = self.scene.add(mesh, pose=pose)
+            self.nodes.append(mesh_node)
+        self.viewer = pyrender.Viewer(self.scene, run_in_thread=True, use_raymond_lighting=True)
 
-    def get_status(self):
-        return {'arm': {'pos': 0.4},
-                'lift': {'pos': 0.4},
-                'end_of_arm': {'wrist_yaw': {'pos': 0.0},
-                               'stretch_gripper': {'pos': 0.0}},
-                'head': {'head_pan': {'pos': 0.0},
-                         'head_tilt': {'pos': 0.0}}
-                }
+    def update_pose(self, cfg=None, use_collision=False):
+        if use_collision:
+            fk = self.urdf.collision_trimesh_fk(cfg=cfg)
+        else:
+            fk = self.urdf.visual_trimesh_fk(cfg=cfg)
 
-
-class GripperConversion:
-    def __init__(self):
-        # robotis position values (gripper.py)
-        #      0 is very close to closed (fingers almost or barely touching)
-        #     50 is maximally open
-        #   -100 is maximally closed (maximum force applied to the object - might be risky for a large object)
-        #
-        # aperture is ~12.5 cm wide when open (0.125 m, 125 mm)
-
-        self.finger_length_m = 0.17
-
-        self.open_aperture_m = 0.125
-        self.closed_aperture_m = 0.0
-
-        # 0.52 rad ~= 30 deg
-        self.open_gripper_rad = 0.52
-        self.closed_gripper_rad = 0.0
-
-        self.open_robotis = 5.0
-        self.closed_robotis = 0.0
-        self.max_grip_force_robotis = -1.0
-
-        self.robotis_to_aperture_slope = (
-                    (self.open_aperture_m - self.closed_aperture_m) / (self.open_robotis - self.closed_robotis))
-
-    def robotis_to_aperture(self, robotis_in):
-        # linear model
-        aperture_m = (self.robotis_to_aperture_slope * (robotis_in - self.closed_robotis)) + self.closed_aperture_m
-        return aperture_m
-
-    def aperture_to_robotis(self, aperture_m):
-        # linear model
-        robotis_out = ((aperture_m - self.closed_aperture_m) / self.robotis_to_aperture_slope) + self.closed_robotis
-        return robotis_out
-
-    def aperture_to_finger_rad(self, aperture_m):
-        # arc length / radius = ang_rad
-        finger_rad = (aperture_m / 2.0) / self.finger_length_m
-        return finger_rad
-
-    def finger_rad_to_aperture(self, finger_rad):
-        aperture_m = 2.0 * (finger_rad * self.finger_length_m)
-        return aperture_m
-
-    def finger_to_robotis(self, finger_ang_rad):
-        aperture_m = self.finger_rad_to_aperture(finger_ang_rad)
-        robotis_out = self.aperture_to_robotis(aperture_m)
-        return robotis_out
-
-    def status_to_all(self, gripper_status):
-        aperture_m = self.robotis_to_aperture(gripper_status['pos'])
-        finger_rad = self.aperture_to_finger_rad(aperture_m)
-        return aperture_m, finger_rad
-
+        self.viewer.render_lock.acquire()
+        for i, tm in enumerate(fk):
+            pose = fk[tm]
+            self.scene.set_pose(self.nodes[i], pose=pose)
+        self.viewer.render_lock.release()
 
 class StretchState:
+
     def __init__(self, robot, controller_parameters):
         self.stretch = robot
         self.controller_parameters = controller_parameters.copy()
@@ -123,7 +97,7 @@ class StretchState:
         wrist_yaw_rad = wrist_yaw_status['pos']
 
         gripper_status = stretch_status['end_of_arm']['stretch_gripper']
-        gripper_aperture_m, gripper_finger_rad = self.gripper_conversion.status_to_all(gripper_status)
+        _, gripper_finger_rad, _, _ = self.gripper_conversion.status_to_all(gripper_status)
 
         head_pan_status = stretch_status['head']['head_pan']
         if backlash_state['head_pan_looked_left']:
@@ -159,19 +133,23 @@ class StretchState:
 
         return configuration
 
-# #######################################################################################
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Python based URDF visualization')
-    parser.add_argument("--motion", help="Turn motor on", action="store_true")
-    parser.add_argument("--fake", help="Show fake robot", action="store_true")
+    parser.add_argument('-t', "--trajectory", help="Visualize predefined trajectory", action="store_true")
+    parser.add_argument('-p', "--pose", help="Visualize predefined pose", action="store_true")
+    parser.add_argument('-c', "--collision", help="Use collision meshes", action="store_true")
     args = parser.parse_args()
 
-    urdf_file = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'], 'exported_urdf/stretch.urdf')
-    controller_parameters_filename = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'], 'exported_urdf/controller_calibration_head.yaml')
-    robot_model = URDF.load(urdf_file)
+    calibration_dir = pathlib.Path(hu.get_fleet_directory()) / 'exported_urdf'
+    urdf_path = calibration_dir / 'stretch.urdf'
+    controller_params_path = calibration_dir / 'controller_calibration_head.yaml'
+    urdf = urdfpy.URDF.load(str(urdf_path.absolute()))
+    viz = URDFVisualizer(urdf)
+    with open(str(controller_params_path.absolute()), 'r') as f:
+        controller_params = yaml.load(f, Loader=yaml.FullLoader)
 
-    if args.motion:
+    if args.trajectory:
         cfg_trajectory = {
             'joint_left_wheel': [0.0, math.pi],
             'joint_right_wheel': [0.0, math.pi],
@@ -186,23 +164,32 @@ if __name__ == "__main__":
             'joint_head_pan': [0.0, -(math.pi / 2.0)],
             'joint_head_tilt': [0.5, -0.5]
         }
-        robot_model.animate(cfg_trajectory=cfg_trajectory)
-    elif args.fake:
-        # stretch = rb.Robot()
-        print('WARNING: Not actually visualizing the current state of the robot. Instead, using FakeRobot, since stretch_body.robot does not yet support Python 3.')
-        stretch = FakeRobot()
-        stretch.startup()
-        stretch_calibrated = stretch.is_calibrated()
-        if not stretch_calibrated:
+        urdf.animate(cfg_trajectory=cfg_trajectory, use_collision=args.collision)
+    elif args.pose:
+        cfg_pose = {
+            'joint_left_wheel': 0.0,
+            'joint_right_wheel': 0.0,
+            'joint_lift': 0.6,
+            'joint_arm_l0': 0.1,
+            'joint_arm_l1': 0.1,
+            'joint_arm_l2': 0.1,
+            'joint_arm_l3': 0.1,
+            'joint_wrist_yaw': math.pi,
+            'joint_gripper_finger_left': 0.0,
+            'joint_gripper_finger_right': 0.0,
+            'joint_head_pan': -(math.pi / 2.0),
+            'joint_head_tilt': -0.5
+        }
+        urdf.show(cfg=cfg_pose, use_collision=args.collision)
+    else:
+        r = stretch_body.robot.Robot()
+        r.startup()
+        if not r.is_calibrated():
             print('Exiting because the robot has not been calibrated')
             exit()
 
-        fid = open(controller_parameters_filename, 'r')
-        controller_parameters = yaml.load(fid)
-        fid.close()
-        stretch_state = StretchState(stretch, controller_parameters)
-        cfg = stretch_state.get_urdf_configuration()
-        robot_model.show(cfg=cfg)
-        stretch.stop()
-    else:
-        robot_model.show()
+        stretch_state = StretchState(r, controller_params)
+        viz.show(cfg=stretch_state.get_urdf_configuration(), use_collision=args.collision)
+        while viz.viewer.is_active:
+            viz.update_pose(cfg=stretch_state.get_urdf_configuration(), use_collision=args.collision)
+        r.stop()
