@@ -39,13 +39,13 @@ class TestRobot(unittest.TestCase):
 
         r.stop()
 
-    # TODO: Uncommenting this test will cause the other two to fail due to busy serial ports
-    # def test_endofarmtool_loaded(self):
-    #     """Verify end_of_arm tool loaded correctly in robot.
-    #     """
-    #     r = stretch_body.robot.Robot()
-    #     self.assertEqual(r.end_of_arm.name, r.params['tool'])
-    #     r.stop()
+    @unittest.skip(reason='TODO: Running this test will cause the other two to fail due to busy serial ports')
+    def test_endofarmtool_loaded(self):
+        """Verify end_of_arm tool loaded correctly in robot.
+        """
+        r = stretch_body.robot.Robot()
+        self.assertEqual(r.end_of_arm.name, r.params['tool'])
+        r.stop()
 
     def test_endofarmtool_custom_stowing(self):
         """Verify custom stowing for non-endofarm devices from tool works.
@@ -73,3 +73,26 @@ class TestRobot(unittest.TestCase):
         r.robot_params[r.params['tool']]['stow'].pop('lift', None)
         r.robot_params[r.params['tool']]['stow'].pop('arm', None)
         r.stop()
+
+    def test_soft_limits_not_overwritten(self):
+        """Verify that limits set via the set_soft_limits API are upper bounds on
+        limits that can be set by collision models in the `RobotCollision.step`
+        function. The `Robot` class manages threaded execution of `RobotCollision`.
+        """
+        r = stretch_body.robot.Robot()
+        r.params['use_collision_manager'] = True
+        r.startup()
+        if not r.is_calibrated():
+            self.fail("test requires robot to be homed")
+
+        upper_limit = 0.1
+        bad_goal = upper_limit + 0.1
+        r.arm.set_soft_motion_limits(0.0, upper_limit)
+        r.push_command()
+        time.sleep(1.0)
+        r.arm.move_to(bad_goal)
+        r.push_command()
+        time.sleep(2.0)
+        r.pull_status()
+        time.sleep(1.0)
+        self.assertNotAlmostEqual(r.status['arm']['pos'], bad_goal, places=3)

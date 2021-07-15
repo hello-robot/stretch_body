@@ -62,9 +62,12 @@ class RobotCollision(Device):
         #Then compute the limits for each from each model
         #Take the most conservative limit for each and pass it to the controller
         status=self.robot.get_status()
-        limits= { 'head_pan': [None, None],'head_tilt': [None, None],'lift': [None, None],'arm': [None, None]}
+        limits= { 'head_pan': self.robot.head.motors['head_pan'].soft_motion_limits[:],
+                  'head_tilt': self.robot.head.motors['head_tilt'].soft_motion_limits[:],
+                  'lift': self.robot.lift.soft_motion_limits[:],
+                  'arm': self.robot.arm.soft_motion_limits[:]}
         for j in self.robot.end_of_arm.joints:
-            limits[j]=[None,None]
+            limits[j]=self.robot.end_of_arm.motors[j].soft_motion_limits[:]
 
         for m in self.models:
             new_limits=m.step(status)
