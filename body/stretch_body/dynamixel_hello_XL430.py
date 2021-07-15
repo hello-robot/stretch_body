@@ -70,6 +70,7 @@ class DynamixelHelloXL430(Device):
         self.ts_over_eff_start=None
         self.hw_valid=False
         self.is_calibrated=False
+        self.soft_motion_limits = [None, None]
         self.set_soft_motion_limits(None, None)
         self.is_homing=False
         self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
