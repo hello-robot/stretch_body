@@ -177,6 +177,16 @@ class LoopStats():
                 self.warned_yet=True
                 self.logger.debug('Missed target loop rate of %.2f Hz for %s. Currently %.2f Hz' % (self.target_loop_rate, self.loop_name, self.status['loop_rate_hz']))
 
+        # Log timing stats
+        self.logger.debug('--------- TimingStats %s %d -----------' % (self.loop_name, self.loop_cycles))
+        self.logger.debug('Target rate: %f' % self.target_loop_rate)
+        self.logger.debug('Current rate (Hz): %f' % self.status['loop_rate_hz'])
+        self.logger.debug('Average rate (Hz): %f' % self.status['loop_rate_avg_hz'])
+        self.logger.debug('Min rate (Hz): %f' % self.status['loop_rate_min_hz'])
+        self.logger.debug('Max rate (Hz): %f' % self.status['loop_rate_max_hz'])
+        self.logger.debug('Warnings: %d out of %d' % (self.status['loop_warns'], self.loop_cycles))
+        self.logger.debug('Sleep time (s): %f' % self.sleep_time_s)
+
     def display_rate_histogram(self):
         import matplotlib.pyplot as plt
         fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True)
