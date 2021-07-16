@@ -72,6 +72,7 @@ class DynamixelHelloXL430(Device):
         self.is_calibrated=False
         self.set_soft_motion_limits(None, None)
         self.is_homing=False
+        self.was_runstopped = False
         self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
 
     # ###########  Device Methods #############
@@ -270,6 +271,16 @@ class DynamixelHelloXL430(Device):
         print('Stall Overload',self.status['stall_overload'])
         print('Is Calibrated',self.is_calibrated)
         #self.motor.pretty_print()
+
+    def step_sentry(self, robot):
+        if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:
+            is_runstopped = robot.pimu.status['runstop_event']
+            if is_runstopped is not self.was_runstopped:
+                if is_runstopped:
+                    self.disable_torque()
+                else:
+                    self.enable_torque()
+            self.was_runstopped = is_runstopped
 
     # #####################################
 

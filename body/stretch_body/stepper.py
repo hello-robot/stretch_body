@@ -229,7 +229,7 @@ class Stepper(Device):
         print('Firmware version:', self.board_info['firmware_version'])
 
     def step_sentry(self, robot):
-        if self.robot_params['robot_sentry']['stepper_is_moving_filter']:
+        if self.hw_valid and self.robot_params['robot_sentry']['stepper_is_moving_filter']:
             self.is_moving_history.pop(0)
             self.is_moving_history.append(self.status['is_moving'])
             self.status['is_moving_filtered'] = max(set(self.is_moving_history), key=self.is_moving_history.count)
