@@ -3,6 +3,25 @@ Stretch Body
 
 The stretch_body package provides a low level Python API to the Hello Robot Stretch RE1 hardware.
 
+Installing
+----------
+
+To install stable Stretch Body for Python2, run:
+
+```bash
+$ python -m pip install --upgrade hello-robot-stretch-body
+```
+
+To install a pre-release of Stretch Body for Python2, run:
+
+```bash
+$ python -m pip install --pre hello-robot-stretch-body
+```
+
+Please report feedback on the [Issue Tracker](https://github.com/hello-robot/stretch_body/issues) or the [Forum](https://forum.hello-robot.com/).
+
+For Python3, substitute `python` with `python3`.
+
 Running tests
 -------------
 

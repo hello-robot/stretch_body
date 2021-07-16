@@ -1,8 +1,5 @@
 import setuptools
-from os import listdir
-from os.path import isfile, join
-
-exec(open('stretch_body/version.py').read())
+from stretch_body.version import __version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -12,7 +9,7 @@ setuptools.setup(
     version=__version__,
     author="Hello Robot Inc.",
     author_email="support@hello-robot.com",
-    description="Stretch RE1 low level  Python API",
+    description="Stretch RE1 low level Python API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hello-robot/stretch_body",

@@ -3,6 +3,25 @@ Stretch Body Command Line Tools
 
 This package provides Python tools that work with the Hello Robot Stretch Body package. These tools perform common tasks when working with Stretch RE1 (e.g. homing and stowing), and serve as tutorial code for working on various parts of the robot.
 
+Installing
+----------
+
+To install stable Stretch Body Command Line Tools for Python2, run:
+
+```bash
+$ python -m pip install --upgrade hello-robot-stretch-body-tools
+```
+
+To install a pre-release of the Command Line Tools for Python2, run:
+
+```bash
+$ python -m pip install --pre hello-robot-stretch-body-tools
+```
+
+Please report feedback on the [Issue Tracker](https://github.com/hello-robot/stretch_body/issues) or the [Forum](https://forum.hello-robot.com/).
+
+For Python3, substitute `python` with `python3`.
+
 Usage
 -----
 
