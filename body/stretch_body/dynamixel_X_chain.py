@@ -39,7 +39,6 @@ class DynamixelXChain(Device):
         self.status={}
         self.motors = {}
         self.readers={}
-        self.runstop_last=None
         self.comm_errors = DynamixelCommErrorStats(name, logger=self.logger)
 
     def add_motor(self,m):
@@ -171,16 +170,3 @@ class DynamixelXChain(Device):
         """
         for k in self.motors.keys():
             self.motors[k].step_sentry(robot)
-
-        if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop']:
-            runstop=robot.pimu.status['runstop_event']
-            if runstop is not self.runstop_last:
-                if runstop:
-                    for mk in self.motors.keys():
-                        self.motors[mk].disable_torque()
-                else:
-                    for mk in self.motors.keys():
-                        self.motors[mk].enable_torque()
-            self.runstop_last=runstop
-
-

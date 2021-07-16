@@ -6,6 +6,7 @@ import unittest
 import stretch_body.robot
 
 import time
+import math
 
 
 class TestRobot(unittest.TestCase):
@@ -96,3 +97,36 @@ class TestRobot(unittest.TestCase):
         r.pull_status()
         time.sleep(1.0)
         self.assertNotAlmostEqual(r.status['arm']['pos'], bad_goal, places=3)
+
+    def test_dynamixel_runstop(self):
+        """Test end_of_arm respects runstop from pimu
+        """
+        r = stretch_body.robot.Robot()
+        r.startup()
+        if not r.is_calibrated():
+            self.fail("test requires robot to be homed")
+
+        # Move robot to starting position
+        r.end_of_arm.move_to('wrist_yaw', 0.0)
+        r.end_of_arm.move_to('stretch_gripper', 100.0)
+        time.sleep(4.0)
+
+        # Begin moving to stow position
+        r.end_of_arm.move_to('wrist_yaw', math.pi)
+        r.end_of_arm.move_to('stretch_gripper', 0.0)
+        time.sleep(1.0)
+
+        # Interrupt moving to stow position
+        r.pimu.runstop_event_trigger()
+        r.push_command()
+        time.sleep(0.1)
+        r.pimu.runstop_event_reset()
+        r.push_command()
+        time.sleep(0.1)
+
+        # Verify not at stow position
+        r.pull_status()
+        self.assertNotAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], math.pi, places=2)
+        self.assertNotAlmostEqual(r.status['end_of_arm']['stretch_gripper']['pos'], 0.0, places=2)
+
+        r.stop()
