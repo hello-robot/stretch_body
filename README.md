@@ -8,14 +8,14 @@ The stretch_body repository includes Python packages that allow a developer to i
 
 Python2 version of packages can be installed by:
 ```
-pip2 install hello-robot-stretch-body
-pip2 install hello-robot-stretch-body-tools
+pip2 install -U hello-robot-stretch-body
+pip2 install -U hello-robot-stretch-body-tools
 ```
 Python3 version of packages can be installed by:
 
 ```
-pip3 install hello-robot-stretch-body
-pip3 install hello-robot-stretch-body-tools
+pip3 install -U hello-robot-stretch-body
+pip3 install -U hello-robot-stretch-body-tools
 ```
 
 See [docs.hello-robot.com](docs.hello-robot.com) for documentation on using Stretch RE1. In particular, see the [Stretch Body User Guide](docs.hello-robot.com/stretch_body_guide/) for information on using these packages.

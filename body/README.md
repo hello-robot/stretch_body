@@ -15,7 +15,7 @@ $ python -m pip install --upgrade hello-robot-stretch-body
 To install a pre-release of Stretch Body for Python2, run:
 
 ```bash
-$ python -m pip install --pre hello-robot-stretch-body
+$ python -m pip install --upgrade --pre hello-robot-stretch-body
 ```
 
 Please report feedback on the [Issue Tracker](https://github.com/hello-robot/stretch_body/issues) or the [Forum](https://forum.hello-robot.com/).
