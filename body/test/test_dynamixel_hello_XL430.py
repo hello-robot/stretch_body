@@ -109,7 +109,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
             r = R()
             while to_save['do_interrupt']:
                 servo.pull_status()
-                if servo.status['vel'] > 0.0:
+                if abs(servo.status['vel']) > 0.0:
                     time.sleep(1.0)
                     print('interrupt at {0} rad/s'.format(servo.status['vel']))
                     to_save['interrupts'] += 1
