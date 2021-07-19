@@ -181,8 +181,7 @@ class CollisionArmTable(RobotCollisionModel):
             limits['lift']=[None,table_height+safety_margin]        
         return limits
 ```
-Note that if the file is not created within the stretch_body directory then the following 
-command should be run in order to add the working directory to the PYTHONPATH env , This can also be added to our bashrc to permanently edit the path: 
+The following command should be run in order to add the working directory to the PYTHONPATH env , This can also be added to our bashrc to permanently edit the path: 
 
 ```bash
 >>$ export PYTHONPATH=$PYTHONPATH:/<path_to_modules>
@@ -200,19 +199,6 @@ collision_arm_table:
   enabled: 1
   py_class_name: 'CollisionArmTable'
   py_module_name: 'collision_arm_table'
-
-```
-However if we create our custom class within the 'stretch_body' directoy the yaml file should be configured as follows:
-
-```yaml
-robot_collision:
-  models:
-  - collision_arm_table
-
-collision_arm_table:
-  enabled: 1
-  py_class_name: 'CollisionArmTable'
-  py_module_name: 'stretch_body.collision_arm_table'
 
 ```
 
