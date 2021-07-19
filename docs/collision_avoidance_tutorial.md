@@ -181,6 +181,12 @@ class CollisionArmTable(RobotCollisionModel):
             limits['lift']=[None,table_height+safety_margin]        
         return limits
 ```
+The following command should be run in order to add the working directory to the PYTHONPATH env , This can also be added to our bashrc to permanently edit the path: 
+
+```bash
+>>$ export PYTHONPATH=$PYTHONPATH:/<path_to_modules>
+```
+
 
 Next we configure RobotCollision to use our CollisionArmTable model in `stretch_re1_user_yaml`:
 
