@@ -29,7 +29,7 @@ setuptools.setup(
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'pyglet == 1.4.10; python_version < "3.0"',
                       'trimesh==3.6.38', 'numba', 'llvmlite == 0.31.0; python_version < "3.0"',
-                      'scikit-image', 'open3d', 'pyrealsense2', 'hello-robot-stretch-body', 'jsonschema>=2.6.0']
+                      'scikit-image', 'open3d', 'pyrealsense2', 'hello-robot-stretch-body']
 )
 
 #classifiers = [
