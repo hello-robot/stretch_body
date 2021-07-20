@@ -19,12 +19,13 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
     ],
-    install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'jupyter', 'pandas', 'sympy', 'nose', 'PyYaml',
+    install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama',
-                      'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'psutil',
-                      'jsonschema==2.6.0; python_version < "3.0"', 'qtconsole==4.7.7; python_version < "3.0"',
-                      'llvmlite==0.31.0; python_version < "3.0"', 'numba',
-                      'gitpython', 'urdfpy', 'dynamixel-sdk>=3.1; python_version >= "3.2.0"', 'pyyaml>=5.1',
-                      'hello-robot-stretch-factory', 'hello-robot-stretch-tool-share']
+                      'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'psutil', 'gitpython', 'urdfpy',
+                      'jsonschema==2.6.0; python_version < "3.0"', 'qtconsole==4.7.7; python_version < "3.0"', 'jupyter', # required by juypter
+                      'llvmlite==0.31.0; python_version < "3.0"', 'numba', # numba required by stretch_funmap, depends on old llvmlite for py2
+                      'dynamixel-sdk>=3.1; python_version >= "3.0.0"', # py2 gets dynamixel-sdk through ROS
+                      'pyyaml>=5.1', # required for yaml.FullLoader
+                      'hello-robot-stretch-tool-share']
 )
