@@ -39,6 +39,85 @@ class TestTimingStats(unittest.TestCase):
 
 
 
+    def test_mark_loop_start(self):
+        """verify that loop start time works properly
+        """ 
+        test_loop_name = "test_loop_name"
+        test_loop_rate = 100
+        test_stats = stretch_body.hello_utils.LoopStats(test_loop_name, test_loop_rate)
+
+        test_stats.mark_loop_start()
+        time_ = time.time()
+        self.assertAlmostEqual(time_, test_stats.ts_loop_start)
+
+    def test_mark_loop_end(self):
+        """Verify that mark loop end updates LoopStats correctly
+        """
+        test_loop_name = "test_loop_name"
+        test_loop_rate = 100
+        test_stats = stretch_body.hello_utils.LoopStats(test_loop_name, test_loop_rate)
+
+        stall_time = 5 #Stall for 5 seconds
+        self.assertEqual(test_stats.mark_loop_end(), None)
+
+        test_stats.mark_loop_start()
+        time.sleep(stall_time)
+        test_stats.mark_loop_end()
+        self.assertAlmostEqual(test_stats.ts_loop_end, time.time())
+
+        time.sleep(stall_time)
+
+        self.assertNotEqual(test_stats.status['execution_time_ms'], 0)
+        self.assertNotEqual(test_stats.status['loop_rate_hz'], 0)
+        self.assertNotEqual(test_stats.status['loop_rate_min_hz'], 10000000)
+        self.assertNotEqual(test_stats.status['loop_rate_max_hz'], 0)
+        self.assertNotEqual(type(self.rate_log), type(None))
+        self.assertNotEqual(test_stats.status['loop_rate_avg_hz'], 0)
+    
+    def test_pretty_print_loopStats(self): #Should this test asert something or should I change the function name
+        test_loop_name = "test_loop_1"
+        test_loop_rate = 100
+        test_stats_1 = stretch_body.hello_utils.LoopStats(test_loop_name, test_loop_rate)
+        stall_time = 5
+
+        test_stats_1.pretty_print()
+
+        test_loop_name = "test_loop_2"
+        test_loop_rate = 100
+        test_stats_2 = stretch_body.hello_utils.LoopStats(test_loop_name, test_loop_rate)
+        
+        test_stats_2.mark_loop_start()
+        test_stats_2.mark_loop_end()
+        
+        time.sleep(stall_time)
+        
+        test_stats_2.mark_loop_end()
+        test_stats_1.pretty_print()
+
+
+
+    def display_rate_histogram(self):
+        test_loop_name = "test_loop_name"
+        test_loop_rate = 100
+        test_stats = stretch_body.hello_utils.LoopStats(test_loop_name, test_loop_rate)
+        stall_time = 5
+        
+        test_stats.mark_loop_start()
+        test_stats.mark_loop_end()
+        
+        time.sleep(stall_time)
+        test_stats.mark_loop_end()
+        
+        time.sleep(stall_time)
+        test_stats.mark_loop_end()
+
+        time.sleep(stall_time)
+        test_stats.mark_loop_end()
+
+        time.sleep(stall_time)
+        test_stats.mark_loop_end()
+
+        test_stats.display_rate_histogram()
 
 
 
