@@ -75,6 +75,7 @@ class StretchGripper(DynamixelHelloXL430):
         position (slightly opening the grasp). This reduces the PID steady state error and lowers the
         commanded current. The gripper's spring design allows it to retain its grasp despite the backoff.
         """
+        DynamixelHelloXL430.step_sentry(self, robot)
         if self.hw_valid and self.robot_params['robot_sentry']['stretch_gripper_overload'] and not self.is_homing:
             if self.status['stall_overload']:
                 if self.status['effort'] < 0: #Only backoff in open direction

@@ -35,6 +35,7 @@ class WristYaw(DynamixelHelloXL430):
         the commanded position from the current position, so as to lower the steady
         state error of the PID controller.
         """
+        DynamixelHelloXL430.step_sentry(self, robot)
         if self.hw_valid and self.robot_params['robot_sentry']['wrist_yaw_overload']:
             if self.status['stall_overload']:
                 if self.status['effort']>0:

@@ -1,6 +1,6 @@
-![](../../images/banner.png)
+![](../images/banner.png)
 
-# Tutorial: Extending the Wrist DOF
+# Extending the Wrist DOF
 
 In this tutorial we explore how to add additional degrees of freedom to the Stretch wrist. 
 

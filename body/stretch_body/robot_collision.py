@@ -43,9 +43,8 @@ class RobotCollision(Device):
         #self.robot_model = urdfpy.URDF.load(urdf_file) #Kinematic model available if needed
         self.robot=robot
         self.models=[]
-
+        self.models_enabled={}
     def startup(self):
-
         model_names = []
         if self.params.get('models'):
             model_names=model_names+self.params.get('models')
@@ -53,18 +52,30 @@ class RobotCollision(Device):
                 model_names = model_names + self.robot.end_of_arm.params.get('collision_models')
         for m in model_names:
             if self.robot_params[m]['enabled']:
+                self.models_enabled[m]=True
                 module_name = self.robot_params[m]['py_module_name']
                 class_name = self.robot_params[m]['py_class_name']
                 self.models.append(getattr(importlib.import_module(module_name), class_name)(self))
+
+    def enable_model(self,name):
+        if name in self.models_enabled:
+            self.models_enabled[name]=True
+
+    def disable_model(self,name):
+        if name in self.models_enabled:
+            self.models_enabled[name]=False
 
     def step(self):
         #Compile the list of joints that may be limited
         #Then compute the limits for each from each model
         #Take the most conservative limit for each and pass it to the controller
         status=self.robot.get_status()
-        limits= { 'head_pan': [None, None],'head_tilt': [None, None],'lift': [None, None],'arm': [None, None]}
+        limits= { 'head_pan': self.robot.head.motors['head_pan'].soft_motion_limits[:],
+                  'head_tilt': self.robot.head.motors['head_tilt'].soft_motion_limits[:],
+                  'lift': self.robot.lift.soft_motion_limits[:],
+                  'arm': self.robot.arm.soft_motion_limits[:]}
         for j in self.robot.end_of_arm.joints:
-            limits[j]=[None,None]
+            limits[j]=self.robot.end_of_arm.motors[j].soft_motion_limits[:]
 
         for m in self.models:
             new_limits=m.step(status)

@@ -11,7 +11,7 @@ stretch_scripts={script_path+'/'+f for f in listdir(script_path) if isfile(join(
 
 setuptools.setup(
     name="hello_robot_stretch_body_tools",
-    version="0.1.0",
+    version="0.1.4.dev0",
     author="Hello Robot Inc",
     author_email="support@hello-robot.com",
     description="Stretch Body Tools",
@@ -25,11 +25,12 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: Apache Software License"
     ],
-    install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'jupyter', 'pandas', 'sympy', 'nose', 'PyYaml',
+    install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
-                      'click', 'cma', 'opencv-contrib-python', 'colorama',
-                      'numba', 'llvmlite == 0.31.0; python_version < "3.0"',
-                      'scikit-image', 'open3d', 'pyrealsense2', 'hello-robot-stretch-body', 'jsonschema>=2.6.0']
+                      'click', 'cma', 'opencv-contrib-python', 'colorama', 'scikit-image', 'open3d', 'pyrealsense2',
+                      'pyglet == 1.4.10; python_version < "3.0"', 'trimesh==3.6.38', 'urdfpy', # required for urdfpy viz in py2
+                      'pyyaml>=5.1', # required for yaml.FullLoader
+                      'hello-robot-stretch-body']
 )
 
 #classifiers = [

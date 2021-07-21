@@ -278,25 +278,23 @@ if output_filepath_addFps:
     if writer_depth is not None and os.path.exists(output_filepath_depth):
         output_filepath_depth = addFpsToFilename(output_filepath_depth, capture_fps_depth)
 
-print ''
-print ''
+print('')
+print('')
 if capture_fps_color is not None:
-    print 'Captured %d color frames in %0.3f seconds' % (frame_count_color, capture_duration_color_s),
-    print '(average FPS: %8.5f)' % capture_fps_color
+    print('Captured %d color frames in %0.3f seconds' % (frame_count_color, capture_duration_color_s))
+    print('(average FPS: %8.5f)' % capture_fps_color)
 if capture_fps_depth is not None:
-    print 'Captured %d depth frames in %0.3f seconds' % (frame_count_depth, capture_duration_depth_s),
-    print '(average FPS: %8.5f)' % capture_fps_depth
-print ''
+    print('Captured %d depth frames in %0.3f seconds' % (frame_count_depth, capture_duration_depth_s))
+    print('(average FPS: %8.5f)' % capture_fps_depth)
+print('')
 if writer_color is not None:
-    print 'Saved color video at %g fps to %s' % (fps_color, output_filepath_color)
+    print('Saved color video at %g fps to %s' % (fps_color, output_filepath_color))
 if writer_depth is not None:
-    print 'Saved depth video at %g fps to %s' % (fps_color/fps_depth_downsample_factor, output_filepath_depth)
+    print('Saved depth video at %g fps to %s' % (fps_color/fps_depth_downsample_factor, output_filepath_depth))
 if writer_colorAndDepth is not None:
-    print 'Saved color+depth video at %g fps to %s' % (fps_color, output_filepath_colorAndDepth)
+    print('Saved color+depth video at %g fps to %s' % (fps_color, output_filepath_colorAndDepth))
 if writer_color is not None or writer_depth is not None or writer_colorAndDepth is not None:
-    print ''
-    print '* Note that the actual frame rates are different than the frame rates '
-    print '  of the saved videos, so playback speed may be inaccurate.'
-print ''
-
-  
+    print('')
+    print('* Note that the actual frame rates are different than the frame rates ')
+    print('  of the saved videos, so playback speed may be inaccurate.')
+print('')
