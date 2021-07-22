@@ -1,0 +1,16 @@
+name: run unit tests
+on: [push]
+jobs:
+  ssh-connection-teleop:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: save the ssh key for access to robot to the file
+        run: 'echo "$SSH_KEY" > the_key'
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.STRETCH_SSH_KEY_GITHUB_ACTION }}
+      - run: cat the_key
+      - run: chmod 400 the_key
+      - name: Log into stretch using ssh
+        run: cat ./.github/workflows/teleop_commands.bash | ssh -i the_key hello-robot@98.234.153.4 -p 43770 -tt -o StrictHostKeyChecking=no
