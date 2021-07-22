@@ -5,7 +5,7 @@ import stretch_body.robot_params
 
 import unittest
 import time
-import stretch_body.hello_utils as hello_utils
+from stretch_body.hello_utils import LoopStats
 import random
 import stretch_body.device
 import stretch_body.robot as robot
@@ -15,7 +15,7 @@ class TestTimingStats(unittest.TestCase):
     def test_faux_loop(self):
         print('Starting test_faux_loop ')
         target_loop_rate = 25.0
-        s = hello_utils.LoopStats(loop_name='TestLoop', target_loop_rate=target_loop_rate)
+        s = LoopStats(loop_name='TestLoop', target_loop_rate=target_loop_rate)
         for i in range(200):
             s.mark_loop_start()
             time.sleep(0.5/ target_loop_rate) #Executing some computation
@@ -119,5 +119,98 @@ class TestTimingStats(unittest.TestCase):
 
         test_stats.display_rate_histogram()
 
+    def test_loop_rate_avg(self):
+        print("Starting test for loop rate average")
+        test_loop_name = "TestLoopAvg"
+        test_loop_rate = 25.0
+        test_stats = LoopStats(loop_name = test_loop_name, target_loop_rate = test_loop_rate)
+
+        stall_time = 5.0 #Trying to create a frequency of 5Hz
+
+        #Average caclulated over the last 100 runs, so a few dry runs to ensure fair checking
+        for i in range(test_stats.nlog):
+            test_stats.mark_loop_start()
+            time.sleep(stall_time)
+            test_stats.mark_loop_end()
+
+        self.assertAlmostEqual(test_stats.status['loop_rate_avg_hz'], 5)
 
 
+        for i in range(100):
+            test_stats.mark_loop_start()
+            time.sleep(stall_time)
+            test_stats.mark_loop_end()
+            self.assertAlmostEqual(test_stats.status['loop_rate_avg_hz'], 5)
+ 
+        
+    def test_loop_rate_min(self):
+        print("Starting test for min loop rate ")
+
+        test_loop_name = "TestLoopRateMin"
+        test_loop_rate = 25.0
+        test_stats = LoopStats(loop_name = test_loop_name, target_loop_rate = test_loop_rate)
+
+        loop_rate_target = {3.0, 3.125, 3.25, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0}
+
+        test_stats.mark_loop_start()
+        for stall_time in loop_rate_target:
+            time.sleep(stall_time)
+            test_stats.mark_loop_end()
+
+        self.assertAlmostEqual(test_stats.status['loop_rate_min_hz'], 3.0)
+
+    def test_loop_rate_max(self):
+        print("Starting test for max loop rate ")
+
+        test_loop_name = "TestLoopRateMax"
+        test_loop_rate = 25.0
+        test_stats = LoopStats(loop_name = test_loop_name, target_loop_rate = test_loop_rate)
+
+        loop_rate_target = {3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 25.0, 25.1}
+
+        test_stats.mark_loop_start()
+
+        for stall_time in loop_rate_target:
+            time.sleep(stall_time)
+            test_stats.mark_loop_end()
+
+        self.assertAlmostEqual(test_stats.status['loop_rate_max_hz'], 25.1)
+
+    def test_execution_time_ms(self):
+        print("Starting test for execution time ms")
+
+        test_loop_name = "TestLoopExecution"
+        test_loop_rate = 25.0
+        test_stats = LoopStats(loop_name = test_loop_name, target_loop_rate = test_loop_rate)
+
+        loop_rate_target = {3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0,}
+        test_stats.mark_loop_start()
+
+
+        test_stats.mark_loop_end()
+        self.assertEqual(test_stats.status['execution_time_ms'], 0)
+
+        total_time = 0
+        for stall_time in loop_rate_target:
+            time.sleep(stall_time)
+            total_time += stall_time
+            self.assertAlmostEqual(test_stats.status['execution_time_ms'], total_time*1000)
+
+    def test_loop_warns(self):
+        print("Starting test for loop warns")
+
+        test_loop_name = "TestLoopAvg"
+        test_loop_rate = 25.0
+        test_stats = LoopStats(loop_name = test_loop_name, target_loop_rate = test_loop_rate)
+
+        test_stats.mark_loop_start()
+        time.sleep(0.1)
+        test_stats.mark_loop_end()
+        self.assertEqual(test_stats.status['loop_warns'], 0)
+
+        test_stats.mark_loop_start()
+        time.sleep(0.5)
+        test_stats.mark_loop_end()
+        self.assertEqual(test_stats['loop_warns'], 1)
+
+        
