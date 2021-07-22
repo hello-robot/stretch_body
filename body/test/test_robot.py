@@ -6,6 +6,7 @@ import unittest
 import stretch_body.robot
 
 import time
+import math
 
 
 class TestRobot(unittest.TestCase):
@@ -39,13 +40,13 @@ class TestRobot(unittest.TestCase):
 
         r.stop()
 
-    # TODO: Uncommenting this test will cause the other two to fail due to busy serial ports
-    # def test_endofarmtool_loaded(self):
-    #     """Verify end_of_arm tool loaded correctly in robot.
-    #     """
-    #     r = stretch_body.robot.Robot()
-    #     self.assertEqual(r.end_of_arm.name, r.params['tool'])
-    #     r.stop()
+    @unittest.skip(reason='TODO: Running this test will cause the other two to fail due to busy serial ports')
+    def test_endofarmtool_loaded(self):
+        """Verify end_of_arm tool loaded correctly in robot.
+        """
+        r = stretch_body.robot.Robot()
+        self.assertEqual(r.end_of_arm.name, r.params['tool'])
+        r.stop()
 
     def test_endofarmtool_custom_stowing(self):
         """Verify custom stowing for non-endofarm devices from tool works.
@@ -72,4 +73,60 @@ class TestRobot(unittest.TestCase):
         # Remove custom stowing
         r.robot_params[r.params['tool']]['stow'].pop('lift', None)
         r.robot_params[r.params['tool']]['stow'].pop('arm', None)
+        r.stop()
+
+    def test_soft_limits_not_overwritten(self):
+        """Verify that limits set via the set_soft_limits API are upper bounds on
+        limits that can be set by collision models in the `RobotCollision.step`
+        function. The `Robot` class manages threaded execution of `RobotCollision`.
+        """
+        r = stretch_body.robot.Robot()
+        r.params['use_collision_manager'] = True
+        r.startup()
+        if not r.is_calibrated():
+            self.fail("test requires robot to be homed")
+
+        upper_limit = 0.1
+        bad_goal = upper_limit + 0.1
+        r.arm.set_soft_motion_limits(0.0, upper_limit)
+        r.push_command()
+        time.sleep(1.0)
+        r.arm.move_to(bad_goal)
+        r.push_command()
+        time.sleep(2.0)
+        r.pull_status()
+        time.sleep(1.0)
+        self.assertNotAlmostEqual(r.status['arm']['pos'], bad_goal, places=3)
+
+    def test_dynamixel_runstop(self):
+        """Test end_of_arm respects runstop from pimu
+        """
+        r = stretch_body.robot.Robot()
+        r.startup()
+        if not r.is_calibrated():
+            self.fail("test requires robot to be homed")
+
+        # Move robot to starting position
+        r.end_of_arm.move_to('wrist_yaw', 0.0)
+        r.end_of_arm.move_to('stretch_gripper', 100.0)
+        time.sleep(4.0)
+
+        # Begin moving to stow position
+        r.end_of_arm.move_to('wrist_yaw', math.pi)
+        r.end_of_arm.move_to('stretch_gripper', 0.0)
+        time.sleep(1.0)
+
+        # Interrupt moving to stow position
+        r.pimu.runstop_event_trigger()
+        r.push_command()
+        time.sleep(0.1)
+        r.pimu.runstop_event_reset()
+        r.push_command()
+        time.sleep(0.1)
+
+        # Verify not at stow position
+        r.pull_status()
+        self.assertNotAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], math.pi, places=2)
+        self.assertNotAlmostEqual(r.status['end_of_arm']['stretch_gripper']['pos'], 0.0, places=2)
+
         r.stop()

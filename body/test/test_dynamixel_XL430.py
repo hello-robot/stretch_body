@@ -46,13 +46,11 @@ class TestDynamixelXL430(unittest.TestCase):
         self.assertTrue(servo.last_comm_success)
         self.assertEqual(servo.comm_errors, 0)
 
-        ret = servo.handle_comm_result('DXL_TEST', -1000, 0) # -1000 = PORT BUSY
-        self.assertFalse(ret)
+        self.assertRaises(stretch_body.dynamixel_XL430.DynamixelCommError, servo.handle_comm_result, 'DXL_TEST', -1000, 0) # -1000 = PORT BUSY
         self.assertFalse(servo.last_comm_success)
         self.assertEqual(servo.comm_errors, 1)
 
-        ret = servo.handle_comm_result('DXL_TEST', -3002, 1) # -3002 = RX Corrupt
-        self.assertFalse(ret)
+        self.assertRaises(stretch_body.dynamixel_XL430.DynamixelCommError, servo.handle_comm_result, 'DXL_TEST', -3002, 1) # -3002 = RX Corrupt
         self.assertFalse(servo.last_comm_success)
         self.assertEqual(servo.comm_errors, 2)
 
@@ -60,11 +58,12 @@ class TestDynamixelXL430(unittest.TestCase):
 
     def test_change_baud_rate(self, dxl_id=13, usb="/dev/hello-dynamixel-wrist"):
         """Verify can change baud rate.
+
+        TODO AE: Restarting a new connection to a just changecd baudrate does not always succeed. Need to close port?
         """
-        #TODO AE: Restarting a new connection to a just changecd baudrate does not always succeed. Need to close port?
-        print('Testing Change Baud Rate')
         logger = logging.getLogger("test_dynamixel")
         start_baud = stretch_body.dynamixel_XL430.DynamixelXL430.identify_baud_rate(dxl_id=dxl_id, usb=usb)
+        print('Testing changing baud rate from {0} to {1} and back'.format(start_baud, 115200 if start_baud != 115200 else 57600))
         servo1 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, logger=logger)
         self.assertTrue(servo1.do_ping())
 
@@ -83,29 +82,26 @@ class TestDynamixelXL430(unittest.TestCase):
         # change the baud
         goal_baud = 115200 if start_baud != 115200 else 57600
         succeeded = servo1.set_baud_rate(goal_baud)
+        servo1.stop()
         self.assertTrue(succeeded)
 
         servo2 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=goal_baud, logger=logger)
         curr_baud = servo2.get_baud_rate()
         self.assertEqual(curr_baud, goal_baud)
         self.assertTrue(servo2.do_ping())
+        servo2.stop()
         servo3 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, logger=logger)
-        curr_baud = servo3.get_baud_rate()
-        self.assertNotEqual(curr_baud, goal_baud)
-        self.assertFalse(servo3.do_ping())
+        self.assertRaises(stretch_body.dynamixel_XL430.DynamixelCommError, servo3.get_baud_rate)
+        servo3.stop()
 
         # reset baud to its starting baud
         servo4 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=goal_baud, logger=logger)
         self.assertTrue(servo4.do_ping())
         succeeded = servo4.set_baud_rate(start_baud)
         self.assertTrue(succeeded)
+        servo4.stop()
         servo5 = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=start_baud, logger=logger)
         curr_baud = servo5.get_baud_rate()
         self.assertEqual(curr_baud, start_baud)
         self.assertTrue(servo5.do_ping())
-
-        servo1.stop()
-        servo2.stop()
-        servo3.stop()
-        servo4.stop()
         servo5.stop()

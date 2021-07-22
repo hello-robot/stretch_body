@@ -12,7 +12,8 @@ import stretch_body.lift as lift
 import stretch_body.pimu as pimu
 import stretch_body.head as head
 import stretch_body.wacc as wacc
-import stretch_body.end_of_arm as end_of_arm
+
+import logging
 import stretch_body.hello_utils as hello_utils
 
 from serial import SerialException
@@ -22,7 +23,7 @@ from stretch_body.robot_collision import RobotCollision
 
 
 # #############################################################
-class RobotDynamixelThread(threading.Thread):
+class DXLStatusThread(threading.Thread):
     """
     This thread polls the status data of the Dynamixel devices
     at 15Hz
@@ -31,23 +32,22 @@ class RobotDynamixelThread(threading.Thread):
         threading.Thread.__init__(self)
         self.robot=robot
         self.robot_update_rate_hz = 15.0  #Hz
-        self.timer_stats = hello_utils.TimerStats()
+        self.stats = hello_utils.LoopStats(loop_name='DXLStatusThread',target_loop_rate=self.robot_update_rate_hz)
         self.shutdown_flag = threading.Event()
         self.first_status=False
 
     def run(self):
         while not self.shutdown_flag.is_set():
-            ts = time.time()
+            self.stats.mark_loop_start()
             self.robot._pull_status_dynamixel()
             self.first_status=True
-            te = time.time()
-            tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
+            self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
-                time.sleep(tsleep)
-        print('Shutting down RobotDynamixelThread')
+                time.sleep(self.stats.get_loop_sleep_time())
+        self.robot.logger.debug('Shutting down DXLStatusThread')
 
 
-class RobotThread(threading.Thread):
+class NonDXLStatusThread(threading.Thread):
     """
     This thread runs at 25Hz.
     It updates the status data of the Devices.
@@ -66,13 +66,13 @@ class RobotThread(threading.Thread):
         if self.robot.params['use_collision_manager']:
             self.robot.collision.startup()
         self.shutdown_flag = threading.Event()
-        self.timer_stats = hello_utils.TimerStats()
+        self.stats = hello_utils.LoopStats(loop_name='NonDXLStatusThread',target_loop_rate=self.robot_update_rate_hz)
         self.titr=0
         self.first_status = False
 
     def run(self):
         while not self.shutdown_flag.is_set():
-            ts = time.time()
+            self.stats.mark_loop_start()
             self.robot._pull_status_non_dynamixel()
             self.first_status = True
 
@@ -86,13 +86,10 @@ class RobotThread(threading.Thread):
             if self.robot.params['use_sentry']:
                 if (self.titr % self.sentry_downrate_int) == 0:
                     self.robot._step_sentry()
-
-            self.titr=self.titr+1
-            te = time.time()
-            tsleep = max(0.001, (1 / self.robot_update_rate_hz) - (te - ts))
+            self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
-                time.sleep(tsleep)
-        print('Shutting down RobotThread')
+                time.sleep(self.stats.get_loop_sleep_time())
+        self.robot.logger.debug('Shutting down NonDXLStatusThread')
 
 
 class Robot(Device):
@@ -138,8 +135,8 @@ class Robot(Device):
         self.status['end_of_arm'] = self.end_of_arm.status
 
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
-        self.rt=None
-        self.dt=None
+        self.non_dxl_thread=None
+        self.dxl_thread=None
 
     # ###########  Device Methods #############
 
@@ -161,38 +158,37 @@ class Robot(Device):
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
         signal.signal(signal.SIGINT, hello_utils.thread_service_shutdown)
 
-        self.rt = RobotThread(self)
-        self.rt.setDaemon(True)
-        self.rt.start()
+        self.non_dxl_thread = NonDXLStatusThread(self)
+        self.non_dxl_thread.setDaemon(True)
+        self.non_dxl_thread.start()
 
-        self.dt = RobotDynamixelThread(self)
-        self.dt.setDaemon(True)
-        self.dt.start()
+        self.dxl_thread = DXLStatusThread(self)
+        self.dxl_thread.setDaemon(True)
+        self.dxl_thread.start()
 
         # Wait for status reading threads to start reading data
         ts=time.time()
-        while not self.rt.first_status and not self.dt.first_status and time.time()-ts<3.0:
+        while not self.non_dxl_thread.first_status and not self.dxl_thread.first_status and time.time()-ts<3.0:
            time.sleep(0.1)
-        #if not self.rt.first_status  or not self.dt.first_status :
-        #    self.logger.warning('Failed to startup up robot threads')
+
 
     def stop(self):
         """
         To be called once before exiting a program
         Cleanly stops down motion and communication
         """
-        print('---- Shutting down robot ----')
-        if self.rt is not None:
-            self.rt.shutdown_flag.set()
-            self.rt.join(1)
-        if self.dt is not None:
-            self.dt.shutdown_flag.set()
-            self.dt.join(1)
+        self.logger.debug('---- Shutting down robot ----')
+        if self.non_dxl_thread is not None:
+            self.non_dxl_thread.shutdown_flag.set()
+            self.non_dxl_thread.join(1)
+        if self.dxl_thread is not None:
+            self.dxl_thread.shutdown_flag.set()
+            self.dxl_thread.join(1)
         for k in self.devices.keys():
             if self.devices[k] is not None:
-                print('Shutting down',k)
+                self.logger.debug('Shutting down %s'%k)
                 self.devices[k].stop()
-        print('---- Shutdown complete ----')
+        self.logger.debug('---- Shutdown complete ----')
 
     def get_status(self):
         """
@@ -323,7 +319,7 @@ class Robot(Device):
             self.end_of_arm.pull_status()
             self.head.pull_status()
         except SerialException:
-            print('Serial Exception on Robot Step_Dynamixel')
+            self.logger.warning('Serial Exception on Robot Step_Dynamixel')
 
     def _pull_status_non_dynamixel(self):
         self.wacc.pull_status()

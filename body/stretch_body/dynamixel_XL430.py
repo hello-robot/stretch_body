@@ -102,6 +102,9 @@ BAUD_MAP = {
     4500000: 7
 }
 
+class DynamixelCommError(Exception):
+    pass
+
 
 class DynamixelXL430():
     """
@@ -220,7 +223,8 @@ class DynamixelXL430():
         self.comm_errors = self.comm_errors + 1
         self.logger.debug('DXL Comm Error on %s ID %d. Attempted %s. Result %d. Error %d. Code %s. Total Errors %d.' %
             (self.usb, self.dxl_id, fx, dxl_comm_result, dxl_error, COMM_CODES[dxl_comm_result], self.comm_errors))
-        return False
+        raise DynamixelCommError
+
 
     def get_comm_errors(self):
         return self.comm_errors
@@ -303,6 +307,7 @@ class DynamixelXL430():
             self.logger.debug("Invalid baud rate")
             return False
 
+        self.disable_torque()
         with self.pt_lock:
             dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE, BAUD_MAP[rate])
         return self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error)
@@ -310,7 +315,7 @@ class DynamixelXL430():
     #Hello Robot Specific
     def is_calibrated(self):
         if not self.hw_valid:
-            False
+            return False
         with self.pt_lock:
             p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HELLO_CALIBRATED)
         self.handle_comm_result('XL430_ADDR_HELLO_CALIBRATED', dxl_comm_result, dxl_error)
