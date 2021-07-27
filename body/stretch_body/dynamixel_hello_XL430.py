@@ -335,21 +335,18 @@ class DynamixelHelloXL430(Device):
         try:
             if not self.hw_valid:
                 return
-            if v_des is not None:
-                v_des = min(self.params['motion']['max']['vel'], v_des)
 
-                if v_des != self.v_des:
-                    self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
-                    self.v_des = v_des
-            else:
-                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['default']['vel']))
-            if a_des is not None:
-                a_des = min(self.params['motion']['max']['accel'], a_des)
-                if a_des != self.a_des:
-                    self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(a_des))
-                    self.a_des = a_des
-            else:
-                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
+            v_des = v_des if v_des is not None else self.params['motion']['default']['vel']
+            v_des = min(self.params['motion']['max']['vel'], v_des)
+            if v_des != self.v_des:
+                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
+                self.v_des = v_des
+
+            a_des = a_des if a_des is not None else self.params['motion']['default']['accel']
+            a_des = min(self.params['motion']['max']['accel'], a_des)
+            if a_des != self.a_des:
+                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(a_des))
+                self.a_des = a_des
         except (termios.error, DynamixelCommError):
             #self.logger.warning('Dynamixel communication error on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
