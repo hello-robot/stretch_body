@@ -135,3 +135,87 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         self.assertAlmostEqual(to_save['vel2'], 0.0, places=2)
 
         servo.stop()
+
+    def test_set_motion_profile(self):
+        """Verify set_motion_params sets the Dynamixel's vel/accel profile correctly.
+        """
+        servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw", chain=None)
+        self.assertTrue(servo.startup())
+
+        # Check servo starts with profile equal to motion defaults
+        vel_ticks = servo.rad_per_sec_to_ticks(servo.params['motion']['default']['vel'])
+        accel_ticks = servo.rad_per_sec_sec_to_ticks(servo.params['motion']['default']['accel'])
+        self.assertEqual(servo.motor.get_profile_velocity(), vel_ticks)
+        self.assertEqual(servo.motor.get_profile_acceleration(), accel_ticks)
+
+        # Set profile to zero
+        vel_rad_sec = 0.0
+        accel_rad_sec_sec = 0.0
+        vel_ticks = servo.rad_per_sec_to_ticks(vel_rad_sec)
+        accel_ticks = servo.rad_per_sec_sec_to_ticks(accel_rad_sec_sec)
+        servo.set_motion_params(vel_rad_sec, accel_rad_sec_sec)
+        self.assertEqual(servo.motor.get_profile_velocity(), vel_ticks)
+        self.assertEqual(servo.motor.get_profile_acceleration(), accel_ticks)
+
+        # Set profile to slow
+        vel_rad_sec = servo.params['motion']['slow']['vel']
+        accel_rad_sec_sec = servo.params['motion']['slow']['accel']
+        vel_ticks = servo.rad_per_sec_to_ticks(vel_rad_sec)
+        accel_ticks = servo.rad_per_sec_sec_to_ticks(accel_rad_sec_sec)
+        servo.set_motion_params(vel_rad_sec, accel_rad_sec_sec)
+        self.assertEqual(servo.motor.get_profile_velocity(), vel_ticks)
+        self.assertEqual(servo.motor.get_profile_acceleration(), accel_ticks)
+
+        # Set profile to fast
+        vel_rad_sec = servo.params['motion']['fast']['vel']
+        accel_rad_sec_sec = servo.params['motion']['fast']['accel']
+        vel_ticks = servo.rad_per_sec_to_ticks(vel_rad_sec)
+        accel_ticks = servo.rad_per_sec_sec_to_ticks(accel_rad_sec_sec)
+        servo.set_motion_params(vel_rad_sec, accel_rad_sec_sec)
+        self.assertEqual(servo.motor.get_profile_velocity(), vel_ticks)
+        self.assertEqual(servo.motor.get_profile_acceleration(), accel_ticks)
+
+        # Set profile to max
+        vel_rad_sec = servo.params['motion']['max']['vel']
+        accel_rad_sec_sec = servo.params['motion']['max']['accel']
+        vel_ticks = servo.rad_per_sec_to_ticks(vel_rad_sec)
+        accel_ticks = servo.rad_per_sec_sec_to_ticks(accel_rad_sec_sec)
+        servo.set_motion_params(vel_rad_sec, accel_rad_sec_sec)
+        self.assertEqual(servo.motor.get_profile_velocity(), vel_ticks)
+        self.assertEqual(servo.motor.get_profile_acceleration(), accel_ticks)
+
+        # Set profile to max plus more
+        vel_rad_sec = servo.params['motion']['max']['vel'] + 1e5
+        accel_rad_sec_sec = servo.params['motion']['max']['accel'] + 1e5
+        vel_ticks = servo.rad_per_sec_to_ticks(vel_rad_sec)
+        accel_ticks = servo.rad_per_sec_sec_to_ticks(accel_rad_sec_sec)
+        servo.set_motion_params(vel_rad_sec, accel_rad_sec_sec)
+        self.assertNotEqual(servo.motor.get_profile_velocity(), vel_ticks)
+        self.assertNotEqual(servo.motor.get_profile_acceleration(), accel_ticks)
+
+        servo.stop()
+
+    def test_motion_profile_doesnt_persist(self):
+        """Verify move_to/move_by with vel/accel doesn't set a motion profile that
+        persists to subsequent move_to/move_by commands.
+        """
+        servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw", chain=None)
+        self.assertTrue(servo.startup())
+
+        servo.move_to(0.0)
+        time.sleep(5)
+
+        servo.move_to(1.0, v_des=0.0, a_des=0.0)
+        move1_vel_ticks = servo.motor.get_profile_velocity()
+        move1_accel_ticks = servo.motor.get_profile_acceleration()
+        time.sleep(5)
+
+        servo.move_to(0.0)
+        move2_vel_ticks = servo.motor.get_profile_velocity()
+        move2_accel_ticks = servo.motor.get_profile_acceleration()
+        time.sleep(5)
+
+        self.assertNotEqual(move1_vel_ticks, move2_vel_ticks)
+        self.assertNotEqual(move1_accel_ticks, move2_accel_ticks)
+
+        servo.stop()
