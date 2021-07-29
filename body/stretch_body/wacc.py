@@ -47,7 +47,7 @@ class Wacc(Device):
                        'transport': self.transport.status}
         self.ts_last=None
         self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
-        self.valid_firmware_protocol = 'p0'
+        self.valid_firmware_protocol = 'p1'
         self.hw_valid = False
 
     # ###########  Device Methods #############

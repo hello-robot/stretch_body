@@ -95,7 +95,7 @@ class Stepper(Device):
         self._trigger=0
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
-        self.valid_firmware_protocol='p0'
+        self.valid_firmware_protocol='p1'
         self.hw_valid=False
         self.gains = self.params['gains'].copy()
 

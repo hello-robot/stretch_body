@@ -144,7 +144,7 @@ class Pimu(Device):
             self.cliff_event_reset()
 
         self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
-        self.valid_firmware_protocol = 'p0'
+        self.valid_firmware_protocol = 'p1'
         self.hw_valid = False
 
     # ###########  Device Methods #############
