@@ -473,7 +473,7 @@ class Stepper(Device):
             return
         #This will take a few seconds. Blocks until complete.
         if len(data)!=16384:
-            self.logger.debug('Bad encoder data')
+            self.logger.warning('Bad encoder data')
         else:
             self.logger.debug('Writing encoder calibration...')
             for p in range(256):
@@ -489,7 +489,7 @@ class Stepper(Device):
                 # self.logger.debug('Sending encoder calibration rpc of size',sidx)
                 self.transport.queue_rpc(sidx, self.rpc_enc_calib_reply)
                 self.transport.step()
-            self.logger.debug('')
+
     def rpc_enc_calib_reply(self,reply):
         if reply[0] != RPC_REPLY_ENC_CALIB:
             self.logger.debug('Error RPC_REPLY_ENC_CALIB', reply[0])
