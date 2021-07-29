@@ -40,12 +40,10 @@ class Wacc(Device):
         self._dirty_config = True #Force push down
         self._dirty_command = False
         self._command = {'d2':0,'d3':0, 'trigger':0}
-        self.name ='hello-wacc'
         self.transport = Transport(usb='/dev/hello-wacc', logger=self.logger)
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
                        'timestamp': 0,
                        'transport': self.transport.status}
-        self.ts_last=None
         self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
         self.valid_firmware_protocol = 'p1'
         self.hw_valid = False
@@ -146,7 +144,7 @@ class Wacc(Device):
         print('Single Tap Count', self.status['single_tap_count'])
         print('State ', self.status['state'])
         print('Debug',self.status['debug'])
-        print('Timestamp', self.status['timestamp'])
+        print('Timestamp (s)', self.status['timestamp'])
         print('Board version:', self.board_info['board_version'])
         print('Firmware version:', self.board_info['firmware_version'])
 
@@ -183,7 +181,7 @@ class Wacc(Device):
             self.status['d3'] = unpack_uint8_t(s[sidx:]); sidx += 1
             self.status['single_tap_count'] = unpack_uint32_t(s[sidx:]);sidx += 4
             self.status['state'] = unpack_uint32_t(s[sidx:]); sidx += 4
-            self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+            self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
             self.status['debug'] = unpack_uint32_t(s[sidx:]);sidx += 4
             return sidx
 
@@ -212,6 +210,9 @@ class Wacc(Device):
             sidx += 1
             pack_float_t(s, sidx, self.config['accel_gravity_scale'])
             sidx += 4
+            self.config['enable_sync_mode'] = 0 # TODO: hardcoded disabled until implemented
+            pack_uint8_t(s, sidx, self.config['enable_sync_mode'])
+            sidx += 1
             return sidx
 
     # ################Transport Callbacks #####################
