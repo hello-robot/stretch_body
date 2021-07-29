@@ -70,8 +70,7 @@ class Stepper(Device):
     API to the Stretch RE1 stepper board
     """
     def __init__(self, usb):
-        name = usb[5:]
-        Device.__init__(self, name)
+        Device.__init__(self, name=usb[5:])
         self.usb=usb
         self.lock=threading.RLock()
         self.transport = Transport(usb=self.usb, logger=self.logger)
@@ -216,7 +215,7 @@ class Stepper(Device):
         print('       In Guarded Event:', self.status['in_guarded_event'])
         print('       In Safety Event:', self.status['in_safety_event'])
         print('       Waiting on Sync:', self.status['waiting_on_sync'])
-        print('Timestamp', self.status['timestamp'])
+        print('Timestamp (s)', self.status['timestamp'])
         print('Read error', self.transport.status['read_error'])
         print('Board version:', self.board_info['board_version'])
         print('Firmware version:', self.board_info['firmware_version'])
@@ -551,9 +550,11 @@ class Stepper(Device):
             self.status['vel'] = unpack_float_t(s[sidx:]);sidx+=4
             self.status['err'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
-            self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+            self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+            timestamp_line_sync = unpack_uint64_t(s[sidx:]);sidx += 8
             self.status['debug'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
+            waypoint_setpoint = unpack_float_t(s[sidx:]);sidx += 4
             self.status['pos_calibrated'] =self.status['diag'] & DIAG_POS_CALIBRATED > 0
             self.status['runstop_on'] =self.status['diag'] & DIAG_RUNSTOP_ON > 0
             self.status['near_pos_setpoint'] =self.status['diag'] & DIAG_NEAR_POS_SETPOINT > 0
@@ -658,6 +659,7 @@ class Stepper(Device):
                 config=config | CONFIG_SAFETY_HOLD
             if self.gains['enable_runstop']:
                 config=config | CONFIG_ENABLE_RUNSTOP
+            self.gains['enable_sync_mode'] = 0 # TODO: hardcoded disabled until fixed
             if self.gains['enable_sync_mode']:
                 config=config | CONFIG_ENABLE_SYNC_MODE
             if self.gains['enable_guarded_mode']:
