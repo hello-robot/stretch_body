@@ -4,6 +4,7 @@ stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
 import unittest
 import stretch_body.stepper
+import stretch_body.pimu
 
 import time
 
@@ -38,3 +39,38 @@ class TestSteppers(unittest.TestCase):
                 self.assertFalse(s.status['is_moving_filtered'])
                 time.sleep(0.1)
             s.stop()
+
+    def test_runstop_status(self):
+        """Verify that runstop status doesn't fluctuate
+        """
+        p = stretch_body.pimu.Pimu()
+        p.startup()
+        s = stretch_body.stepper.Stepper('/dev/hello-motor-arm')
+        s.startup()
+
+        p.runstop_event_reset()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            s.pull_status()
+            self.assertFalse(s.status['runstop_on'])
+
+        p.runstop_event_trigger()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            s.pull_status()
+            self.assertTrue(s.status['runstop_on'])
+
+        p.runstop_event_reset()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            s.pull_status()
+            self.assertFalse(s.status['runstop_on'])
+
+        p.stop()
+        s.stop()

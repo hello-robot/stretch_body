@@ -10,6 +10,7 @@ import time
 
 class TestPimu(unittest.TestCase):
 
+    @unittest.skip(reason='Doesnt test anything yet')
     def test_invalid_protocol(self):
         """Simulate an invalid protocol and verify the correct error.
         """
@@ -18,5 +19,37 @@ class TestPimu(unittest.TestCase):
         p.startup()
         # TODO: capture logging with https://testfixtures.readthedocs.io/en/latest/logging.html
         #       verify output is '[WARNING] [pimu]: \n----------------\nFirmware protocol mismatch on hello-pimu. [...]'
+
+        p.stop()
+
+    def test_runstop_status(self):
+        """Verify that runstop status doesn't fluctuate
+        """
+        p = stretch_body.pimu.Pimu()
+        p.startup()
+
+        p.runstop_event_reset()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            p.pull_status()
+            self.assertFalse(p.status['runstop_event'])
+
+        p.runstop_event_trigger()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            p.pull_status()
+            self.assertTrue(p.status['runstop_event'])
+
+        p.runstop_event_reset()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            p.pull_status()
+            self.assertFalse(p.status['runstop_event'])
 
         p.stop()
