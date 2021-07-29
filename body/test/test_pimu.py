@@ -23,11 +23,44 @@ class TestPimu(unittest.TestCase):
             time.sleep(0.01)
         self.assertTrue(p.status['motor_sync_drop']>75)
 
+    @unittest.skip(reason='Doesnt test anything yet')
     def test_invalid_protocol(self):
         """Simulate an invalid protocol and verify the correct error.
         """
         p = stretch_body.pimu.Pimu()
         p.valid_firmware_protocol = 'p-1' # valid protocols are p0 and up
         self.assertFalse(p.startup())
+
+        p.stop()
+
+    def test_runstop_status(self):
+        """Verify that runstop status doesn't fluctuate
+        """
+        p = stretch_body.pimu.Pimu()
+        p.startup()
+
+        p.runstop_event_reset()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            p.pull_status()
+            self.assertFalse(p.status['runstop_event'])
+
+        p.runstop_event_trigger()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            p.pull_status()
+            self.assertTrue(p.status['runstop_event'])
+
+        p.runstop_event_reset()
+        p.push_command()
+        time.sleep(1)
+        for _ in range(50):
+            time.sleep(0.1)
+            p.pull_status()
+            self.assertFalse(p.status['runstop_event'])
 
         p.stop()
