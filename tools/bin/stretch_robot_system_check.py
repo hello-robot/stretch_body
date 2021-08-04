@@ -77,12 +77,12 @@ if robot_devices['hello-dynamixel-wrist']:
         for mk in w.motors.keys():
             if w.motors[mk].do_ping():
                 print(Fore.GREEN +'[Pass] Ping of: '+mk)
+                if w.motors[mk].motor.is_calibrated():
+                    print(Fore.GREEN + '[Pass] Calibrated: ' + mk)
+                else:
+                    print(Fore.RED + '[Fail] Not Calibrated: ' + mk)
             else:
                 print(Fore.RED + '[Fail] Ping of: ' + mk)
-            if w.motors[mk].motor.is_calibrated():
-                print(Fore.GREEN +'[Pass] Calibrated: '+mk)
-            else:
-                print(Fore.RED + '[Fail] Not Calibrated: ' + mk)
             print(Style.RESET_ALL)
     except IOError:
         print(Fore.RED + '[Fail] Startup of EndOfArm')

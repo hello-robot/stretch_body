@@ -45,9 +45,9 @@ class DynamixelXChain(Device):
         self.motors[m.name]=m
 
     def startup(self):
+        for mk in self.motors.keys():  # Provide nop data in case comm failures
+            self.status[mk] = self.motors[mk].status
         if not self.hw_valid:
-            for mk in self.motors.keys(): #Provide nop data
-                self.status[mk] = self.motors[mk].status
             return False
         if len(self.motors.keys()):
             try:
