@@ -175,6 +175,7 @@ class TestHelloUtils(unittest.TestCase):
 
         test_stats.generate_rate_histogram()
 
+    #TODO: Std deviation - use array of values 
     def test_loop_rate_avg(self):
         """Verify that loop rate averages out correctly after few iterations
         """
@@ -296,4 +297,47 @@ class TestHelloUtils(unittest.TestCase):
         # s.generate_rate_histogram()
         self.assertTrue(s.status['missed_loops'] == 0)
 
-    #TODO: Std deviation - use array of values 
+    def test_evaluate_polynomial_at(self):
+        """Verify correctness of the hello_utils evaluate_polynomial_at method
+
+        Spline coefficients calculated in Desmos at:
+        https://www.desmos.com/calculator/atv5ilhodq
+        """
+        # Segment b
+        b_waypoint1 = {'time': 0.0, 'position': 62.425, 'velocity': 0.0, 'acceleration': 0.0}
+        b_waypoint2 = {'time': 3.0, 'position': 52.350, 'velocity': 0.0, 'acceleration': 0.0}
+        b_segment = [62.425, 0, 0, -3.7314815, 1.8657407, -0.2487654]
+
+        pos, vel, accel = stretch_body.hello_utils.evaluate_polynomial_at(b_segment, b_waypoint1['time'] - b_waypoint1['time'])
+        self.assertAlmostEqual(pos, b_waypoint1['position'], places=4)
+        self.assertAlmostEqual(vel, b_waypoint1['velocity'], places=4)
+        self.assertAlmostEqual(accel, b_waypoint1['acceleration'], places=4)
+
+        pos, vel, accel = stretch_body.hello_utils.evaluate_polynomial_at(b_segment, b_waypoint2['time'] - b_waypoint1['time'])
+        self.assertAlmostEqual(pos, b_waypoint2['position'], places=4)
+        self.assertAlmostEqual(vel, b_waypoint2['velocity'], places=4)
+        self.assertAlmostEqual(accel, b_waypoint2['acceleration'], places=4)
+
+        pos, vel, accel = stretch_body.hello_utils.evaluate_polynomial_at(b_segment, 1.3 - b_waypoint1['time'])
+        self.assertAlmostEqual(pos, 58.632, places=3)
+        self.assertNotAlmostEqual(vel, 0.0, places=4)
+        self.assertNotAlmostEqual(accel, 0, places=4)
+
+        # Segment c
+        c_waypoint1 = {'time': 3.0, 'position': 52.350, 'velocity': 0.0, 'acceleration': 0.0}
+        c_waypoint2 = {'time': 6.0, 'position': 62.425, 'velocity': 0.0, 'acceleration': 0.0}
+        c_segment = [52.350, 0, 0, 3.7314815, -1.8657407, 0.2487654]
+        pos, vel, accel = stretch_body.hello_utils.evaluate_polynomial_at(c_segment, c_waypoint1['time'] - c_waypoint1['time'])
+        self.assertAlmostEqual(pos, c_waypoint1['position'], places=4)
+        self.assertAlmostEqual(vel, c_waypoint1['velocity'], places=4)
+        self.assertAlmostEqual(accel, c_waypoint1['acceleration'], places=4)
+
+        pos, vel, accel = stretch_body.hello_utils.evaluate_polynomial_at(c_segment, c_waypoint2['time'] - c_waypoint1['time'])
+        self.assertAlmostEqual(pos, c_waypoint2['position'], places=4)
+        self.assertAlmostEqual(vel, c_waypoint2['velocity'], places=4)
+        self.assertAlmostEqual(accel, c_waypoint2['acceleration'], places=4)
+
+        pos, vel, accel = stretch_body.hello_utils.evaluate_polynomial_at(c_segment, 4.584 - c_waypoint1['time'])
+        self.assertAlmostEqual(pos, 57.915, places=3)
+        self.assertNotAlmostEqual(vel, 0.0, places=4)
+        self.assertNotAlmostEqual(accel, 0, places=4)

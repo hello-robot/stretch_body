@@ -242,3 +242,24 @@ def thread_service_shutdown(signum, frame):
     print('Caught signal %d' % signum)
     raise ThreadServiceExit
 
+def evaluate_polynomial_at(poly, t):
+    """Evaluate a quintic polynomial at a given time.
+
+    Parameters
+    ----------
+    poly : List(float)
+        Represents a quintic polynomial as a coefficients array [a0, a1, a2, a3, a4, a5].
+        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
+    t : float
+        the time in seconds at which to evaluate the polynomial
+
+    Returns
+    -------
+    Tuple(float)
+        array with three elements: evaluated position, velocity, and acceleration.
+    """
+    a = poly
+    pos = a[0] + (a[1]*t) + (a[2]*t**2) + (a[3]*t**3) + (a[4]*t**4) + (a[5]*t**5)
+    vel = a[1] + (2*a[2]*t) + (3*a[3]*t**2) + (4*a[4]*t**3) + (5*a[5]*t**4)
+    accel = (2*a[2]) + (6*a[3]*t) + (12*a[4]*t**2) + (20*a[5]*t**3)
+    return (pos, vel, accel)
