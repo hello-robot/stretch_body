@@ -60,6 +60,7 @@ class RobotCollision(Device):
         self.models_enabled={}
 
     def startup(self):
+        Device.startup(self, threaded=False)
         model_names = []
         if self.params.get('models'):
             model_names=model_names+self.params.get('models')

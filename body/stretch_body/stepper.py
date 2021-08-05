@@ -127,7 +127,8 @@ class StepperBase(Device):
         self.gains = self.params['gains'].copy()
 
     # ###########  Device Methods #############
-    def startup(self):
+    def startup(self, threaded=False):
+        Device.startup(self, threaded=threaded)
         with self.lock:
             self.hw_valid = self.transport.startup()
             if self.hw_valid:
@@ -140,6 +141,7 @@ class StepperBase(Device):
 
     #Configure control mode prior to calling this on process shutdown (or default to freewheel)
     def stop(self):
+        Device.stop(self)
         if not self.hw_valid:
             return
         with self.lock:
@@ -978,12 +980,12 @@ class Stepper(StepperBase):
         # Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Stepper_Protocol_P0,), 'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,)}
 
-    def startup(self):
+    def startup(self, threaded=False):
         """
         First determine which protocol version the uC firmware is running.
         Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol
         """
-        StepperBase.startup(self)
+        StepperBase.startup(self, threaded=threaded)
         if self.hw_valid:
             if self.board_info['protocol_version'] in self.supported_protocols:
                 Stepper.__bases__ = self.supported_protocols[self.board_info['protocol_version']]

@@ -189,7 +189,8 @@ class PimuBase(Device):
 
     # ###########  Device Methods #############
 
-    def startup(self):
+    def startup(self, threaded=False):
+        Device.startup(self, threaded=threaded)
         with self.lock:
             self.hw_valid = self.transport.startup()
             if self.hw_valid:
@@ -201,6 +202,7 @@ class PimuBase(Device):
             return False
 
     def stop(self):
+        Device.stop(self)
         if not self.hw_valid:
             return
         with self.lock:
@@ -558,12 +560,12 @@ class Pimu(PimuBase):
         # Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Pimu_Protocol_P0,), 'p1': (Pimu_Protocol_P1,Pimu_Protocol_P0,)}
 
-    def startup(self):
+    def startup(self, threaded=False):
         """
         First determine which protocol version the uC firmware is running.
         Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol
         """
-        PimuBase.startup(self)
+        PimuBase.startup(self, threaded=threaded)
         if self.hw_valid:
             if self.board_info['protocol_version'] in self.supported_protocols:
                 Pimu.__bases__ = self.supported_protocols[self.board_info['protocol_version']]

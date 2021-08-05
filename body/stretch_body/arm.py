@@ -29,12 +29,14 @@ class Arm(Device):
 
     # ###########  Device Methods #############
 
-    def startup(self):
-        success= self.motor.startup()
+    def startup(self, threaded=False):
+        Device.startup(self, threaded=threaded)
+        success = self.motor.startup(threaded=False)
         self.__update_status()
         return success
 
     def stop(self):
+        Device.stop(self)
         self.motor.stop()
 
     def pull_status(self):

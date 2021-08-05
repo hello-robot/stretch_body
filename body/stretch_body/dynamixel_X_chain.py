@@ -1,5 +1,6 @@
 from __future__ import print_function
 import stretch_body.hello_utils as hello_utils
+from stretch_body.device import Device
 import time
 
 # The code can be found in the following directory:
@@ -51,7 +52,8 @@ class DynamixelXChain(Device):
         except (AttributeError, KeyError):
             return None
 
-    def startup(self):
+    def startup(self, threaded=False):
+        Device.startup(self, threaded=threaded)
         for mk in self.motors.keys():  # Provide nop data in case comm failures
             self.status[mk] = self.motors[mk].status
         if not self.hw_valid:
@@ -75,7 +77,7 @@ class DynamixelXChain(Device):
                                 self.logger.error('Dynamixel X sync read initialization failed.')
                                 raise DynamixelCommError
                 for mk in self.motors.keys():
-                    if not self.motors[mk].startup():
+                    if not self.motors[mk].startup(threaded=False):
                         raise DynamixelCommError
                     self.status[mk] = self.motors[mk].status
                 self.pull_status()
@@ -86,6 +88,7 @@ class DynamixelXChain(Device):
         return True
 
     def stop(self):
+        Device.stop(self)
         if not self.hw_valid:
             return
         for mk in self.motors.keys():

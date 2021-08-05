@@ -128,7 +128,8 @@ class DynamixelHelloXL430(Device):
     def do_ping(self, verbose=False):
         return self.motor.do_ping(verbose)
 
-    def startup(self):
+    def startup(self, threaded=False):
+        Device.startup(self, threaded=threaded)
         try:
             if self.motor.do_ping(verbose=False):
                 self.hw_valid = True
@@ -166,6 +167,7 @@ class DynamixelHelloXL430(Device):
 
 
     def stop(self):
+        Device.stop(self)
         if self.hw_valid:
             self.disable_torque()
             self.hw_valid = False
