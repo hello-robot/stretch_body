@@ -1,5 +1,6 @@
 ![](./docs/images/banner.png)
 
+
 # Overview
 
 The stretch_body repository includes Python packages that allow a developer to interact with the hardware of the Stretch RE1 robot. These packages are:
