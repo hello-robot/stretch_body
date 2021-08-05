@@ -1,6 +1,8 @@
 import unittest
 import stretch_body.device
 
+import time
+
 
 class TestDevice(unittest.TestCase):
 
@@ -18,3 +20,38 @@ class TestDevice(unittest.TestCase):
         d2.logger.info('hi')
         # TODO: capture logging with https://testfixtures.readthedocs.io/en/latest/logging.html
         #       verify output is '[INFO][wrist_yaw]hi\n[INFO][stretch_gripper]hi\n'
+
+    def test_threaded(self):
+        class SometimesThreadedDevice(stretch_body.device.Device):
+            def __init__(self):
+                stretch_body.device.Device.__init__(self)
+            def startup(self, threaded=False):
+                self.pulling_status = False
+                stretch_body.device.Device.startup(self, threaded=threaded)
+            def pull_status(self):
+                self.pulling_status = True
+
+        # not threaded
+        d = SometimesThreadedDevice()
+        d.startup()
+        time.sleep(0.1)
+        self.assertFalse(d.pulling_status)
+        time.sleep(0.1)
+        self.assertFalse(d.pulling_status)
+        d.stop()
+
+        # threaded
+        d.startup(threaded=True)
+        time.sleep(0.1)
+        self.assertTrue(d.pulling_status)
+        time.sleep(0.1)
+        self.assertTrue(d.pulling_status)
+        d.stop()
+
+        # not threaded
+        d.startup()
+        time.sleep(0.1)
+        self.assertFalse(d.pulling_status)
+        time.sleep(0.1)
+        self.assertFalse(d.pulling_status)
+        d.stop()
