@@ -71,6 +71,8 @@ DIAG_IN_GUARDED_EVENT = 512     # Guarded event occured during motion
 DIAG_IN_SAFETY_EVENT = 1024      #Is it forced into safety mode
 DIAG_WAITING_ON_SYNC = 2048     #Command received but no sync yet
 DIAG_TRAJ_ACTIVE     = 4096     # Whether a waypoint trajectory is actively executing
+DIAG_TRAJ_WAITING_ON_SYNC = 8192
+DIAG_IN_SYNC_MODE=16384
 
 CONFIG_SAFETY_HOLD =1           #Hold position in safety mode? Otherwise freewheel
 CONFIG_ENABLE_RUNSTOP =2        #Recognize runstop signal?
@@ -100,12 +102,15 @@ class Stepper(Device):
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
-                       'in_safety_event':0,'waiting_on_sync':0,'waypoint_setpoint':None,'trajectory_active':0}
+                       'in_safety_event':0,
+                       'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,}}
         self.board_info={'board_version':None, 'firmware_version':None,'protocol_version':None}
         self.motion_limits=[0,0]
         self.is_moving_history = [False] * 10
+
         self.waypoint_traj_segment = [0] * 8
-        self.waypoint_traj_id = None
+        self._waypoint_traj_start_success = False
+        self._waypoint_traj_set_next_traj_success = False
 
         self._dirty_command = False
         self._dirty_gains = False
@@ -221,7 +226,6 @@ class Stepper(Device):
         print('Effort', self.status['effort'])
         print('Current (A)', self.status['current'])
         print('Error (deg)', rad_to_deg(self.status['err']))
-        print('Waypoint Setpoint (rad)', self.status['waypoint_setpoint'], '(deg)', rad_to_deg(self.status['waypoint_setpoint']))
         print('Debug', self.status['debug'])
         print('Guarded Events:', self.status['guarded_event'])
         print('Diag', self.status['diag'])
@@ -238,7 +242,11 @@ class Stepper(Device):
         print('       In Guarded Event:', self.status['in_guarded_event'])
         print('       In Safety Event:', self.status['in_safety_event'])
         print('       Waiting on Sync:', self.status['waiting_on_sync'])
-        print('       Waypoint Trajectory Active:', self.status['trajectory_active'])
+        print('Waypoint Trajectory')
+        print('       State:', self.status['waypoint_traj']['state'])
+        print('       Setpoint: (rad) %s | (deg) %s'%(self.status['waypoint_traj']['setpoint'],  rad_to_deg(self.status['waypoint_traj']['setpoint'])))
+        print('       Segment ID:', self.status['waypoint_traj']['segment_id'])
+
         print('Timestamp (s)', self.status['timestamp'])
         print('Read error', self.transport.status['read_error'])
         print('Board version:', self.board_info['board_version'])
@@ -558,7 +566,7 @@ class Stepper(Device):
     # ################Waypoint Trajectory Interface #####################
     def start_waypoint_trajectory(self, first_segment):
         """Starts execution of a waypoint trajectory on hardware
-
+        Return True if uC successfully initiated a new trajectory
         Parameters
         ----------
         first_segment : list
@@ -574,13 +582,17 @@ class Stepper(Device):
                 sidx = self.pack_trajectory_segment(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_start_new_traj_reply)
             self.transport.step2()
+            return self._waypoint_traj_start_success
 
     def set_next_trajectory_segment(self, next_segment):
         """Sets the next segment for the hardware to execute
+        Return True if uC successfully queued next trajectory
 
         This method is generally called multiple times while the prior segment is executing. This
         provides the hardware with the next segment to gracefully transition across the entire spline,
         while allowing users to preempt or modify the future trajectory in real time.
+
+        This will return False if there is not already an segment executing on the uC
 
         Parameters
         ----------
@@ -597,6 +609,7 @@ class Stepper(Device):
                 sidx = self.pack_trajectory_segment(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_set_next_traj_seg_reply)
             self.transport.step2()
+            return self._waypoint_traj_set_next_traj_success
 
     def stop_waypoint_trajectory(self):
         """Stops execution of the waypoint trajectory running in hardware
@@ -631,7 +644,9 @@ class Stepper(Device):
             timestamp_line_sync = unpack_uint64_t(s[sidx:]);sidx += 8
             self.status['debug'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
-            self.status['waypoint_setpoint'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.status['waypoint_traj']['setpoint'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.status['waypoint_traj']['segment_id'] = unpack_uint16_t(s[sidx:]);sidx += 2
+
             self.status['pos_calibrated'] =self.status['diag'] & DIAG_POS_CALIBRATED > 0
             self.status['runstop_on'] =self.status['diag'] & DIAG_RUNSTOP_ON > 0
             self.status['near_pos_setpoint'] =self.status['diag'] & DIAG_NEAR_POS_SETPOINT > 0
@@ -644,9 +659,16 @@ class Stepper(Device):
             self.status['in_guarded_event'] = self.status['diag'] & DIAG_IN_GUARDED_EVENT > 0
             self.status['in_safety_event'] = self.status['diag'] & DIAG_IN_SAFETY_EVENT > 0
             self.status['waiting_on_sync'] = self.status['diag'] & DIAG_WAITING_ON_SYNC > 0
-            self.status['trajectory_active'] = self.status['diag'] & DIAG_TRAJ_ACTIVE > 0
-            # in_sync_mode = self.status['diag'] & DIAG_IN_SYNC_MODE > 0
+            self.status['in_sync_mode'] = self.status['diag'] & DIAG_IN_SYNC_MODE > 0
+
+            if self.status['diag'] & DIAG_TRAJ_WAITING_ON_SYNC > 0:
+                self.status['waypoint_traj']['state']='waiting_on_snyc'
+            elif self.status['diag'] & DIAG_TRAJ_ACTIVE > 0:
+                self.status['waypoint_traj']['state']='active'
+            else:
+                self.status['waypoint_traj']['state']='idle'
             return sidx
+
 
 
     def unpack_gains(self,s):
@@ -817,14 +839,14 @@ class Stepper(Device):
     def rpc_start_new_traj_reply(self, reply):
         if reply[0] == RPC_REPLY_START_NEW_TRAJECTORY:
             with self.lock:
-                self.waypoint_traj_id = unpack_uint8_t(reply[1:])
+                self._waypoint_traj_start_success = unpack_uint8_t(reply[1:])
         else:
             self.logger.error('RPC_REPLY_START_NEW_TRAJECTORY replied {0}'.format(reply[0]))
 
     def rpc_set_next_traj_seg_reply(self, reply):
         if reply[0] == RPC_REPLY_SET_NEXT_TRAJECTORY_SEG:
             with self.lock:
-                self.waypoint_traj_id = unpack_uint8_t(reply[1:])
+                self._waypoint_traj_set_next_traj_success = unpack_uint8_t(reply[1:])
         else:
             self.logger.error('RPC_REPLY_SET_NEXT_TRAJECTORY_SEG replied {0}'.format(reply[0]))
 
