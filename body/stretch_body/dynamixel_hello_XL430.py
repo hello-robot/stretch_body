@@ -132,8 +132,8 @@ class DynamixelHelloXL430(Device):
 
     def stop(self):
         if self.hw_valid:
-            self.hw_valid = False
             self.disable_torque()
+            self.hw_valid = False
 
     def pull_status(self,data=None):
         if not self.hw_valid:
