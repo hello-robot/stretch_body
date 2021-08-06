@@ -579,6 +579,9 @@ class Stepper(Device):
             six coefficients (a0-a5) fill the first seven elements of the list. A segment ID, always
             2 for the first segment, fills the last element of the list.
         """
+        if first_segment[7]!=2:
+            self.logger.warning('Invalid waypoint segment ID for %s'%self.name)
+            return False
         self.waypoint_traj_segment = first_segment
         with self.lock:
             if self.waypoint_traj_segment is not None:
@@ -606,6 +609,9 @@ class Stepper(Device):
             coefficients are calculated to smoothly transition across a spline. The segment ID, always
             1 higher than the prior segment's ID, fills the last element of the list.
         """
+        if next_segment[7]<3:
+            self.logger.warning('Invalid waypoint segment ID for %s' % self.name)
+            return False
         self.waypoint_traj_segment = next_segment
         with self.lock:
             if self.waypoint_traj_segment is not None:
