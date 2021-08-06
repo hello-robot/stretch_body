@@ -98,6 +98,9 @@ class Segment:
                np.isclose(self.a4, other.a4, atol=1e-2) and \
                np.isclose(self.a5, other.a5, atol=1e-2)
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @classmethod
     def zeros(cls, segment_id=2):
         return cls(segment_id=segment_id, duration=0, a0=0, a1=0, a2=0, a3=0, a4=0, a5=0)
@@ -116,6 +119,22 @@ class Segment:
         if only_coeffs:
             return [self.a0, self.a1, self.a2, self.a3, self.a4, self.a5]
         return [self.duration, self.a0, self.a1, self.a2, self.a3, self.a4, self.a5, self.segment_id]
+
+    @classmethod
+    def from_two_waypoints(cls, waypoint1, waypoint2, segment_id):
+        if waypoint1.acceleration is not None and waypoint2.acceleration is not None:
+            i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity, waypoint1.acceleration]
+            i2_waypoint = [waypoint2.time, waypoint2.position, waypoint2.velocity, waypoint2.acceleration]
+            segment_arr = hu.generate_quintic_polynomial(i1_waypoint, i2_waypoint)
+        elif waypoint1.velocity is not None and waypoint2.velocity is not None:
+            i1_waypoint = [waypoint1.time, waypoint1.position, waypoint1.velocity]
+            i2_waypoint = [waypoint2.time, waypoint2.position, waypoint2.velocity]
+            segment_arr = hu.generate_cubic_polynomial(i1_waypoint, i2_waypoint)
+        else:
+            i1_waypoint = [waypoint1.time, waypoint1.position]
+            i2_waypoint = [waypoint2.time, waypoint2.position]
+            segment_arr = hu.generate_linear_polynomial(i1_waypoint, i2_waypoint)
+        return cls.from_array(segment_arr, segment_id=segment_id)
 
     def evaluate_at(self, t):
         return hu.evaluate_polynomial_at(self.to_array(only_coeffs=True), t)

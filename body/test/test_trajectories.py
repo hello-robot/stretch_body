@@ -159,3 +159,51 @@ class TestTrajectories(unittest.TestCase):
         self.assertAlmostEqual(pos, 57.915, places=3)
         self.assertNotAlmostEqual(vel, 0.0, places=4)
         self.assertNotAlmostEqual(accel, 0, places=4)
+
+    def test_segment_from_two_waypoints(self):
+        """Verify correctness of the Segment.from_two_waypoints method
+
+        Spline coefficients calculated in Desmos at:
+        https://www.desmos.com/calculator/lc8dyfouay
+        """
+        b_waypoint1 = stretch_body.trajectories.Waypoint(time=0.148, position=0.307, velocity=-0.026, acceleration=0.1320)
+        b_waypoint2 = stretch_body.trajectories.Waypoint(time=0.512, position=0.246, velocity= 0.070, acceleration=0.1943)
+        expected_b_segment = [0.364, 0.307, -0.026, 0.066, -13.8610492077, 57.9964235233, -64.1494569109]
+        expected_b_segment = stretch_body.trajectories.Segment.from_array(expected_b_segment, segment_id=0)
+        calculated_b_segment = stretch_body.trajectories.Segment.from_two_waypoints(b_waypoint1, b_waypoint2, segment_id=0)
+        self.assertTrue(expected_b_segment == calculated_b_segment)
+        self.assertFalse(expected_b_segment != calculated_b_segment)
+
+        f_waypoint1 = stretch_body.trajectories.Waypoint(time=0.512, position=0.246, velocity=0.07)
+        f_waypoint2 = stretch_body.trajectories.Waypoint(time=0.964, position=0.170, velocity=0.06)
+        expected_f_segment = [0.452, 0.246, 0.07, -1.55846189991, 2.28230081565, 0, 0]
+        expected_f_segment = stretch_body.trajectories.Segment.from_array(expected_f_segment, segment_id=0)
+        calculated_f_segment = stretch_body.trajectories.Segment.from_two_waypoints(f_waypoint1, f_waypoint2, segment_id=0)
+        self.assertTrue(expected_f_segment == calculated_f_segment)
+        self.assertFalse(expected_f_segment != calculated_f_segment)
+
+        d_waypoint1 = stretch_body.trajectories.Waypoint(time=0.964, position=0.170, velocity=0.06, acceleration=-0.145)
+        d_waypoint2 = stretch_body.trajectories.Waypoint(time=1.270, position=0.303, velocity=0.30, acceleration= 0.068)
+        expected_d_segment = [0.306, 0.17, 0.06, -0.0725, 30.5797367333, -140.544613558, 177.975073164]
+        expected_d_segment = stretch_body.trajectories.Segment.from_array(expected_d_segment, segment_id=0)
+        calculated_d_segment = stretch_body.trajectories.Segment.from_two_waypoints(d_waypoint1, d_waypoint2, segment_id=0)
+        self.assertTrue(expected_d_segment == calculated_d_segment)
+        self.assertFalse(expected_d_segment != calculated_d_segment)
+
+        e_waypoint1 = {'time': 1.27, 'position': 0.303}
+        e_waypoint2 = {'time': 2.00, 'position': 0.500}
+        e_waypoint1 = stretch_body.trajectories.Waypoint(time=1.27, position=0.303)
+        e_waypoint2 = stretch_body.trajectories.Waypoint(time=2.00, position=0.500)
+        expected_e_segment = [0.73, 0.303, 0.269863013699, 0, 0, 0, 0]
+        expected_e_segment = stretch_body.trajectories.Segment.from_array(expected_e_segment, segment_id=0)
+        calculated_e_segment = stretch_body.trajectories.Segment.from_two_waypoints(e_waypoint1, e_waypoint2, segment_id=0)
+        self.assertTrue(expected_e_segment == calculated_e_segment)
+        self.assertFalse(expected_e_segment != calculated_e_segment)
+
+        g_waypoint1 = stretch_body.trajectories.Waypoint(time=2.00, position=0.500, velocity=0.00, acceleration=0.10)
+        g_waypoint2 = stretch_body.trajectories.Waypoint(time=2.49, position=0.005, velocity=0.78, acceleration=0.51)
+        expected_g_segment = [0.49, 0.5, 0, 0.05, -54.854605649, 173.708754214, -143.990651018]
+        expected_g_segment = stretch_body.trajectories.Segment.from_array(expected_g_segment, segment_id=0)
+        calculated_g_segment = stretch_body.trajectories.Segment.from_two_waypoints(g_waypoint1, g_waypoint2, segment_id=0)
+        self.assertTrue(expected_g_segment == calculated_g_segment)
+        self.assertFalse(expected_g_segment != calculated_g_segment)
