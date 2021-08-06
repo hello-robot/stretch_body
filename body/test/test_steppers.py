@@ -101,8 +101,9 @@ class TestSteppers(unittest.TestCase):
         https://www.desmos.com/calculator/atv5ilhodq
         """
         s = stretch_body.stepper.Stepper('/dev/hello-motor-lift')
+        s.disable_sync_mode()
         self.assertTrue(s.startup())
-        limits_rad = (0.0, 115.14478302001953) # lift motor limits
+        limits_rad = (0.0, 115.14478302001953)  # lift motor limits
 
         # bring motor to starting position
         position_rad = 62.425
@@ -138,33 +139,34 @@ class TestSteppers(unittest.TestCase):
         s.push_command()
         time.sleep(0.1)
         start_time = time.time()
-        s.start_waypoint_trajectory(first_segment)
-        print(s.waypoint_traj_id)
+        self.assertTrue(s.start_waypoint_trajectory(first_segment))
 
         # first segment executing
         for _ in range(10):
-            # self.assertEqual(s.waypoint_traj_id, 2) # TODO: uC reports 1 unless next seg loaded
-            print(s.waypoint_traj_id)
+            s.pull_status()
+            self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)
+            print(s.status['waypoint_traj']['segment_id'])
             time.sleep(0.1)
-            s.set_next_trajectory_segment(second_segment)
+            self.assertTrue(s.set_next_trajectory_segment(second_segment))
             s.pull_status()
             self.assertLessEqual(s.status['pos'], 62.425 + 1.0)
             self.assertGreaterEqual(s.status['pos'], 52.35 - 1.0)
             pos, _, _ = evaluate_polynomial_at(first_segment[1:-1], time.time() - start_time)
             self.assertAlmostEqual(s.status['pos'], pos, places=-1)
-        time.sleep(2) # let the remainder of the first segment complete
+        time.sleep(2)  # let the remainder of the first segment complete
 
         # second segment executing
         for _ in range(10):
-            # self.assertEqual(s.waypoint_traj_id, 3) # TODO: uC doesn't report 3
-            print(s.waypoint_traj_id)
+            s.pull_status()
+            self.assertEqual(s.status['waypoint_traj']['segment_id'], 3)
+            print(s.status['waypoint_traj']['segment_id'])
             time.sleep(0.1)
             s.pull_status()
             self.assertLessEqual(s.status['pos'], 62.425 + 1.0)
             self.assertGreaterEqual(s.status['pos'], 52.35 - 1.0)
             pos, _, _ = evaluate_polynomial_at(second_segment[1:-1], (time.time() - start_time) - 3.0)
             self.assertAlmostEqual(s.status['pos'], pos, places=-1)
-        time.sleep(2) # let the remainder of the second segment complete
+        time.sleep(2)  # let the remainder of the second segment complete
 
         s.pull_status()
         self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
