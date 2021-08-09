@@ -364,9 +364,9 @@ class Pimu(Device):
             self.status['low_voltage_alert'] = (self.status['state'] & STATE_LOW_VOLTAGE_ALERT) != 0
             self.status['high_current_alert'] = (self.status['state'] & STATE_HIGH_CURRENT_ALERT) != 0
             self.status['over_tilt_alert'] = (self.status['state'] & STATE_OVER_TILT_ALERT) != 0
+
             self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
             self.imu.status['timestamp'] = self.status['timestamp']
-            timestamp_line_sync = unpack_uint64_t(s[sidx:]); sidx += 8
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
             self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
             self.status['cpu_temp']=self.get_cpu_temp()
@@ -403,8 +403,6 @@ class Pimu(Device):
             pack_float_t(s, sidx, self.config['low_voltage_alert']);sidx += 4
             pack_float_t(s, sidx, self.config['high_current_alert']);sidx += 4
             pack_float_t(s, sidx, self.config['over_tilt_alert']); sidx += 4
-            self.config['enable_sync_mode'] = 0 # TODO: hardcoded disabled until implemented
-            pack_uint8_t(s, sidx, self.config['enable_sync_mode']); sidx += 1
             return sidx
 
     def pack_trigger(self,s,sidx):

@@ -25,15 +25,20 @@ class Arm(Device):
     # ###########  Device Methods #############
 
     def startup(self):
-        return self.motor.startup()
+        success= self.motor.startup()
+        self.__update_status()
+        return success
 
     def stop(self):
         self.motor.stop()
 
     def pull_status(self):
         self.motor.pull_status()
-        self.status['timestamp_pc']=time.time()
-        self.status['pos']= self.motor_rad_to_translate(self.status['motor']['pos'])
+        self.__update_status()
+
+    def __update_status(self):
+        self.status['timestamp_pc'] = time.time()
+        self.status['pos'] = self.motor_rad_to_translate(self.status['motor']['pos'])
         self.status['vel'] = self.motor_rad_to_translate(self.status['motor']['vel'])
         self.status['force'] = self.motor_current_to_translate_force(self.status['motor']['current'])
 

@@ -651,7 +651,6 @@ class Stepper(Device):
             self.status['err'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
             self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-            timestamp_line_sync = unpack_uint64_t(s[sidx:]);sidx += 8
             self.status['debug'] = unpack_float_t(s[sidx:]);sidx += 4
             self.status['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
             self.status['waypoint_traj']['setpoint'] = unpack_float_t(s[sidx:]);sidx += 4
@@ -770,7 +769,6 @@ class Stepper(Device):
                 config=config | CONFIG_SAFETY_HOLD
             if self.gains['enable_runstop']:
                 config=config | CONFIG_ENABLE_RUNSTOP
-            self.gains['enable_sync_mode'] = 0 # TODO: hardcoded disabled until fixed
             if self.gains['enable_sync_mode']:
                 config=config | CONFIG_ENABLE_SYNC_MODE
             if self.gains['enable_guarded_mode']:
