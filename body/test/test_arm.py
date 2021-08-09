@@ -10,6 +10,11 @@ import time
 
 class TestArm(unittest.TestCase):
 
+    def test_valid_startup_status(self):
+        a = stretch_body.arm.Arm()
+        self.assertTrue(a.startup())
+        self.assertNotEqual(a.status['pos'],0)
+
     def test_homing(self):
         """Test arm homes correctly.
         """
