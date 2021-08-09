@@ -124,6 +124,7 @@ class DynamixelHelloXL430(Device):
                 self.set_range()
                 self.is_calibrated=self.motor.is_calibrated()
                 self.enable_torque()
+                self.pull_status()
                 return True
             else:
                 self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
