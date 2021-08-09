@@ -7,6 +7,7 @@ import subprocess
 from colorama import Fore, Back, Style
 import argparse
 import stretch_body.hello_utils as hu
+from stretch_body.dynamixel_XL430 import *
 hu.print_stretch_re_use()
 
 
@@ -85,20 +86,22 @@ if robot_devices['hello-dynamixel-wrist']:
             else:
                 print(Fore.RED + '[Fail] Ping of: ' + mk)
             print(Style.RESET_ALL)
-    except IOError:
+    except(IOError, DynamixelCommError):
         print(Fore.RED + '[Fail] Startup of EndOfArm')
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-dynamixel-head']:
     print('---- Checking Head ----')
     h = r.head
-    for mk in h.motors.keys():
-        if h.motors[mk].do_ping():
-            print(Fore.GREEN +'[Pass] Ping of: '+mk)
-        else:
-            print(Fore.RED + '[Fail] Ping of: ' + mk)
-        print(Style.RESET_ALL)
-
+    try:
+        for mk in h.motors.keys():
+            if h.motors[mk].do_ping():
+                print(Fore.GREEN +'[Pass] Ping of: '+mk)
+            else:
+                print(Fore.RED + '[Fail] Ping of: ' + mk)
+            print(Style.RESET_ALL)
+    except(IOError, DynamixelCommError):
+        print(Fore.RED + '[Fail] Startup of EndOfArm')
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-wacc']:
