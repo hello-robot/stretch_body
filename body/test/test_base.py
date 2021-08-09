@@ -10,6 +10,11 @@ import time
 
 class TestBase(unittest.TestCase):
 
+    def test_valid_startup_status(self):
+        b = stretch_body.base.Base()
+        self.assertTrue(b.startup())
+        self.assertNotEqual(b.status['translation_force'],0)
+
     def test_fast_base_motion_allowed(self):
         """Verifies fast base motion is allowed at the correct time.
         """

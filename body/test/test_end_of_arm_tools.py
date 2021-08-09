@@ -34,5 +34,3 @@ class TestEndOfArmTools(unittest.TestCase):
             e = stretch_body.end_of_arm_tools.ToolNone()
             e.params['baud'] = 115200
             self.assertFalse(e.startup())
-
-
