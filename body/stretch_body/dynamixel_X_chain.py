@@ -68,7 +68,8 @@ class DynamixelXChain(Device):
                                 self.logger.error('Dynamixel X sync read initialization failed.')
                                 raise DynamixelCommError
                 for mk in self.motors.keys():
-                    self.motors[mk].startup()
+                    if not self.motors[mk].startup():
+                        raise DynamixelCommError
                     self.status[mk] = self.motors[mk].status
                 self.pull_status()
             except DynamixelCommError:

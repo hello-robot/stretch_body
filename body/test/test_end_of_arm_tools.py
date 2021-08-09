@@ -4,7 +4,7 @@ stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
 import unittest
 import stretch_body.end_of_arm_tools
-
+import stretch_body.dynamixel_XL430
 
 class TestEndOfArmTools(unittest.TestCase):
 
@@ -21,3 +21,18 @@ class TestEndOfArmTools(unittest.TestCase):
         e = stretch_body.end_of_arm_tools.ToolStretchGripper()
         self.assertTrue(len(e.joints) > 0)
         self.assertTrue('wrist_yaw' in e.joints)
+
+    def test_catch_startup_exception(self):
+        """Verify that cleanly handle wrong baudrate exceptions
+        """
+        b=stretch_body.dynamixel_XL430.DynamixelXL430.identify_baud_rate(13,'/dev/hello-dynamixel-wrist')
+        if b==115200:
+            e = stretch_body.end_of_arm_tools.ToolNone()
+            e.params['baud']=57600
+            self.assertFalse(e.startup())
+        else:
+            e = stretch_body.end_of_arm_tools.ToolNone()
+            e.params['baud'] = 115200
+            self.assertFalse(e.startup())
+
+
