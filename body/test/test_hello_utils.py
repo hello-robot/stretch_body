@@ -153,7 +153,7 @@ class TestHelloUtils(unittest.TestCase):
 
 
     @unittest.skip(reason="Display not available") #change reason
-    def display_rate_histogram(self):
+    def generate_rate_histogram(self):
         test_loop_name = "test_loop_name"
         test_loop_rate = 100
         test_stats = stretch_body.hello_utils.LoopStats(test_loop_name, test_loop_rate)
@@ -174,7 +174,7 @@ class TestHelloUtils(unittest.TestCase):
         time.sleep(1/stall_time)
         test_stats.mark_loop_end()
 
-        test_stats.display_rate_histogram()
+        test_stats.generate_rate_histogram()
 
     def test_loop_rate_avg(self):
         """Verify that loop rate averages out correctly after few iterations
@@ -294,7 +294,7 @@ class TestHelloUtils(unittest.TestCase):
             noise_pct = random.random()*0.1
             time.sleep(s.get_loop_sleep_time()*(1+noise_pct)) #Add jitter due to 'threading', etc
         s.pretty_print()
-        # s.display_rate_histogram()
+        # s.generate_rate_histogram()
         self.assertTrue(s.status['loop_warns'] == 0)
 
     #TODO: Std deviation - use array of values 
