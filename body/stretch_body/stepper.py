@@ -433,11 +433,17 @@ class Stepper(Device):
 
 
     def wait_until_at_setpoint(self,timeout=15.0):
+        """
+        Poll until near setpoint
+        Return True if success
+        Return False if timeout
+        """
         ts = time.time()
         self.pull_status()
         while not self.status['near_pos_setpoint'] and time.time() - ts < timeout:
             time.sleep(0.1)
             self.pull_status()
+        return self.status['near_pos_setpoint']
 
     def current_to_effort(self,i_A):
         mA_per_tick = (3300 / 255) / (10 * 0.1)
