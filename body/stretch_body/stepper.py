@@ -136,11 +136,11 @@ class Stepper(Device):
         if not self.hw_valid:
             return
         with self.lock:
-            self.hw_valid = False
             self.logger.debug('Shutting down Stepper on: ' + self.usb)
             self.enable_safety()
             self.push_command(exiting=True)
             self.transport.stop()
+            self.hw_valid = False
 
     def push_command(self,exiting=False):
         if not self.hw_valid:

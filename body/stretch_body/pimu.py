@@ -182,10 +182,10 @@ class Pimu(Device):
         if not self.hw_valid:
             return
         with self.lock:
-            self.hw_valid = False
             self.set_fan_off()
             self.push_command(exiting=True)
             self.transport.stop()
+            self.hw_valid = False
 
     def pull_status(self,exiting=False):
         if not self.hw_valid:
