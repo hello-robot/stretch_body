@@ -5,11 +5,26 @@ stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 import unittest
 import stretch_body.arm
 import stretch_body.pimu
-
+import stretch_body.robot
 import time
 
 
 class TestSync(unittest.TestCase):
+
+    def test_sync_when_disabled(self):
+        #Check that sending sync pulse to
+        #Stepper in non-sync mode doesnt place in runstop
+        r = stretch_body.robot.Robot()
+        self.assertTrue(r.startup())
+        r.arm.move_to(0.0)
+        r.push_command()
+        self.assertTrue(r.arm.motor.wait_until_at_setpoint(timeout=3.0))
+        r.arm.motor.disable_sync_mode()
+        r.push_command()
+        r.arm.move_to(0.1)
+        r.push_command()
+        self.assertTrue(r.arm.motor.wait_until_at_setpoint(timeout=3.0))
+        r.stop()
 
     def test_runstop_sync_disabled(self):
         a = stretch_body.arm.Arm()

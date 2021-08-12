@@ -264,6 +264,7 @@ class Stepper(Device):
             self.is_moving_history.pop(0)
             self.is_moving_history.append(self.status['is_moving'])
             self.status['is_moving_filtered'] = max(set(self.is_moving_history), key=self.is_moving_history.count)
+
     # ###########################################################################
     # ###########################################################################
 

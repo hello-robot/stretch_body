@@ -202,6 +202,8 @@ class Arm(Device):
             self.logger.warning('Not able to home arm. Hardware not present')
             return
         print('Homing Arm...')
+        prev_sync = self.motor.gains['enable_sync_mode']
+        prev_guarded = self.motor.gains['enable_guarded_mode']
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
@@ -263,15 +265,16 @@ class Arm(Device):
             time.sleep(2.0)
             print('Arm homing successful')
 
-        #Restore default
-        if not self.motor.gains['enable_guarded_mode']:
-            self.motor.disable_guarded_mode()
-        if self.motor.gains['enable_sync_mode']:
-            self.motor.enable_sync_mode()
-        self.push_command()
+            # Restore default
+            if not prev_guarded:
+                self.motor.disable_guarded_mode()
+            if prev_sync:
+                self.motor.enable_sync_mode()
+            self.push_command()
 
         if measuring:
             return extension_m
+        return 0.0
 
 
     def step_sentry(self,robot):

@@ -15,6 +15,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
     def test_non_multiturn_move_after_enable_pos(self):
         """Verify non-multiturn servo responds to move_to commands after enable_pos.
         """
+        print('test_non_multiturn_move_after_enable_pos')
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_tilt", chain=None)
         servo.params['use_multiturn'] = False
         self.assertTrue(servo.startup())
@@ -37,6 +38,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
     def test_non_multiturn_move_after_home(self):
         """Verify non-multiturn servo responds to move_to commands after homing.
         """
+        print('test_non_multiturn_move_after_home')
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_tilt", chain=None)
         servo.params['use_multiturn'] = False
         servo.params['req_calibration']=True
@@ -52,6 +54,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
     def test_two_hardstop_homing(self):
         """Verify servo hits two hardstops during homing when single_stop=False.
         """
+        print('test_two_hardstop_homing')
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw", chain=None)
         self.assertTrue(servo.startup())
 
@@ -64,6 +67,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
     def test_runstop(self):
         """Verify dynamixel_hello respect runstop via step_sentry
         """
+        print('test_runstop')
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_pan", chain=None)
         self.assertTrue(servo.startup())
         servo.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] = True
@@ -139,6 +143,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
     def test_set_motion_profile(self):
         """Verify set_motion_params sets the Dynamixel's vel/accel profile correctly.
         """
+        print('test_set_motion_profile')
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw", chain=None)
         self.assertTrue(servo.startup())
 
@@ -199,13 +204,14 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         """Verify move_to/move_by with vel/accel doesn't set a motion profile that
         persists to subsequent move_to/move_by commands.
         """
+        print('test_motion_profile_doesnt_persist')
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw", chain=None)
         self.assertTrue(servo.startup())
 
         servo.move_to(0.0)
         time.sleep(5)
 
-        servo.move_to(1.0, v_des=0.0, a_des=0.0)
+        servo.move_to(1.0, v_des=2.0, a_des=2.0)
         move1_vel_ticks = servo.motor.get_profile_velocity()
         move1_accel_ticks = servo.motor.get_profile_acceleration()
         time.sleep(5)

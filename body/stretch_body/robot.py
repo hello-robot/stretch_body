@@ -144,12 +144,14 @@ class Robot(Device):
         """
         To be called once after class instantiation.
         Prepares devices for communications and motion
+        Return True if all devices successfully started up
         """
         self.logger.debug('Starting up Robot {0} of batch {1}'.format(self.params['serial_no'], self.params['batch_name']))
+        success=True
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 if not self.devices[k].startup():
-                    pass
+                    success=False
                 #    print('Startup failure on %s. Exiting.'%k)
                 #    exit()
 
@@ -170,7 +172,7 @@ class Robot(Device):
         ts=time.time()
         while not self.non_dxl_thread.first_status and not self.dxl_thread.first_status and time.time()-ts<3.0:
            time.sleep(0.1)
-
+        return success
 
     def stop(self):
         """
@@ -245,6 +247,7 @@ class Robot(Device):
         if 'stow' in self.end_of_arm.params:  # Allow tool defined stow position to take precedence
             if 'lift' in self.end_of_arm.params['stow']:
                 pos_lift = self.end_of_arm.params['stow']['lift']
+
         if self.lift.status['pos']<=self.params['stow']['lift']: #Needs to come up before bring in arm
             print('--------- Stowing Lift ----')
             self.lift.move_to(pos_lift)
@@ -264,6 +267,7 @@ class Robot(Device):
 
         self.arm.move_to(pos_arm)
         self.push_command()
+
         time.sleep(0.25)
         ts = time.time()
         while not self.arm.motor.status['near_pos_setpoint'] and time.time() - ts < 3.0:

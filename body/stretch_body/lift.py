@@ -209,6 +209,9 @@ class Lift(Device):
             self.logger.warning('Not able to home lift. Hardware not present')
             return
         print('Homing lift...')
+        prev_sync=self.motor.gains['enable_sync_mode']
+        prev_guarded=self.motor.gains['enable_guarded_mode']
+
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
@@ -243,9 +246,9 @@ class Lift(Device):
         time.sleep(6.0)
 
         #Restore default
-        if not self.motor.gains['enable_guarded_mode']:
+        if not prev_guarded:
             self.motor.disable_guarded_mode()
-        if self.motor.gains['enable_sync_mode']:
+        if prev_sync:
             self.motor.enable_sync_mode()
         self.push_command()
 

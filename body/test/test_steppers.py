@@ -29,6 +29,7 @@ class TestSteppers(unittest.TestCase):
     def test_is_moving_filtered(self):
         """Test that is_moving_filtered is False when no motion
         """
+        print('test_is_moving_filtered')
         motors=['/dev/hello-motor-left-wheel','/dev/hello-motor-right-wheel','/dev/hello-motor-arm','/dev/hello-motor-lift']
         for m in motors:
             print('Testing is moving filtered for %s'%m)
@@ -44,6 +45,7 @@ class TestSteppers(unittest.TestCase):
     def test_runstop_status(self):
         """Verify that runstop status doesn't fluctuate
         """
+        print('test_runstop_status')
         p = stretch_body.pimu.Pimu()
         p.startup()
         s = stretch_body.stepper.Stepper('/dev/hello-motor-arm')
@@ -79,8 +81,10 @@ class TestSteppers(unittest.TestCase):
     def test_position_trajectory_interface(self):
         """Verify correct behavior of the position waypoint interface
         """
+        print('test_position_trajectory_interface')
         s = stretch_body.stepper.Stepper('/dev/hello-motor-lift')
         self.assertTrue(s.startup())
+        s.disable_sync_mode()
         limits_rad = (0.0, 115.14478302001953) # lift motor limits
         position_rad = 62.425
         velocity_rad = 9.948
@@ -103,13 +107,15 @@ class TestSteppers(unittest.TestCase):
         time.sleep(7)
 
         s.pull_status()
-        self.assertAlmostEqual(s.status['pos'], position_rad, places=2)
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
 
         s.stop()
+
 
     def test_stop_waypoint_trajectory_interface(self):
         """Verify that waypoint trajectories stop as expected
         """
+        print('test_stop_waypoint_trajectory_interface')
         s = stretch_body.stepper.Stepper('/dev/hello-motor-lift')
         s.disable_sync_mode()
         self.assertTrue(s.startup())
@@ -232,7 +238,7 @@ class TestSteppers(unittest.TestCase):
         start_time = time.time()
         self.assertTrue(s.start_waypoint_trajectory(first_segment))
 
-        # first segment executing, stop by sending a duration=0 second segment
+        # first segment executing, stop by sending a stop_waypoint_trajectory
         for _ in range(10):
             s.pull_status()
             self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)
@@ -253,6 +259,7 @@ class TestSteppers(unittest.TestCase):
     def test_malicious_waypoint_trajectory_interface(self):
         #Send bad values to trajectory interface
         #Joint should not move
+        print('test_malicious_waypoint_trajectory_interface')
         s = stretch_body.stepper.Stepper('/dev/hello-motor-lift')
         s.disable_sync_mode()
         self.assertTrue(s.startup())
@@ -279,6 +286,7 @@ class TestSteppers(unittest.TestCase):
         Spline coefficients calculated in Desmos at:
         https://www.desmos.com/calculator/atv5ilhodq
         """
+        print('test_waypoint_trajectory_interface')
         s = stretch_body.stepper.Stepper('/dev/hello-motor-lift')
         s.disable_sync_mode()
         self.assertTrue(s.startup())
@@ -324,7 +332,7 @@ class TestSteppers(unittest.TestCase):
         for _ in range(10):
             s.pull_status()
             self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)
-            print(s.status['waypoint_traj']['segment_id'])
+            #print(s.status['waypoint_traj']['segment_id'])
             time.sleep(0.1)
             self.assertTrue(s.set_next_trajectory_segment(second_segment))
             s.pull_status()
@@ -338,7 +346,7 @@ class TestSteppers(unittest.TestCase):
         for _ in range(10):
             s.pull_status()
             self.assertEqual(s.status['waypoint_traj']['segment_id'], 3)
-            print(s.status['waypoint_traj']['segment_id'])
+            #print(s.status['waypoint_traj']['segment_id'])
             time.sleep(0.1)
             s.pull_status()
             self.assertLessEqual(s.status['pos'], 62.425 + 1.0)

@@ -16,9 +16,9 @@ class TestRobot(unittest.TestCase):
 
         Note: this test assumes the stretch_gripper end-effector is attached.
         """
+        print('test_home_and_stow')
         r = stretch_body.robot.Robot()
         r.startup()
-
         r.home()
         r.pull_status()
         time.sleep(1) # wrist_yaw yields 3.4 (stowed position) unless sleep here
@@ -28,7 +28,6 @@ class TestRobot(unittest.TestCase):
         self.assertAlmostEqual(r.status['head']['head_pan']['pos'], 0.0, places=1)
         self.assertAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], 0.0, places=1)
         self.assertAlmostEqual(r.status['end_of_arm']['stretch_gripper']['pos'], 0.0, places=1)
-
         r.stow()
         r.pull_status()
         self.assertAlmostEqual(r.status['lift']['pos'], 0.2, places=1)
@@ -37,13 +36,14 @@ class TestRobot(unittest.TestCase):
         self.assertAlmostEqual(r.status['head']['head_pan']['pos'], 0.0, places=1)
         self.assertAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], 3.4, places=1)
         self.assertAlmostEqual(r.status['end_of_arm']['stretch_gripper']['pos'], 0.0, places=1)
-
         r.stop()
+
 
     @unittest.skip(reason='TODO: Running this test will cause the other two to fail due to busy serial ports')
     def test_endofarmtool_loaded(self):
         """Verify end_of_arm tool loaded correctly in robot.
         """
+        print('test_endofarmtool_loaded')
         r = stretch_body.robot.Robot()
         self.assertEqual(r.end_of_arm.name, r.params['tool'])
         r.stop()
@@ -51,6 +51,7 @@ class TestRobot(unittest.TestCase):
     def test_endofarmtool_custom_stowing(self):
         """Verify custom stowing for non-endofarm devices from tool works.
         """
+        print('test_endofarmtool_custom_stowing')
         r = stretch_body.robot.Robot()
         r.startup()
         if not r.is_calibrated():
@@ -80,6 +81,7 @@ class TestRobot(unittest.TestCase):
         limits that can be set by collision models in the `RobotCollision.step`
         function. The `Robot` class manages threaded execution of `RobotCollision`.
         """
+        print('test_soft_limits_not_overwritten')
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager'] = True
         r.startup()
@@ -97,10 +99,12 @@ class TestRobot(unittest.TestCase):
         r.pull_status()
         time.sleep(1.0)
         self.assertNotAlmostEqual(r.status['arm']['pos'], bad_goal, places=3)
+        r.stop()
 
     def test_dynamixel_runstop(self):
         """Test end_of_arm respects runstop from pimu
         """
+        print('test_dynamixel_runstop')
         r = stretch_body.robot.Robot()
         r.startup()
         if not r.is_calibrated():
