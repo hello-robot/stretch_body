@@ -12,10 +12,12 @@ class RobotCollisionModel(Device):
     """
     The RobotCollisionModel  is a base class to provide simple self-collision avoidance
     Derived (custom) classes should implement the collision logic
-    It works by defining acceptible joint ranges for a defined 'workspace' of the robot
-    It tests the current kinematic state of the robot, determines which of the defined
-    workspaces apply, and then returns that workspace.
-    A joint limit of None denotes the factory hard limit
+    It works by defining acceptible joint ranges for the joints based on the current
+    kinematic state of the robot.
+
+    A joint soft limit of -Inf/Inf denotes the factory hard limit
+    A joint soft limit of None denotes to not change the existing soft limit
+
 
     A custom RobotCollisionModel can be instantiated by declaring the class name / Python module name
     in the User YAML file
@@ -25,17 +27,20 @@ class RobotCollisionModel(Device):
         self.collision_manager=collision_manager
 
     def step(self, status):
-        return {'head_pan': [None, None],'head_tilt': [None, None],'lift': [None, None],'arm': [None, None],'wrist_yaw': [None, None]}
+        return {'head_pan': [None,None],
+                'head_tilt': [None,None],
+                'lift': [None,None],
+                'arm': [None,None],
+                'wrist_yaw': [None,None]}
 
 # #######################################################################
 
 class RobotCollision(Device):
     """
-    The RobotCollisionManager manages a set of collision models, as defined in YAML.
+    The RobotCollision class manages a set of collision models, as defined in YAML.
     It is called periodically by the Robot thread.
-    Each model computes the acceptible joint range given the current kinematic state of the robot.
-    The RobotCollisionManager then sets the joint limits for each joint to the most restrive set of ranges
-    given all models.
+    Each model computes the acceptible range of motion for a subset of joints given the current kinematic state of the robot.
+    The RobotCollision class then sets the joint limits for each joint to the most restrive set of ranges, given all models.
     """
     def __init__(self,robot):
         Device.__init__(self, name='robot_collision')
@@ -65,27 +70,36 @@ class RobotCollision(Device):
         if name in self.models_enabled:
             self.models_enabled[name]=False
 
+
     def step(self):
         #Compile the list of joints that may be limited
         #Then compute the limits for each from each model
         #Take the most conservative limit for each and pass it to the controller
         status=self.robot.get_status()
-        limits= { 'head_pan': self.robot.head.motors['head_pan'].soft_motion_limits[:],
+
+        current_limits= { 'head_pan': self.robot.head.motors['head_pan'].soft_motion_limits[:],
                   'head_tilt': self.robot.head.motors['head_tilt'].soft_motion_limits[:],
                   'lift': self.robot.lift.soft_motion_limits[:],
                   'arm': self.robot.arm.soft_motion_limits[:]}
+
+        target_limits= { 'head_pan': [-float('inf'),float('inf')],
+                  'head_tilt': [-float('inf'),float('inf')],
+                  'lift': [-float('inf'),float('inf')],
+                  'arm': [-float('inf'),float('inf')]}
+
         for j in self.robot.end_of_arm.joints:
-            limits[j]=self.robot.end_of_arm.motors[j].soft_motion_limits[:]
+            target_limits[j]=[-float('inf'),float('inf')]
+            current_limits[j]=self.robot.end_of_arm.motors[j].soft_motion_limits[:]
 
         for m in self.models:
-            new_limits=m.step(status)
-            for joint in new_limits.keys():
-                if new_limits[joint][0] is not None:
-                    if limits[joint][0] is None or new_limits[joint][0]>limits[joint][0]:
-                        limits[joint][0]=new_limits[joint][0]
-                if new_limits[joint][1] is not None:
-                    if limits[joint][1] is None or new_limits[joint][1]<limits[joint][1]:
-                        limits[joint][1]=new_limits[joint][1]
+            if self.models_enabled[m]:
+                new_limits=m.step(status)
+                #Update target limits based on the model, choose most conservative value
+                for joint in new_limits.keys():
+                    if new_limits[joint][0] is not None:
+                            target_limits[joint][0]=max(new_limits[joint][0], target_limits[joint][0])
+                    if new_limits[joint][1] is not None:
+                        target_limits[joint][1] = min(new_limits[joint][1], target_limits[joint][1])
 
 
         self.robot.lift.set_soft_motion_limits(limits['lift'][0], limits['lift'][1])

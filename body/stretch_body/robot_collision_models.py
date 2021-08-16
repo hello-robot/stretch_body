@@ -38,11 +38,12 @@ class CollisionArmCamera(RobotCollisionModel):
                 'head_tilt': [self.params['head_tilt_avoid_clip'], None]}
         }
 
+
     def step(self, status):
         lift_approach_clip= status['lift']['pos'] > self.params['lift_approach_clip']
         head_tilt_in_clip_range = status['head']['head_tilt']['pos'] < self.params['head_tilt_avoid_clip']
         head_pan_in_clip_range = status['head']['head_pan']['pos']<self.params['head_pan_avoid_clip_pos'] and status['head']['head_pan']['pos']>self.params['head_pan_avoid_clip_neg']
-
+        allow_expand_range = {'lift': [False, False], 'head_pan': [False, False], 'head_tilt': [False, False]}
         if  not lift_approach_clip:
             self.curr_workspace = 'no_limits'
             return self.workspaces[self.curr_workspace]
