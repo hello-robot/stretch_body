@@ -4,13 +4,61 @@ stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
 import unittest
 import stretch_body.dynamixel_hello_XL430
-
+import stretch_body.hello_utils as hu
 import math
 import time
 from concurrent.futures import ThreadPoolExecutor
 
 
 class TestDynamixelHelloXL430(unittest.TestCase):
+
+    def test_soft_motion_limits(self):
+        servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_pan", chain=None)
+        self.assertTrue(servo.startup())
+        servo.enable_pos()
+
+        # Test user limits in both directions
+        limit_pos = hu.deg_to_rad(60.0)
+        servo.set_soft_motion_limit_max(limit_pos, limit_type='user')
+        servo.set_soft_motion_limit_min(-1*limit_pos, limit_type='user')
+        servo.move_to(x_des=hu.deg_to_rad(90.0))
+        time.sleep(2.0)
+        servo.pull_status()
+        self.assertAlmostEqual(servo.status['pos'], limit_pos, places=1)
+        servo.move_to(x_des=hu.deg_to_rad(-90.0))
+        time.sleep(2.0)
+        servo.pull_status()
+        self.assertAlmostEqual(servo.status['pos'], -1*limit_pos, places=1)
+
+
+
+        # Now set collision limits in both directions
+        limit_pos = hu.deg_to_rad(40.0)
+        servo.set_soft_motion_limit_min(-1*limit_pos, limit_type='collision')
+        servo.set_soft_motion_limit_max(limit_pos, limit_type='collision')
+        servo.move_to(x_des=hu.deg_to_rad(90.0))
+        time.sleep(2.0)
+        servo.pull_status()
+        self.assertAlmostEqual(servo.status['pos'], limit_pos, places=1)
+        servo.move_to(x_des=hu.deg_to_rad(-90.0))
+        time.sleep(2.0)
+        servo.pull_status()
+        self.assertAlmostEqual(servo.status['pos'], -1*limit_pos, places=1)
+
+        # # Now remove the collision limits and check user limits still work
+        limit_pos = hu.deg_to_rad(60.0)
+        servo.set_soft_motion_limit_max(None, limit_type='collision')
+        servo.set_soft_motion_limit_min(None, limit_type='collision')
+        servo.move_to(x_des=hu.deg_to_rad(90.0))
+        time.sleep(2.0)
+        servo.pull_status()
+        self.assertAlmostEqual(servo.status['pos'], limit_pos, places=1)
+        servo.move_to(x_des=hu.deg_to_rad(-90.0))
+        time.sleep(2.0)
+        servo.pull_status()
+        self.assertAlmostEqual(servo.status['pos'], -1 * limit_pos, places=1)
+
+        servo.stop()
 
     def test_non_multiturn_move_after_enable_pos(self):
         """Verify non-multiturn servo responds to move_to commands after enable_pos.
@@ -75,21 +123,21 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         def swivel(to_save):
             print('interrupted swivel 1')
             to_save['do_interrupt'] = True
-            servo.move_to(servo.soft_motion_limits[0])
+            servo.move_to(servo.get_soft_motion_limits[0])
             time.sleep(3)
             servo.pull_status()
             to_save['pos1'] = servo.status['pos']
 
             print('interrupted swivel 2')
             to_save['do_interrupt'] = True
-            servo.move_to(servo.soft_motion_limits[1])
+            servo.move_to(servo.get_soft_motion_limits[1])
             time.sleep(3)
             servo.pull_status()
             to_save['pos2'] = servo.status['pos']
 
             print('uninterrupted swivel 3')
             to_save['do_interrupt'] = False
-            servo.move_to(servo.soft_motion_limits[0])
+            servo.move_to(servo.get_soft_motion_limits[0])
             time.sleep(3)
             servo.pull_status()
             to_save['pos3'] = servo.status['pos']
@@ -127,9 +175,9 @@ class TestDynamixelHelloXL430(unittest.TestCase):
             executor.submit(runstop_interrupter, to_save)
 
         self.assertEqual(to_save['interrupts'], 2)
-        self.assertNotAlmostEqual(to_save['pos1'], servo.soft_motion_limits[0], places=1)
-        self.assertNotAlmostEqual(to_save['pos2'], servo.soft_motion_limits[1], places=1)
-        self.assertAlmostEqual(to_save['pos3'], servo.soft_motion_limits[0], places=1)
+        self.assertNotAlmostEqual(to_save['pos1'], servo.get_soft_motion_limits[0], places=1)
+        self.assertNotAlmostEqual(to_save['pos2'], servo.get_soft_motion_limits[1], places=1)
+        self.assertAlmostEqual(to_save['pos3'], servo.get_soft_motion_limits[0], places=1)
         self.assertAlmostEqual(to_save['pos4'], 0.0, places=1)
         self.assertNotAlmostEqual(to_save['vel1'], 0.0, places=2)
         self.assertAlmostEqual(to_save['vel2'], 0.0, places=2)

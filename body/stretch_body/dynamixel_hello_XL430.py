@@ -85,29 +85,44 @@ class DynamixelHelloXL430(Device):
         self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
 
     # ###########  Device Methods #############
-    def set_soft_motion_limit(self,x, set_min, limit_type='user' ):
-        """
-        The soft motion limit restricts joint motion to be less than its physical limits.
 
+    def get_soft_motion_limits(self):
+        """
+            Return the currently applied soft motion limits: [min, max]
+
+            The soft motion limit restricts joint motion to be <= its physical limits.
+
+            There are three types of limits:
+            Hard: The physical limits
+            Collision: Limits set by RobotCollision to avoid collisions
+            User: Limits set by the user software
+
+            The joint is limited to the most restrictive range of the Hard / Collision/ User values.
+            Specifying a value of None for a limit indicates that no constraint exists for that limit type.
+            This allows a User limits and Collision limits to coexist.
+            For example, a user can temporarily restrict the range of motion beyond the current collision limits.
+            Then, by commanding User limits of None, the joint limits will revert back to the collision settings.
+        """
+        return self.soft_motion_limits['current']
+
+    def set_soft_motion_limit_min(self,x,limit_type='user' ):
+        """
         x: value to set a joints limit to
         limit_type: 'user' or 'collision'
-        set_min: True if setting minimum joint range, False if setting maximum
-
-        There are three types of limits:
-        Hard: The physical limits
-        Collision: Limits set by RobotCollision to avoid collisions
-        User: Limits set by the user software
-
-        The joint is limited to the most restrictive range of the Hard / Collision/ User values
-
-        Specifying a value of x=None indicates that no limit constraint for that limit_type exists
         """
-        idx=(0 if set_min==1 else 1)
-        f=(max if set_min==1 else min)
-        self.soft_motion_limits[limit_type][idx]=x
-        xn=f(filter(None,[self.soft_motion_limits['collision'][idx],self.soft_motion_limits['hard'][idx],self.soft_motion_limits['user'][idx]]))
-        self.soft_motion_limits['current'][idx]=xn
+        self.soft_motion_limits[limit_type][0]=x
+        self.soft_motion_limits['current'][0]=max(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][0],self.soft_motion_limits['hard'][0],self.soft_motion_limits['user'][0]]))
 
+
+    def set_soft_motion_limit_max(self,x,limit_type='user' ):
+        """
+        x: value to set a joints limit to
+        limit_type: 'user' or 'collision'
+        """
+        self.soft_motion_limits[limit_type][1]=x
+        self.soft_motion_limits['current'][1]=min(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][1],self.soft_motion_limits['hard'][1],self.soft_motion_limits['user'][1]]))
+
+    # ###################################################
 
     def do_ping(self, verbose=False):
         return self.motor.do_ping(verbose)
@@ -323,7 +338,7 @@ class DynamixelHelloXL430(Device):
             return
         try:
             self.set_motion_params(v_des,a_des)
-            x_des = min(max(self.soft_motion_limits['current'][0], x_des), self.soft_motion_limits['current'][1])
+            x_des = min(max(self.get_soft_motion_limits()[0], x_des), self.get_soft_motion_limits()[1])
             t_des = self.world_rad_to_ticks(x_des)
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)

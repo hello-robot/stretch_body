@@ -33,13 +33,36 @@ class TestArm(unittest.TestCase):
         if not a.motor.status['pos_calibrated']:
             self.fail('test requires arm to be homed')
 
-        limit_pos = 0.2
-        a.set_soft_motion_limits(0,limit_pos)
+        # First a simple user limit test
+        limit_pos = 0.3
+        a.set_soft_motion_limit_min(0, limit_type='user')
+        a.set_soft_motion_limit_max(limit_pos, limit_type='user')
         a.push_command()
-        a.move_to(x_m=0.3)
+        a.move_to(x_m=0.4)
         a.push_command()
         time.sleep(3.0)
         a.pull_status()
         self.assertAlmostEqual(a.status['pos'], limit_pos, places=1)
 
+        # Now set a collision limit
+        limit_pos = 0.2
+        a.set_soft_motion_limit_min(0, limit_type='collision')
+        a.set_soft_motion_limit_max(limit_pos, limit_type='collision')
+        a.push_command()  # This should move to the new more restricted limt
+        time.sleep(2.0)
+        a.pull_status()
+        self.assertAlmostEqual(a.status['pos'], limit_pos, places=1)
+
+        # Now remove the collision limit
+        limit_pos = 0.3
+        a.set_soft_motion_limit_min(None, limit_type='collision')
+        a.set_soft_motion_limit_max(None, limit_type='collision')
+        a.move_to(x_m=0.4)
+        a.push_command()  # This should move the old user limit
+        time.sleep(2.0)
+        a.pull_status()
+        self.assertAlmostEqual(a.status['pos'], limit_pos, places=1)
+
         a.stop()
+
+
