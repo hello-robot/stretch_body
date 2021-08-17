@@ -1,6 +1,6 @@
 from __future__ import print_function
 import stretch_body.transport as transport
-from stretch_body.transport import encoder
+from stretch_body.transport import cobs_encoder as encoder
 import time
 import array
 
@@ -27,16 +27,16 @@ def send(method, arguments_format, returns_format, arguments):
         return False
     buffer = array.array('B', [0] * (RPC_BLOCK_SIZE*2))
     buffer[0] = RPC_START_NEW_RPC
-    encoded_buffer = encoder.cobs_frame(data=buffer, size=1)
+    encoded_buffer = encoder.frame(data=buffer, size=1)
     transport.bus.write(encoded_buffer)
-    buffer, size = _receive_data()
+    buffer, size = _receive()
     if buffer[0] != RPC_ACK_NEW_RPC:
         transport.logger.error('Transport RX Error on RPC_ACK_NEW_RPC')
         return False
     return True
 
 
-def _receive_data():
+def _receive():
     start = time.time()
     rx_buffer = []
     while (time.time() - start) < READ_TIMEOUT:
@@ -46,7 +46,7 @@ def _receive_data():
             if type(byte) == str: # Py2 needs this, Py3 not
                 byte = struct.unpack('B', byte)[0]
             if byte == PACKET_MARKER:
-                buffer, size = encoder.cobs_deframe(encoded_data=rx_buffer)
+                buffer, size = encoder.deframe(encoded_data=rx_buffer)
                 return buffer, size
             else:
                 rx_buffer.append(byte)

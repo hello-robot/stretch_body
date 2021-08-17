@@ -3,22 +3,21 @@ import time
 import array
 import struct
 
-# other
 RPC_BLOCK_SIZE = 32
 
 
-def cobs_frame(data, size):
+def frame(data, size):
     crc = calculate_crc(data, size)
     data[size] = (crc >> 8) & 0xFF
     data[size + 1] = (crc) & 0xFF
     size += 2
-    encoded_data = cobs_encode(data, size)
+    encoded_data = encode(data, size)
     encoded_data.append(0x00)
     return encoded_data
 
 
-def cobs_deframe(encoded_data):
-    crc1, data, size = cobs_decode(encoded_data, len(encoded_data))
+def deframe(encoded_data):
+    crc1, data, size = decode(encoded_data, len(encoded_data))
     crc2 = calculate_crc(data, size)
     if crc1 != crc2:
         print("ERROR!!!!! CRC1 not equal CRC2")
@@ -39,7 +38,7 @@ def calculate_crc(data, size):
     return crc
 
 
-def cobs_encode(data, size):
+def encode(data, size):
     read_index = 0
     write_index = 1
     code_index = 0
@@ -66,7 +65,7 @@ def cobs_encode(data, size):
     return encode_buffer[:write_index]
 
 
-def cobs_decode(encoded_data, size):
+def decode(encoded_data, size):
     buffer = array.array('B', [0] * (RPC_BLOCK_SIZE*2))
     if size == 0:
         return (0, buffer, 0)
