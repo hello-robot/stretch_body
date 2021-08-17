@@ -6,12 +6,15 @@ import struct
 RPC_BLOCK_SIZE = 32
 
 
-def frame(data, size):
-    crc = calculate_crc(data, size)
-    data[size] = (crc >> 8) & 0xFF
-    data[size + 1] = (crc) & 0xFF
+def frame(data):
+    size = len(data)
+    buffer = array.array('B', [0] * (RPC_BLOCK_SIZE*2))
+    buffer[:size] = array.array('B', data)
+    crc = calculate_crc(buffer, size)
+    buffer[size] = (crc >> 8) & 0xFF
+    buffer[size + 1] = (crc) & 0xFF
     size += 2
-    encoded_data = encode(data, size)
+    encoded_data = encode(buffer, size)
     encoded_data.append(0x00)
     return encoded_data
 
