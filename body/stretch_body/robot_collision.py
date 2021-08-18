@@ -15,9 +15,7 @@ class RobotCollisionModel(Device):
     It works by defining acceptible joint ranges for the joints based on the current
     kinematic state of the robot.
 
-    A joint soft limit of -Inf/Inf denotes the factory hard limit
-    A joint soft limit of None denotes to not change the existing soft limit
-
+    A joint soft limit of None denotes that no constraint is placed on motion in that direction
 
     A custom RobotCollisionModel can be instantiated by declaring the class name / Python module name
     in the User YAML file
@@ -49,6 +47,7 @@ class RobotCollision(Device):
         self.robot=robot
         self.models=[]
         self.models_enabled={}
+
     def startup(self):
         model_names = []
         if self.params.get('models'):
@@ -56,11 +55,10 @@ class RobotCollision(Device):
             if self.robot.end_of_arm.params.get('collision_models'):
                 model_names = model_names + self.robot.end_of_arm.params.get('collision_models')
         for m in model_names:
-            if self.robot_params[m]['enabled']:
-                self.models_enabled[m]=True
-                module_name = self.robot_params[m]['py_module_name']
-                class_name = self.robot_params[m]['py_class_name']
-                self.models.append(getattr(importlib.import_module(module_name), class_name)(self))
+            module_name = self.robot_params[m]['py_module_name']
+            class_name = self.robot_params[m]['py_class_name']
+            self.models.append(getattr(importlib.import_module(module_name), class_name)(self))
+            self.models_enabled[m]=self.robot_params[m]['enabled']
 
     def enable_model(self,name):
         if name in self.models_enabled:
@@ -77,37 +75,34 @@ class RobotCollision(Device):
         #Take the most conservative limit for each and pass it to the controller
         status=self.robot.get_status()
 
-        current_limits= { 'head_pan': self.robot.head.motors['head_pan'].soft_motion_limits[:],
-                  'head_tilt': self.robot.head.motors['head_tilt'].soft_motion_limits[:],
-                  'lift': self.robot.lift.soft_motion_limits[:],
-                  'arm': self.robot.arm.soft_motion_limits[:]}
-
-        target_limits= { 'head_pan': [-float('inf'),float('inf')],
-                  'head_tilt': [-float('inf'),float('inf')],
-                  'lift': [-float('inf'),float('inf')],
-                  'arm': [-float('inf'),float('inf')]}
-
+        target_limits= { 'head_pan': [None,None],'head_tilt': [None,None],'lift': [None,None],'arm': [None,None]}
         for j in self.robot.end_of_arm.joints:
-            target_limits[j]=[-float('inf'),float('inf')]
-            current_limits[j]=self.robot.end_of_arm.motors[j].soft_motion_limits[:]
+            target_limits[j]=[None,None]
+
 
         for m in self.models:
-            if self.models_enabled[m]:
+            if self.models_enabled[m.name]:
                 new_limits=m.step(status)
                 #Update target limits based on the model, choose most conservative value
                 for joint in new_limits.keys():
                     if new_limits[joint][0] is not None:
-                            target_limits[joint][0]=max(new_limits[joint][0], target_limits[joint][0])
+                        target_limits[joint][0]=new_limits[joint][0] if target_limits[joint][0] is None else max(new_limits[joint][0], target_limits[joint][0])
                     if new_limits[joint][1] is not None:
-                        target_limits[joint][1] = min(new_limits[joint][1], target_limits[joint][1])
+                        target_limits[joint][1]=new_limits[joint][1] if target_limits[joint][1] is None else min(new_limits[joint][1], target_limits[joint][1])
 
 
-        self.robot.lift.set_soft_motion_limits(limits['lift'][0], limits['lift'][1])
-        self.robot.arm.set_soft_motion_limits(limits['arm'][0], limits['arm'][1])
-        self.robot.head.motors['head_tilt'].set_soft_motion_limits(limits['head_tilt'][0], limits['head_tilt'][1])
-        self.robot.head.motors['head_pan'].set_soft_motion_limits(limits['head_pan'][0], limits['head_pan'][1])
+        self.robot.lift.set_soft_motion_limit_min(x=target_limits['lift'][0],limit_type='collision')
+        self.robot.lift.set_soft_motion_limit_max(x=target_limits['lift'][1],limit_type='collision')
+        self.robot.arm.set_soft_motion_limit_min(x=target_limits['arm'][0], limit_type='collision')
+        self.robot.arm.set_soft_motion_limit_max(x=target_limits['arm'][1], limit_type='collision')
+        self.robot.head.motors['head_tilt'].set_soft_motion_limit_min(x=target_limits['head_tilt'][0], limit_type='collision')
+        self.robot.head.motors['head_tilt'].set_soft_motion_limit_max(x=target_limits['head_tilt'][1], limit_type='collision')
+        self.robot.head.motors['head_pan'].set_soft_motion_limit_min(x=target_limits['head_pan'][0],limit_type='collision')
+        self.robot.head.motors['head_pan'].set_soft_motion_limit_max(x=target_limits['head_pan'][1],limit_type='collision')
         for j in self.robot.end_of_arm.joints:
-            self.robot.end_of_arm.motors[j].set_soft_motion_limits(limits[j][0], limits[j][1])
+            self.robot.end_of_arm.motors[j].set_soft_motion_limit_min(x=target_limits['head_pan'][0],limit_type='collision')
+            self.robot.end_of_arm.motors[j].set_soft_motion_limit_max(x=target_limits['head_pan'][1],limit_type='collision')
+
 
 # #######################################################################
 """

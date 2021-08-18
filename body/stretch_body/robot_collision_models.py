@@ -14,6 +14,67 @@ class CollisionArmCamera(RobotCollisionModel):
 
     def __init__(self, collision_manager):
         RobotCollisionModel.__init__(self, collision_manager,'collision_arm_camera')
+
+    def pan_in_danger_zone(self,x_pan):
+        return x_pan > -.75 and x_pan < .75
+    def tilt_in_danger_zone(self,x_tilt):
+        return x_tilt < -.80
+    def lift_near_danger_zone(self,x_lift):
+        return x_lift >1.0
+    def lift_in_danger_zone(self,x_lift):
+        return x_lift>1.02
+
+    def prevent_lift_raise_into_camera(self,status):
+        x_lift=status['lift']['pos']
+        x_pan = status['head']['head_pan']['pos']
+        x_tilt =  status['head']['head_tilt']['pos']
+        #print('Lift %f Pan %f Tilt %f'%(x_lift,x_pan,x_tilt))
+        if not self.lift_near_danger_zone(x_lift):
+            return [None,None]
+        if self.pan_in_danger_zone(x_pan) and self.tilt_in_danger_zone(x_tilt):
+            #print('Camera in danger zone')
+            return [None,1.02]
+        return [None,None]
+
+    def prevent_pan_camera_into_arm(self,status):
+        x_lift = status['lift']['pos']
+        x_pan = status['head']['head_pan']['pos']
+        x_tilt = status['head']['head_tilt']['pos']
+        #print('Lift %f Pan %f Tilt %f' % (x_lift, x_pan, x_tilt))
+        if not self.lift_in_danger_zone(x_lift) or not self.tilt_in_danger_zone(x_tilt):
+            return [None,None]
+        if x_pan<0:
+            return [None,-.75]
+        else:
+            return [.75,None]
+        return [None, None]
+
+    def prevent_tilt_camera_into_arm(self,status):
+        x_lift = status['lift']['pos']
+        x_pan = status['head']['head_pan']['pos']
+        x_tilt = status['head']['head_tilt']['pos']
+        #print('Lift %f Pan %f Tilt %f' % (x_lift, x_pan, x_tilt))
+        if not self.lift_in_danger_zone(x_lift) or not self.pan_in_danger_zone(x_pan):
+            return [None,None]
+        return [-0.80,None]
+
+    def step(self, status):
+        limits={'lift': [None, None],'head_pan': [None, None],'head_tilt': [None, None]}
+        limits['lift']=self.prevent_lift_raise_into_camera(status)
+        limits['head_pan']= self.prevent_pan_camera_into_arm(status)
+        limits['head_tilt'] = self.prevent_tilt_camera_into_arm(status)
+        #print('Limits',limits)
+        return limits
+
+class CollisionArmCamera2(RobotCollisionModel):
+    """
+    NOTE: Experimental. You may want to turn this off in the params (enable=0)
+    RE1 camera can clip the arm when lift is all the way up
+    and the camera is looking parallel to the ground.
+    """
+
+    def __init__(self, collision_manager):
+        RobotCollisionModel.__init__(self, collision_manager,'collision_arm_camera')
         self.curr_workspace='no_limits'
         self.workspaces ={
             'no_limits':{
@@ -43,7 +104,12 @@ class CollisionArmCamera(RobotCollisionModel):
         lift_approach_clip= status['lift']['pos'] > self.params['lift_approach_clip']
         head_tilt_in_clip_range = status['head']['head_tilt']['pos'] < self.params['head_tilt_avoid_clip']
         head_pan_in_clip_range = status['head']['head_pan']['pos']<self.params['head_pan_avoid_clip_pos'] and status['head']['head_pan']['pos']>self.params['head_pan_avoid_clip_neg']
-        allow_expand_range = {'lift': [False, False], 'head_pan': [False, False], 'head_tilt': [False, False]}
+        print('---------------------')
+        print('lift_approach_clip',lift_approach_clip)
+        print('head_tilt_in_clip_range', head_tilt_in_clip_range,status['head']['head_tilt']['pos'] , self.params['head_tilt_avoid_clip'])
+        print('head_pan_in_clip_range', head_pan_in_clip_range)
+        print('workspace',self.curr_workspace)
+        print('Lift %f | Pan %f | Tilt %f'%(status['lift']['pos'],status['head']['head_pan']['pos'],status['head']['head_tilt']['pos']))
         if  not lift_approach_clip:
             self.curr_workspace = 'no_limits'
             return self.workspaces[self.curr_workspace]

@@ -82,6 +82,7 @@ class Lift(Device):
         prev=self.soft_motion_limits['current'][:]
         self.soft_motion_limits['current'][0]=xn
         if xn != prev[0]:
+            #print('New soft limit on min',xn)
             self.motor.set_motion_limits(self.translate_to_motor_rad(self.soft_motion_limits['current'][0]), self.translate_to_motor_rad(self.soft_motion_limits['current'][1]))
 
     def set_soft_motion_limit_max(self,x,limit_type='user' ):
@@ -94,6 +95,7 @@ class Lift(Device):
         prev=self.soft_motion_limits['current'][:]
         self.soft_motion_limits['current'][1]=xn
         if xn != prev[1]:
+            #print('New soft limit on max', xn)
             self.motor.set_motion_limits(self.translate_to_motor_rad(self.soft_motion_limits['current'][0]), self.translate_to_motor_rad(self.soft_motion_limits['current'][1]))
 
     # ###################################################
