@@ -3,6 +3,7 @@ from stretch_body.dynamixel_XL430 import *
 from stretch_body.device import Device
 import time
 from stretch_body.hello_utils import *
+from stretch_body.trajectory_managers import TrajectoryManager
 import termios
 import numpy
 
@@ -48,16 +49,27 @@ class DynamixelCommErrorStats(Device):
 
 
 
-class DynamixelHelloXL430(Device):
+class DynamixelHelloXL430(Device, TrajectoryManager):
     """
     Abstract the Dynamixel X-Series to handle calibration, radians, etc
+
+    Attributes
+    ----------
+    traj_pos_mode : bool
+        whether to use position or velocity control to track the traj
+    traj_curr_goal : Waypoint
+        interpolated point along the trajectory currently being tracked
+
     """
     def __init__(self, name, chain=None):
         Device.__init__(self, name)
+        TrajectoryManager.__init__(self)
+        self.traj_pos_mode = True
+        self.traj_curr_goal = None
         self.chain = chain
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                     'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+                     'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0, 'trajectory_active': False}
 
         #Share bus resource amongst many XL430s
         self.motor = DynamixelXL430(dxl_id=self.params['id'],
@@ -579,3 +591,116 @@ class DynamixelHelloXL430(Device):
     def ticks_to_pct_load(self,t):
         #-100 to 100.0
         return t/10.24
+
+# ###Trajectory Management##################################
+    def start_trajectory(self, position_ctrl=True, threaded=True, watchdog_timeout=None):
+        """Start execution of the trajectory.
+
+        Parameters
+        ----------
+        position_ctrl : bool
+            True uses position control to follow traj, False uses velocity control
+        threaded : bool
+            True launches a separate thread for ``push_trajectory``, False puts burden on the user
+        watchdog_timeout : int
+            See ``DynamixelXL430.enable_watchdog()``
+
+        """
+        self.traj_pos_mode = position_ctrl
+        self.traj_threaded = threaded
+        if len(self.trajectory) < 2:
+            return
+        if not self.hw_valid:
+            raise RuntimeError('hardware not valid')
+
+        m_params = self.params['motion']
+
+        if self.params['req_calibration'] and not self.is_calibrated:
+            raise RuntimeError('Dynamixel not homed: {0}'.format(self.name))
+        if self.traj_pos_mode:
+            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(m_params['trajectory_max']['vel']))
+            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(m_params['trajectory_max']['accel']))
+        else:
+            self.disable_torque()
+            if watchdog_timeout is not None:
+                self.motor.enable_watchdog(watchdog_timeout)
+            else:
+                self.motor.enable_watchdog()
+            self.motor.enable_vel()
+            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(m_params['trajectory_max']['accel']))
+            self.motor.set_vel_limit(self.rad_per_sec_to_ticks(m_params['trajectory_max']['vel']))
+            self.enable_torque()
+        self.traj_start_time = time.time()
+        self.traj_curr_time = self.traj_start_time
+        self.traj_curr_goal = self.trajectory.evaluate_at(t_s=0.0)
+        self.status['trajectory_active'] = True
+        TrajectoryManager._start_trajectory_thread(self)
+
+    def push_trajectory(self):
+        """Command goals to the dynamixel hardware.
+
+        If not using threaded mode in ``start_trajectory``, the user is
+        responsible for calling this method a regular frequency.
+        As low as 60hz is acceptable for velocity control.
+        As low as 100hz is acceptable for position control.
+
+        Returns
+        -------
+        bool
+            True if trajectory must continue to be pushed, False otherwise
+
+        """
+        if self.traj_start_time is None:
+            return False
+
+        self.traj_curr_time = time.time()
+        self.traj_curr_goal = self.trajectory.evaluate_at(t_s=self.traj_curr_time - self.traj_start_time)
+        if self.duration_remaining() > 0.0:
+            if self.traj_pos_mode:
+                self.move_to(self.traj_curr_goal.position)
+            else:
+                v_des = self.world_rad_to_ticks_per_sec(self.traj_curr_goal.velocity)
+                # Honor joint limits in velocity mode
+                lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
+                                self.ticks_to_world_rad(self.params['range_t'][1]))
+                lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
+                                self.ticks_to_world_rad(self.params['range_t'][1]))
+                x_curr = self.status['pos']
+                v_curr = self.status['vel']
+                if self.params['motion']['trajectory_max']['accel'] > 0:
+                    # How long to brake from current speed (s)
+                    t_brake = abs(v_curr) / self.params['motion']['trajectory_max']['accel']
+                else:
+                    t_brake = 0
+                d_brake = t_brake * v_curr / 2  # How far it will go before breaking (pos/neg)
+                if (self.traj_curr_goal.velocity > 0 and x_curr + d_brake >= lim_upper) or \
+                   (self.traj_curr_goal.velocity < 0 and x_curr + d_brake <= lim_lower):
+                    v_des = 0
+                self.motor.go_to_vel(v_des)
+        if self.status['trajectory_active'] and self.duration_remaining() == 0.0:
+            if not self.traj_pos_mode:
+                self.disable_torque()
+                self.motor.disable_watchdog()
+                self.enable_pos()
+                self.enable_torque()
+            self.move_to(self.traj_curr_goal.position)
+            self.status['trajectory_active'] = False
+            return False
+
+        return True
+
+    def stop_trajectory(self):
+        """Stop a currently executing trajectory.
+
+        Restores the dynamixel hardware to position mode,
+        if necessary. Additionally, stops threaded execution,
+        if necessary.
+        """
+        self.traj_start_time = None
+        if not self.traj_pos_mode:
+            self.disable_torque()
+            self.motor.disable_watchdog()
+            self.enable_pos()
+            self.enable_torque()
+        self.status['trajectory_active'] = False
+        TrajectoryManager._stop_trajectory_thread(self)
