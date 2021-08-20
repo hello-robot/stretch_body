@@ -75,8 +75,7 @@ class CollisionArmCamera(RobotCollisionModel):
 class CollisionStretchGripper(RobotCollisionModel):
     """
     NOTE: Experimental. You may want to turn this off in the params (enable=0)
-    Manage collisions of the standard Stretch Gripper tool with the
-    ground and the base
+    Manage collisions of the standard Stretch Gripper tool with the base
     
     Side Of (direction of drive)
     ^
@@ -103,10 +102,12 @@ class CollisionStretchGripper(RobotCollisionModel):
     def dist_fingertips_side_of_base(self,x_yaw):
         return self.dist_yaw_side_of_base()+self.dist_fingertips_side_of_yaw(x_yaw)
     
-    def prevent_fingertips_lower_into_base(self,x_arm,x_yaw):
+    def prevent_fingertips_lower_into_base(self,x_lift,x_arm,x_yaw):
         #Return lift limits
         d_fwd=self.dist_fingertips_forward_of_base(x_arm,x_yaw)
         d_side=self.dist_fingertips_side_of_base(x_yaw)
+        if x_lift<0.1: #on floor
+            return [None,None]
         if d_fwd>0.1:
             return [None,None]
         if d_side>0.1:
@@ -115,9 +116,10 @@ class CollisionStretchGripper(RobotCollisionModel):
 
     def prevent_fingtips_yaw_into_base(self,x_yaw,x_lift):
         # Return arm limits
-        if x_lift>.085 or x_yaw<2.0:
+        if x_lift>.085 or x_yaw<1.57:
             return [None,None]
         d=self.dist_fingertips_forward_of_yaw(x_yaw)
+        #print('arm limit',.06-d)
         return[0.06-d,None]
     # ###
     
@@ -166,11 +168,13 @@ class CollisionStretchGripper(RobotCollisionModel):
     
 
     def step(self,status):
+
         x_arm=status['arm']['pos']
+        #print('Xarm', x_arm)
         x_lift = status['lift']['pos']
         x_yaw=status['end_of_arm']['wrist_yaw']['pos']
         w = {'lift': [None, None], 'arm': [None, None], 'wrist_yaw': [None,None]}
-        w['lift']=self.limit(self.prevent_fingertips_lower_into_base(x_arm,x_yaw),self.limit(self.prevent_palm_lower_into_base(x_arm),self.prevent_puller_lower_into_base(x_arm,x_yaw)))
+        w['lift']=self.limit(self.prevent_fingertips_lower_into_base(x_lift,x_arm,x_yaw),self.limit(self.prevent_palm_lower_into_base(x_arm),self.prevent_puller_lower_into_base(x_arm,x_yaw)))
         w['arm']=self.limit(self.prevent_fingtips_yaw_into_base(x_yaw,x_lift),self.limit(self.prevent_puller_retract_into_base(x_lift,x_yaw),self.prevent_palm_retract_into_base(x_lift)))
         return w
 

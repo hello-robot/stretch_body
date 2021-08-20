@@ -81,7 +81,6 @@ class Arm(Device):
         xn=max(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][0],self.soft_motion_limits['hard'][0],self.soft_motion_limits['user'][0]]))
         prev=self.soft_motion_limits['current'][:]
         self.soft_motion_limits['current'][0]=xn
-
         if xn != prev[0]:
             self.motor.set_motion_limits(self.translate_to_motor_rad(self.soft_motion_limits['current'][0]), self.translate_to_motor_rad(self.soft_motion_limits['current'][1]))
 

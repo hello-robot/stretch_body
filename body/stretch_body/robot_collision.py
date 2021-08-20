@@ -101,7 +101,6 @@ class RobotCollision(Device):
                     if new_limits[joint][1] is not None:
                         target_limits[joint][1]=new_limits[joint][1] if target_limits[joint][1] is None else min(new_limits[joint][1], target_limits[joint][1])
 
-
         self.robot.lift.set_soft_motion_limit_min(x=target_limits['lift'][0],limit_type='collision')
         self.robot.lift.set_soft_motion_limit_max(x=target_limits['lift'][1],limit_type='collision')
         self.robot.arm.set_soft_motion_limit_min(x=target_limits['arm'][0], limit_type='collision')

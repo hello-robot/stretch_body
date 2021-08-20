@@ -7,12 +7,111 @@ import stretch_body.robot
 
 import time
 
+class TestCollisionGripperBase(unittest.TestCase):
+
+
+
+    def test_move_gripper_to_base(self):
+        r = stretch_body.robot.Robot()
+        r.params['use_collision_manager']=True
+
+        r.startup()
+        #Start with lift at known safe position near head
+        r.lift.move_to(0.25)
+        r.push_command()
+        time.sleep(1.0)
+        r.lift.motor.wait_until_at_setpoint()
+
+        #Now move gripper into collision position
+        r.end_of_arm.move_to('wrist_yaw',x_r=3.3)
+        time.sleep(2.0)
+
+        print('###################################')
+        print('Ready for collision test...')
+        print('Monitor for accidental collision between the gripper and the base')
+        print('Entering the jog loop now....')
+        print('----------')
+        print('Hit enter to jog the lift down 2mm')
+        print('Enter x to exit jog loop if collision is imminent')
+        print('Enter q to exit jog loop is collision is not possible')
+        while(True):
+            x=raw_input()
+            if x=='q':
+                success=True
+                break
+            if x=='x':
+                success=False
+                break
+            r.lift.move_by(-.002)
+            r.push_command()
+
+        r.lift.move_to(0.22)
+        r.push_command()
+        time.sleep(1.0)
+        r.lift.motor.wait_until_at_setpoint()
+        self.assertTrue(success)
+
+        #Check that if extend gripper and arm a bit the lift can go down
+        r.end_of_arm.move_to('wrist_yaw', x_r=0.0)
+        r.arm.move_to(0.1)
+        r.push_command()
+        time.sleep(2.0)
+        r.lift.move_to(0.005)
+        r.push_command()
+        time.sleep(3.0)
+        self.assertAlmostEqual(r.status['lift']['pos'],.005, places=1)
+
+        #Check that arm retaction wont collide wrist
+        print('###################################')
+        print('Ready for collision test...')
+        print('Monitor for accidental collision between the wrist and the base')
+        print('Entering the jog loop now....')
+        print('----------')
+        print('Hit enter to jog the arm in 2mm')
+        print('Enter x to exit jog loop if collision is imminent')
+        print('Enter q to exit jog loop is collision is not possible')
+        while (True):
+            x = raw_input()
+            if x == 'q':
+                success = True
+                break
+            if x == 'x':
+                success = False
+                break
+            r.arm.move_by(-.002)
+            r.push_command()
+        self.assertTrue(success)
+
+        # Check that cant rotate gripper into base
+        r.end_of_arm.move_to('wrist_yaw', x_r=1.27)
+        print('###################################')
+        print('Ready for collision test...')
+        print('Monitor for accidental collision between the gripper and the base')
+        print('Entering the jog loop now....')
+        print('----------')
+        print('Hit enter to jog the wrist in 1 deg')
+        print('Enter x to exit jog loop if collision is imminent')
+        print('Enter q to exit jog loop is collision is not possible')
+        while (True):
+            x = raw_input()
+            if x == 'q':
+                success = True
+                break
+            if x == 'x':
+                success = False
+                break
+            r.end_of_arm.move_by('wrist_yaw', x_r=hu.deg_to_rad(1.0))
+            r.arm.move_by(0.0)
+            r.push_command()
+        self.assertTrue(success)
+
+        r.stop()
 
 class TestCollisionArmCamera(unittest.TestCase):
 
 
 
-    def test_move_arm_to_camera(self):
+    def xxtest_move_arm_to_camera(self):
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager']=True
 
@@ -45,9 +144,6 @@ class TestCollisionArmCamera(unittest.TestCase):
                 break
             r.lift.move_by(.002)
             r.push_command()
-            print('Mode',r.lift.motor.status['mode'])
-            print('Contact',r.lift.motor.status['guarded_event'])
-            print('In Safety Event', r.lift.motor.status['in_safety_event'])
         r.lift.move_to(0.9)
         r.push_command()
         time.sleep(1.0)
