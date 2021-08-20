@@ -240,6 +240,7 @@ class Stepper(Device):
                 self.transport.payload_out[0] = RPC_SET_MOTION_LIMITS
                 sidx = self.pack_motion_limits(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_motion_limits_reply)
+                self.transport.step2()
 
     def set_gains(self,g):
         with self.lock:
