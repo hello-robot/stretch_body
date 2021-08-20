@@ -31,6 +31,17 @@ class RobotCollisionModel(Device):
                 'arm': [None,None],
                 'wrist_yaw': [None,None]}
 
+    def limit(self,a,b):
+        """
+        Utility function. Return the more conservative union of the limits a and b
+        , where a or b is of the form [lower_limit, upper_limit]
+        """
+        lower= b[0] if a[0] is None else (a[0] if b[0] is None else max(a[0],b[0]))
+        upper= b[1] if a[1] is None else (a[1] if b[1] is None else min(a[1],b[1]))
+        return [lower,upper]
+
+
+
 # #######################################################################
 
 class RobotCollision(Device):
