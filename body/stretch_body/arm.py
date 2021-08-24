@@ -58,6 +58,42 @@ class Arm(Device):
 
         self.soft_motion_limits=[x_min, x_max]
 
+    def set_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None, req_calibration=True):
+        if req_calibration:
+            if not self.motor.status['pos_calibrated']:
+                self.logger.warning('Arm not calibrated')
+                return
+        v_m=min(self.params['motion']['max']['vel_m'],v_m) if v_m>=0 else max(-1*self.params['motion']['max']['vel_m'],v_m)
+        v_r = self.translate_to_motor_rad(v_m)
+
+        if stiffness is not None:
+            stiffness = max(0, min(1.0, stiffness))
+        else:
+            stiffness = self.stiffness
+
+        if a_m is not None:
+            a_r = self.translate_to_motor_rad(min(abs(a_m), self.params['motion']['max']['accel_m']))
+        else:
+            a_r = self.accel_r
+
+        if contact_thresh_neg_N is not None:
+            i_contact_neg = max(self.translate_force_to_motor_current(contact_thresh_neg_N),self.params['contact_thresh_max_N'][0])
+        else:
+            i_contact_neg = self.i_contact_neg
+
+        if contact_thresh_pos_N is not None:
+            i_contact_pos = min(self.translate_force_to_motor_current(contact_thresh_pos_N),self.params['contact_thresh_max_N'][1])
+        else:
+            i_contact_pos = self.i_contact_pos
+
+        self.motor.set_command(mode=MODE_VEL_TRAJ,
+                               v_des=v_r,
+                               a_des=a_r,
+                               stiffness=stiffness,
+                               i_feedforward=self.i_feedforward,
+                               i_contact_pos=i_contact_pos,
+                               i_contact_neg=i_contact_neg)
+
     def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None, req_calibration=True):
         """
         x_m: commanded absolute position (meters). x_m=0 is retracted. x_m=~0.5 is extended
