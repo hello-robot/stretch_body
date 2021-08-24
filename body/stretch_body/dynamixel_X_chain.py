@@ -44,6 +44,12 @@ class DynamixelXChain(Device):
     def add_motor(self,m):
         self.motors[m.name]=m
 
+    def get_motor(self,motor_name):
+        try:
+            return self.motors[motor_name]
+        except (AttributeError, KeyError):
+            return None
+
     def startup(self):
         for mk in self.motors.keys():  # Provide nop data in case comm failures
             self.status[mk] = self.motors[mk].status

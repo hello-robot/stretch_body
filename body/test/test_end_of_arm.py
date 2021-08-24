@@ -27,3 +27,10 @@ class TestEndOfArm(unittest.TestCase):
         e = stretch_body.end_of_arm.EndOfArm()
         self.assertTrue(len(e.joints) > 0)
         self.assertTrue('wrist_yaw' in e.joints)
+
+    def test_get_joints(self):
+        e = stretch_body.end_of_arm.EndOfArm()
+        m=e.get_joint('wrist_yaw')
+        self.assertEqual('wrist_yaw',m.name)
+        m = e.get_joint('foo')
+        self.assertEqual(m,None)
