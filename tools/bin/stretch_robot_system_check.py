@@ -29,7 +29,7 @@ def val_is_not(val_name, val,vnot):
 
 #Turn off logging so get a clean output
 import logging
-logging.disable(logging.CRITICAL)
+#logging.disable(logging.CRITICAL)
 r=robot.Robot()
 r.startup()
 

@@ -26,10 +26,10 @@ A reduced range-of-motion can be set at run-time by setting the Soft Motion Limi
 import stretch_body.robot as robot
 r=robot.Robot()
 r.startup()
-r.lift.set_soft_motion_limits(0.3,None)
+r.lift.set_soft_motion_limit_min(0.3)
 ```
 
-As we see in the [API](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/lift.py), the value of `None` is used to designated the default physical limit.
+We see in the [API](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/lift.py), the value of `None` is used to designated no soft limit.
 
 It is possible that when setting the Soft Motion Limit that the joints current position is outside of the specified range. In this case, the joint will move to the nearest soft limit so as to comply with the limits. This can be demonstrated by:
 
@@ -46,8 +46,8 @@ r.push_command()
 time.sleep(5.0) 
 
 #Will move to 0.3
-r.lift.set_soft_motion_limits(0.3,None)
-r.push_command()
+r.lift.set_soft_motion_limit_min(0.3)
+
 ```
 
 
@@ -78,7 +78,7 @@ We could define a new collision model that simply limits the lift range of motio
 
 Each model is registered with the [RobotCollision](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/robot_collision.py) instance as a loadable plug-in. The [Robot](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/robot.py) class calls the `RobotCollision.step` method periodically at approximately 10hz. 
 
-`RobotCollision.step`  computes the 'AND' of the  limits specified across each Collision Model such that the most restrictive joint limits are set for each joint using the `set_soft_motion_limits` method. 
+`RobotCollision.step`  computes the 'AND' of the  limits specified across each Collision Model such that the most restrictive joint limits are set for each joint using the `set_soft_motion_limit_min , set_soft_motion_limt_max` methods. 
 
 ## Default Collision Models
 
@@ -87,7 +87,7 @@ The default collision models for Stretch Body are found in [robot_collision_mode
 * CollisionArmCamera: Avoid collision of the head camera with the arm
 * CollisionStretchGripper: Avoid collision of the wrist-yaw and gripper with the base and ground
 
-**Note**: The provided collision models are very coarse and are provided to avoid common potentially harmful collisions only.
+**Note**: The provided collision models are coarse and are provided to avoid common potentially harmful collisions only. Using these models it is still possible to collide the robot with itself in some cases.
 
 ### Working with Models
 
@@ -102,11 +102,6 @@ We also see that model `collision_arm_camera` is defined as:
 ```python
   "collision_arm_camera": {
         'enabled': 1,
-        'head_pan_avoid_clip_neg': -0.51,
-        'head_pan_avoid_clip_pos': 0.38,
-        'head_tilt_avoid_clip': -1.4,
-        'lift_approach_clip': 0.95,
-        'lift_near_clip': 1.02,
         'py_class_name': 'CollisionArmCamera',
         'py_module_name': 'stretch_body.robot_collision_models'
     }
@@ -119,7 +114,7 @@ collision_arm_camera:
   enabled: 0
 ```
 
-The  collision avoidance system can be disabled in `stretch_re1_user_params.yaml` by:
+The  entire collision avoidance system can be disabled in `stretch_re1_user_params.yaml` by:
 
 ```yaml
 robot:
@@ -158,7 +153,6 @@ This assumes the arm is initially above the table top. To start, in a file `coll
 
 ```python
 from stretch_body.robot_collision import *
-import math
 from stretch_body.hello_utils import *
 
 class CollisionArmTable(RobotCollisionModel):
@@ -167,20 +161,28 @@ class CollisionArmTable(RobotCollisionModel):
 
     def step(self, status):
         limits = {'lift': [None, None],'arm': [None, None]}
-        safety_margin = 0.05 #m
         table_height = 0.5 #m
         arm_safe_retract = 0.1 #m
+        safety_margin=.05#m
+
         x_arm = status['arm']['pos']
         x_lift = status['lift']['pos']
-        #Force arm to be nearly retracted below 0.3m
-        if x_lift>table_height+safety_margin:
-            limits['arm']=[None,None]
+
+        #Force arm to stay retracted if below table
+        if x_lift<table_height:
+            limits['arm'] = [None, arm_safe_retract-safety_margin]
         else:
-            limits['arm']=[None,arm_safe_retract]
-        if x_arm>arm_safe_retract:     
-            limits['lift']=[None,table_height+safety_margin]        
+            limits['arm'] = [None, None]
+
+        #Force lift to stay above table unless arm is retracted
+        if x_arm<arm_safe_retract:
+            limits['lift'] =[None,None]
+        else:
+            limits['lift']=[table_height+safety_margin,None]
         return limits
 ```
+In this example we include the `safety_margin` as a way to introduce some hysteresis around state changes to avoid toggling between the soft limits.
+
 The following command should be run in order to add the working directory to the PYTHONPATH env , This can also be added to our bashrc to permanently edit the path: 
 
 ```bash
