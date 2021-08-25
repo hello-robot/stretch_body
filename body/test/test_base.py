@@ -1,7 +1,7 @@
 # Logging level must be set before importing any stretch_body class
 import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
-
+import stretch_body.base
 import unittest
 import stretch_body.base
 
@@ -9,6 +9,11 @@ import time
 
 
 class TestBase(unittest.TestCase):
+
+    def test_valid_startup_status(self):
+        b = stretch_body.base.Base()
+        self.assertTrue(b.startup())
+        self.assertNotEqual(b.status['translation_force'],0)
 
     def test_fast_base_motion_allowed(self):
         """Verifies fast base motion is allowed at the correct time.

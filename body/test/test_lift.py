@@ -10,6 +10,11 @@ import time
 
 class TestLift(unittest.TestCase):
 
+    def test_valid_startup_status(self):
+        l = stretch_body.lift.Lift()
+        self.assertTrue(l.startup())
+        self.assertNotEqual(l.status['pos'],0)
+
     def test_homing(self):
         """Test lift homes correctly.
         """
