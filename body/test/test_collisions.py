@@ -112,9 +112,7 @@ class TestCollisionGripperBase(unittest.TestCase):
 
 class TestCollisionArmCamera(unittest.TestCase):
 
-
-
-    def xxtest_move_arm_to_camera(self):
+    def test_move_arm_to_camera(self):
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager']=True
 

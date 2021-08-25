@@ -47,6 +47,7 @@ class Arm(Device):
         print('Pos (m): ', self.status['pos'])
         print('Vel (m/s): ', self.status['vel'])
         print('Force (N): ', self.status['force'])
+        print('Soft motion limits (m)', self.soft_motion_limits['current'])
         print('Timestamp PC (s):', self.status['timestamp_pc'])
         self.motor.pretty_print()
 

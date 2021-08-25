@@ -15,9 +15,10 @@ class TestDynamixelXL430(unittest.TestCase):
         """Verify zero comms errors in concurrent access.
         """
         print('Testing Concurrent Access')
-        servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=12,
-            usb="/dev/hello-dynamixel-head",
-            logger=logging.getLogger("test_dynamixel"))
+        usb = "/dev/hello-dynamixel-head"
+        dxl_id = 12
+        baud = stretch_body.dynamixel_XL430.DynamixelXL430.identify_baud_rate(dxl_id, usb)
+        servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id, usb=usb, baud=baud,logger=logging.getLogger("test_dynamixel"))
         self.assertTrue(servo.startup())
 
         def ping_n(n):
@@ -36,9 +37,11 @@ class TestDynamixelXL430(unittest.TestCase):
         """Verify comm results correctly handled.
         """
         print('Testing Handle Comm Result')
-        servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=12,
-            usb="/dev/hello-dynamixel-head",
-            logger=logging.getLogger("test_dynamixel"))
+        usb = "/dev/hello-dynamixel-head"
+        dxl_id = 12
+        baud = stretch_body.dynamixel_XL430.DynamixelXL430.identify_baud_rate(dxl_id, usb)
+        servo = stretch_body.dynamixel_XL430.DynamixelXL430(dxl_id=dxl_id,usb=usb,baud=baud,logger=logging.getLogger("test_dynamixel"))
+
         self.assertTrue(servo.startup())
 
         ret = servo.handle_comm_result('DXL_TEST', 0, 0)

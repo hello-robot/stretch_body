@@ -11,6 +11,7 @@ class TestTimingStats(unittest.TestCase):
     def test_thread_starvation_group_sync_read(self):
         robot = stretch_body.robot.Robot()
         robot.end_of_arm.params['use_group_sync_read']=1
+        print(robot.end_of_arm.joints)
         print('Starting test_thread_starvation')
         print('Latency timer of %f'%robot.end_of_arm.params['dxl_latency_timer'])
         print('Testing on tool %s'%robot.params['tool'])
