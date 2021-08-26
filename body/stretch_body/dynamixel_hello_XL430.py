@@ -314,6 +314,7 @@ class DynamixelHelloXL430(Device):
         #self.motor.pretty_print()
 
     def step_sentry(self, robot):
+
         if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:
             is_runstopped = robot.pimu.status['runstop_event']
             if is_runstopped is not self.was_runstopped:
