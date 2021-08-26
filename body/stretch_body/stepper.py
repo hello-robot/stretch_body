@@ -90,7 +90,6 @@ class Stepper(Device):
         self._dirty_gains = False
         self._dirty_trigger = False
         self._dirty_read_gains_from_flash=False
-        self._dirty_motion_limits=False
         self._dirty_load_test=False
         self._trigger=0
         self._trigger_data=0
@@ -136,11 +135,11 @@ class Stepper(Device):
         if not self.hw_valid:
             return
         with self.lock:
-            self.hw_valid = False
             self.logger.debug('Shutting down Stepper on: ' + self.usb)
             self.enable_safety()
             self.push_command(exiting=True)
             self.transport.stop()
+            self.hw_valid = False
 
     def push_command(self,exiting=False):
         if not self.hw_valid:
@@ -151,12 +150,6 @@ class Stepper(Device):
                 self.transport.payload_out[1:] = self.load_test_payload
                 self.transport.queue_rpc2(1024 + 1, self.rpc_load_test_reply)
                 self._dirty_load_test=False
-
-            if self._dirty_motion_limits:
-                self.transport.payload_out[0] = RPC_SET_MOTION_LIMITS
-                sidx = self.pack_motion_limits(self.transport.payload_out, 1)
-                self.transport.queue_rpc2(sidx, self.rpc_motion_limits_reply)
-                self._dirty_motion_limits = False
 
             if self._dirty_trigger:
                 self.transport.payload_out[0] = RPC_SET_TRIGGER
@@ -242,9 +235,12 @@ class Stepper(Device):
     def set_motion_limits(self,limit_neg, limit_pos):
         with self.lock:
             if limit_neg!=self.motion_limits[0] or limit_pos!=self.motion_limits[1]:
+                #Push out immediately
                 self.motion_limits=[limit_neg, limit_pos]
-                self._dirty_motion_limits=True
-
+                self.transport.payload_out[0] = RPC_SET_MOTION_LIMITS
+                sidx = self.pack_motion_limits(self.transport.payload_out, 1)
+                self.transport.queue_rpc2(sidx, self.rpc_motion_limits_reply)
+                self.transport.step2()
 
     def set_gains(self,g):
         with self.lock:

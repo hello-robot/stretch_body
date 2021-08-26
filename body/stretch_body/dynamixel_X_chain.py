@@ -40,14 +40,21 @@ class DynamixelXChain(Device):
         self.motors = {}
         self.readers={}
         self.comm_errors = DynamixelCommErrorStats(name, logger=self.logger)
+        self.status_mux_id = 0
 
     def add_motor(self,m):
         self.motors[m.name]=m
 
+    def get_motor(self,motor_name):
+        try:
+            return self.motors[motor_name]
+        except (AttributeError, KeyError):
+            return None
+
     def startup(self):
+        for mk in self.motors.keys():  # Provide nop data in case comm failures
+            self.status[mk] = self.motors[mk].status
         if not self.hw_valid:
-            for mk in self.motors.keys(): #Provide nop data
-                self.status[mk] = self.motors[mk].status
             return False
         if len(self.motors.keys()):
             try:
@@ -80,9 +87,9 @@ class DynamixelXChain(Device):
     def stop(self):
         if not self.hw_valid:
             return
-        self.hw_valid = False
         for mk in self.motors.keys():
             self.motors[mk].stop()
+        self.hw_valid = False
 
 
     def pull_status(self):
@@ -94,27 +101,61 @@ class DynamixelXChain(Device):
                 pos = self.sync_read(self.readers['pos'])
                 if pos==None and self.params['retry_on_comm_failure']:
                     pos = self.sync_read(self.readers['pos'])
-                effort = self.sync_read(self.readers['effort'])
-                if effort == None and self.params['retry_on_comm_failure']:
-                    effort = self.sync_read(self.readers['effort'])
+
                 vel = self.sync_read(self.readers['vel'])
                 if vel == None and self.params['retry_on_comm_failure']:
                     vel = self.sync_read(self.readers['vel'])
-                temp = self.sync_read(self.readers['temp'])
-                if temp == None and self.params['retry_on_comm_failure']:
-                    temp = self.sync_read(self.readers['temp'])
-                hardware_error = self.sync_read(self.readers['hardware_error'])
-                if hardware_error == None and self.params['retry_on_comm_failure']:
-                    hardware_error = self.sync_read(self.readers['hardware_error'])
 
-                if pos is not None and effort is not None and vel is not None and temp is not None and hardware_error is not None:
-                    idx=0
-                    for mk in self.motors.keys():
-                        data = {'x':pos[idx], 'v': vel[idx],'eff': effort[idx], 'ts': ts, 'temp': temp[idx], 'err':hardware_error[idx]}
-                        self.motors[mk].pull_status(data)
-                        idx=idx+1
+                if self.status_mux_id == 0:
+                    effort = self.sync_read(self.readers['effort'])
+                    if effort == None and self.params['retry_on_comm_failure']:
+                        effort = self.sync_read(self.readers['effort'])
                 else:
-                    raise DynamixelCommError
+                    effort = None
+
+                if self.status_mux_id == 1:
+                    temp = self.sync_read(self.readers['temp'])
+                    if temp == None and self.params['retry_on_comm_failure']:
+                        temp = self.sync_read(self.readers['temp'])
+                else:
+                    temp = None
+
+                if self.status_mux_id == 2:
+                    hardware_error = self.sync_read(self.readers['hardware_error'])
+                    if hardware_error == None and self.params['retry_on_comm_failure']:
+                        hardware_error = self.sync_read(self.readers['hardware_error'])
+                else:
+                    hardware_error = None
+
+                self.status_mux_id = (self.status_mux_id + 1) % 3
+
+                idx = 0
+                # Build dictionary of status data and push to each motor status
+                # None may indicate comm error or the field wasn't read on this mux cycle
+                for mk in self.motors.keys():
+                    data = {'ts': time.time()}
+                    if pos is not None:
+                        data['x'] = pos[idx]
+                    else:
+                        data['x'] = self.motors[mk].status['pos_ticks']
+                    if vel is not None:
+                        data['v'] = vel[idx]
+                    else:
+                        data['v'] = self.motors[mk].status['vel_ticks']
+                    if effort is not None:
+                        data['eff'] = effort[idx]
+                    else:
+                        data['eff'] = self.motors[mk].status['effort_ticks']
+                    if temp is not None:
+                        data['temp'] = temp[idx]
+                    else:
+                        data['temp'] = self.motors[mk].status['temp']
+                    if hardware_error is not None:
+                        data['err'] = hardware_error[idx]
+                    else:
+                        data['err'] = self.motors[mk].status['hardware_error']
+                    self.motors[mk].pull_status(data)
+                    idx = idx + 1
             else:
                 for m in self.motors:
                     with self.pt_lock:
@@ -132,7 +173,7 @@ class DynamixelXChain(Device):
 
     def sync_read(self, reader):
         if not self.hw_valid:
-            return
+            return None
         with self.pt_lock:
             result = reader.txRxPacket()
         if result != COMM_SUCCESS:

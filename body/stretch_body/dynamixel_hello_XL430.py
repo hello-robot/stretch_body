@@ -70,30 +70,60 @@ class DynamixelHelloXL430(Device):
         self.ts_over_eff_start=None
         self.hw_valid=False
         self.is_calibrated=False
-        self.soft_motion_limits = [None, None]
-        self.set_soft_motion_limits(None, None)
-        self.is_homing=False
-        self.was_runstopped = False
-        self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
 
-    # ###########  Device Methods #############
-    def set_soft_motion_limits(self,x_min=None,x_max=None):
+
         if self.params['flip_encoder_polarity']:
             wr_max = self.ticks_to_world_rad(self.params['range_t'][0])
             wr_min = self.ticks_to_world_rad(self.params['range_t'][1])
         else:
             wr_max = self.ticks_to_world_rad(self.params['range_t'][1])
             wr_min = self.ticks_to_world_rad(self.params['range_t'][0])
+        self.soft_motion_limits = {'collision': [None, None], 'user': [None, None],'hard': [wr_min,wr_max],'current': [wr_min,wr_max]}
 
-        if x_min is not None:
-            x_min=max(x_min,wr_min)
-        else:
-            x_min=wr_min
-        if x_max is not None:
-            x_max=min(x_max,wr_max)
-        else:
-            x_max=wr_max
-        self.soft_motion_limits=[x_min,x_max]
+        self.is_homing=False
+        self.status_mux_id = 0
+        self.was_runstopped = False
+        self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
+
+    # ###########  Device Methods #############
+
+    def get_soft_motion_limits(self):
+        """
+            Return the currently applied soft motion limits: [min, max]
+
+            The soft motion limit restricts joint motion to be <= its physical limits.
+
+            There are three types of limits:
+            Hard: The physical limits
+            Collision: Limits set by RobotCollision to avoid collisions
+            User: Limits set by the user software
+
+            The joint is limited to the most restrictive range of the Hard / Collision/ User values.
+            Specifying a value of None for a limit indicates that no constraint exists for that limit type.
+            This allows a User limits and Collision limits to coexist.
+            For example, a user can temporarily restrict the range of motion beyond the current collision limits.
+            Then, by commanding User limits of None, the joint limits will revert back to the collision settings.
+        """
+        return self.soft_motion_limits['current']
+
+    def set_soft_motion_limit_min(self,x,limit_type='user' ):
+        """
+        x: value to set a joints limit to
+        limit_type: 'user' or 'collision'
+        """
+        self.soft_motion_limits[limit_type][0]=x
+        self.soft_motion_limits['current'][0]=max(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][0],self.soft_motion_limits['hard'][0],self.soft_motion_limits['user'][0]]))
+
+
+    def set_soft_motion_limit_max(self,x,limit_type='user' ):
+        """
+        x: value to set a joints limit to
+        limit_type: 'user' or 'collision'
+        """
+        self.soft_motion_limits[limit_type][1]=x
+        self.soft_motion_limits['current'][1]=min(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][1],self.soft_motion_limits['hard'][1],self.soft_motion_limits['user'][1]]))
+
+    # ###################################################
 
     def do_ping(self, verbose=False):
         return self.motor.do_ping(verbose)
@@ -120,7 +150,6 @@ class DynamixelHelloXL430(Device):
             self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
             self.v_des=self.params['motion']['default']['vel']
             self.a_des=self.params['motion']['default']['accel']
-            self.set_range()
             self.is_calibrated=self.motor.is_calibrated()
             self.enable_torque()
             return True
@@ -132,8 +161,8 @@ class DynamixelHelloXL430(Device):
 
     def stop(self):
         if self.hw_valid:
-            self.hw_valid = False
             self.disable_torque()
+            self.hw_valid = False
 
     def pull_status(self,data=None):
         if not self.hw_valid:
@@ -159,20 +188,31 @@ class DynamixelHelloXL430(Device):
                     v = self.motor.get_vel()
                 vel_valid = self.motor.last_comm_success
 
-                eff = self.motor.get_load()
-                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                if self.status_mux_id == 0:
                     eff = self.motor.get_load()
-                eff_valid = self.motor.last_comm_success
+                    if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                        eff = self.motor.get_load()
+                    eff_valid = self.motor.last_comm_success
+                else:
+                    eff = self.status['effort_ticks']
 
-                temp = self.motor.get_temp()
-                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                if self.status_mux_id == 1:
                     temp = self.motor.get_temp()
-                temp_valid = self.motor.last_comm_success
+                    if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                        temp = self.motor.get_temp()
+                    temp_valid = self.motor.last_comm_success
+                else:
+                    temp = self.status['temp']
 
-                err=self.motor.get_hardware_error()
-                if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
-                    err=self.motor.get_hardware_error()
-                err_valid = self.motor.last_comm_success
+                if self.status_mux_id == 2:
+                    err = self.motor.get_hardware_error()
+                    if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                        err = self.motor.get_hardware_error()
+                    err_valid = self.motor.last_comm_success
+                else:
+                    err = self.status['hardware_error']
+
+                self.status_mux_id = (self.status_mux_id + 1) % 3
 
 
                 if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
@@ -223,7 +263,7 @@ class DynamixelHelloXL430(Device):
         if self.status['stalled']:
             if not over_eff:
                 self.ts_over_eff_start = None
-            if over_eff and self.ts_over_eff_start is None: #Mark the start of being stall and over-effort
+            if over_eff and self.ts_over_eff_start is None: #Mark the start of being stalled and over-effort
                 self.ts_over_eff_start = time.time()
             if self.ts_over_eff_start is not None and time.time()-self.ts_over_eff_start>self.params['stall_max_time']:
                 self.status['stall_overload'] = True
@@ -274,6 +314,7 @@ class DynamixelHelloXL430(Device):
         #self.motor.pretty_print()
 
     def step_sentry(self, robot):
+
         if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:
             is_runstopped = robot.pimu.status['runstop_event']
             if is_runstopped is not self.was_runstopped:
@@ -309,7 +350,7 @@ class DynamixelHelloXL430(Device):
             return
         try:
             self.set_motion_params(v_des,a_des)
-            x_des = min(max(self.soft_motion_limits[0], x_des), self.soft_motion_limits[1])
+            x_des = min(max(self.get_soft_motion_limits()[0], x_des), self.get_soft_motion_limits()[1])
             t_des = self.world_rad_to_ticks(x_des)
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
@@ -318,34 +359,22 @@ class DynamixelHelloXL430(Device):
             self.comm_errors.add_error(rx=False, gsr=False)
 
 
-    def set_range(self,x_min=None,x_max=None):
-        if x_min is not None:
-            t_min=self.world_rad_to_ticks(x_min)
-            t_min=max(t_min,self.params['range_t'][0])
-        else:
-            t_min=self.params['range_t'][0]
-        if x_max is not None:
-            t_max=self.world_rad_to_ticks(x_max)
-            t_max=max(t_max,self.params['range_t'][1])
-        else:
-            t_max=self.params['range_t'][1]
-        self.range=[t_min,t_max]
-
     def set_motion_params(self,v_des=None,a_des=None):
         try:
             if not self.hw_valid:
                 return
-            if v_des is not None:
-                v_des = min(self.params['motion']['max']['vel'], v_des)
 
-                if v_des != self.v_des:
-                    self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
-                    self.v_des = v_des
-            if a_des is not None:
-                a_des = min(self.params['motion']['max']['accel'], a_des)
-                if a_des != self.a_des:
-                    self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(a_des))
-                    self.a_des = a_des
+            v_des = v_des if v_des is not None else self.params['motion']['default']['vel']
+            v_des = min(self.params['motion']['max']['vel'], v_des)
+            if v_des != self.v_des:
+                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
+                self.v_des = v_des
+
+            a_des = a_des if a_des is not None else self.params['motion']['default']['accel']
+            a_des = min(self.params['motion']['max']['accel'], a_des)
+            if a_des != self.a_des:
+                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(a_des))
+                self.a_des = a_des
         except (termios.error, DynamixelCommError):
             #self.logger.warning('Dynamixel communication error on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
@@ -552,6 +581,12 @@ class DynamixelHelloXL430(Device):
         rad_servo = r*self.params['gr']*self.polarity
         t= self.rad_to_ticks(rad_servo)
         return t+self.params['zero_t']
+
+    def world_rad_to_ticks_per_sec(self,r):
+        rad_per_sec_servo = r*self.params['gr']*self.polarity
+        t= self.rad_per_sec_to_ticks(rad_per_sec_servo)
+        return t
+
 
     def ticks_to_rad(self,t):
         return deg_to_rad((360.0 * t / 4096.0))
