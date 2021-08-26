@@ -116,7 +116,7 @@ class DynamixelXL430():
         self.comm_errors = 0
         self.last_comm_success = True
         self.logger = logger
-
+        self.baud=baud
         # Make access to portHandler threadsafe
         self.pt_lock = threading.RLock() if pt_lock is None else pt_lock
 
@@ -163,7 +163,16 @@ class DynamixelXL430():
 
     def startup(self):
         if self.hw_valid:
-            self.enable_torque()
+            try:
+                self.enable_torque()
+            except DynamixelCommError:
+                baud=self.identify_baud_rate(self.dxl_id,self.usb)
+                if baud!=self.baud:
+                    self.logger.error('DynamixelCommError. Mismatched baud rate. Expected %d but servo is set to %d.'%(self.baud,baud))
+                else:
+                    self.logger.error('DynamixelCommError. Unable to enable torque')
+                self.hw_valid=False
+                return False
             return True
         return False
 
@@ -557,6 +566,8 @@ class DynamixelXL430():
         with self.pt_lock:
             v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PRESENT_VELOCITY)
         self.handle_comm_result('XL430_ADDR_PRESENT_VELOCITY', dxl_comm_result, dxl_error)
+        if v > 2 ** 24:
+            v = v - 2 ** 32
         return v
 
     def get_P_gain(self):
