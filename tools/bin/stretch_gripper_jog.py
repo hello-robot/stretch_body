@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import stretch_body.robot_params
+stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 from __future__ import print_function
 import sys
 import stretch_body.stretch_gripper as gripper
