@@ -24,6 +24,7 @@ factory_params = {
     "robot_collision": {
         'models': ['collision_arm_camera']
     },
+    'pimu':{'max_sync_rate_hz':20.0},
     'hello-motor-arm':{
         'gains': {'vel_near_setpoint_d': 3.5}
     },
