@@ -191,5 +191,7 @@ class RobotParams:
 
     @classmethod
     def set_logging_level(cls, level, handler='console_handler'):
-        if level in logging._levelNames and handler in cls._robot_params['logging']['handlers']:
+        level_names={0: 'NOTSET', 10: 'DEBUG', 'WARN': 30, 20: 'INFO', 'ERROR': 40, 'DEBUG': 10, 30:
+            'WARNING', 'INFO': 20, 'WARNING': 30, 40: 'ERROR', 50: 'CRITICAL', 'CRITICAL': 50, 'NOTSET': 0}
+        if level in level_names and handler in cls._robot_params['logging']['handlers']:
             cls._robot_params['logging']['handlers'][handler]['level'] = level
