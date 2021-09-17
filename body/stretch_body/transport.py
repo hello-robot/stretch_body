@@ -122,32 +122,16 @@ class Transport():
             self.rpc_queue2.append((copy.copy(self.payload_out[:n]),reply_callback))
 
     def step_rpc(self,rpc,rpc_callback): #Handle a single RPC transaction
-        if not self.ser:
-            self.logger.debug('Transport Serial not present for: %s' % self.usb)
-            return
-
-        dbg_buf = ''
         try:
             ts = time.time()
-            if dbg_on:
-                dbg_buf=dbg_buf+'--------------- New RPC -------------------------\n'
             ########## Initiate new RPC
             self.buf[0]=RPC_START_NEW_RPC
             self.framer.sendFramedData(self.buf, 1, self.ser)
-            if dbg_on:
-                dbg_buf=dbg_buf+'Framer sent RPC_START_NEW_RPC\n'
             crc, nr = self.framer.receiveFramedData(self.buf, self.ser)
-            if dbg_on:
-                if nr:
-                    dbg_buf=dbg_buf+'Framer rcvd on RPC_ACK_NEW_RPC CRC: '+str(crc)+' NR: '+str(nr)+' B0: '+str(self.buf[0])+' Expected B0: '+str(RPC_ACK_NEW_RPC) +':'+self.usb
-                else:
-                    dbg_buf = dbg_buf +'Framer rcvd 0 bytes on RPC_ACK_NEW_RPC'
-
             if crc!=1 or self.buf[0] != RPC_ACK_NEW_RPC:
                 self.logger.error('Transport RX Error on RPC_ACK_NEW_RPC {0} {1} {2}'.format(crc, nr, self.buf[0]))
                 raise TransportError
-            #if dbg_on:
-            #    print('New RPC initiated, len',len(rpc))
+
             ########### Send all blocks
             ntx=0
             while ntx<len(rpc):
@@ -157,55 +141,26 @@ class Transport():
                 if ntx==len(rpc):#Last block
                     self.buf[0] = RPC_SEND_BLOCK_LAST
                     self.buf[1:len(b) + 1] = b
-                    #if dbg_on:
-                    #    print('Sending last block',ntx)
-                    self.framer.sendFramedData(self.buf, nb+1, self.ser)
-                    if dbg_on:
-                        dbg_buf = dbg_buf + 'Framer sent RPC_SEND_BLOCK_LAST\n'
-                    #if dbg_on:
-                    #    print('Getting last block ack',ntx)
+                    self.framer.sendFramedData(self.buf, nb + 1, self.ser)
                     crc, nr = self.framer.receiveFramedData(self.buf, self.ser)
-                    if dbg_on:
-                        if nr:
-                            dbg_buf = dbg_buf + 'Framer rcvd on RPC_SEND_BLOCK_LAST CRC: ' + str(crc) + ' NR: ' + str(nr) + ' B0: ' + str(self.buf[0]) + ' Expected B0: ' + str(RPC_ACK_SEND_BLOCK_LAST)+':'+self.usb+'\n'
-                        else:
-                            dbg_buf = dbg_buf + 'Framer rcvd 0 bytes on RPC_SEND_BLOCK_LAST'
-                    #if dbg_on:
-                    #    print('Last block ack rcvd',ntx)
                     if crc!=1 or self.buf[0]!=RPC_ACK_SEND_BLOCK_LAST:
                         self.logger.error('Transport RX Error on RPC_ACK_SEND_BLOCK_LAST {0} {1} {2}'.format(crc, nr, self.buf[0]))
                         raise TransportError
                 else:
                     self.buf[0] = RPC_SEND_BLOCK_MORE
                     self.buf[1:len(b) + 1] = b
-                    #if dbg_on:
-                    #    print('Sending next block',ntx)
                     self.framer.sendFramedData(self.buf, nb + 1, self.ser)
-                    if dbg_on:
-                        dbg_buf = dbg_buf + 'Framer sent RPC_SEND_BLOCK_MORE\n'
-                    #if dbg_on:
-                    #    print('Sent next block',ntx)
                     crc, nr = self.framer.receiveFramedData(self.buf, self.ser)
-                    if dbg_on:
-                        if nr:
-                            dbg_buf = dbg_buf + 'Framer rcvd on RPC_SEND_BLOCK_MORE CRC: ' + str(crc) + ' NR: ' + str(nr) + ' B0: ' + str(self.buf[0]) + ' Expected B0: ' + str(RPC_ACK_SEND_BLOCK_MORE)+':'+self.usb+'\n'
-                        else:
-                            dbg_buf = dbg_buf + 'Framer rcvd 0 bytes on RPC_SEND_BLOCK_MORE'
                     if crc!=1 or self.buf[0]!=RPC_ACK_SEND_BLOCK_MORE:
                         self.logger.error('Transport RX Error on RPC_ACK_SEND_BLOCK_MORE {0} {1} {2}'.format(crc, nr, self.buf[0]))
                         raise TransportError
+
             ########### Receive all blocks
             reply = arr.array('B')
-            #if dbg_on:
-            #    print('Receiving RPC reply')
             while True:
                 self.buf[0] = RPC_GET_BLOCK
-                #if dbg_on:
-                #    print('Block requested')
                 self.framer.sendFramedData(self.buf,1, self.ser)
                 crc, nr = self.framer.receiveFramedData(self.buf, self.ser)
-                #if dbg_on:
-                #    print('Block request success')
                 if crc != 1 or not (self.buf[0] == RPC_ACK_GET_BLOCK_MORE or self.buf[0] == RPC_ACK_GET_BLOCK_LAST):
                     self.logger.error('Transport RX Error on RPC_GET_BLOCK {0} {1} {2}'.format(crc, nr, self.buf[0]))
                     raise TransportError
@@ -213,11 +168,10 @@ class Transport():
 
                 if self.buf[0] == RPC_ACK_GET_BLOCK_LAST:
                     break
+
             # Now process the reply
-            #if dbg_on:
-            #    print('Got reply',len(reply))
-            #print('---------------------- RPC complete, elapsed time------------------:',time.time()-ts)
             rpc_callback(reply)
+
         except TransportError as e:
             if dbg_on:
                 print('---- Debug Exception')
