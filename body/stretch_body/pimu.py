@@ -517,7 +517,7 @@ class Pimu(PimuBase):
     """
     def __init__(self, event_reset=False):
         PimuBase.__init__(self, event_reset)
-        self.protocol_map = {'p0': Pimu_Protocol_P0, 'p1': Pimu_Protocol_P1}
+        self.supported_protocols = {'p0': Pimu_Protocol_P0, 'p1': Pimu_Protocol_P1}
 
     def startup(self):
         """
@@ -526,8 +526,8 @@ class Pimu(PimuBase):
         """
         PimuBase.startup(self)
         if self.hw_valid:
-            if self.board_info['protocol_version'] in self.protocol_map:
-                Pimu.__bases__ = (self.protocol_map[self.board_info['protocol_version']],)
+            if self.board_info['protocol_version'] in self.supported_protocols:
+                Pimu.__bases__ = (self.supported_protocols[self.board_info['protocol_version']],)
             else:
                 protocol_msg = """
                 ----------------
@@ -537,7 +537,7 @@ class Pimu(PimuBase):
                 Disabling device.
                 Please upgrade the firmware and/or version of Stretch Body.
                 ----------------
-                """.format(self.name, self.board_info['protocol_version'], self.protocol_map)
+                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols)
                 self.logger.warning(textwrap.dedent(protocol_msg))
                 self.hw_valid = False
                 self.transport.stop()

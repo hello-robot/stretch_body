@@ -253,7 +253,7 @@ class Wacc(WaccBase):
     """
     def __init__(self):
         WaccBase.__init__(self)
-        self.protocol_map = {'p0': Wacc_Protocol_P0, 'p1': Wacc_Protocol_P1}
+        self.supported_protocols = {'p0': Wacc_Protocol_P0, 'p1': Wacc_Protocol_P1}
 
     def startup(self):
         """
@@ -262,8 +262,8 @@ class Wacc(WaccBase):
         """
         WaccBase.startup(self)
         if self.hw_valid:
-            if self.board_info['protocol_version'] in self.protocol_map:
-                Wacc.__bases__ = (self.protocol_map[self.board_info['protocol_version']],)
+            if self.board_info['protocol_version'] in self.supported_protocols:
+                Wacc.__bases__ = (self.supported_protocols[self.board_info['protocol_version']],)
             else:
                 protocol_msg = """
                 ----------------
@@ -273,7 +273,7 @@ class Wacc(WaccBase):
                 Disabling device.
                 Please upgrade the firmware and/or version of Stretch Body.
                 ----------------
-                """.format(self.name, self.board_info['protocol_version'], self.protocol_map)
+                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols)
                 self.logger.warning(textwrap.dedent(protocol_msg))
                 self.hw_valid = False
                 self.transport.stop()
