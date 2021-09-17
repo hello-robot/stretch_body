@@ -98,7 +98,7 @@ class Lift(Device):
         else:
             i_contact_pos = self.i_contact_pos
 
-        self.motor.set_command(mode = MODE_POS_TRAJ,
+        self.motor.set_command(mode = Stepper.MODE_POS_TRAJ,
                                 x_des=self.translate_to_motor_rad(x_m),
                                 v_des=v_r,
                                 a_des=a_r,
@@ -156,7 +156,7 @@ class Lift(Device):
 
         #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate_m(v_r), self.motor_rad_to_translate_m(a_r)))
 
-        self.motor.set_command(mode = MODE_POS_TRAJ_INCR,
+        self.motor.set_command(mode = Stepper.MODE_POS_TRAJ_INCR,
                                 x_des=self.translate_to_motor_rad(x_m),
                                 v_des=v_r,
                                 a_des=a_r,
