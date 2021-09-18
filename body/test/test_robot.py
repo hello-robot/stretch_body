@@ -19,15 +19,15 @@ class TestRobot(unittest.TestCase):
         r = stretch_body.robot.Robot()
         r.startup()
 
-        r.home()
-        r.pull_status()
-        time.sleep(1) # wrist_yaw yields 3.4 (stowed position) unless sleep here
-        self.assertAlmostEqual(r.status['lift']['pos'], 0.58, places=1)
-        self.assertAlmostEqual(r.status['arm']['pos'], 0.1, places=3)
-        self.assertAlmostEqual(r.status['head']['head_tilt']['pos'], 0.0, places=1)
-        self.assertAlmostEqual(r.status['head']['head_pan']['pos'], 0.0, places=1)
-        self.assertAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], 0.0, places=1)
-        self.assertAlmostEqual(r.status['end_of_arm']['stretch_gripper']['pos'], 0.0, places=1)
+        # r.home()
+        # r.pull_status()
+        # time.sleep(1) # wrist_yaw yields 3.4 (stowed position) unless sleep here
+        # self.assertAlmostEqual(r.status['lift']['pos'], 0.58, places=1)
+        # self.assertAlmostEqual(r.status['arm']['pos'], 0.1, places=3)
+        # self.assertAlmostEqual(r.status['head']['head_tilt']['pos'], 0.0, places=1)
+        # self.assertAlmostEqual(r.status['head']['head_pan']['pos'], 0.0, places=1)
+        # self.assertAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], 0.0, places=1)
+        # self.assertAlmostEqual(r.status['end_of_arm']['stretch_gripper']['pos'], 0.0, places=1)
 
         r.stow()
         r.pull_status()
@@ -36,7 +36,6 @@ class TestRobot(unittest.TestCase):
         self.assertAlmostEqual(r.status['head']['head_tilt']['pos'], 0.0, places=1)
         self.assertAlmostEqual(r.status['head']['head_pan']['pos'], 0.0, places=1)
         self.assertAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], 3.4, places=1)
-        self.assertAlmostEqual(r.status['end_of_arm']['stretch_gripper']['pos'], 0.0, places=1)
 
         r.stop()
 
@@ -88,7 +87,8 @@ class TestRobot(unittest.TestCase):
 
         upper_limit = 0.1
         bad_goal = upper_limit + 0.1
-        r.arm.set_soft_motion_limits(0.0, upper_limit)
+        r.arm.set_soft_motion_limit_min(0.0)
+        r.arm.set_soft_motion_limit_max(upper_limit)
         r.push_command()
         time.sleep(1.0)
         r.arm.move_to(bad_goal)
@@ -108,12 +108,10 @@ class TestRobot(unittest.TestCase):
 
         # Move robot to starting position
         r.end_of_arm.move_to('wrist_yaw', 0.0)
-        r.end_of_arm.move_to('stretch_gripper', 100.0)
         time.sleep(4.0)
 
         # Begin moving to stow position
         r.end_of_arm.move_to('wrist_yaw', math.pi)
-        r.end_of_arm.move_to('stretch_gripper', 0.0)
         time.sleep(1.0)
 
         # Interrupt moving to stow position
@@ -127,6 +125,4 @@ class TestRobot(unittest.TestCase):
         # Verify not at stow position
         r.pull_status()
         self.assertNotAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], math.pi, places=2)
-        self.assertNotAlmostEqual(r.status['end_of_arm']['stretch_gripper']['pos'], 0.0, places=2)
-
         r.stop()

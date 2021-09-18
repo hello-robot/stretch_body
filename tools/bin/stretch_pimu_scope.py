@@ -197,16 +197,52 @@ if args.az:
         p.stop()
 
 
-# IMU
-if args.roll:
+if args.gx:
     import stretch_body.scope as scope
-    s = scope.Scope(title='Roll') #scope.Scope(yrange=[-20,20], title='Roll')
+    s = scope.Scope(yrange=[-0.5,0.5], title='GX')
     try:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            print('Roll',p.status['imu']['roll']) #rad_to_deg(p.status['imu']['roll'])
-            s.step_display(p.status['imu']['roll']) #rad_to_deg(p.status['imu']['roll']))
+            print('GX',p.status['imu']['gx'])
+            s.step_display(p.status['imu']['gx'])
+    except (SystemExit, KeyboardInterrupt):
+        p.stop()
+
+if args.gy:
+    import stretch_body.scope as scope
+    s = scope.Scope(yrange=[-0.5,0.5], title='GY')
+    try:
+        while True:
+            p.pull_status()
+            time.sleep(0.02)
+            print('GY',p.status['imu']['gy'])
+            s.step_display(p.status['imu']['gy'])
+    except (SystemExit, KeyboardInterrupt):
+        p.stop()
+
+if args.gz:
+    import stretch_body.scope as scope
+    s = scope.Scope(yrange=[-0.5,0.5], title='GZ')
+    try:
+        while True:
+            p.pull_status()
+            time.sleep(0.02)
+            print('GZ',p.status['imu']['gz'])
+            s.step_display(p.status['imu']['gz'])
+    except (SystemExit, KeyboardInterrupt):
+        p.stop()
+
+# IMU
+if args.roll:
+    import stretch_body.scope as scope
+    s = scope.Scope(title='Roll',yrange=[-20,20])
+    try:
+        while True:
+            p.pull_status()
+            time.sleep(0.02)
+            print('Roll',rad_to_deg(p.status['imu']['roll']))
+            s.step_display(rad_to_deg(p.status['imu']['roll']))
     except (SystemExit, KeyboardInterrupt):
         p.stop()
 

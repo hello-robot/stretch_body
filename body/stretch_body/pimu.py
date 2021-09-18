@@ -133,7 +133,7 @@ class PimuBase(Device):
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
-                       'imu': self.imu.status,'debug':0,'state':0,
+                       'imu': self.imu.status,'debug':0,'state':0,'motor_sync_drop':0,
                        'transport': self.transport.status}
         self._trigger=0
         self.ts_last_fan_on=None
@@ -145,6 +145,10 @@ class PimuBase(Device):
 
         self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
         self.hw_valid = False
+        self.ts_last_motor_sync=None
+        self.ts_last_motor_sync_warn=None
+
+
 
     # ###########  Device Methods #############
 
@@ -215,6 +219,7 @@ class PimuBase(Device):
         print('Debug', self.status['debug'])
         print('Timestamp (s)', self.status['timestamp'])
         print('Read error', self.transport.status['read_error'])
+        print('Dropped motor sync',self.status['motor_sync_drop'])
         print('Board version:',self.board_info['board_version'])
         print('Firmware version:', self.board_info['firmware_version'])
         self.imu.pretty_print()
@@ -255,10 +260,20 @@ class PimuBase(Device):
         #Push out immediately
         if not self.hw_valid:
             return
+
+        t = time.time()
+        if self.ts_last_motor_sync is not None and t-self.ts_last_motor_sync<1.0/self.params['max_sync_rate_hz']:
+            self.status['motor_sync_drop'] += 1
+            if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
+                print('Warning: Rate of calls to Pimu:trigger_motor_sync above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
+                self.ts_last_motor_sync_warn=t
+            return
+
         with self.lock:
             self.transport.payload_out[0] = self.RPC_SET_MOTOR_SYNC
             self.transport.queue_rpc(1, self.rpc_motor_sync_reply)
             self.transport.step()
+            self.ts_last_motor_sync = t
 
     def set_fan_on(self):
         with self.lock:
@@ -318,6 +333,7 @@ class PimuBase(Device):
             self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]
             sidx += 20
             return sidx
+
 
     def pack_config(self,s,sidx):
         with self.lock:

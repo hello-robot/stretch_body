@@ -42,7 +42,10 @@ class WaccBase(Device):
         self._dirty_command = False
         self._command = {'d2':0,'d3':0, 'trigger':0}
         self.transport = Transport(usb='/dev/hello-wacc', logger=self.logger)
-        self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,'timestamp': 0,'transport': self.transport.status}
+        self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
+                       'timestamp': 0,
+                       'transport': self.transport.status}
+        self.ts_last=None
         self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
         self.hw_valid = False
 
@@ -145,6 +148,7 @@ class WaccBase(Device):
             sidx += 20
             return sidx
 
+
     def pack_command(self,s,sidx):
         if self.ext_command_cb is not None:  # Pack custom data first
             sidx += self.ext_command_cb(s, sidx)
@@ -246,7 +250,7 @@ class Wacc_Protocol_P1(WaccBase):
 
 
 
-# ######################## PIMU #################################
+# ######################## WACC #################################
 class Wacc(WaccBase):
     """
     API to the Stretch RE1 Power and IMU board (Pimu)

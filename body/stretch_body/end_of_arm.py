@@ -19,6 +19,22 @@ class EndOfArm(DynamixelXChain):
             dynamixel_device = getattr(importlib.import_module(module_name), class_name)(chain=self)
             self.add_motor(dynamixel_device)
 
+
+    def get_joint(self, joint_name):
+        """Retrieves joint by name.
+
+        Parameters
+        ----------
+        joint_name : str
+            valid joints defined as defined in params['devices']
+
+        Returns
+        -------
+        DynamixelHelloXL430 or None
+            Motor object on valid joint name, else None
+        """
+        return self.get_motor(joint_name)
+
     def move_to(self, joint,x_r, v_r=None, a_r=None):
         """
         joint: name of joint (string)

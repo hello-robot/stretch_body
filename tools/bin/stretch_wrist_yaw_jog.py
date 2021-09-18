@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
+import stretch_body.robot_params
+stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 from stretch_body.hello_utils import *
 import sys
 import stretch_body.wrist_yaw as wrist_yaw

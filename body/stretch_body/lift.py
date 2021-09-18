@@ -19,8 +19,11 @@ class Lift(Device):
         self.accel_r = self.translate_to_motor_rad(self.params['motion']['default']['accel_m'])
         self.i_contact_neg = self.translate_force_to_motor_current(self.params['contact_thresh_N'][0])
         self.i_contact_pos = self.translate_force_to_motor_current(self.params['contact_thresh_N'][1])
-        self.motor.set_motion_limits(self.translate_to_motor_rad(self.params['range_m'][0]), self.translate_to_motor_rad(self.params['range_m'][1]))
-        self.soft_motion_limits = [self.params['range_m'][0], self.params['range_m'][1]]
+        self.soft_motion_limits = {'collision': [None, None], 'user': [None, None],
+                                   'hard': [self.params['range_m'][0], self.params['range_m'][1]],
+                                   'current': [self.params['range_m'][0], self.params['range_m'][1]]}
+        self.motor.set_motion_limits(self.translate_to_motor_rad(self.soft_motion_limits['current'][0]),
+                                     self.translate_to_motor_rad(self.soft_motion_limits['current'][1]))
     # ###########  Device Methods #############
 
     def startup(self):
@@ -44,17 +47,95 @@ class Lift(Device):
         print('Pos (m): ', self.status['pos'])
         print('Vel (m/s): ', self.status['vel'])
         print('Force (N): ', self.status['force'])
+        print('Soft motion limits (m)', self.soft_motion_limits['current'])
         print('Timestamp PC (s):', self.status['timestamp_pc'])
-        #self.motor.pretty_print()
+        self.motor.pretty_print()
 
     # ###################################################
-    def set_soft_motion_limits(self,x_min=None,x_max=None):
-        x_min = max(x_min,self.params['range_m'][0]) if x_min is not None else self.params['range_m'][0]
-        x_max = min(x_max,self.params['range_m'][1]) if x_max is not None else self.params['range_m'][1]
-        if x_min != self.soft_motion_limits[0] or x_max != self.soft_motion_limits[1]:
-            self.motor.set_motion_limits(self.translate_to_motor_rad(x_min), self.translate_to_motor_rad(x_max))
 
-        self.soft_motion_limits=[x_min, x_max]
+
+    def get_soft_motion_limits(self):
+        """
+            Return the currently applied soft motion limits: [min, max]
+
+            The soft motion limit restricts joint motion to be <= its physical limits.
+
+            There are three types of limits:
+            Hard: The physical limits
+            Collision: Limits set by RobotCollision to avoid collisions
+            User: Limits set by the user software
+
+            The joint is limited to the most restrictive range of the Hard / Collision/ User values.
+            Specifying a value of None for a limit indicates that no constraint exists for that limit type.
+            This allows a User limits and Collision limits to coexist.
+            For example, a user can temporarily restrict the range of motion beyond the current collision limits.
+            Then, by commanding User limits of None, the joint limits will revert back to the collision settings.
+        """
+        return self.soft_motion_limits['current']
+
+    def set_soft_motion_limit_min(self,x,limit_type='user' ):
+        """
+        x: value to set a joints limit to
+        limit_type: 'user' or 'collision'
+        """
+        self.soft_motion_limits[limit_type][0]=x
+        xn=max(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][0],self.soft_motion_limits['hard'][0],self.soft_motion_limits['user'][0]]))
+        prev=self.soft_motion_limits['current'][:]
+        self.soft_motion_limits['current'][0]=xn
+        if xn != prev[0]:
+            #print('New soft limit on min',xn)
+            self.motor.set_motion_limits(self.translate_to_motor_rad(self.soft_motion_limits['current'][0]), self.translate_to_motor_rad(self.soft_motion_limits['current'][1]))
+
+    def set_soft_motion_limit_max(self,x,limit_type='user' ):
+        """
+        x: value to set a joints limit to
+        limit_type: 'user' or 'collision'
+        """
+        self.soft_motion_limits[limit_type][1]=x
+        xn=min(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][1],self.soft_motion_limits['hard'][1],self.soft_motion_limits['user'][1]]))
+        prev=self.soft_motion_limits['current'][:]
+        self.soft_motion_limits['current'][1]=xn
+        if xn != prev[1]:
+            #print('New soft limit on max', xn)
+            self.motor.set_motion_limits(self.translate_to_motor_rad(self.soft_motion_limits['current'][0]), self.translate_to_motor_rad(self.soft_motion_limits['current'][1]))
+
+    # ###################################################
+
+    def set_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None, req_calibration=True):
+        if req_calibration:
+            if not self.motor.status['pos_calibrated']:
+                self.logger.warning('Lift not calibrated')
+                return
+        v_m=min(self.params['motion']['max']['vel_m'],v_m) if v_m>=0 else max(-1*self.params['motion']['max']['vel_m'],v_m)
+        v_r = self.translate_to_motor_rad(v_m)
+
+        if stiffness is not None:
+            stiffness = max(0, min(1.0, stiffness))
+        else:
+            stiffness = self.stiffness
+
+        if a_m is not None:
+            a_r = self.translate_to_motor_rad(min(abs(a_m), self.params['motion']['max']['accel_m']))
+        else:
+            a_r = self.accel_r
+
+        if contact_thresh_neg_N is not None:
+            i_contact_neg = max(self.translate_force_to_motor_current(contact_thresh_neg_N),self.params['contact_thresh_max_N'][0])
+        else:
+            i_contact_neg = self.i_contact_neg
+
+        if contact_thresh_pos_N is not None:
+            i_contact_pos = min(self.translate_force_to_motor_current(contact_thresh_pos_N),self.params['contact_thresh_max_N'][1])
+        else:
+            i_contact_pos = self.i_contact_pos
+
+        self.motor.set_command(mode=MODE_VEL_TRAJ,
+                               v_des=v_r,
+                               a_des=a_r,
+                               stiffness=stiffness,
+                               i_feedforward=self.i_feedforward,
+                               i_contact_pos=i_contact_pos,
+                               i_contact_neg=i_contact_neg)
 
     def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None, req_calibration=True):
         """
@@ -70,7 +151,7 @@ class Lift(Device):
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('Lift not calibrated')
                 return
-            x_m = min(max(self.soft_motion_limits[0], x_m), self.soft_motion_limits[1]) #Only clip motion when calibrated
+            x_m = min(max(self.soft_motion_limits['current'][0], x_m), self.soft_motion_limits['current'][1]) #Only clip motion when calibrated
         if stiffness is not None:
             stiffness = max(0, min(1.0, stiffness))
         else:
@@ -122,10 +203,10 @@ class Lift(Device):
                 self.logger.warning('Lift not calibrated')
                 return
 
-            if self.status['pos'] + x_m < self.soft_motion_limits[0]:  #Only clip motion when calibrated
-                x_m = self.soft_motion_limits[0] - self.status['pos']
-            if self.status['pos'] + x_m > self.soft_motion_limits[1]:
-                x_m = self.soft_motion_limits[1] - self.status['pos']
+            if self.status['pos'] + x_m < self.soft_motion_limits['current'][0]:  #Only clip motion when calibrated
+                x_m = self.soft_motion_limits['current'][0] - self.status['pos']
+            if self.status['pos'] + x_m > self.soft_motion_limits['current'][1]:
+                x_m = self.soft_motion_limits['current'][1] - self.status['pos']
 
         if stiffness is not None:
             stiffness = max(0, min(1.0, stiffness))

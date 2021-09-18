@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import argparse
 import math
 import yaml
@@ -96,7 +96,11 @@ class StretchState:
         wrist_yaw_status = stretch_status['end_of_arm']['wrist_yaw']
         wrist_yaw_rad = wrist_yaw_status['pos']
 
-        gripper_status = stretch_status['end_of_arm']['stretch_gripper']
+        try:
+            gripper_status = stretch_status['end_of_arm']['stretch_gripper']
+        except KeyError:
+            print('Tool must include Stretch Gripper. Exiting...')
+            exit(1)
         _, gripper_finger_rad, _, _ = self.gripper_conversion.status_to_all(gripper_status)
 
         head_pan_status = stretch_status['head']['head_pan']

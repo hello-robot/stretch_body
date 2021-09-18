@@ -10,6 +10,19 @@ import time
 
 class TestPimu(unittest.TestCase):
 
+    def test_motor_sync_rate(self):
+        print('test_motor_sync_rate')
+        p = stretch_body.pimu.Pimu()
+        p.startup()
+        for i in range(100):
+            p.trigger_motor_sync()
+            time.sleep(1/p.params['max_sync_rate_hz'])
+        self.assertTrue(p.status['motor_sync_drop']==0)
+        for i in range(100):
+            p.trigger_motor_sync()
+            time.sleep(0.01)
+        self.assertTrue(p.status['motor_sync_drop']>75)
+
     @unittest.skip(reason='Doesnt test anything yet')
     def test_invalid_protocol(self):
         """Simulate an invalid protocol and verify the correct error.
