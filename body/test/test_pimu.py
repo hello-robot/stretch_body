@@ -28,8 +28,6 @@ class TestPimu(unittest.TestCase):
         """
         p = stretch_body.pimu.Pimu()
         p.valid_firmware_protocol = 'p-1' # valid protocols are p0 and up
-        p.startup()
-        # TODO: capture logging with https://testfixtures.readthedocs.io/en/latest/logging.html
-        #       verify output is '[WARNING] [pimu]: \n----------------\nFirmware protocol mismatch on hello-pimu. [...]'
+        self.assertFalse(p.startup())
 
         p.stop()

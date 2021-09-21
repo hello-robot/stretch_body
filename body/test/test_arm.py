@@ -11,6 +11,9 @@ import time
 class TestArm(unittest.TestCase):
 
     def test_vel_guarded_contact(self):
+        """Test `set_velocity` API and check that guarded contact
+        events are triggered at arm's end of range.
+        """
         a = stretch_body.arm.Arm()
         a.motor.disable_sync_mode()
         self.assertTrue(a.startup())
@@ -23,19 +26,22 @@ class TestArm(unittest.TestCase):
         a.motor.wait_until_at_setpoint(timeout=5.0)
         a.pull_status()
         self.assertAlmostEqual(a.status['pos'], 0.0, places=1)
-
         g1=a.motor.status['guarded_event']
         vel_des=.15 #m/s
+
+        # Move to extend hardstop
         a.set_velocity(v_m=vel_des)
         a.push_command()
-        time.sleep(6.0) #Move to extend hardstop
+        time.sleep(6.0)
         a.pull_status()
         g2=a.motor.status['guarded_event']
         self.assertNotEqual(g1,g2)
+        self.assertNotAlmostEqual(a.status['pos'], 0.0, places=1)
 
+        # Move to retract hardstop
         a.set_velocity(v_m=-1*vel_des)
         a.push_command()
-        time.sleep(6.0)  # Move to extend hardstop
+        time.sleep(6.0)
         a.pull_status()
         g3 = a.motor.status['guarded_event']
         self.assertNotEqual(g2, g3)
