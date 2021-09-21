@@ -15,7 +15,7 @@ The PIMU is the power and IMU Arduino board in the base
 """
 
 
-class IMU(Device):
+class IMUBase(Device):
     """
     API to the Stretch RE1 IMU found in the base
     """
@@ -56,7 +56,37 @@ class IMU(Device):
         print('Timestamp (s)', self.status['timestamp'])
         print('-----------------------')
 
-    #Called by transport thread
+    def unpack_status(self, s):
+        raise NotImplementedError()
+
+# ######################## IMU PROTOCOL P0 #################################
+class IMU_Protocol_P0(IMUBase):
+    def unpack_status(self, s):
+        # take in an array of bytes
+        # this needs to exactly match the C struct format
+        sidx=0
+        self.status['ax']=  unpack_float_t(s[sidx:]);sidx += 4
+        self.status['ay'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['az'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['gx'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['gy'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['gz'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['mx'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['my'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['mz'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        self.status['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        self.status['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        self.status['qw'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['qx'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['qy'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['qz'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+        self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+        return sidx
+
+# ######################## IMU PROTOCOL P1 #################################
+class IMU_Protocol_P1(IMUBase):
     def unpack_status(self, s):
         # take in an array of bytes
         # this needs to exactly match the C struct format
@@ -80,7 +110,13 @@ class IMU(Device):
         self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
 
+# ######################## IMU #################################
+class IMU(IMUBase):
+    def __init__(self):
+        IMUBase.__init__(self)
+        self.supported_protocols = {'p0': IMU_Protocol_P0, 'p1': IMU_Protocol_P1}
 
+# ##################################################################################
 class PimuBase(Device):
     """
     API to the Stretch RE1 Power and IMU board (Pimu)
@@ -376,7 +412,7 @@ class PimuBase(Device):
             return sidx
 
     def unpack_status(self,s):
-        pass
+        raise NotImplementedError()
     # ################Transport Callbacks #####################
 
     def rpc_motor_sync_reply(self,reply):
@@ -530,6 +566,7 @@ class Pimu(PimuBase):
         if self.hw_valid:
             if self.board_info['protocol_version'] in self.supported_protocols:
                 Pimu.__bases__ = (self.supported_protocols[self.board_info['protocol_version']],)
+                self.imu.__bases__= (self.imu.supported_protocols[self.board_info['protocol_version']],)
             else:
                 protocol_msg = """
                 ----------------
@@ -539,7 +576,7 @@ class Pimu(PimuBase):
                 Disabling device.
                 Please upgrade the firmware and/or version of Stretch Body.
                 ----------------
-                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols)
+                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols.keys())
                 self.logger.warning(textwrap.dedent(protocol_msg))
                 self.hw_valid = False
                 self.transport.stop()

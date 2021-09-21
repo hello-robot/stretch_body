@@ -633,7 +633,7 @@ class StepperBase(Device):
             return sidx
 
     def unpack_status(self,s):
-        pass
+        raise NotImplementedError()
 
     def rpc_load_test_reply(self, reply):
         if reply[0] == self.RPC_REPLY_LOAD_TEST:
@@ -775,7 +775,7 @@ class Stepper(StepperBase):
                 Disabling device.
                 Please upgrade the firmware and/or version of Stretch Body.
                 ----------------
-                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols)
+                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols.keys())
                 self.logger.warning(textwrap.dedent(protocol_msg))
                 self.hw_valid = False
                 self.transport.stop()

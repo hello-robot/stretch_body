@@ -45,7 +45,6 @@ class WaccBase(Device):
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
                        'timestamp': 0,
                        'transport': self.transport.status}
-        self.ts_last=None
         self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
         self.hw_valid = False
 
@@ -180,7 +179,7 @@ class WaccBase(Device):
             return sidx
 
     def unpack_status(self,s):
-        pass
+        raise NotImplementedError()
     # ################Transport Callbacks #####################
     def rpc_board_info_reply(self,reply):
         if reply[0] == self.RPC_REPLY_WACC_BOARD_INFO:
@@ -277,7 +276,7 @@ class Wacc(WaccBase):
                 Disabling device.
                 Please upgrade the firmware and/or version of Stretch Body.
                 ----------------
-                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols)
+                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols.keys())
                 self.logger.warning(textwrap.dedent(protocol_msg))
                 self.hw_valid = False
                 self.transport.stop()
