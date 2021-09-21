@@ -71,8 +71,8 @@ DIAG_IN_GUARDED_EVENT = 512     # Guarded event occured during motion
 DIAG_IN_SAFETY_EVENT = 1024      #Is it forced into safety mode
 DIAG_WAITING_ON_SYNC = 2048     #Command received but no sync yet
 DIAG_TRAJ_ACTIVE     = 4096     # Whether a waypoint trajectory is actively executing
-DIAG_TRAJ_WAITING_ON_SYNC = 8192
-DIAG_IN_SYNC_MODE=16384
+DIAG_TRAJ_WAITING_ON_SYNC = 8192 # Currently waiting on a sync signal before starting trajectory
+DIAG_IN_SYNC_MODE = 16384        # Currently running in sync mode
 
 CONFIG_SAFETY_HOLD =1           #Hold position in safety mode? Otherwise freewheel
 CONFIG_ENABLE_RUNSTOP =2        #Recognize runstop signal?
@@ -102,13 +102,13 @@ class Stepper(Device):
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
-                       'in_safety_event':0,
+                       'in_safety_event':0,'waiting_on_sync':0,
                        'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,}}
         self.board_info={'board_version':None, 'firmware_version':None,'protocol_version':None}
         self.motion_limits=[0,0]
         self.is_moving_history = [False] * 10
 
-        self.waypoint_traj_segment = [0] * 8
+        self._waypoint_traj_segment = [0] * 8
         self._waypoint_traj_start_success = False
         self._waypoint_traj_set_next_traj_success = False
 
@@ -228,7 +228,7 @@ class Stepper(Device):
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
         print('Guarded Events:', self.status['guarded_event'])
-        print('Diag', self.status['diag'])
+        print('Diag', format(self.status['diag'], '032b'))
         print('       Position Calibrated:', self.status['pos_calibrated'])
         print('       Runstop on:', self.status['runstop_on'])
         print('       Near Pos Setpoint:', self.status['near_pos_setpoint'])
@@ -566,7 +566,7 @@ class Stepper(Device):
     # ################Waypoint Trajectory Interface #####################
     def start_waypoint_trajectory(self, first_segment):
         """Starts execution of a waypoint trajectory on hardware
-        Return True if uC successfully initiated a new trajectory
+
         Parameters
         ----------
         first_segment : list
@@ -574,13 +574,21 @@ class Stepper(Device):
             The hardware begins executing this first segment of a spline. The segment's duration and
             six coefficients (a0-a5) fill the first seven elements of the list. A segment ID, always
             2 for the first segment, fills the last element of the list.
+
+        Returns
+        -------
+        bool
+            True if uC successfully initiated a new trajectory
         """
-        if first_segment[7]!=2:
-            self.logger.warning('Invalid waypoint segment ID for %s'%self.name)
+        if len(first_segment) != 8:
+            self.logger.warning('Invalid waypoint segment arr length (must be 8) for %s' % self.name)
             return False
-        self.waypoint_traj_segment = first_segment
+        if first_segment[7] != 2:
+            self.logger.warning('Invalid waypoint segment ID for %s' % self.name)
+            return False
+        self._waypoint_traj_segment = first_segment
         with self.lock:
-            if self.waypoint_traj_segment is not None:
+            if self._waypoint_traj_segment is not None:
                 self.transport.payload_out[0] = RPC_START_NEW_TRAJECTORY
                 sidx = self.pack_trajectory_segment(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_start_new_traj_reply)
@@ -589,13 +597,12 @@ class Stepper(Device):
 
     def set_next_trajectory_segment(self, next_segment):
         """Sets the next segment for the hardware to execute
-        Return True if uC successfully queued next trajectory
 
         This method is generally called multiple times while the prior segment is executing. This
         provides the hardware with the next segment to gracefully transition across the entire spline,
         while allowing users to preempt or modify the future trajectory in real time.
 
-        This will return False if there is not already an segment executing on the uC
+        This method will return False if there is not already an segment executing on the uC
 
         Parameters
         ----------
@@ -604,13 +611,21 @@ class Stepper(Device):
             Duration and six coefficients fill the first seven elements of the list. Generally, the
             coefficients are calculated to smoothly transition across a spline. The segment ID, always
             1 higher than the prior segment's ID, fills the last element of the list.
+
+        Returns
+        -------
+        bool
+            True if uC successfully queued next trajectory
         """
-        if next_segment[7]<3:
+        if len(next_segment) != 8:
+            self.logger.warning('Invalid waypoint segment arr length (must be 8) for %s' % self.name)
+            return False
+        if next_segment[7] < 3:
             self.logger.warning('Invalid waypoint segment ID for %s' % self.name)
             return False
-        self.waypoint_traj_segment = next_segment
+        self._waypoint_traj_segment = next_segment
         with self.lock:
-            if self.waypoint_traj_segment is not None:
+            if self._waypoint_traj_segment is not None:
                 self.transport.payload_out[0] = RPC_SET_NEXT_TRAJECTORY_SEG
                 sidx = self.pack_trajectory_segment(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_set_next_traj_seg_reply)
@@ -790,8 +805,8 @@ class Stepper(Device):
     def pack_trajectory_segment(self, s, sidx):
         with self.lock:
             for i in range(7):
-                pack_float_t(s, sidx, self.waypoint_traj_segment[i]); sidx += 4
-            pack_uint8_t(s, sidx, self.waypoint_traj_segment[7]); sidx += 1
+                pack_float_t(s, sidx, self._waypoint_traj_segment[i]); sidx += 4
+            pack_uint8_t(s, sidx, self._waypoint_traj_segment[7]); sidx += 1
             return sidx
 
     def rpc_load_test_reply(self, reply):
