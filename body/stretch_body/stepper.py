@@ -216,7 +216,7 @@ class StepperBase(Device):
             if limit_neg!=self.motion_limits[0] or limit_pos!=self.motion_limits[1]:
                 #Push out immediately
                 self.motion_limits=[limit_neg, limit_pos]
-                self.transport.payload_out[0] = RPC_SET_MOTION_LIMITS
+                self.transport.payload_out[0] = self.RPC_SET_MOTION_LIMITS
                 sidx = self.pack_motion_limits(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_motion_limits_reply)
                 self.transport.step2()
