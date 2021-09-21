@@ -400,8 +400,8 @@ class PimuBase(Device):
             pack_float_t(s, sidx, self.config['low_voltage_alert']);sidx += 4
             pack_float_t(s, sidx, self.config['high_current_alert']);sidx += 4
             pack_float_t(s, sidx, self.config['over_tilt_alert']); sidx += 4
-            self.config['enable_sync_mode'] = 0 # TODO: hardcoded disabled until implemented
-            pack_uint8_t(s, sidx, self.config['enable_sync_mode']); sidx += 1
+            #self.config['enable_sync_mode'] = 0 # TODO: hardcoded disabled until implemented
+            #pack_uint8_t(s, sidx, self.config['enable_sync_mode']); sidx += 1
             return sidx
 
     def pack_trigger(self,s,sidx):
