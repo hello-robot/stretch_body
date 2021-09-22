@@ -172,9 +172,6 @@ class WaccBase(Device):
             sidx += 1
             pack_float_t(s, sidx, self.config['accel_gravity_scale'])
             sidx += 4
-            self.config['enable_sync_mode'] = 0 # TODO: hardcoded disabled until implemented
-            pack_uint8_t(s, sidx, self.config['enable_sync_mode'])
-            sidx += 1
             return sidx
 
     def unpack_status(self,s):
