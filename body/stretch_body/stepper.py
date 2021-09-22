@@ -753,7 +753,8 @@ class Stepper(StepperBase):
     """
     def __init__(self,usb):
         StepperBase.__init__(self,usb)
-        self.supported_protocols = {'p0': Stepper_Protocol_P0, 'p1': Stepper_Protocol_P1}
+        # Order in descending order so more recent protocols/methods override less recent
+        self.supported_protocols = {'p0': (Stepper_Protocol_P0,), 'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,)}
 
     def startup(self):
         """
@@ -763,7 +764,7 @@ class Stepper(StepperBase):
         StepperBase.startup(self)
         if self.hw_valid:
             if self.board_info['protocol_version'] in self.supported_protocols:
-                Stepper.__bases__ = (self.supported_protocols[self.board_info['protocol_version']],)
+                Stepper.__bases__ = self.supported_protocols[self.board_info['protocol_version']]
             else:
                 protocol_msg = """
                 ----------------

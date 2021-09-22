@@ -255,7 +255,8 @@ class Wacc(WaccBase):
     """
     def __init__(self):
         WaccBase.__init__(self)
-        self.supported_protocols = {'p0': Wacc_Protocol_P0, 'p1': Wacc_Protocol_P1}
+        #Order in descending order so more recent protocols/methods override less recent
+        self.supported_protocols = {'p0': (Wacc_Protocol_P0,), 'p1': (Wacc_Protocol_P1,Wacc_Protocol_P0,)}
 
     def startup(self):
         """
