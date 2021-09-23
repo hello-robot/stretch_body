@@ -12,8 +12,7 @@ import time
 
 class TestCollisionGripperBase(unittest.TestCase):
 
-
-
+    @unittest.skip(reason='interactive test requires user input')
     def test_move_gripper_to_base(self):
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager']=True
@@ -112,6 +111,7 @@ class TestCollisionGripperBase(unittest.TestCase):
 
 class TestCollisionArmCamera(unittest.TestCase):
 
+    @unittest.skip(reason='interactive test requires user input')
     def test_move_arm_to_camera(self):
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager']=True
