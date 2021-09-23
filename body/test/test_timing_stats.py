@@ -20,7 +20,7 @@ class TestTimingStats(unittest.TestCase):
     def test_robot_loops(self, rate_missed_threshold=0.1):
         print('Starting test_robot_loops')
         r = robot.Robot()
-        r.startup()
+        self.assertTrue(r.startup())
         time.sleep(3.0)
         r.non_dxl_thread.stats.pretty_print()
         r.dxl_thread.stats.pretty_print()
@@ -32,7 +32,7 @@ class TestTimingStats(unittest.TestCase):
     def test_robot_loops_heavy(self, rate_missed_threshold=0.1):
         print('Starting test_robot_loops')
         r = robot.Robot()
-        r.startup()
+        self.assertTrue(r.startup())
         start = time.time()
         while time.time() - start < 20.0:
             x = np.random.rand(3, 1000, 1000)

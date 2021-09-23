@@ -17,7 +17,7 @@ class TestCollisionGripperBase(unittest.TestCase):
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager']=True
 
-        r.startup()
+        self.assertTrue(r.startup())
         #Start with lift at known safe position near head
         r.lift.move_to(0.25)
         r.push_command()
@@ -116,7 +116,7 @@ class TestCollisionArmCamera(unittest.TestCase):
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager']=True
 
-        r.startup()
+        self.assertTrue(r.startup())
         #Start with lift at known safe position near head
         r.lift.move_to(1.0)
         r.push_command()
@@ -227,7 +227,7 @@ class TestCollisionArmCamera(unittest.TestCase):
         r.stop()
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager'] = True
-        r.startup()
+        self.assertTrue(r.startup())
 
         r.lift.move_to(1.09)
         r.push_command()

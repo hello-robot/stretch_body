@@ -16,7 +16,7 @@ class TestSync(unittest.TestCase):
         Stepper doesnt place it in runstop
         """
         r = stretch_body.robot.Robot()
-        r.startup()
+        self.assertTrue(r.startup())
         r.arm.move_to(0.0)
         r.push_command()
         r.arm.motor.wait_until_at_setpoint(timeout=3.0)

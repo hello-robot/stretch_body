@@ -140,15 +140,18 @@ class Robot(Device):
         """
         To be called once after class instantiation.
         Prepares devices for communications and motion
+
+        Returns
+        -------
+        bool
+            true if startup of robot succeeded
         """
         self.logger.debug('Starting up Robot {0} of batch {1}'.format(self.params['serial_no'], self.params['batch_name']))
+        success = True
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 if not self.devices[k].startup():
-                    pass
-                #    print('Startup failure on %s. Exiting.'%k)
-                #    exit()
-
+                    success = False
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
@@ -167,6 +170,7 @@ class Robot(Device):
         while not self.non_dxl_thread.first_status and not self.dxl_thread.first_status and time.time()-ts<3.0:
            time.sleep(0.1)
 
+        return success
 
     def stop(self):
         """
