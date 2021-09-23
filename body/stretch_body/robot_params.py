@@ -32,10 +32,10 @@ factory_params = {
         'gains': {'vel_near_setpoint_d': 3.5}
     },
     'hello-motor-right-wheel':{
-        'gains': {'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5, 'pKd_d': 40.0}
     },
     'hello-motor-left-wheel':{
-        'gains': {'vel_near_setpoint_d': 3.5}
+        'gains': {'vel_near_setpoint_d': 3.5, 'pKd_d': 40.0}
     },
     "head": {
         "use_group_sync_read": 1,
