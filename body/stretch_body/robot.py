@@ -2,7 +2,6 @@ from __future__ import print_function
 import threading
 import time
 import signal
-import os
 import importlib
 
 from stretch_body.device import Device
@@ -12,8 +11,6 @@ import stretch_body.lift as lift
 import stretch_body.pimu as pimu
 import stretch_body.head as head
 import stretch_body.wacc as wacc
-
-import logging
 import stretch_body.hello_utils as hello_utils
 
 from serial import SerialException
@@ -28,10 +25,10 @@ class DXLStatusThread(threading.Thread):
     This thread polls the status data of the Dynamixel devices
     at 15Hz
     """
-    def __init__(self,robot):
+    def __init__(self, robot, target_rate_hz=15.0):
         threading.Thread.__init__(self)
         self.robot=robot
-        self.robot_update_rate_hz = 15.0  #Hz
+        self.robot_update_rate_hz = target_rate_hz
         self.stats = hello_utils.LoopStats(loop_name='DXLStatusThread',target_loop_rate=self.robot_update_rate_hz)
         self.shutdown_flag = threading.Event()
         self.first_status=False
@@ -51,13 +48,12 @@ class NonDXLStatusThread(threading.Thread):
     """
     This thread runs at 25Hz.
     It updates the status data of the Devices.
-    It also steps the Sentry and Monitor functions
+    It also steps the Sentry, Monitor, and Collision functions
     """
-    def __init__(self,robot):
+    def __init__(self, robot, target_rate_hz=25.0):
         threading.Thread.__init__(self)
         self.robot=robot
-
-        self.robot_update_rate_hz = 25.0  #Hz
+        self.robot_update_rate_hz = target_rate_hz
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
         self.collision_downrate_int = 5  # Step the monitor at every Nth iteration
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
@@ -144,15 +140,18 @@ class Robot(Device):
         """
         To be called once after class instantiation.
         Prepares devices for communications and motion
+
+        Returns
+        -------
+        bool
+            true if startup of robot succeeded
         """
         self.logger.debug('Starting up Robot {0} of batch {1}'.format(self.params['serial_no'], self.params['batch_name']))
+        success = True
         for k in self.devices.keys():
             if self.devices[k] is not None:
                 if not self.devices[k].startup():
-                    pass
-                #    print('Startup failure on %s. Exiting.'%k)
-                #    exit()
-
+                    success = False
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
@@ -171,6 +170,7 @@ class Robot(Device):
         while not self.non_dxl_thread.first_status and not self.dxl_thread.first_status and time.time()-ts<3.0:
            time.sleep(0.1)
 
+        return success
 
     def stop(self):
         """

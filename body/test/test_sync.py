@@ -12,10 +12,11 @@ import time
 class TestSync(unittest.TestCase):
 
     def test_sync_stream(self):
-        #Check that streaming sync pulses to
-        #Stepper doesnt place in runstop
+        """Check that streaming sync pulses to
+        Stepper doesnt place it in runstop
+        """
         r = stretch_body.robot.Robot()
-        r.startup()
+        self.assertTrue(r.startup())
         r.arm.move_to(0.0)
         r.push_command()
         r.arm.motor.wait_until_at_setpoint(timeout=3.0)

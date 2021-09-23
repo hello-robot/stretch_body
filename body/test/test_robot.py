@@ -17,7 +17,7 @@ class TestRobot(unittest.TestCase):
         Note: this test assumes the stretch_gripper end-effector is attached.
         """
         r = stretch_body.robot.Robot()
-        r.startup()
+        self.assertTrue(r.startup())
 
         # r.home()
         # r.pull_status()
@@ -51,7 +51,7 @@ class TestRobot(unittest.TestCase):
         """Verify custom stowing for non-endofarm devices from tool works.
         """
         r = stretch_body.robot.Robot()
-        r.startup()
+        self.assertTrue(r.startup())
         if not r.is_calibrated():
             self.fail("test requires robot to be homed")
 
@@ -81,7 +81,7 @@ class TestRobot(unittest.TestCase):
         """
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager'] = True
-        r.startup()
+        self.assertTrue(r.startup())
         if not r.is_calibrated():
             self.fail("test requires robot to be homed")
 
@@ -102,7 +102,7 @@ class TestRobot(unittest.TestCase):
         """Test end_of_arm respects runstop from pimu
         """
         r = stretch_body.robot.Robot()
-        r.startup()
+        self.assertTrue(r.startup())
         if not r.is_calibrated():
             self.fail("test requires robot to be homed")
 

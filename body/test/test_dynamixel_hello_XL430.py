@@ -61,6 +61,11 @@ class TestDynamixelHelloXL430(unittest.TestCase):
 
         servo.stop()
 
+    def test_valid_startup_status(self):
+        servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_tilt", chain=None)
+        self.assertTrue(servo.startup())
+        self.assertNotEqual(servo.status['pos'],0)
+
     def test_non_multiturn_move_after_enable_pos(self):
         """Verify non-multiturn servo responds to move_to commands after enable_pos.
         """

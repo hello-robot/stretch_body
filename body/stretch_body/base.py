@@ -29,8 +29,9 @@ class Base(Device):
     # ###########  Device Methods #############
 
     def startup(self):
-        return self.left_wheel.startup() and self.right_wheel.startup()
-
+        success=self.left_wheel.startup() and self.right_wheel.startup()
+        self.__update_status()
+        return success
 
     def stop(self):
         self.left_wheel.stop()
@@ -288,6 +289,9 @@ class Base(Device):
         """
         self.left_wheel.pull_status()
         self.right_wheel.pull_status()
+        self.__update_status()
+
+    def __update_status(self):
         self.status['timestamp_pc'] = time.time()
 
         p0 = self.status['left_wheel']['pos']

@@ -10,13 +10,18 @@ import time
 
 class TestBase(unittest.TestCase):
 
+    def test_valid_startup_status(self):
+        b = stretch_body.base.Base()
+        self.assertTrue(b.startup())
+        self.assertNotEqual(b.status['timestamp_pc'],0)
+
     def test_fast_base_motion_allowed(self):
         """Verifies fast base motion is allowed at the correct time.
         """
         import stretch_body.robot
         r = stretch_body.robot.Robot()
         r.robot_params['robot_sentry']['base_max_velocity'] = 1 # Enable fast base motion
-        r.startup()
+        self.assertTrue(r.startup())
         if not r.is_calibrated():
             self.fail("test requires robot to be homed")
 

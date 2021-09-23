@@ -129,31 +129,37 @@ class DynamixelHelloXL430(Device):
         return self.motor.do_ping(verbose)
 
     def startup(self):
-        if self.motor.do_ping(verbose=False):
-            self.hw_valid = True
-            self.motor.disable_torque()
-            if self.params['use_multiturn']:
-                self.motor.enable_multiturn()
+        try:
+            if self.motor.do_ping(verbose=False):
+                self.hw_valid = True
+                self.motor.disable_torque()
+                if self.params['use_multiturn']:
+                    self.motor.enable_multiturn()
+                else:
+                    self.motor.enable_pos()
+                    if self.params['range_t'][0]<0 or self.params['range_t'][1]>4095:
+                        self.logger.warning('Warning: Invalid position range for %s'%self.name)
+                self.motor.set_pwm_limit(self.params['pwm_limit'])
+                self.motor.set_temperature_limit(self.params['temperature_limit'])
+                self.motor.set_min_voltage_limit(self.params['min_voltage_limit'])
+                self.motor.set_max_voltage_limit(self.params['max_voltage_limit'])
+                self.motor.set_P_gain(self.params['pid'][0])
+                self.motor.set_I_gain(self.params['pid'][1])
+                self.motor.set_D_gain(self.params['pid'][2])
+                self.motor.set_return_delay_time(self.params['return_delay_time'])
+                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['default']['vel']))
+                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
+                self.v_des=self.params['motion']['default']['vel']
+                self.a_des=self.params['motion']['default']['accel']
+                self.is_calibrated=self.motor.is_calibrated()
+                self.enable_torque()
+                self.pull_status()
+                return True
             else:
-                self.motor.enable_pos()
-                if self.params['range_t'][0]<0 or self.params['range_t'][1]>4095:
-                    self.logger.warning('Warning: Invalid position range for %s'%self.name)
-            self.motor.set_pwm_limit(self.params['pwm_limit'])
-            self.motor.set_temperature_limit(self.params['temperature_limit'])
-            self.motor.set_min_voltage_limit(self.params['min_voltage_limit'])
-            self.motor.set_max_voltage_limit(self.params['max_voltage_limit'])
-            self.motor.set_P_gain(self.params['pid'][0])
-            self.motor.set_I_gain(self.params['pid'][1])
-            self.motor.set_D_gain(self.params['pid'][2])
-            self.motor.set_return_delay_time(self.params['return_delay_time'])
-            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['default']['vel']))
-            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
-            self.v_des=self.params['motion']['default']['vel']
-            self.a_des=self.params['motion']['default']['accel']
-            self.is_calibrated=self.motor.is_calibrated()
-            self.enable_torque()
-            return True
-        else:
+                self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
+                print('DynamixelHelloXL430 Ping failed...', self.name)
+                return False
+        except DynamixelCommError:
             self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
             print('DynamixelHelloXL430 Ping failed...', self.name)
             return False
