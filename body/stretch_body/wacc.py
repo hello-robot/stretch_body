@@ -264,7 +264,7 @@ class Wacc(WaccBase):
         WaccBase.startup(self)
         if self.hw_valid:
             if self.board_info['protocol_version'] in self.supported_protocols:
-                Wacc.__bases__ = (self.supported_protocols[self.board_info['protocol_version']],)
+                Wacc.__bases__ = self.supported_protocols[self.board_info['protocol_version']]
             else:
                 protocol_msg = """
                 ----------------
