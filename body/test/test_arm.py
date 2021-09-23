@@ -52,6 +52,11 @@ class TestArm(unittest.TestCase):
         self.assertAlmostEqual(a.status['pos'], 0.0, places=1)
         a.stop()
 
+    def test_valid_startup_status(self):
+        a = stretch_body.arm.Arm()
+        self.assertTrue(a.startup())
+        self.assertNotEqual(a.status['pos'],0)
+
     def test_homing(self):
         """Test arm homes correctly.
         """
