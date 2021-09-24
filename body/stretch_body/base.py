@@ -109,14 +109,14 @@ class Base(Device):
 
 
 
-        self.left_wheel.set_command(mode=MODE_POS_TRAJ_INCR, x_des=x_mr,
+        self.left_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_INCR, x_des=x_mr,
                                     v_des=v_mr,
                                     a_des=a_mr,
                                     stiffness=stiffness,
                                     i_feedforward=0,
                                     i_contact_pos=i_contact_l,
                                     i_contact_neg=-1*i_contact_l)
-        self.right_wheel.set_command(mode=MODE_POS_TRAJ_INCR, x_des=x_mr,
+        self.right_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_INCR, x_des=x_mr,
                                     v_des=v_mr,
                                     a_des=a_mr,
                                     stiffness=stiffness,
@@ -164,14 +164,14 @@ class Base(Device):
 
         if stiffness is None:
             stiffness = self.stiffness
-        self.left_wheel.set_command(mode=MODE_POS_TRAJ_INCR,x_des=-1*x_mr,
+        self.left_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=-1*x_mr,
                                     v_des=v_mr,
                                     a_des=a_mr,
                                     stiffness=stiffness,
                                     i_feedforward=0,
                                     i_contact_pos=i_contact_l,
                                     i_contact_neg=-1 * i_contact_l)
-        self.right_wheel.set_command(mode=MODE_POS_TRAJ_INCR,x_des=x_mr,
+        self.right_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x_mr,
                                      v_des=v_mr,
                                      a_des=a_mr,
                                      stiffness=stiffness,
@@ -196,8 +196,8 @@ class Base(Device):
         v_sign = numpy.sign(v_m)
         v_m = v_sign * min(abs(v_m), self.params['motion']['max']['vel_m'])
         v_mr = self.translate_to_motor_rad(v_m)
-        self.left_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
-        self.right_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
+        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
+        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
 
     def set_rotational_velocity(self, v_r, a_r=None):
         """
@@ -217,8 +217,8 @@ class Base(Device):
         v_mr_max = self.translate_to_motor_rad(self.params['motion']['max']['vel_m'])
         v_mr = self.rotate_to_motor_rad(v_r)
         v_mr = w_sign * min(abs(v_mr), v_mr_max)
-        self.left_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=-1*v_mr, a_des=a_mr)
-        self.right_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
+        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=-1*v_mr, a_des=a_mr)
+        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
 
     def set_velocity(self, v_m, w_r, a=None):
         """
@@ -248,8 +248,8 @@ class Base(Device):
         wr_m = wr_sign * min(abs(wr_m), self.params['motion']['max']['vel_m'])
         wr_r = self.translate_to_motor_rad(wr_m)
 
-        self.left_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr)
-        self.right_wheel.set_command(mode=MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
+        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr)
+        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
 
     def step_sentry(self,robot):
         """
