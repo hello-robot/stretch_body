@@ -23,12 +23,11 @@ class TestPimu(unittest.TestCase):
             time.sleep(0.01)
         self.assertTrue(p.status['motor_sync_drop']>75)
 
-    @unittest.skip(reason='Doesnt test anything yet')
     def test_invalid_protocol(self):
-        """Simulate an invalid protocol and verify the correct error.
+        """Simulate an invalid protocol and verify startup fails.
         """
         p = stretch_body.pimu.Pimu()
-        p.valid_firmware_protocol = 'p-1' # valid protocols are p0 and up
+        p.supported_protocols = {'p-1': None} # valid protocols are p0 and up
         self.assertFalse(p.startup())
 
         p.stop()
