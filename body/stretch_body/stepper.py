@@ -609,7 +609,6 @@ class StepperBase(Device):
                 config=config | self.CONFIG_SAFETY_HOLD
             if self.gains['enable_runstop']:
                 config=config | self.CONFIG_ENABLE_RUNSTOP
-            self.gains['enable_sync_mode'] = 0 # TODO: hardcoded disabled until fixed
             if self.gains['enable_sync_mode']:
                 config=config | self.CONFIG_ENABLE_SYNC_MODE
             if self.gains['enable_guarded_mode']:
