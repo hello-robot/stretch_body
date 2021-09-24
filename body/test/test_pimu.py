@@ -29,6 +29,7 @@ class TestPimu(unittest.TestCase):
         p = stretch_body.pimu.Pimu()
         p.supported_protocols = {'p-1': None} # valid protocols are p0 and up
         self.assertFalse(p.startup())
+        self.assertRaises(NotImplementedError, p.unpack_status, None) # p.unpack_status(None) -> raises NotImplementedError
 
         p.stop()
 

@@ -57,7 +57,8 @@ class IMUBase(Device):
         print('-----------------------')
 
     def unpack_status(self, s):
-        raise NotImplementedError()
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+            .format(self.board_info['protocol_version']))
 
 # ######################## IMU PROTOCOL P0 #################################
 class IMU_Protocol_P0(IMUBase):
@@ -409,7 +410,9 @@ class PimuBase(Device):
             return sidx
 
     def unpack_status(self,s):
-        raise NotImplementedError()
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+            .format(self.board_info['protocol_version']))
+
     # ################Transport Callbacks #####################
 
     def rpc_motor_sync_reply(self,reply):

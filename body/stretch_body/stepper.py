@@ -630,7 +630,8 @@ class StepperBase(Device):
             return sidx
 
     def unpack_status(self,s):
-        raise NotImplementedError()
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+            .format(self.board_info['protocol_version']))
 
     def rpc_load_test_reply(self, reply):
         if reply[0] == self.RPC_REPLY_LOAD_TEST:
