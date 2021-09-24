@@ -1,7 +1,10 @@
 from __future__ import print_function
-from stretch_body.stepper import *
+from stretch_body.stepper import Stepper
 from stretch_body.device import Device
-from stretch_body.hello_utils import *
+
+import time
+import math
+
 
 class Arm(Device):
     """
@@ -132,7 +135,7 @@ class Arm(Device):
         else:
             i_contact_pos = self.i_contact_pos
 
-        self.motor.set_command(mode=MODE_VEL_TRAJ,
+        self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
                                v_des=v_r,
                                a_des=a_r,
                                stiffness=stiffness,
@@ -181,7 +184,7 @@ class Arm(Device):
         else:
             i_contact_pos = self.i_contact_pos
 
-        self.motor.set_command(mode = Stepper.MODE_POS_TRAJ,
+        self.motor.set_command(mode=Stepper.MODE_POS_TRAJ,
                                 x_des=self.translate_to_motor_rad(x_m),
                                 v_des=v_r,
                                 a_des=a_r,

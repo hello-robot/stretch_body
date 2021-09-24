@@ -1,7 +1,10 @@
 from __future__ import print_function
-from stretch_body.stepper import *
+from stretch_body.stepper import Stepper
 from stretch_body.device import Device
+
 import time
+import math
+
 
 class Lift(Device):
     """
@@ -133,7 +136,7 @@ class Lift(Device):
         else:
             i_contact_pos = self.i_contact_pos
 
-        self.motor.set_command(mode=MODE_VEL_TRAJ,
+        self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
                                v_des=v_r,
                                a_des=a_r,
                                stiffness=stiffness,
@@ -267,13 +270,13 @@ class Lift(Device):
 
     def motor_rad_to_translate_m(self,ang): #input in rad
         d=self.params['pinion_t']*self.params['belt_pitch_m']/math.pi
-        lift_m = (rad_to_deg(ang)/180.0)*math.pi*(d/2)
+        lift_m = (math.degrees(ang)/180.0)*math.pi*(d/2)
         return lift_m
 
     def translate_to_motor_rad(self, lift_m):
         d = self.params['pinion_t'] * self.params['belt_pitch_m'] / math.pi
         ang = 180*lift_m/((d/2)*math.pi)
-        return deg_to_rad(ang)
+        return math.radians(ang)
 
     def __wait_for_contact(self, timeout=5.0):
         ts=time.time()
