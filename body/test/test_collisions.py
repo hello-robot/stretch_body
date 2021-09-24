@@ -1,6 +1,7 @@
 # Logging level must be set before importing any stretch_body class
 import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
+
 import stretch_body.hello_utils as hu
 import unittest
 import stretch_body.robot

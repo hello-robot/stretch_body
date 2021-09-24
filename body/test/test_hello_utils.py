@@ -92,6 +92,7 @@ class TestHelloUtils(unittest.TestCase):
         else:
             self.assertEqual(stretch_body.hello_utils.get_stretch_directory(), "/tmp/")
 
+    @unittest.skip(reason='TODO: cleanup')
     def test_mark_loop_start(self):
         """Verify that loop start time works properly
         """ 
@@ -105,6 +106,7 @@ class TestHelloUtils(unittest.TestCase):
         print("loop start ", test_stats.ts_loop_start, " time ", time_)
         self.assertAlmostEqual(time_, test_stats.ts_loop_start, places = 1)
 
+    @unittest.skip(reason='TODO: cleanup')
     def test_mark_loop_end(self):
         """Verify that mark loop end updates LoopStats correctly
         """
@@ -175,7 +177,8 @@ class TestHelloUtils(unittest.TestCase):
 
         test_stats.generate_rate_histogram()
 
-    #TODO: Std deviation - use array of values 
+    #TODO: Std deviation - use array of values
+    @unittest.skip(reason='TODO: cleanup')
     def test_loop_rate_avg(self):
         """Verify that loop rate averages out correctly after few iterations
         """
@@ -200,7 +203,8 @@ class TestHelloUtils(unittest.TestCase):
 
         #TODO: Add places according to actual numbers generated
         print(" Loop rate average: ", test_stats.status['avg_rate_hz'], " target frequency: ", target_freq)
-        
+
+    @unittest.skip(reason='TODO: cleanup')
     def test_loop_rate_min(self):
         print("Starting test for min loop rate ")
 
@@ -217,6 +221,7 @@ class TestHelloUtils(unittest.TestCase):
         
         self.assertAlmostEqual(test_stats.status['min_rate_hz'], min(loop_rate_target), places = 0)
 
+    @unittest.skip(reason='TODO: cleanup')
     def test_loop_rate_max(self):
         print("Starting test for max loop rate ")
 
@@ -233,6 +238,7 @@ class TestHelloUtils(unittest.TestCase):
 
         self.assertAlmostEqual(test_stats.status['max_rate_hz'], max(loop_rate_target), places=-1)
 
+    @unittest.skip(reason='TODO: cleanup')
     def test_execution_time_ms(self):
         print("Starting test for execution time ms")
 
@@ -283,6 +289,7 @@ class TestHelloUtils(unittest.TestCase):
         #No new warnings
         self.assertEqual(test_stats.status['missed_loops'], len(loop_rate_target_warning))
 
+    @unittest.skip(reason='TODO: cleanup')
     def test_faux_loop(self):
         print('Starting test_faux_loop ')
         target_loop_rate = 25.0

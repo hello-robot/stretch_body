@@ -177,3 +177,19 @@ class TestSync(unittest.TestCase):
             #time.sleep(0.01)
         self.assertAlmostEqual(r.arm.status['pos'], 0.3, places=1)
         r.stop()
+
+    def test_sync_when_disabled(self):
+        """Check that sending sync pulse to
+        Stepper in non-sync mode doesnt place in runstop
+        """
+        r = stretch_body.robot.Robot()
+        self.assertTrue(r.startup())
+        r.arm.move_to(0.0)
+        r.push_command()
+        self.assertTrue(r.arm.motor.wait_until_at_setpoint(timeout=5.0))
+        r.arm.motor.disable_sync_mode()
+        r.push_command()
+        r.arm.move_to(0.1)
+        r.push_command()
+        self.assertTrue(r.arm.motor.wait_until_at_setpoint(timeout=5.0))
+        r.stop()

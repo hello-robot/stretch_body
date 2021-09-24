@@ -67,6 +67,7 @@ class TestSteppers(unittest.TestCase):
         """
         s = stretch_body.stepper.Stepper('/dev/hello-motor-lift')
         self.assertTrue(s.startup())
+        s.disable_sync_mode()
         limits_rad = (0.0, 115.14478302001953) # lift motor limits
         position_rad = 62.425
         velocity_rad = 9.948
@@ -89,7 +90,7 @@ class TestSteppers(unittest.TestCase):
         time.sleep(7)
 
         s.pull_status()
-        self.assertAlmostEqual(s.status['pos'], position_rad, places=2)
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
 
         s.stop()
 
@@ -218,7 +219,7 @@ class TestSteppers(unittest.TestCase):
         start_time = time.time()
         self.assertTrue(s.start_waypoint_trajectory(first_segment))
 
-        # first segment executing, stop by sending a duration=0 second segment
+        # first segment executing, stop by sending a stop_waypoint_trajectory
         for _ in range(10):
             s.pull_status()
             self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)
@@ -310,7 +311,6 @@ class TestSteppers(unittest.TestCase):
         for _ in range(10):
             s.pull_status()
             self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)
-            print(s.status['waypoint_traj']['segment_id'])
             time.sleep(0.1)
             self.assertTrue(s.set_next_trajectory_segment(second_segment))
             s.pull_status()
@@ -324,7 +324,6 @@ class TestSteppers(unittest.TestCase):
         for _ in range(10):
             s.pull_status()
             self.assertEqual(s.status['waypoint_traj']['segment_id'], 3)
-            print(s.status['waypoint_traj']['segment_id'])
             time.sleep(0.1)
             s.pull_status()
             self.assertLessEqual(s.status['pos'], 62.425 + 1.0)
