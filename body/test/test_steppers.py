@@ -382,7 +382,7 @@ class TestSteppers(unittest.TestCase):
         s.push_command()
         s.start_waypoint_trajectory(first_segment)
         s.pull_status()
-        # self.assertAlmostEqual(s.status['pos'], position_rad, places=1) # TODO: fails on G2, not sure why
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
         s.logger.debug(s.status['waypoint_traj'])
         self.assertEqual(s.status['waypoint_traj']['state'], 'active')
         self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)

@@ -862,7 +862,7 @@ class Stepper_Protocol_P1(StepperBase):
         print('Firmware version:', self.board_info['firmware_version'])
 
     def enable_pos_traj_waypoint(self):
-        self.set_command(mode=self.MODE_POS_TRAJ_WAYPOINT, x_des=0)
+        self.set_command(mode=self.MODE_POS_TRAJ_WAYPOINT)
 
     def start_waypoint_trajectory(self, first_segment):
         """Starts execution of a waypoint trajectory on hardware
