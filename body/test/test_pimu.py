@@ -27,10 +27,12 @@ class TestPimu(unittest.TestCase):
         """Simulate an invalid protocol and verify startup fails.
         """
         p = stretch_body.pimu.Pimu()
+        prior=p.supported_protocols.copy()
         p.supported_protocols = {'p-1': None} # valid protocols are p0 and up
-        self.assertFalse(p.startup())
+        success=p.startup()
+        p.supported_protocols = prior
+        self.assertFalse(success)
         self.assertRaises(NotImplementedError, p.unpack_status, None) # p.unpack_status(None) -> raises NotImplementedError
-
         p.stop()
 
     def test_runstop_status(self):

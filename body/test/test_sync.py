@@ -26,7 +26,7 @@ class TestSync(unittest.TestCase):
         ts=time.time()
         while time.time()-ts<5.0:
             r.pimu.trigger_motor_sync()
-            r.arm.pretty_print()
+            #r.arm.pretty_print()
             self.assertFalse(r.arm.motor.status['runstop_on'])
             #time.sleep(0.01)
         self.assertAlmostEqual(r.arm.status['pos'], 0.3, places=1)
