@@ -76,9 +76,8 @@ class TestSteppers(unittest.TestCase):
         i_feedforward = 0.54
         i_contact_neg = -1.46
         i_contact_pos = 2.54
-        MODE_POS_TRAJ = 5
 
-        s.set_command(mode=MODE_POS_TRAJ,
+        s.set_command(mode=s.MODE_POS_TRAJ,
                       x_des=position_rad,
                       v_des=velocity_rad,
                       a_des=acceleration_rad,
@@ -110,12 +109,12 @@ class TestSteppers(unittest.TestCase):
         i_feedforward = 0.54
         i_contact_neg = -1.46
         i_contact_pos = 2.54
-        MODE_POS_TRAJ = 5
+
         ################################################################
         #stop by sending a duration=0 second segment
         #bring motor to starting position
         print('Waypoint stop test 1')
-        s.set_command(mode=MODE_POS_TRAJ,
+        s.set_command(mode=s.MODE_POS_TRAJ,
                       x_des=position_rad,
                       v_des=velocity_rad,
                       a_des=acceleration_rad,
@@ -158,7 +157,7 @@ class TestSteppers(unittest.TestCase):
         # stop by sending only one segment
         # bring motor to starting position
         print('Waypoint stop test 2')
-        s.set_command(mode=MODE_POS_TRAJ,
+        s.set_command(mode=s.MODE_POS_TRAJ,
                       x_des=position_rad,
                       v_des=velocity_rad,
                       a_des=acceleration_rad,
@@ -198,7 +197,7 @@ class TestSteppers(unittest.TestCase):
         print('Waypoint stop test 3')
         # stop by terminating directly
         # bring motor to starting position
-        s.set_command(mode=MODE_POS_TRAJ,
+        s.set_command(mode=s.MODE_POS_TRAJ,
                       x_des=position_rad,
                       v_des=velocity_rad,
                       a_des=acceleration_rad,
@@ -238,8 +237,9 @@ class TestSteppers(unittest.TestCase):
 
 
     def test_malicious_waypoint_trajectory_interface(self):
-        #Send bad values to trajectory interface
-        #Joint should not move
+        """Send bad values to trajectory interface
+        Joint should not move
+        """
         s = stretch_body.stepper.Stepper('/dev/hello-motor-lift')
         s.disable_sync_mode()
         self.assertTrue(s.startup())
@@ -279,8 +279,7 @@ class TestSteppers(unittest.TestCase):
         i_feedforward = 0.54
         i_contact_neg = -1.46
         i_contact_pos = 2.54
-        MODE_POS_TRAJ = 5
-        s.set_command(mode=MODE_POS_TRAJ,
+        s.set_command(mode=s.MODE_POS_TRAJ,
                       x_des=position_rad,
                       v_des=velocity_rad,
                       a_des=acceleration_rad,
@@ -334,4 +333,118 @@ class TestSteppers(unittest.TestCase):
 
         s.pull_status()
         self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.stop()
+
+    def test_zeros_waypoint_trajectory(self):
+        """Test no motion on zeros segments using the
+        waypoint trajectory interface
+        """
+        s = stretch_body.stepper.Stepper('/dev/hello-motor-arm')
+        s.disable_sync_mode()
+        self.assertTrue(s.startup())
+        s.reset_pos_calibrated()
+        s.push_command()
+
+        # bring motor to starting position
+        position_rad = 10.0
+        velocity_rad = 9.948
+        acceleration_rad = 15.707
+        stiffness = 1.0
+        i_feedforward = 0.54
+        i_contact_neg = -1.46
+        i_contact_pos = 2.54
+        s.set_command(mode=s.MODE_POS_TRAJ,
+                      x_des=position_rad,
+                      v_des=velocity_rad,
+                      a_des=acceleration_rad,
+                      stiffness=stiffness,
+                      i_feedforward=i_feedforward,
+                      i_contact_pos=i_contact_pos,
+                      i_contact_neg=i_contact_neg)
+        s.push_command()
+        s.wait_until_at_setpoint()
+        time.sleep(0.5)
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'idle')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 0)
+
+        # send waypoint trajectory's first segment
+        first_segment  = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
+        second_segment = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3]
+        third_segment  = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4]
+        fourth_segment = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5]
+        fifth_segment  = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 43]
+        s.enable_pos_traj_waypoint()
+        s.set_command(v_des=velocity_rad,
+                      a_des=acceleration_rad)
+        s.push_command()
+        s.start_waypoint_trajectory(first_segment)
+        s.pull_status()
+        # self.assertAlmostEqual(s.status['pos'], position_rad, places=1) # TODO: fails on G2, not sure why
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'active')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)
+
+        time.sleep(1.5) # wait until half way into first segment
+        self.assertEqual(s.set_next_trajectory_segment(second_segment), 1)
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'active')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)
+
+        time.sleep(1.6) # wait until first segment done, into second segment
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'active')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 3)
+
+        time.sleep(1.5) # wait until ~ half way into second segment
+        self.assertEqual(s.set_next_trajectory_segment(third_segment), 1)
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'active')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 3)
+
+        time.sleep(1.6) # wait until second segment done, into third segment
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'active')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 4)
+
+        time.sleep(1.5) # wait until ~ half way into third segment
+        self.assertEqual(s.set_next_trajectory_segment(fourth_segment), 1)
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'active')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 4)
+
+        time.sleep(1.6) # wait until third segment done, into fourth segment
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'active')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 5)
+
+        time.sleep(1.5) # wait until ~ half way into fouth segment
+        self.assertEqual(s.set_next_trajectory_segment(fifth_segment), 0) # expect the fifth segment to be rejected
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'active')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 5)
+
+        time.sleep(1.6) # wait until fourth segment done
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.logger.debug(s.status['waypoint_traj'])
+        self.assertEqual(s.status['waypoint_traj']['state'], 'idle')
+        self.assertEqual(s.status['waypoint_traj']['segment_id'], 0)
+
         s.stop()

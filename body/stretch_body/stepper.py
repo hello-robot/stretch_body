@@ -7,7 +7,7 @@ import threading
 import sys
 import time
 
-# ######################## WACC #################################
+# ######################## STEPPER #################################
 
 class StepperBase(Device):
     """
@@ -112,6 +112,8 @@ class StepperBase(Device):
         self._waypoint_traj_segment = [0] * 8
         self._waypoint_traj_start_success = False
         self._waypoint_traj_set_next_traj_success = False
+        self._waypoint_traj_start_error_msg = None
+        self._waypoint_traj_set_next_error_msg = None
 
         self._dirty_command = False
         self._dirty_gains = False
@@ -891,6 +893,8 @@ class Stepper_Protocol_P1(StepperBase):
                 sidx = self.pack_trajectory_segment(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_start_new_traj_reply)
             self.transport.step2()
+            if not self._waypoint_traj_start_success:
+                self.logger.warning('%s: %s' % (self.name, self._waypoint_traj_start_error_msg))
             return self._waypoint_traj_start_success
 
     def set_next_trajectory_segment(self, next_segment):
@@ -928,6 +932,8 @@ class Stepper_Protocol_P1(StepperBase):
                 sidx = self.pack_trajectory_segment(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_set_next_traj_seg_reply)
             self.transport.step2()
+            if not self._waypoint_traj_set_next_traj_success:
+                self.logger.warning('%s: %s' % (self.name, self._waypoint_traj_set_next_error_msg))
             return self._waypoint_traj_set_next_traj_success
 
     def stop_waypoint_trajectory(self):
@@ -948,14 +954,18 @@ class Stepper_Protocol_P1(StepperBase):
     def rpc_start_new_traj_reply(self, reply):
         if reply[0] == self.RPC_REPLY_START_NEW_TRAJECTORY:
             with self.lock:
-                self._waypoint_traj_start_success = unpack_uint8_t(reply[1:])
+                sidx=1
+                self._waypoint_traj_start_success = unpack_uint8_t(reply[sidx:]); sidx += 1
+                self._waypoint_traj_start_error_msg = unpack_string_t(reply[sidx:], 100).strip('\x00'); sidx += 100
         else:
             self.logger.error('RPC_REPLY_START_NEW_TRAJECTORY replied {0}'.format(reply[0]))
 
     def rpc_set_next_traj_seg_reply(self, reply):
         if reply[0] == self.RPC_REPLY_SET_NEXT_TRAJECTORY_SEG:
             with self.lock:
-                self._waypoint_traj_set_next_traj_success = unpack_uint8_t(reply[1:])
+                sidx=1
+                self._waypoint_traj_set_next_traj_success = unpack_uint8_t(reply[sidx:]); sidx += 1
+                self._waypoint_traj_set_next_error_msg = unpack_string_t(reply[sidx:], 100).strip('\x00'); sidx += 100
         else:
             self.logger.error('RPC_REPLY_SET_NEXT_TRAJECTORY_SEG replied {0}'.format(reply[0]))
 
@@ -964,7 +974,7 @@ class Stepper_Protocol_P1(StepperBase):
             self.logger.error('RPC_REPLY_RESET_TRAJECTORY replied {0}'.format(reply[0]))
 
 
-# ######################## PIMU #################################
+# ######################## STEPPER #################################
 class Stepper(StepperBase):
     """
     API to the Stretch RE1 Power and IMU board (Pimu)
