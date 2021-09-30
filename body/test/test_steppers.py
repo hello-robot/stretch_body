@@ -449,3 +449,70 @@ class TestSteppers(unittest.TestCase):
         self.assertEqual(s.status['waypoint_traj']['segment_id'], 0)
 
         s.stop()
+
+    def test_waypoint_trajectory_firmware_errors(self):
+        """Test that the correct errors appear from the firmware.
+        """
+        s = stretch_body.stepper.Stepper('/dev/hello-motor-arm')
+        s.disable_sync_mode()
+        self.assertTrue(s.startup())
+        s.enable_pos_traj_waypoint()
+        velocity_rad = 9.948
+        acceleration_rad = 15.707
+        s.set_command(v_des=velocity_rad,
+                      a_des=acceleration_rad)
+        s.push_command()
+        s.stop_waypoint_trajectory()
+        time.sleep(1)
+
+        # send waypoint trajectory's first segment with bad id
+        first_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 34]
+        self.assertEqual(s.start_waypoint_trajectory(first_segment), 0)
+        self.assertEqual(s._waypoint_traj_start_error_msg, "starting trajectory segment id must be 2")
+        s.stop_waypoint_trajectory()
+
+        # send waypoint trajectory's first segment while previous trajectory waiting on sync
+        s.enable_sync_mode()
+        s.push_command()
+        first_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
+        self.assertEqual(s.start_waypoint_trajectory(first_segment), 1)
+        self.assertEqual(s.start_waypoint_trajectory(first_segment), 0)
+        self.assertEqual(s._waypoint_traj_start_error_msg, "cannot start new trajectory while previous trajectory waiting on sync")
+        s.stop_waypoint_trajectory()
+
+        # send waypoint trajectory's first segment while previous trajectory active
+        s.disable_sync_mode()
+        s.push_command()
+        first_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
+        self.assertEqual(s.start_waypoint_trajectory(first_segment), 1)
+        self.assertEqual(s.start_waypoint_trajectory(first_segment), 0)
+        self.assertEqual(s._waypoint_traj_start_error_msg, "cannot start new trajectory while previous trajectory active")
+        s.stop_waypoint_trajectory()
+
+        # send waypoint trajectory's segment segment while no previous trajectory active
+        second_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3]
+        self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
+        self.assertEqual(s._waypoint_traj_set_next_error_msg, "cannot set next trajectory segment while no previous trajectory active")
+        s.stop_waypoint_trajectory()
+
+        # send waypoint trajectory's segment segment while previous trajectory waiting on sync
+        s.enable_sync_mode()
+        s.push_command()
+        first_segment  = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
+        second_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3]
+        self.assertEqual(s.start_waypoint_trajectory(first_segment), 1)
+        self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
+        self.assertEqual(s._waypoint_traj_set_next_error_msg, "cannot set next trajectory segment while previous trajectory waiting on sync")
+        s.stop_waypoint_trajectory()
+
+        # send waypoint trajectory's segment segment with jump in segment id
+        s.disable_sync_mode()
+        s.push_command()
+        first_segment  = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
+        second_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4]
+        self.assertEqual(s.start_waypoint_trajectory(first_segment), 1)
+        self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
+        self.assertEqual(s._waypoint_traj_set_next_error_msg, "next trajectory segment id must follow previous segment id")
+        s.stop_waypoint_trajectory()
+
+        s.stop()
