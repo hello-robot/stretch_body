@@ -21,12 +21,12 @@ class TestTrajectories(unittest.TestCase):
         self.assertEqual(w1, w2)
 
         print('equal')
-        w1 = stretch_body.trajectories.Waypoint(time=1.0, position=0.0, velocity=1000, acceleration=43, contact_threshold=10); print('w1: {0}'.format(w1))
-        w2 = stretch_body.trajectories.Waypoint(time=1.0, position=0.0, velocity=1000, acceleration=43, contact_threshold=10); print('w2: {0}'.format(w2))
+        w1 = stretch_body.trajectories.Waypoint(time=1.0, position=0.0, velocity=1000, acceleration=43); print('w1: {0}'.format(w1))
+        w2 = stretch_body.trajectories.Waypoint(time=1.0, position=0.0, velocity=1000, acceleration=43); print('w2: {0}'.format(w2))
         self.assertEqual(w1, w2)
 
         print('not equal')
-        w1 = stretch_body.trajectories.Waypoint(time=1.0, position=0.0, velocity=3249, acceleration=43, contact_threshold=10); print('w1: {0}'.format(w1))
+        w1 = stretch_body.trajectories.Waypoint(time=1.0, position=0.0, velocity=3249, acceleration=43); print('w1: {0}'.format(w1))
         w2 = stretch_body.trajectories.Waypoint(time=1.1, position=0.0, velocity=1000, acceleration=43); print('w2: {0}'.format(w2))
         self.assertNotEqual(w1, w2)
 
@@ -57,7 +57,7 @@ class TestTrajectories(unittest.TestCase):
         self.assertTrue(w1 < w2)
         self.assertFalse(w1 > w2)
         self.assertTrue(w1 <= w2)
-        self.assertFalse(w1 >= w2)
+        self.assertFalse(w1 >= w2) # this one is a bit weird considering w1 == w2
 
         w1 = stretch_body.trajectories.Waypoint(time=0.0, position=0.0)
         w2 = stretch_body.trajectories.Waypoint(time=0.1, position=0.0)
@@ -92,14 +92,24 @@ class TestTrajectories(unittest.TestCase):
         self.assertEqual(s1, s2)
 
         print('equal')
+        segment_arr = [62.425, 0, 0, -3.731, 1.866, -0.249]
+        s1 = stretch_body.trajectories.Segment.from_array(segment_arr, segment_id=0, duration=3.0); print('s1: {0}'.format(s1))
+        s2 = stretch_body.trajectories.Segment(segment_id=1, duration=3.0, a0=62.425, a1=0.0, a2=0.0, a3=-3.731, a4=1.866, a5=-0.249); print('s2: {0}'.format(s2))
+        self.assertEqual(s1, s2)
+
+        print('equal')
         s1_arr = [3.0, 62.425, 0, 0, -3.731, 1.866, -0.249, 0]; print('s1: {0}'.format(s1_arr))
         s2_arr = stretch_body.trajectories.Segment(segment_id=0, duration=3.0, a0=62.425, a1=0.0, a2=0.0, a3=-3.731, a4=1.866, a5=-0.249).to_array(); print('s2: {0}'.format(s2_arr))
         self.assertEqual(s1_arr, s2_arr)
+        for s1_elem, s2_elem in zip(s1_arr, s2_arr):
+            self.assertAlmostEqual(s1_elem, s2_elem, places=8)
 
         print('equal')
         s1_arr = [62.425, 0, 0, -3.731, 1.866, -0.249]; print('s1: {0}'.format(s1_arr))
         s2_arr = stretch_body.trajectories.Segment(segment_id=1, duration=3.0, a0=62.425, a1=0.0, a2=0.0, a3=-3.731, a4=1.866, a5=-0.249).to_array(only_coeffs=True); print('s2: {0}'.format(s2_arr))
         self.assertEqual(s1_arr, s2_arr)
+        for s1_elem, s2_elem in zip(s1_arr, s2_arr):
+            self.assertAlmostEqual(s1_elem, s2_elem, places=8)
 
         print('equal')
         s1 = stretch_body.trajectories.Segment.zeros(); print('s1: {0}'.format(s1))
@@ -190,8 +200,6 @@ class TestTrajectories(unittest.TestCase):
         self.assertTrue(expected_d_segment == calculated_d_segment)
         self.assertFalse(expected_d_segment != calculated_d_segment)
 
-        e_waypoint1 = {'time': 1.27, 'position': 0.303}
-        e_waypoint2 = {'time': 2.00, 'position': 0.500}
         e_waypoint1 = stretch_body.trajectories.Waypoint(time=1.27, position=0.303)
         e_waypoint2 = stretch_body.trajectories.Waypoint(time=2.00, position=0.500)
         expected_e_segment = [0.73, 0.303, 0.269863013699, 0, 0, 0, 0]

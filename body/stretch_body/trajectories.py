@@ -6,7 +6,7 @@ import numpy as np
 
 class Waypoint:
 
-    def __init__(self, time, position, velocity=None, acceleration=None, contact_threshold=None):
+    def __init__(self, time, position, velocity=None, acceleration=None):
         """Represents one waypoint in a spline
 
         A linear spline is constructed from position waypoints,
@@ -23,8 +23,6 @@ class Waypoint:
             unitless velocity
         acceleration : float
             unitless acceleration
-        contact_threshold : float
-            force threshold to stop motion in ~Newtons
         """
         if time is None or position is None:
             raise ValueError("time and position must be defined")
@@ -34,13 +32,11 @@ class Waypoint:
         if velocity is None and acceleration is not None:
             raise ValueError("velocity must be defined if acceleration is defined")
         self.acceleration = acceleration
-        self.contact_threshold = contact_threshold
 
     def __repr__(self):
-        return "Waypoint(t={0}, pos={1}{2}{3}{4})".format(self.time, self.position,
-            ', vel={0}'.format(self.velocity) if self.velocity is not None else '',
-            ', accel={0}'.format(self.acceleration) if self.acceleration is not None else '',
-            ', contact_threshold={0}'.format(self.contact_threshold) if self.contact_threshold is not None else '')
+        return "Waypoint(time={0}, position={1}{2}{3})".format(self.time, self.position,
+            ', velocity={0}'.format(self.velocity) if self.velocity is not None else '',
+            ', acceleration={0}'.format(self.acceleration) if self.acceleration is not None else '')
 
     def __eq__(self, other):
         return np.isclose(self.time, other.time, atol=1e-2)
@@ -59,6 +55,23 @@ class Waypoint:
 
     def __ge__(self, other):
         return np.greater_equal(self.time, other.time)
+
+    def apply_transform(self, transform=lambda pos: pos):
+        """Apply a transform to the waypoint, e.g. to convert waypoint into motor space
+
+        Parameters
+        ----------
+        transform : func or lambda
+            used to transform waypoint
+
+        Returns
+        -------
+        Waypoint
+            transformed waypoint in ``Waypoint`` class
+        """
+        return Waypoint(self.time, transform(self.position), \
+            transform(self.velocity) if self.velocity is not None else None, \
+            transform(self.acceleration) if self.velocity is not None else None)
 
 
 class Segment:
@@ -86,7 +99,7 @@ class Segment:
         self.a5 = a5
 
     def __repr__(self):
-        return "Segment(id={0}, duration={1}, a0={2}, a1={3}, a2={4}, a3={5}, a4={6}, a5={7})".format(
+        return "Segment(segment_id={0}, duration={1}, a0={2}, a1={3}, a2={4}, a3={5}, a4={6}, a5={7})".format(
             self.segment_id, self.duration, self.a0, self.a1, self.a2, self.a3, self.a4, self.a5)
 
     def __eq__(self, other):
