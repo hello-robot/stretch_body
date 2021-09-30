@@ -371,18 +371,19 @@ class TestSteppers(unittest.TestCase):
         self.assertEqual(s.status['waypoint_traj']['segment_id'], 0)
 
         # send waypoint trajectory's first segment
-        first_segment  = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
-        second_segment = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3]
-        third_segment  = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4]
-        fourth_segment = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5]
-        fifth_segment  = [3.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 43]
+        first_segment  = [3.0, position_rad, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
+        second_segment = [3.0, position_rad, 0.0, 0.0, 0.0, 0.0, 0.0, 3]
+        third_segment  = [3.0, position_rad, 0.0, 0.0, 0.0, 0.0, 0.0, 4]
+        fourth_segment = [3.0, position_rad, 0.0, 0.0, 0.0, 0.0, 0.0, 5]
+        fifth_segment  = [3.0, position_rad, 0.0, 0.0, 0.0, 0.0, 0.0, 43]
         s.enable_pos_traj_waypoint()
         s.set_command(v_des=velocity_rad,
                       a_des=acceleration_rad)
         s.push_command()
+        time.sleep(1)
         s.start_waypoint_trajectory(first_segment)
         s.pull_status()
-        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1) # TODO: fails on G2 when time.sleep(1) two lines above is commented, not sure why
         s.logger.debug(s.status['waypoint_traj'])
         self.assertEqual(s.status['waypoint_traj']['state'], 'active')
         self.assertEqual(s.status['waypoint_traj']['segment_id'], 2)

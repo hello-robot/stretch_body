@@ -881,10 +881,7 @@ class Stepper_Protocol_P1(StepperBase):
             True if uC successfully initiated a new trajectory
         """
         if len(first_segment) != 8:
-            self.logger.warning('Invalid waypoint segment arr length (must be 8) for %s' % self.name)
-            return False
-        if first_segment[7] != 2:
-            self.logger.warning('Invalid waypoint segment ID for first segment for %s' % self.name)
+            self.logger.warning('start_waypoint_trajectory: Invalid waypoint segment arr length (must be 8)')
             return False
         self._waypoint_traj_segment = first_segment
         with self.lock:
@@ -894,7 +891,7 @@ class Stepper_Protocol_P1(StepperBase):
                 self.transport.queue_rpc2(sidx, self.rpc_start_new_traj_reply)
             self.transport.step2()
             if not self._waypoint_traj_start_success:
-                self.logger.warning('%s: %s' % (self.name, self._waypoint_traj_start_error_msg))
+                self.logger.warning('start_waypoint_trajectory: %s' % self._waypoint_traj_start_error_msg.capitalize())
             return self._waypoint_traj_start_success
 
     def set_next_trajectory_segment(self, next_segment):
@@ -920,10 +917,7 @@ class Stepper_Protocol_P1(StepperBase):
             True if uC successfully queued next trajectory
         """
         if len(next_segment) != 8:
-            self.logger.warning('Invalid waypoint segment arr length (must be 8) for %s' % self.name)
-            return False
-        if next_segment[7] < 3:
-            self.logger.warning('Invalid waypoint segment ID for next segment for %s' % self.name)
+            self.logger.warning('set_next_trajectory_segment: Invalid waypoint segment arr length (must be 8)')
             return False
         self._waypoint_traj_segment = next_segment
         with self.lock:
@@ -933,7 +927,7 @@ class Stepper_Protocol_P1(StepperBase):
                 self.transport.queue_rpc2(sidx, self.rpc_set_next_traj_seg_reply)
             self.transport.step2()
             if not self._waypoint_traj_set_next_traj_success:
-                self.logger.warning('%s: %s' % (self.name, self._waypoint_traj_set_next_error_msg))
+                self.logger.warning('set_next_trajectory_segment: %s' % self._waypoint_traj_set_next_error_msg.capitalize())
             return self._waypoint_traj_set_next_traj_success
 
     def stop_waypoint_trajectory(self):
