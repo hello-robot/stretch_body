@@ -112,8 +112,8 @@ class StepperBase(Device):
         self._waypoint_traj_segment = [0] * 8
         self._waypoint_traj_start_success = False
         self._waypoint_traj_set_next_traj_success = False
-        self._waypoint_traj_start_error_msg = None
-        self._waypoint_traj_set_next_error_msg = None
+        self._waypoint_traj_start_error_msg = ""
+        self._waypoint_traj_set_next_error_msg = ""
 
         self._dirty_command = False
         self._dirty_gains = False

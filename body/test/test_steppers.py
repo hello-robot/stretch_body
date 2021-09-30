@@ -516,3 +516,53 @@ class TestSteppers(unittest.TestCase):
         s.stop_waypoint_trajectory()
 
         s.stop()
+
+    def test_arm_waypoint_trajectory(self):
+        """Verify basic two segment trajectory execution on arm.
+
+        https://www.desmos.com/calculator/h6qlt496sr
+        """
+        s = stretch_body.stepper.Stepper('/dev/hello-motor-arm')
+        s.disable_sync_mode()
+        self.assertTrue(s.startup())
+
+        # bring motor to starting position
+        position_rad = 22.425
+        velocity_rad = 7.0
+        acceleration_rad = 10.0
+        stiffness = 1.0
+        i_feedforward = 0.54
+        i_contact_neg = -1.46
+        i_contact_pos = 2.54
+        s.set_command(mode=s.MODE_POS_TRAJ,
+                      x_des=position_rad,
+                      v_des=velocity_rad,
+                      a_des=acceleration_rad,
+                      stiffness=stiffness,
+                      i_feedforward=i_feedforward,
+                      i_contact_pos=i_contact_pos,
+                      i_contact_neg=i_contact_neg)
+        s.push_command()
+        s.wait_until_at_setpoint()
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=0)
+
+        # send waypoint trajectory
+        first_segment = [3.0, 22.425, 0, 0, -3.731, 1.866, -0.249, 2]
+        second_segment = [3.0, 12.35, 0, 0, 3.731, -1.866, 0.249, 3]
+        s.enable_pos_traj_waypoint()
+        s.set_command(v_des=velocity_rad,
+                      a_des=acceleration_rad)
+        s.push_command()
+        time.sleep(0.1)
+        self.assertTrue(s.start_waypoint_trajectory(first_segment))
+        self.assertTrue(s.set_next_trajectory_segment(second_segment))
+
+        s.pull_status()
+        while s.status['waypoint_traj']['state'] == 'active':
+            time.sleep(0.1)
+            s.pull_status()
+
+        s.pull_status()
+        self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
+        s.stop()
