@@ -547,7 +547,7 @@ class TestSteppers(unittest.TestCase):
         s.pull_status()
         self.assertAlmostEqual(s.status['pos'], position_rad, places=0)
 
-        # send waypoint trajectory
+        # send waypoint trajectory that we expect to be able to execute
         first_segment = [3.0, 22.425, 0, 0, -3.731, 1.866, -0.249, 2]
         second_segment = [3.0, 12.35, 0, 0, 3.731, -1.866, 0.249, 3]
         s.enable_pos_traj_waypoint()
@@ -562,6 +562,19 @@ class TestSteppers(unittest.TestCase):
         while s.status['waypoint_traj']['state'] == 'active':
             time.sleep(0.1)
             s.pull_status()
+        s.stop_waypoint_trajectory()
+
+        # send waypoint trajectory that we don't expect to be able to execute
+        first_segment = [3.0, 22.425, 0, 0, -3.731, 1.866, -0.249, 2]
+        second_segment = [3.0, 12.35, 0, 0, 3.731, -1.866, 0.249, 3]
+        s.enable_pos_traj_waypoint()
+        velocity_rad = 5.0 # will exceed this bound
+        acceleration_rad = 10.0
+        s.set_command(v_des=velocity_rad,
+                      a_des=acceleration_rad)
+        s.push_command()
+        time.sleep(0.1)
+        self.assertFalse(s.start_waypoint_trajectory(first_segment))
 
         s.pull_status()
         self.assertAlmostEqual(s.status['pos'], position_rad, places=1)

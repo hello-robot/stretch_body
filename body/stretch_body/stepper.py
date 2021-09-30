@@ -881,7 +881,7 @@ class Stepper_Protocol_P1(StepperBase):
             True if uC successfully initiated a new trajectory
         """
         if len(first_segment) != 8:
-            self.logger.warning('start_waypoint_trajectory: Invalid waypoint segment arr length (must be 8)')
+            self.logger.warning('start_waypoint_trajectory: Invalid segment arr length (must be 8)')
             return False
         self._waypoint_traj_segment = first_segment
         with self.lock:
@@ -917,7 +917,7 @@ class Stepper_Protocol_P1(StepperBase):
             True if uC successfully queued next trajectory
         """
         if len(next_segment) != 8:
-            self.logger.warning('set_next_trajectory_segment: Invalid waypoint segment arr length (must be 8)')
+            self.logger.warning('set_next_trajectory_segment: Invalid segment arr length (must be 8)')
             return False
         self._waypoint_traj_segment = next_segment
         with self.lock:
