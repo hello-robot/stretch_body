@@ -16,6 +16,7 @@ class Arm(Device):
         self.motor = Stepper(usb='/dev/hello-motor-arm')
         self.status = {'pos': 0.0, 'vel': 0.0, 'force':0.0, 'motor': self.motor.status,'timestamp_pc':0}
         self.trajectory = PrismaticTrajectory()
+        self.thread_rate_hz = 5.0
         self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
 
         # Default controller params
@@ -55,6 +56,10 @@ class Arm(Device):
 
     def push_command(self):
         self.motor.push_command()
+
+    def _thread_loop(self):
+        self.pull_status()
+        self.update_trajectory()
 
     def pretty_print(self):
         print('----- Arm ------ ')
@@ -335,6 +340,27 @@ class Arm(Device):
         self.motor.push_command()
         s0 = self.trajectory.get_segment(0, to_motor_rad=self.translate_to_motor_rad).to_array()
         self.motor.start_waypoint_trajectory(s0)
+
+    def update_trajectory(self):
+        """Updates hardware with the next segment of `self.trajectory`
+
+        This method must be called frequently to enable complete trajectory execution
+        and preemption of future segments. If used with `stretch_body.robot.Robot` or
+        with `self.startup(threaded=True)`, a background thread is launched for this.
+        Otherwise, the user must handle calling this method.
+        """
+        # check if joint valid and right protocol
+        if not self.motor.hw_valid or int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
+            return
+
+        if self.motor.status['waypoint_traj']['state'] == 'active':
+            next_segment_id = self.motor.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
+            if next_segment_id < self.trajectory.get_num_segments():
+                s1 = self.trajectory.get_segment(next_segment_id, to_motor_rad=self.translate_to_motor_rad).to_array()
+                self.motor.set_next_trajectory_segment(s1)
+        elif self.motor.status['waypoint_traj']['state'] == 'idle' and self.motor.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+            self.motor.enable_pos_traj()
+            self.push_command()
 
     # ######### Utility ##############################
 
