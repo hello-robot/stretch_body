@@ -353,21 +353,34 @@ class Spline:
 
         Returns
         -------
-        bool
-            whether the segment is valid
+        Tuple(bool, str)
+            whether the segment is valid, and error message if not
         """
+        # verify that spline has atleast two waypoints
+        if len(self.waypoints) < 2:
+            return False, "must have atleast two waypoints"
+
+        # verify that spline starts at time zero
+        if not np.isclose(self.waypoints[0].time, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
+            return False, "first waypoint must be planned for time zero"
+
         # verify that waypoint time increases with index in the array
         t = -1.0
         for waypoint in self.waypoints:
-            if waypoint.time < 0.0 or np.isclose(waypoint.time, t, atol=WAYPOINT_ISCLOSE_ATOL) or waypoint.time < t:
-                return False
+            if waypoint.time < 0.0:
+                return False, "waypoint cannot be planned for negative time"
+            if np.isclose(waypoint.time, t, atol=WAYPOINT_ISCLOSE_ATOL):
+                return False, "two waypoints cannot be planned for the same time"
+            if waypoint.time < t:
+                return False, "time must increase for each subsequent waypoint"
             t = waypoint.time
 
+        # verify spline adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
             if not hu.is_segment_feasible(self.get_segment(i).to_array(), v_des, a_des):
-                return False
+                return False, "segment {0} exceeds dynamic bounds".format(i)
 
-        return True
+        return True, ""
 
 
 class RevoluteTrajectory(Spline):

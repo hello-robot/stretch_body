@@ -392,9 +392,9 @@ class TestTrajectories(unittest.TestCase):
         """Test invalid splines fail as expected.
 
         Plotted with acceleration curve at:
-        https://www.desmos.com/calculator/dt3uv8hrco
+        https://www.desmos.com/calculator/l5mebpssk6
         """
-        b_waypoint1 = stretch_body.trajectories.Waypoint(time=0.148, position=0.307, velocity=-0.026, acceleration=0.1320)
+        b_waypoint1 = stretch_body.trajectories.Waypoint(time=0.0, position=0.307, velocity=-0.026, acceleration=0.1320)
         b_waypoint2 = stretch_body.trajectories.Waypoint(time=0.512, position=0.246, velocity= 0.070, acceleration=0.1943)
         d_waypoint1 = stretch_body.trajectories.Waypoint(time=0.964, position=0.170, velocity=0.06, acceleration=-0.145)
         d_waypoint2 = stretch_body.trajectories.Waypoint(time=1.270, position=0.303, velocity=0.30, acceleration= 0.068)
@@ -408,25 +408,25 @@ class TestTrajectories(unittest.TestCase):
         traj.add(time=d_waypoint2.time, pos=d_waypoint2.position, vel=d_waypoint2.velocity, accel=d_waypoint2.acceleration)
         traj.add(time=g_waypoint1.time, pos=g_waypoint1.position, vel=g_waypoint1.velocity, accel=g_waypoint1.acceleration)
         traj.add(time=g_waypoint2.time, pos=g_waypoint2.position, vel=g_waypoint2.velocity, accel=g_waypoint2.acceleration)
-        self.assertTrue(traj.is_valid(10.0, 20.0))
+        self.assertTrue(traj.is_valid(10.0, 20.0)[0])
 
         traj[0].time = -10.0
-        self.assertFalse(traj.is_valid(10.0, 20.0))
-        traj[0].time = 0.148
-        self.assertTrue(traj.is_valid(10.0, 20.0))
+        self.assertFalse(traj.is_valid(10.0, 20.0)[0])
+        traj[0].time = 0.0
+        self.assertTrue(traj.is_valid(10.0, 20.0)[0])
 
         traj[1].time = 1.0
-        self.assertFalse(traj.is_valid(10.0, 20.0))
+        self.assertFalse(traj.is_valid(10.0, 20.0)[0])
         traj[1].time = 0.512
-        self.assertTrue(traj.is_valid(10.0, 20.0))
+        self.assertTrue(traj.is_valid(10.0, 20.0)[0])
 
         traj[1].time = 0.964
-        self.assertFalse(traj.is_valid(10.0, 20.0))
+        self.assertFalse(traj.is_valid(10.0, 20.0)[0])
         traj[1].time = 0.512
-        self.assertTrue(traj.is_valid(10.0, 20.0))
+        self.assertTrue(traj.is_valid(10.0, 20.0)[0])
 
-        self.assertFalse(traj.is_valid(10.0, 10.0))
-        self.assertTrue(traj.is_valid(10.0, 20.0))
+        self.assertFalse(traj.is_valid(10.0, 10.0)[0])
+        self.assertTrue(traj.is_valid(10.0, 20.0)[0])
 
     def test_eval_of_repr(self):
         b_waypoint1 = stretch_body.trajectories.Waypoint(time=0.148, position=0.307, velocity=-0.026, acceleration=0.1320)
