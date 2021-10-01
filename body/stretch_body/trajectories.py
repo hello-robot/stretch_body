@@ -151,3 +151,171 @@ class Segment:
 
     def evaluate_at(self, t):
         return hu.evaluate_polynomial_at(self.to_array(only_coeffs=True), t)
+
+
+class Spline:
+
+    def __init__(self):
+        """Spline representing class
+
+        Presents a interface to create splines from waypoints
+        and generate polynomial segments. This class should be
+        extended to support trajectories and enforce continuity
+        contraints.
+
+        Attributes
+        ----------
+        waypoints : List(Waypoint)
+            a set of waypoints defining the spline
+        """
+        self.waypoints = []
+
+    def __repr__(self):
+        return repr(self.waypoints)
+
+    def print_segments(self, to_motor_rad=lambda pos: pos):
+        if len(self.waypoints) < 2:
+            return repr([])
+        return repr([Segment.from_two_waypoints(w0.apply_transform(to_motor_rad), w1.apply_transform(to_motor_rad), segment_id=i+2) \
+            for i, (w0, w1) in enumerate(zip(self.waypoints, self.waypoints[1:]))])
+
+    def __len__(self):
+        return len(self.waypoints)
+
+    def __getitem__(self, index):
+        return self.waypoints[index]
+
+    def __setitem__(self, index, waypoint):
+        self.waypoints[index] = waypoint
+
+    def __delitem__(self, index):
+        del self.waypoints[index]
+
+    def __iter__(self):
+        for waypoint in self.waypoints:
+            yield waypoint
+
+    def pop(self, index=-1):
+        return self.waypoints.pop(index)
+
+    def clear(self):
+        self.waypoints = []
+
+    def add(self, time, pos, vel=None, accel=None):
+        """Add a waypoint to the spline.
+
+        This method will sort through the existing waypoints
+        in the spline to insert the waypoint such that
+        waypoint time increases with index in the array.
+
+        Parameters
+        ----------
+        time : float
+            time in seconds
+        pos : float
+            unitless position
+        vel : float
+            unitless velocity
+        accel : float
+            unitless acceleration
+        """
+        new_waypoint = Waypoint(time=time, position=pos, velocity=vel, acceleration=accel)
+        if len(self.waypoints) == 0:
+            self.waypoints.append(new_waypoint)
+            return
+
+        # Cannot have two waypoints scheduled for the same time
+        if new_waypoint in self.waypoints:
+            return
+
+        # Prepend or append if before first or after last waypoint
+        if new_waypoint < self.waypoints[0]:
+            self.waypoints.insert(0, new_waypoint)
+            return
+        if new_waypoint > self.waypoints[0]:
+            self.waypoints.append(new_waypoint)
+            return
+
+        # Insert before first later waypoint
+        for i, other_waypoint in enumerate(self.waypoints):
+            if new_waypoint < other_waypoint:
+                self.waypoints.insert(i, new_waypoint)
+                return
+
+    def get_num_segments(self):
+        return max(0, len(self.waypoints)-1)
+
+    def get_segment(self, index, to_motor_rad=lambda pos: pos):
+        """Retrieves a segment in the spline by index
+
+        Num of segments is one less than number of waypoints in
+        the trajectory. Index bounds are [-1 * num_seg, num_seg).
+
+        Parameters
+        ----------
+        index : int
+            index of segment to return
+        to_motor_rad : func or lambda
+            used to convert waypoint into motor space
+
+        Returns
+        -------
+        Segment
+            coefficients + duration encapsulated in ``Segment`` class
+        """
+        if index < -1 * len(self.waypoints) + 1 or index >= len(self.waypoints) - 1:
+            return None
+
+        index = index - 1 if index < 0 else index
+        w0 = self.waypoints[index].apply_transform(to_motor_rad)
+        w1 = self.waypoints[index + 1].apply_transform(to_motor_rad)
+        return Segment.from_two_waypoints(w0, w1, segment_id=index + 2)
+
+    def evaluate_at(self, t_s, to_motor_rad=lambda pos: pos):
+        """Evaluate a point along the curve at a given time.
+
+        Parameters
+        ----------
+        t_s : float
+            time in seconds
+        to_motor_rad : func or lambda
+            used to convert waypoint into motor space
+
+        Returns
+        -------
+        Waypoint
+            a ``Waypoint`` class with populated position, velocity, and acceleration.
+        """
+        if len(self.waypoints) < 2:
+            return
+
+        # Return bounds for early or late t_s
+        if t_s < self.waypoints[0].time:
+            return self.waypoints[0]
+        if t_s > self.waypoints[-1].time:
+            return self.waypoints[-1]
+
+        # Find segment indices
+        for i in range(len(self.waypoints) - 1):
+            if t_s >= self.waypoints[i].time and t_s <= self.waypoints[i + 1].time:
+                i0, i1 = i, i+1
+                i0_t = self.waypoints[i0].time
+                break
+
+        # Generate segment and evaluate at t_s
+        w0 = self.waypoints[i0]
+        w1 = self.waypoints[i1]
+        if w0.acceleration is not None and w1.acceleration is not None:
+            w0_arr = [w0.time, w0.position, w0.velocity, w0.acceleration]
+            w1_arr = [w1.time, w1.position, w1.velocity, w1.acceleration]
+            seg = generate_quintic_spline_segment(w0_arr, w1_arr)
+        elif w0.velocity is not None and w1.velocity is not None:
+            w0_arr = [w0.time, w0.position, w0.velocity]
+            w1_arr = [w1.time, w1.position, w1.velocity]
+            seg = generate_cubic_spline_segment(w0_arr, w1_arr)
+        else:
+            w0_arr = [w0.time, w0.position]
+            w1_arr = [w1.time, w1.position]
+            seg = generate_linear_segment(w0_arr, w1_arr)
+
+        return evaluate_polynomial_at(seg, t_s - i0_t)

@@ -215,3 +215,114 @@ class TestTrajectories(unittest.TestCase):
         calculated_g_segment = stretch_body.trajectories.Segment.from_two_waypoints(g_waypoint1, g_waypoint2, segment_id=0)
         self.assertTrue(expected_g_segment == calculated_g_segment)
         self.assertFalse(expected_g_segment != calculated_g_segment)
+
+    def test_spline_operations(self):
+        """Construct and use a spline
+        """
+        traj = stretch_body.trajectories.Spline()
+        print('traj: {0}'.format(traj))
+        print('traj segments: ' + traj.print_segments())
+        self.assertEqual(len(traj), 0)
+        self.assertEqual(len(traj.waypoints), 0)
+
+        b_waypoint1 = stretch_body.trajectories.Waypoint(time=0.148, position=0.307, velocity=-0.026, acceleration=0.1320)
+        traj.add(time=b_waypoint1.time, pos=b_waypoint1.position, vel=b_waypoint1.velocity, accel=b_waypoint1.acceleration)
+        print('traj: {0}'.format(traj))
+        print('traj segments: ' + traj.print_segments())
+        self.assertEqual(len(traj), 1)
+        self.assertEqual(len(traj.waypoints), 1)
+        self.assertEqual(traj[0], b_waypoint1)
+
+        b_waypoint2 = stretch_body.trajectories.Waypoint(time=0.512, position=0.246, velocity= 0.070, acceleration=0.1943)
+        traj.add(time=b_waypoint2.time, pos=b_waypoint2.position, vel=b_waypoint2.velocity, accel=b_waypoint2.acceleration)
+        print('traj: {0}'.format(traj))
+        print('traj segments: ' + traj.print_segments())
+        self.assertEqual(len(traj), 2)
+        self.assertEqual(len(traj.waypoints), 2)
+        self.assertEqual(traj[0], b_waypoint1)
+        self.assertEqual(traj[1], b_waypoint2)
+
+        f_waypoint2 = stretch_body.trajectories.Waypoint(time=0.964, position=0.170, velocity=0.06)
+        traj.add(time=f_waypoint2.time, pos=f_waypoint2.position, vel=f_waypoint2.velocity)
+        print('traj: {0}'.format(traj))
+        print('traj segments: ' + traj.print_segments())
+        self.assertEqual(len(traj), 3)
+        self.assertEqual(len(traj.waypoints), 3)
+        self.assertEqual(traj[0], b_waypoint1)
+        self.assertEqual(traj[1], b_waypoint2)
+        self.assertEqual(traj[2], f_waypoint2)
+
+        traj[1].time = 1000.0
+        print('traj: {0}'.format(traj))
+        print('traj segments: ' + traj.print_segments())
+        self.assertEqual(len(traj), 3)
+        self.assertEqual(len(traj.waypoints), 3)
+        self.assertEqual(traj[0], b_waypoint1)
+        self.assertNotEqual(traj[1], b_waypoint2)
+        self.assertEqual(traj[2], f_waypoint2)
+
+        for waypoint in traj:
+            print(waypoint)
+
+        traj.clear()
+        print('traj: {0}'.format(traj))
+        print('traj segments: ' + traj.print_segments())
+        self.assertEqual(len(traj), 0)
+        self.assertEqual(len(traj.waypoints), 0)
+
+    def test_spline_get_segment(self):
+        """Verify correctness of Spline.get_segment
+
+        Spline coefficients calculated in Desmos at:
+        https://www.desmos.com/calculator/lc8dyfouay
+        """
+        b_waypoint1 = stretch_body.trajectories.Waypoint(time=0.148, position=0.307, velocity=-0.026, acceleration=0.1320)
+        b_waypoint2 = stretch_body.trajectories.Waypoint(time=0.512, position=0.246, velocity= 0.070, acceleration=0.1943)
+        expected_b_coeffs = [0.307, -0.026, 0.066, -13.8610492077, 57.9964235233, -64.1494569109]
+        # f_waypoint1 = stretch_body.trajectories.Waypoint(time=0.512, position=0.246, velocity=0.07)
+        # f_waypoint2 = stretch_body.trajectories.Waypoint(time=0.964, position=0.170, velocity=0.06)
+        # expected_f_coeffs = [0.246, 0.07, -1.55846189991, 2.28230081565, 0, 0]
+        d_waypoint1 = stretch_body.trajectories.Waypoint(time=0.964, position=0.170, velocity=0.06, acceleration=-0.145)
+        d_waypoint2 = stretch_body.trajectories.Waypoint(time=1.270, position=0.303, velocity=0.30, acceleration= 0.068)
+        expected_d_coeffs = [0.17, 0.06, -0.0725, 30.5797367333, -140.544613558, 177.975073164]
+        # e_waypoint1 = stretch_body.trajectories.Waypoint(time=1.27, position=0.303)
+        # e_waypoint2 = stretch_body.trajectories.Waypoint(time=2.00, position=0.500)
+        # expected_e_coeffs = [0.303, 0.269863013699, 0, 0, 0, 0]
+        g_waypoint1 = stretch_body.trajectories.Waypoint(time=2.00, position=0.500, velocity=0.00, acceleration=0.10)
+        g_waypoint2 = stretch_body.trajectories.Waypoint(time=2.49, position=0.005, velocity=0.78, acceleration=0.51)
+        expected_g_coeffs = [0.5, 0, 0.05, -54.854605649, 173.708754214, -143.990651018]
+
+        traj = stretch_body.trajectories.Spline()
+        self.assertEqual(traj.get_num_segments(), 0)
+        traj.add(time=b_waypoint1.time, pos=b_waypoint1.position, vel=b_waypoint1.velocity, accel=b_waypoint1.acceleration)
+        self.assertEqual(traj.get_num_segments(), 0)
+        traj.add(time=b_waypoint2.time, pos=b_waypoint2.position, vel=b_waypoint2.velocity, accel=b_waypoint2.acceleration)
+        self.assertEqual(traj.get_num_segments(), 1)
+        traj.add(time=d_waypoint1.time, pos=d_waypoint1.position, vel=d_waypoint1.velocity, accel=d_waypoint1.acceleration)
+        self.assertEqual(traj.get_num_segments(), 2)
+        traj.add(time=d_waypoint2.time, pos=d_waypoint2.position, vel=d_waypoint2.velocity, accel=d_waypoint2.acceleration)
+        self.assertEqual(traj.get_num_segments(), 3)
+        traj.add(time=g_waypoint1.time, pos=g_waypoint1.position, vel=g_waypoint1.velocity, accel=g_waypoint1.acceleration)
+        self.assertEqual(traj.get_num_segments(), 4)
+        traj.add(time=g_waypoint2.time, pos=g_waypoint2.position, vel=g_waypoint2.velocity, accel=g_waypoint2.acceleration)
+        self.assertEqual(traj.get_num_segments(), 5)
+        traj.add(time=100.0, pos=g_waypoint2.position)
+        self.assertEqual(traj.get_num_segments(), 6)
+        print('traj: {0}'.format(traj))
+        print('traj segments: ' + traj.print_segments())
+        print('traj segments: ' + traj.print_segments(to_motor_rad=lambda pos: 2.0 * pos))
+        self.assertEqual(len(traj), 7)
+        self.assertEqual(len(traj.waypoints), 7)
+        traj.pop()
+        self.assertEqual(traj.get_num_segments(), 5)
+        self.assertEqual(len(traj), 6)
+        self.assertEqual(len(traj.waypoints), 6)
+
+        for s1_elem, s2_elem in zip(traj.get_segment(0).to_array(only_coeffs=True), expected_b_coeffs):
+            self.assertAlmostEqual(s1_elem, s2_elem, places=8)
+        for s1_elem, s2_elem in zip(traj.get_segment(2).to_array(only_coeffs=True), expected_d_coeffs):
+            self.assertAlmostEqual(s1_elem, s2_elem, places=8)
+        for s1_elem, s2_elem in zip(traj.get_segment(4).to_array(only_coeffs=True), expected_g_coeffs):
+            self.assertAlmostEqual(s1_elem, s2_elem, places=8)
+
+        traj.clear()
