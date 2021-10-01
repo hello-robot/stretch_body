@@ -362,6 +362,11 @@ class Arm(Device):
             self.motor.enable_pos_traj()
             self.push_command()
 
+    def stop_trajectory(self):
+        """Stop waypoint trajectory immediately and resets hardware
+        """
+        self.motor.stop_waypoint_trajectory()
+
     # ######### Utility ##############################
 
     def motor_current_to_translate_force(self,i):
