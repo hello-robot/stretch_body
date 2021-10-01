@@ -432,7 +432,7 @@ class TestTrajectories(unittest.TestCase):
         b_waypoint1 = stretch_body.trajectories.Waypoint(time=0.148, position=0.307, velocity=-0.026, acceleration=0.1320)
         b_waypoint2 = stretch_body.trajectories.Waypoint(time=0.512, position=0.246, velocity= 0.070, acceleration=0.1943)
 
-        from stretch_body.trajectories import *
+        from stretch_body.trajectories import Waypoint, Spline, RevoluteTrajectory, PrismaticTrajectory
         traj0 = Spline()
         traj0.add(time=b_waypoint1.time, pos=b_waypoint1.position, vel=b_waypoint1.velocity, accel=b_waypoint1.acceleration)
         traj0.add(time=b_waypoint2.time, pos=b_waypoint2.position, vel=b_waypoint2.velocity, accel=b_waypoint2.acceleration)
