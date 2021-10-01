@@ -3,6 +3,9 @@ import stretch_body.hello_utils as hu
 
 import numpy as np
 
+# Limits how close together waypoints can be planned
+WAYPOINT_ISCLOSE_ATOL = 1e-1
+
 
 class Waypoint:
 
@@ -26,6 +29,8 @@ class Waypoint:
         """
         if time is None or position is None:
             raise ValueError("time and position must be defined")
+        if time < 0.0:
+            raise ValueError("time cannot be negative")
         self.time = time
         self.position = position
         self.velocity = velocity
@@ -39,10 +44,10 @@ class Waypoint:
             ', acceleration={0}'.format(self.acceleration) if self.acceleration is not None else '')
 
     def __eq__(self, other):
-        return np.isclose(self.time, other.time, atol=1e-2)
+        return np.isclose(self.time, other.time, atol=WAYPOINT_ISCLOSE_ATOL)
 
     def __ne__(self, other):
-        return not np.isclose(self.time, other.time, atol=1e-2)
+        return not self.__eq__(other)
 
     def __lt__(self, other):
         return np.less(self.time, other.time)
@@ -150,7 +155,36 @@ class Segment:
         return cls.from_array(segment_arr, segment_id=segment_id)
 
     def evaluate_at(self, t):
+        """Evaluates segment at a given time.
+
+        Parameters
+        ----------
+        t : float
+            the time in seconds at which to evaluate the polynomial
+
+        Returns
+        -------
+        Tuple(float)
+            tuple with three elements: evaluated position, velocity, and acceleration.
+        """
         return hu.evaluate_polynomial_at(self.to_array(only_coeffs=True), t)
+
+    def is_valid(self, v_des, a_des):
+        """Determines whether segment adheres to dynamic limits.
+
+        Parameters
+        ----------
+        v_des : float
+            Velocity limit that the segment shouldn't exceed
+        a_des : float
+            Acceleration limit that the segment shouldn't exceed
+
+        Returns
+        -------
+        bool
+            whether the segment is valid
+        """
+        return hu.is_segment_feasible(self.to_array(), v_des, a_des)
 
 
 class Spline:
@@ -173,7 +207,7 @@ class Spline:
     def __repr__(self):
         return repr(self.waypoints)
 
-    def print_segments(self, to_motor_rad=lambda pos: pos):
+    def __repr_segments__(self, to_motor_rad=lambda pos: pos):
         if len(self.waypoints) < 2:
             return repr([])
         return repr([Segment.from_two_waypoints(w0.apply_transform(to_motor_rad), w1.apply_transform(to_motor_rad), segment_id=i+2) \
@@ -256,7 +290,7 @@ class Spline:
         index : int
             index of segment to return
         to_motor_rad : func or lambda
-            used to convert waypoint into motor space
+            optional, used to convert waypoint into motor space
 
         Returns
         -------
@@ -271,51 +305,61 @@ class Spline:
         w1 = self.waypoints[index + 1].apply_transform(to_motor_rad)
         return Segment.from_two_waypoints(w0, w1, segment_id=index + 2)
 
-    def evaluate_at(self, t_s, to_motor_rad=lambda pos: pos):
+    def evaluate_at(self, t, to_motor_rad=lambda pos: pos):
         """Evaluate a point along the curve at a given time.
 
         Parameters
         ----------
-        t_s : float
+        t : float
             time in seconds
         to_motor_rad : func or lambda
-            used to convert waypoint into motor space
+            optional, used to convert waypoint into motor space
 
         Returns
         -------
-        Waypoint
-            a ``Waypoint`` class with populated position, velocity, and acceleration.
+        Tuple(float)
+            tuple with three elements: evaluated position, velocity, and acceleration.
         """
         if len(self.waypoints) < 2:
             return
 
-        # Return bounds for early or late t_s
-        if t_s < self.waypoints[0].time:
-            return self.waypoints[0]
-        if t_s > self.waypoints[-1].time:
-            return self.waypoints[-1]
+        # Return bounds for early or late t
+        if t < self.waypoints[0].time:
+            return (self.waypoints[0].position, self.waypoints[0].velocity, self.waypoints[0].acceleration)
+        if t > self.waypoints[-1].time:
+            return (self.waypoints[-1].position, self.waypoints[-1].velocity, self.waypoints[-1].acceleration)
 
         # Find segment indices
-        for i in range(len(self.waypoints) - 1):
-            if t_s >= self.waypoints[i].time and t_s <= self.waypoints[i + 1].time:
-                i0, i1 = i, i+1
-                i0_t = self.waypoints[i0].time
-                break
+        for i in range(self.get_num_segments()):
+            if t >= self.waypoints[i].time and t <= self.waypoints[i + 1].time:
+                w0 = self.waypoints[i]
+                w1 = self.waypoints[i + 1]
+                return hu.evaluate_polynomial_at(Segment.from_two_waypoints(w0, w1, segment_id=None).to_array(only_coeffs=True), t - w0.time)
 
-        # Generate segment and evaluate at t_s
-        w0 = self.waypoints[i0]
-        w1 = self.waypoints[i1]
-        if w0.acceleration is not None and w1.acceleration is not None:
-            w0_arr = [w0.time, w0.position, w0.velocity, w0.acceleration]
-            w1_arr = [w1.time, w1.position, w1.velocity, w1.acceleration]
-            seg = generate_quintic_spline_segment(w0_arr, w1_arr)
-        elif w0.velocity is not None and w1.velocity is not None:
-            w0_arr = [w0.time, w0.position, w0.velocity]
-            w1_arr = [w1.time, w1.position, w1.velocity]
-            seg = generate_cubic_spline_segment(w0_arr, w1_arr)
-        else:
-            w0_arr = [w0.time, w0.position]
-            w1_arr = [w1.time, w1.position]
-            seg = generate_linear_segment(w0_arr, w1_arr)
+    def is_valid(self, v_des, a_des):
+        """Determines whether spline is well-formed and adheres to dynamic limits.
 
-        return evaluate_polynomial_at(seg, t_s - i0_t)
+        Parameters
+        ----------
+        v_des : float
+            Velocity limit that the spline shouldn't exceed
+        a_des : float
+            Acceleration limit that the spline shouldn't exceed
+
+        Returns
+        -------
+        bool
+            whether the segment is valid
+        """
+        # verify that waypoint time increases with index in the array
+        t = -1.0
+        for waypoint in self.waypoints:
+            if waypoint.time < 0.0 or np.isclose(waypoint.time, t, atol=WAYPOINT_ISCLOSE_ATOL) or waypoint.time < t:
+                return False
+            t = waypoint.time
+
+        for i in range(self.get_num_segments()):
+            if not hu.is_segment_feasible(self.get_segment(i).to_array(), v_des, a_des):
+                return False
+
+        return True
