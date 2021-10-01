@@ -427,3 +427,35 @@ class TestTrajectories(unittest.TestCase):
 
         self.assertFalse(traj.is_valid(10.0, 10.0))
         self.assertTrue(traj.is_valid(10.0, 20.0))
+
+    def test_eval_of_repr(self):
+        b_waypoint1 = stretch_body.trajectories.Waypoint(time=0.148, position=0.307, velocity=-0.026, acceleration=0.1320)
+        b_waypoint2 = stretch_body.trajectories.Waypoint(time=0.512, position=0.246, velocity= 0.070, acceleration=0.1943)
+
+        from stretch_body.trajectories import *
+        traj0 = Spline()
+        traj0.add(time=b_waypoint1.time, pos=b_waypoint1.position, vel=b_waypoint1.velocity, accel=b_waypoint1.acceleration)
+        traj0.add(time=b_waypoint2.time, pos=b_waypoint2.position, vel=b_waypoint2.velocity, accel=b_waypoint2.acceleration)
+        print(traj0)
+        traj0_evaled = eval(repr(traj0))
+        self.assertTrue(isinstance(traj0_evaled, Spline))
+        for i, j in zip(traj0, traj0_evaled):
+            self.assertEqual(i, j)
+
+        traj1 = RevoluteTrajectory()
+        traj1.add(t_s=b_waypoint1.time, x_r=b_waypoint1.position, v_r=b_waypoint1.velocity, a_r=b_waypoint1.acceleration)
+        traj1.add(t_s=b_waypoint2.time, x_r=b_waypoint2.position, v_r=b_waypoint2.velocity, a_r=b_waypoint2.acceleration)
+        print(traj1)
+        traj1_evaled = eval(repr(traj1))
+        self.assertTrue(isinstance(traj1_evaled, RevoluteTrajectory))
+        for i, j in zip(traj1, traj1_evaled):
+            self.assertEqual(i, j)
+
+        traj2 = PrismaticTrajectory()
+        traj2.add(t_s=b_waypoint1.time, x_m=b_waypoint1.position, v_m=b_waypoint1.velocity, a_m=b_waypoint1.acceleration)
+        traj2.add(t_s=b_waypoint2.time, x_m=b_waypoint2.position, v_m=b_waypoint2.velocity, a_m=b_waypoint2.acceleration)
+        print(traj2)
+        traj2_evaled = eval(repr(traj2))
+        self.assertTrue(isinstance(traj2_evaled, PrismaticTrajectory))
+        for i, j in zip(traj2, traj2_evaled):
+            self.assertEqual(i, j)

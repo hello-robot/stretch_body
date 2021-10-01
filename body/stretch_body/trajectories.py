@@ -189,7 +189,7 @@ class Segment:
 
 class Spline:
 
-    def __init__(self):
+    def __init__(self, init_waypoints=None):
         """Spline representing class
 
         Presents a interface to create splines from waypoints
@@ -197,15 +197,20 @@ class Spline:
         extended to support trajectories and enforce continuity
         contraints.
 
+        Parameters
+        ----------
+        init_waypoints : List(Waypoint)
+            optional, starting list of waypoints e.g. for eval-ing repr
+
         Attributes
         ----------
         waypoints : List(Waypoint)
             a set of waypoints defining the spline
         """
-        self.waypoints = []
+        self.waypoints = init_waypoints if init_waypoints != None else []
 
     def __repr__(self):
-        return repr(self.waypoints)
+        return "Spline({0})".format(repr(self.waypoints))
 
     def __repr_segments__(self, to_motor_rad=lambda pos: pos):
         if len(self.waypoints) < 2:
@@ -363,3 +368,55 @@ class Spline:
                 return False
 
         return True
+
+
+class RevoluteTrajectory(Spline):
+
+    def __repr__(self):
+        return "RevoluteTrajectory({0})".format(repr(self.waypoints))
+
+    def add(self, t_s, x_r, v_r=None, a_r=None):
+        """Add a waypoint to the trajectory.
+
+        This method will sort through the existing waypoints
+        in the trajectory to insert the waypoint such that
+        waypoint time increases with index in the array.
+
+        Parameters
+        ----------
+        t_s : float
+            time in seconds
+        x_r : float
+            position in radians
+        v_r : float
+            velocity in radians per second
+        a_r : float
+            acceleration in radians per second squared
+        """
+        Spline.add(self, t_s, x_r, v_r, a_r)
+
+
+class PrismaticTrajectory(Spline):
+
+    def __repr__(self):
+        return "PrismaticTrajectory({0})".format(repr(self.waypoints))
+
+    def add(self, t_s, x_m, v_m=None, a_m=None):
+        """Add a waypoint to the trajectory.
+
+        This method will sort through the existing waypoints
+        in the trajectory to insert the waypoint such that
+        waypoint time increases with index in the array.
+
+        Parameters
+        ----------
+        t_s : float
+            time in seconds
+        x_m : float
+            position in meters
+        v_m : float
+            velocity in meters per second
+        a_m : float
+            acceleration in meters per second squared
+        """
+        Spline.add(self, t_s, x_m, v_m, a_m)
