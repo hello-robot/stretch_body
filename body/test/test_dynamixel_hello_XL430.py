@@ -290,7 +290,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         servo.move_to(0.0)
         time.sleep(5)
 
-        servo.move_to(1.0, v_des=0.0, a_des=0.0)
+        servo.move_to(1.0, v_des=2.0, a_des=2.0)
         move1_vel_ticks = servo.motor.get_profile_velocity()
         move1_accel_ticks = servo.motor.get_profile_acceleration()
         time.sleep(5)

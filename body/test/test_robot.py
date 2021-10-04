@@ -97,6 +97,7 @@ class TestRobot(unittest.TestCase):
         r.pull_status()
         time.sleep(1.0)
         self.assertNotAlmostEqual(r.status['arm']['pos'], bad_goal, places=3)
+        r.stop()
 
     def test_dynamixel_runstop(self):
         """Test end_of_arm respects runstop from pimu
