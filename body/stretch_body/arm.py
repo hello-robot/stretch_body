@@ -32,7 +32,7 @@ class Arm(Device):
 
     # ###########  Device Methods #############
 
-    def startup(self, threaded=False):
+    def startup(self, threaded=True):
         Device.startup(self, threaded=threaded)
         success = self.motor.startup(threaded=False)
         self.__update_status()

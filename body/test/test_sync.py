@@ -13,7 +13,7 @@ class TestSync(unittest.TestCase):
 
     def test_runstop_sync_disabled(self):
         a = stretch_body.arm.Arm()
-        self.assertTrue(a.startup())
+        self.assertTrue(a.startup(threaded=False))
         a.motor.disable_sync_mode()
         a.push_command()
 
@@ -81,7 +81,7 @@ class TestSync(unittest.TestCase):
         Check that runstop still works when using motor sync enable/disable
         """
         a = stretch_body.arm.Arm()
-        self.assertTrue(a.startup())
+        self.assertTrue(a.startup(threaded=False))
         a.motor.enable_sync_mode()
         a.push_command()
 

@@ -14,7 +14,7 @@ small_move_m=.01
 large_move_m=0.1
 
 a=arm.Arm()
-if not a.startup():
+if not a.startup(threaded=False):
     exit()
 a.motor.disable_sync_mode()
 a.push_command()

@@ -31,7 +31,7 @@ class Lift(Device):
         self.motor.set_motion_limits(self.translate_to_motor_rad(self.soft_motion_limits['current'][0]),
                                      self.translate_to_motor_rad(self.soft_motion_limits['current'][1]))
     # ###########  Device Methods #############
-    def startup(self, threaded=False):
+    def startup(self, threaded=True):
         Device.startup(self, threaded=threaded)
         success= self.motor.startup(threaded=False)
         self.__update_status()

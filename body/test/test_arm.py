@@ -16,7 +16,7 @@ class TestArm(unittest.TestCase):
         """
         a = stretch_body.arm.Arm()
         a.motor.disable_sync_mode()
-        self.assertTrue(a.startup())
+        self.assertTrue(a.startup(threaded=False))
         a.pull_status()
         if not a.motor.status['pos_calibrated']:
             self.fail('test requires arm to be homed')
@@ -54,14 +54,14 @@ class TestArm(unittest.TestCase):
 
     def test_valid_startup_status(self):
         a = stretch_body.arm.Arm()
-        self.assertTrue(a.startup())
+        self.assertTrue(a.startup(threaded=False))
         self.assertNotEqual(a.status['pos'],0)
 
     def test_homing(self):
         """Test arm homes correctly.
         """
         a = stretch_body.arm.Arm()
-        self.assertTrue(a.startup())
+        self.assertTrue(a.startup(threaded=False))
 
         a.home(single_stop=False)
         time.sleep(2)
@@ -75,7 +75,7 @@ class TestArm(unittest.TestCase):
         """
         a = stretch_body.arm.Arm()
         a.motor.disable_sync_mode()
-        self.assertTrue(a.startup())
+        self.assertTrue(a.startup(threaded=False))
         a.pull_status()
         if not a.motor.status['pos_calibrated']:
             self.fail('test requires arm to be homed')

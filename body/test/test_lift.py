@@ -13,7 +13,7 @@ class TestLift(unittest.TestCase):
     def test_vel_guarded_contact(self):
         l = stretch_body.lift.Lift()
         l.motor.disable_sync_mode()
-        self.assertTrue(l.startup())
+        self.assertTrue(l.startup(threaded=False))
         l.pull_status()
         if not l.motor.status['pos_calibrated']:
             self.fail('test requires lift to be homed')
@@ -43,14 +43,14 @@ class TestLift(unittest.TestCase):
 
     def test_valid_startup_status(self):
         l = stretch_body.lift.Lift()
-        self.assertTrue(l.startup())
+        self.assertTrue(l.startup(threaded=False))
         self.assertNotEqual(l.status['pos'],0)
 
     def test_homing(self):
         """Test lift homes correctly.
         """
         l = stretch_body.lift.Lift()
-        self.assertTrue(l.startup())
+        self.assertTrue(l.startup(threaded=False))
         l.home()
         l.push_command()
         time.sleep(1)
@@ -63,7 +63,7 @@ class TestLift(unittest.TestCase):
         """
         l = stretch_body.lift.Lift()
         l.motor.disable_sync_mode()
-        self.assertTrue(l.startup())
+        self.assertTrue(l.startup(threaded=False))
         l.pull_status()
         if not l.motor.status['pos_calibrated']:
             self.fail('test requires lift to be homed')
