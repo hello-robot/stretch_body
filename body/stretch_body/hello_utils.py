@@ -263,3 +263,34 @@ def evaluate_polynomial_at(poly, t):
     vel = a[1] + (2*a[2]*t) + (3*a[3]*t**2) + (4*a[4]*t**3) + (5*a[5]*t**4)
     accel = (2*a[2]) + (6*a[3]*t) + (12*a[4]*t**2) + (20*a[5]*t**3)
     return (pos, vel, accel)
+
+def is_segment_feasible(segment, v_des, a_des, t=0.0, inc=0.1):
+    """Determine whether a segment adheres to dynamic limits.
+
+    Parameters
+    ----------
+    segment : List
+        Represents a segment of a waypoint trajectory as a list of length eight,
+        structured like [duration_s, a0, a1, a2, a3, a4, a5, segment_id].
+    v_des : float
+        Velocity limit that the segment shouldn't exceed
+    a_des : float
+        Acceleration limit that the segment shouldn't exceed
+    t : float
+        optional, time in seconds at which to begin checking segment
+    inc : float
+        optional, increment in seconds at which the polynomial is evaluated along the segment
+
+    Returns
+    -------
+    bool
+        whether the segment is feasible
+    """
+    while t < segment[0]:
+        _, vel_t, acc_t = evaluate_polynomial_at(segment[1:-1], t)
+        if abs(vel_t) > v_des or abs(acc_t) > a_des:
+            return False
+
+        t = min(segment[0], t + inc)
+
+    return True
