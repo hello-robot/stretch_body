@@ -28,12 +28,14 @@ class Base(Device):
         self.fast_motion_allowed = True
     # ###########  Device Methods #############
 
-    def startup(self):
-        success=self.left_wheel.startup() and self.right_wheel.startup()
+    def startup(self, threaded=False):
+        Device.startup(self, threaded=threaded)
+        success=self.left_wheel.startup(threaded=False) and self.right_wheel.startup(threaded=False)
         self.__update_status()
         return success
 
     def stop(self):
+        Device.stop(self)
         self.left_wheel.stop()
         self.right_wheel.stop()
 

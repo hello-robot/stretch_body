@@ -7,7 +7,6 @@ from dynamixel_sdk.robotis_def import *
 import dynamixel_sdk.port_handler as prh
 import dynamixel_sdk.packet_handler as pch
 import threading
-from stretch_body.device import Device
 import serial
 
 # The code can be found in the following directory:

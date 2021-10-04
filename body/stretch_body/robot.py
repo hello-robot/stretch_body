@@ -150,7 +150,7 @@ class Robot(Device):
         success = True
         for k in self.devices.keys():
             if self.devices[k] is not None:
-                if not self.devices[k].startup():
+                if not self.devices[k].startup(threaded=False):
                     success = False
 
         # Register the signal handlers

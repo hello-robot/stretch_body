@@ -91,6 +91,20 @@ class Transport():
 
 
     def startup(self):
+        try:
+            self.ser = serial.Serial(self.usb, write_timeout=1.0)#PosixPollSerial(self.usb)#Serial(self.usb)# 115200)  # , write_timeout=1.0)  # Baud not important since USB comms
+            if self.ser.isOpen():
+                try:
+                    fcntl.flock(self.ser.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except IOError:
+                    self.logger.error('Port %s is busy. Check if another Stretch Body process is already running'%self.usb)
+                    self.ser.close()
+                    self.ser=None
+        except serial.SerialException as e:
+            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.ser = None
+        if self.ser==None:
+            self.logger.warning('Unable to open serial port for device %s'%self.usb)
         return self.ser is not None #return if hardware connection valid
 
     def stop(self):
