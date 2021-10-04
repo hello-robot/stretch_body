@@ -244,7 +244,7 @@ class DynamixelHelloXL430(Device):
             self.status['pos'] = self.ticks_to_world_rad(float(x))
         if vel_valid:
             self.status['vel_ticks'] = v
-            self.status['vel'] = self.ticks_to_rad_per_sec(float(v))
+            self.status['vel'] = self.ticks_to_world_rad_per_sec(float(v))
         if eff_valid:
             self.status['effort_ticks'] = eff
             self.status['effort'] = self.ticks_to_pct_load(float(eff))
