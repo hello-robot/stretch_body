@@ -7,6 +7,7 @@ import stretch_body.dynamixel_hello_XL430
 import stretch_body.hello_utils as hu
 import math
 import time
+import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -306,3 +307,32 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         self.assertNotEqual(move1_accel_ticks, move2_accel_ticks)
 
         servo.stop()
+
+    def test_status_velocity(self):
+        """Verify that the motor's velocity is correct in the status dict by
+        commanding the robot a known distance and integrating velocity over
+        time to confirm the two are approximately equal.
+        """
+        s = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw")
+        self.assertTrue(s.startup())
+
+        s.move_to(-1.1) # start at one end stop
+        time.sleep(5)
+        expected_traveled_distance = 4.3 + 1.1
+
+        s.move_to(4.3, v_des=1.0, a_des=1.0) # travel to other end stop
+        ts = time.time()
+        measured_traveled_distance = 0.0
+        s.pull_status()
+        while not np.isclose(s.status['pos'], 4.3, atol=1e-2):
+            dt = time.time() - ts
+            measured_traveled_distance += s.status['vel'] * dt
+            ts = time.time()
+            time.sleep(0.01)
+            s.pull_status()
+            # print(s.status['pos'], expected_traveled_distance, measured_traveled_distance)
+
+        dt = time.time() - ts
+        measured_traveled_distance += s.status['vel'] * dt
+        self.assertTrue(np.isclose(measured_traveled_distance, expected_traveled_distance, atol=0.3))
+        s.stop()
