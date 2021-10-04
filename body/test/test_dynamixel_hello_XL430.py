@@ -143,12 +143,9 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         servo.pull_status()
         self.assertNotAlmostEqual(servo.status['pos'], servo.get_soft_motion_limits()[0], places=1)
 
-    @unittest.skip(reason='TODO: Not working yet.')
     def test_runstop_multithread(self):
         """Verify dynamixel_hello respect runstop via step_sentry
         """
-        print('test_runstop_multithread')
-
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_pan", chain=None)
         self.assertTrue(servo.startup())
         servo.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] = True
@@ -194,7 +191,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
             r = R()
             while to_save['do_interrupt']:
                 servo.pull_status()
-                if servo.status['vel'] > 0.0:
+                if abs(servo.status['vel']) > 0.0:
                     time.sleep(1.0)
                     print('interrupt at {0} rad/s'.format(servo.status['vel']))
                     to_save['interrupts'] += 1
