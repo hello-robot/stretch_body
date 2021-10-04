@@ -1,6 +1,7 @@
 from __future__ import print_function
 from stretch_body.stepper import Stepper
 from stretch_body.device import Device
+from stretch_body.trajectories import PrismaticTrajectory
 
 import time
 import math
@@ -14,6 +15,7 @@ class Lift(Device):
         Device.__init__(self, 'lift')
         self.motor = Stepper(usb='/dev/hello-motor-lift')
         self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
+        self.trajectory = PrismaticTrajectory()
 
         # Default controller params
         self.stiffness = 1.0
@@ -36,6 +38,8 @@ class Lift(Device):
 
     def stop(self):
         Device.stop(self)
+        if self.motor.hw_valid and int(str(self.motor.board_info['protocol_version'])[1:]) >= 1:
+            self.motor.stop_waypoint_trajectory()
         self.motor.stop()
 
     def pull_status(self):
@@ -255,6 +259,86 @@ class Lift(Device):
                                 i_contact_pos=i_contact_pos,
                                 i_contact_neg=i_contact_neg)
 
+    # ######### Waypoint Trajectory Interface ##############################
+
+    def follow_trajectory(self, v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None,
+                          req_calibration=True, move_to_start_point=True):
+        """Starts executing a waypoint trajectory
+
+        `self.trajectory` must be populated with a valid trajectory before calling
+        this method.
+
+        Parameters
+        ----------
+        v_m : float
+            velocity limit for trajectory in meters per second
+        a_m : float
+            acceleration limit for trajectory in meters per second squared
+        stiffness : float
+            stiffness of motion. Range 0.0 (min) to 1.0 (max)
+        contact_thresh_pos_N : float
+            force threshold to stop motion (~Newtons, up direction)
+        contact_thresh_neg_N : float
+            force threshold to stop motion (~Newtons, down direction)
+        req_calibration : bool
+            whether to allow motion prior to homing
+        move_to_start_point : bool
+            whether to move to the trajectory's start to avoid a jump, this
+            time to move doesn't count against the trajectory's timeline
+        """
+        # check if joint valid, homed, and right protocol
+        if not self.motor.hw_valid:
+            self.logger.warning('Lift connection to hardware not valid')
+            return
+        if req_calibration:
+            if not self.motor.status['pos_calibrated']:
+                self.logger.warning('Lift not calibrated')
+                return
+        if int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
+            self.logger.warning("Lift firmware version doesn't support waypoint trajectories")
+            return
+
+        # check if trajectory valid
+        vel_limit = v_m if v_m is not None else self.params['motion']['trajectory_max']['vel_m']
+        acc_limit = a_m if a_m is not None else self.params['motion']['trajectory_max']['accel_m']
+        valid, reason = self.trajectory.is_valid(vel_limit, acc_limit)
+        if not valid:
+            self.logger.warning('Lift traj not valid: {0}'.format(reason))
+            return
+
+        # set defaults
+        stiffness = max(0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
+        v_r = self.translate_to_motor_rad(min(abs(v_m), self.params['motion']['trajectory_max']['vel_m'])) \
+            if v_m is not None else self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_m'])
+        a_r = self.translate_to_motor_rad(min(abs(a_m), self.params['motion']['trajectory_max']['accel_m'])) \
+            if a_m is not None else self.translate_to_motor_rad(self.params['motion']['trajectory_max']['accel_m'])
+        i_contact_neg = self.translate_force_to_motor_current(max(contact_thresh_neg_N, self.params['contact_thresh_max_N'][0])) \
+            if contact_thresh_neg_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][0])
+        i_contact_pos = self.translate_force_to_motor_current(min(contact_thresh_pos_N, self.params['contact_thresh_max_N'][1])) \
+            if contact_thresh_pos_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][1])
+
+        # move to start point
+        if move_to_start_point:
+            prev_sync_mode = self.motor.gains['enable_sync_mode']
+            self.move_to(self.trajectory[0].position)
+            self.motor.disable_sync_mode()
+            self.push_command()
+            if not self.motor.wait_until_at_setpoint():
+                self.logger.warning('Lift unable to reach starting point')
+            if prev_sync_mode:
+                self.motor.enable_sync_mode()
+                self.push_command()
+
+        # start trajectory
+        self.motor.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
+                               v_des=v_r,
+                               a_des=a_r,
+                               stiffness=stiffness,
+                               i_contact_pos=i_contact_pos,
+                               i_contact_neg=i_contact_neg)
+        self.motor.push_command()
+        s0 = self.trajectory.get_segment(0, to_motor_rad=self.translate_to_motor_rad).to_array()
+        self.motor.start_waypoint_trajectory(s0)
 
     # ######### Utility ##############################
 
