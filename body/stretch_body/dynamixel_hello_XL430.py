@@ -1,6 +1,7 @@
 from __future__ import print_function
 from stretch_body.dynamixel_XL430 import *
 from stretch_body.device import Device
+from stretch_body.trajectories import RevoluteTrajectory
 import time
 from stretch_body.hello_utils import *
 import termios
@@ -58,6 +59,10 @@ class DynamixelHelloXL430(Device):
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
                      'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+        self.trajectory = RevoluteTrajectory()
+        self._waypoint_ts = None
+        self._waypoint_vel = self.params['motion']['trajectory_max']['vel_r']
+        self._waypoint_accel = self.params['motion']['trajectory_max']['accel_r']
 
         #Share bus resource amongst many XL430s
         self.motor = DynamixelXL430(dxl_id=self.params['id'],
@@ -168,6 +173,7 @@ class DynamixelHelloXL430(Device):
 
     def stop(self):
         Device.stop(self)
+        self._waypoint_ts = None
         if self.hw_valid:
             self.disable_torque()
             self.hw_valid = False
@@ -289,7 +295,20 @@ class DynamixelHelloXL430(Device):
         self.params['zero_t']=x
         self.write_device_params(self.name, self.params)
 
+    def wait_until_at_setpoint(self,timeout=15.0):
+        """Polls for moving status to wait until at commanded position goal
 
+        Returns
+        -------
+        bool
+            True if success, False if timeout
+        """
+        ts = time.time()
+        while time.time() - ts < timeout:
+            if self.motor.get_moving_status() & 1 == 1:
+                return True
+            time.sleep(0.1)
+        return False
 
     def pretty_print(self):
         if not self.hw_valid:
@@ -448,6 +467,64 @@ class DynamixelHelloXL430(Device):
             self.motor.set_pwm(x)
         except (termios.error, DynamixelCommError):
             self.comm_errors.add_error(rx=False, gsr=False)
+
+    # ######### Waypoint Trajectory Interface ##############################
+
+    def follow_trajectory(self, v_r=None, a_r=None, req_calibration=True, move_to_start_point=True):
+        """Starts executing a waypoint trajectory
+
+        `self.trajectory` must be populated with a valid trajectory before calling
+        this method.
+
+        Parameters
+        ----------
+        v_r : float
+            velocity limit for trajectory in radians per second
+        a_r : float
+            acceleration limit for trajectory in radians per second squared
+        req_calibration : bool
+            whether to allow motion prior to homing
+        move_to_start_point : bool
+            whether to move to the trajectory's start to avoid a jump, this
+            time to move doesn't count against the trajectory's timeline
+        """
+        # check if joint valid, homed, and previous trajectory not executing
+        if not self.hw_valid:
+            self.logger.warning('Dynamixel connection to hardware not valid')
+            return
+        if req_calibration:
+            if not self.is_calibrated:
+                self.logger.warning('Dynamixel not homed')
+                return
+        if self._waypoint_ts is not None:
+            self.logger.error('Dynamixel waypoint trajectory already active')
+            return
+
+        # check if trajectory valid
+        vel_limit = v_r if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
+        acc_limit = a_r if a_r is not None else self.params['motion']['trajectory_max']['accel_r']
+        valid, reason = self.trajectory.is_valid(vel_limit, acc_limit)
+        if not valid:
+            self.logger.warning('Dynamixel trajectory not valid: {0}'.format(reason))
+            return
+
+        # set defaults
+        self._waypoint_vel = min(abs(v_r), self.params['motion']['trajectory_max']['vel_r']) \
+            if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
+        self._waypoint_accel = min(abs(a_r), self.params['motion']['trajectory_max']['accel_r']) \
+            if a_r is not None else self.params['motion']['trajectory_max']['accel_r']
+
+        # move to start point
+        if move_to_start_point:
+            self.move_to(self.trajectory[0].position)
+            if not self.wait_until_at_setpoint():
+                self.logger.warning('Dynamixel unable to reach starting point')
+                return
+
+        # start trajectory
+        self._waypoint_ts = time.time()
+        p0, _, _ = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
+        self.move_to(p0, self._waypoint_vel, self._waypoint_accel)
 
 # ##########################################
     """
