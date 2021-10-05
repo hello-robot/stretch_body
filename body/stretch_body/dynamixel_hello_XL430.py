@@ -59,6 +59,7 @@ class DynamixelHelloXL430(Device):
         self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                      'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
                      'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+        self.thread_rate_hz = 15.0
         self.trajectory = RevoluteTrajectory()
         self._waypoint_ts = None
         self._waypoint_vel = self.params['motion']['trajectory_max']['vel_r']
@@ -170,6 +171,9 @@ class DynamixelHelloXL430(Device):
             print('DynamixelHelloXL430 Ping failed...', self.name)
             return False
 
+    def _thread_loop(self):
+        self.pull_status()
+        self.update_trajectory()
 
     def stop(self):
         Device.stop(self)
@@ -525,6 +529,25 @@ class DynamixelHelloXL430(Device):
         self._waypoint_ts = time.time()
         p0, _, _ = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
         self.move_to(p0, self._waypoint_vel, self._waypoint_accel)
+
+    def update_trajectory(self):
+        """Updates hardware with the next position goal of `self.trajectory`
+
+        This method must be called frequently to enable complete trajectory execution
+        and preemption of future segments. If used with `stretch_body.robot.Robot` or
+        with `self.startup(threaded=True)`, a background thread is launched for this.
+        Otherwise, the user must handle calling this method.
+        """
+        # check if joint valid and right protocol
+        if not self.hw_valid or self._waypoint_ts is None:
+            return
+
+        if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
+            p1, _, _ = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
+            self.move_to(p1, self._waypoint_vel, self._waypoint_accel)
+        else:
+            self.move_to(self.trajectory[-1].position, self._waypoint_vel, self._waypoint_accel)
+            self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
 
 # ##########################################
     """
