@@ -549,6 +549,11 @@ class DynamixelHelloXL430(Device):
             self.move_to(self.trajectory[-1].position, self._waypoint_vel, self._waypoint_accel)
             self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
 
+    def stop_trajectory(self):
+        """Stop waypoint trajectory immediately and resets hardware
+        """
+        self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
+
 # ##########################################
     """
     Servo calibration works by:
