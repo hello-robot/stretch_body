@@ -79,6 +79,39 @@ class Waypoint:
             transform(self.acceleration) if self.acceleration is not None else None)
 
 
+class SE2Waypoint(Waypoint):
+
+    def __init__(self, time, pose, vel_twist=None, accel_twist=None):
+        """Represents one waypoint in a translation/rotation restricted base spline
+
+        Attributes
+        ----------
+        time : float
+            time in seconds
+        pose : Tuple(float, float, float)
+            unitless pose as tuple (x, y, theta)
+        vel_twist : Tuple(float, float)
+            unitless velocity twist as tuple (translational_velocity, rotational_velocity)
+        accel_twist : Tuple(float, float)
+            unitless acceleration twist as tuple (translational_acceleration, rotational_acceleration)
+        """
+        if len(pose) != 3:
+            raise ValueError("pose must be tuple (x, y, theta)")
+        if vel_twist is not None and len(vel_twist) != 2:
+            raise ValueError("vel_twist must be tuple (translational_velocity, rotational_velocity)")
+        if accel_twist is not None and len(accel_twist) != 2:
+            raise ValueError("accel_twist must be tuple (translational_acceleration, rotational_acceleration)")
+        Waypoint.__init__(self, time, pose, vel_twist, accel_twist)
+        self.pose = pose
+        self.vel_twist = vel_twist
+        self.accel_twist = accel_twist
+
+    def __repr__(self):
+        return "SE2Waypoint(time={0}, pose={1}{2}{3})".format(self.time, self.pose,
+            ', velocity={0}'.format(self.vel_twist) if self.vel_twist is not None else '',
+            ', acceleration={0}'.format(self.accel_twist) if self.accel_twist is not None else '')
+
+
 class Segment:
 
     def __init__(self, segment_id, duration, a0, a1, a2, a3, a4, a5):
@@ -259,6 +292,20 @@ class Spline:
             unitless acceleration
         """
         new_waypoint = Waypoint(time=time, position=pos, velocity=vel, acceleration=accel)
+        self.add_waypoint(new_waypoint)
+
+    def add_waypoint(self, new_waypoint):
+        """Add a waypoint to the spline.
+
+        This method will sort through the existing waypoints
+        in the spline to insert the waypoint such that
+        waypoint time increases with index in the array.
+
+        Parameters
+        ----------
+        waypoint : ``Waypoint``
+            with time, position, [velocity, [and acceleration]] attributes set
+        """
         if len(self.waypoints) == 0:
             self.waypoints.append(new_waypoint)
             return
@@ -433,3 +480,218 @@ class PrismaticTrajectory(Spline):
             acceleration in meters per second squared
         """
         Spline.add(self, t_s, x_m, v_m, a_m)
+
+
+class DiffDriveTrajectory(Spline):
+
+    def __init__(self, init_waypoints=None):
+        """Differential drive trajectory representing class
+
+        Presents a interface to create differential drive
+        trajectories for the mobile base from `SE2Waypoints`
+        and generate polynomial segments.
+
+        These waypoints must allow only either translation or
+        rotation at a time. This is checked in `is_valid()`.
+
+        Parameters
+        ----------
+        init_waypoints : List(SE2Waypoint)
+            optional, starting list of waypoints e.g. for eval-ing repr
+
+        Attributes
+        ----------
+        waypoints : List(SE2Waypoint)
+            a set of base waypoints defining the mobile base's trajectory
+        """
+        Spline.__init__(self, init_waypoints=init_waypoints)
+
+    def __repr__(self):
+        return "DiffDriveTrajectory({0})".format(repr(self.waypoints))
+
+    def add(self, time, x, y, theta, translational_vel=None, rotational_vel=None, translational_accel=None, rotational_accel=None):
+        """Add a waypoint to the diff drive trajectory.
+
+        This method will sort through the existing waypoints
+        in the trajectory to insert the waypoint such that
+        waypoint time increases with index in the array.
+
+        Parameters
+        ----------
+        time : float
+            time in seconds
+        x : float
+            x component of SE2 pose in meters
+        y : float
+            y component of SE2 pose in meters
+        theta : float
+            theta component of SE2 pose in radians
+        translational_vel : float
+            translational velocity component of twist in meters per second
+        rotational_vel : float
+            rotational velocity component of twist in radians per second
+        translational_accel : float
+            translational acceleration component of twist in meters per second squared
+        rotational_accel : float
+            rotational acceleration component of twist in radians per second squared
+        """
+        new_waypoint = SE2Waypoint(time=time, pose=(x, y, theta),
+            vel_twist=(translational_vel, rotational_vel) if translational_vel is not None and rotational_vel is not None else None,
+            accel_twist=(translational_accel, rotational_accel) if translational_accel is not None and rotational_accel is not None else None)
+        self.add_waypoint(new_waypoint)
+
+    def get_segment(self, index, to_motor_rad=lambda pos: pos):
+        raise NotImplementedError('Use get_wheel_segments instead for DiffDriveTrajectory.')
+
+    def _to_wheel_space(self, x, theta, translate_to_motor_rad, rotate_to_motor_rad):
+        """Convert translation/rotation units into left and right motor units.
+
+        Parameters
+        ----------
+        x : float
+            Translational motion in meters
+        theta : float
+            Rotational motion in radians
+
+        Returns
+        -------
+        float, float
+            left and right wheel motion (respectively) in motor units
+        """
+        left = right = translate_to_motor_rad(x)
+        rot = rotate_to_motor_rad(theta)
+        left -= rot
+        right += rot
+        return left, right
+
+    def _compute_wheel_waypoints(self, translate_to_motor_rad, rotate_to_motor_rad,
+                                 lwpos=0.0, rwpos=0.0):
+        left_wheel_waypoints = []
+        right_wheel_waypoints = []
+
+        # zero-th left and right waypoints
+        lvel, rvel = self._to_wheel_space(*self.waypoints[0].vel_twist, \
+            translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad) \
+            if self.waypoints[0].vel_twist is not None else None, None
+        laccel, raccel = self._to_wheel_space(*self.waypoints[0].accel_twist, \
+            translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad) \
+            if self.waypoints[0].accel_twist is not None else None, None
+        lw0 = Waypoint(time=self.waypoints[0].time, position=lwpos, velocity=lvel, acceleration=laccel)
+        rw0 = Waypoint(time=self.waypoints[0].time, position=rwpos, velocity=rvel, acceleration=raccel)
+        left_wheel_waypoints.append(lw0)
+        right_wheel_waypoints.append(rw0)
+
+        # remaining left and right waypoints
+        for se2_w0, se2_w1 in zip(self.waypoints, self.waypoints[1:]):
+            lvel, rvel = self._to_wheel_space(*se2_w1.vel_twist, \
+                translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad) \
+                if se2_w1.vel_twist is not None else None, None
+            laccel, raccel = self._to_wheel_space(*se2_w1.accel_twist, \
+                translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad) \
+                if se2_w1.accel_twist is not None else None, None
+            lprev, rprev = left_wheel_waypoints[-1].position, right_wheel_waypoints[-1].position
+            ldelta, rdelta = self._to_wheel_space(*hu.get_pose_diff(se2_w0.pose, se2_w1.pose), \
+                translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad)
+            lw1 = Waypoint(time=se2_w1.time, position=lwpos + lprev + ldelta, velocity=lvel, acceleration=laccel)
+            rw1 = Waypoint(time=se2_w1.time, position=rwpos + rprev + rdelta, velocity=rvel, acceleration=raccel)
+            left_wheel_waypoints.append(lw1)
+            right_wheel_waypoints.append(rw1)
+
+        return left_wheel_waypoints, right_wheel_waypoints
+
+    def get_wheel_segments(self, index, translate_to_motor_rad, rotate_to_motor_rad,
+                           lwpos=0.0, rwpos=0.0):
+        """Retrieves left/right wheel segments in the trajectory by index
+
+        Num of segments is one less than number of waypoints in
+        the trajectory. Index bounds are [-1 * num_seg, num_seg).
+
+        Parameters
+        ----------
+        index : int
+            index of segment to return
+        translate_to_motor_rad : func or lambda
+            used to convert se2 waypoints into left motor space
+        rotate_to_motor_rad : func or lambda
+            used to convert se2 waypoints into right motor space
+        lwpos : float
+            used to account for left wheel start of trajectory position in motor space
+        rwpos : float
+            used to account for right wheel start of trajectory position in motor space
+
+        Returns
+        -------
+        Tuple(Segment, Segment)
+            left and right wheel coefficients + duration encapsulated within ``Segment`` classes
+        """
+        if index < -1 * len(self.waypoints) + 1 or index >= len(self.waypoints) - 1:
+            return None
+
+        index = index - 1 if index < 0 else index
+        left_wheel_waypoints, right_wheel_waypoints = self._compute_wheel_waypoints(
+            translate_to_motor_rad, rotate_to_motor_rad, lwpos, rwpos)
+        lw0 = left_wheel_waypoints[index]
+        lw1 = left_wheel_waypoints[index + 1]
+        rw0 = right_wheel_waypoints[index]
+        rw1 = right_wheel_waypoints[index + 1]
+        return (Segment.from_two_waypoints(lw0, lw1, segment_id=index + 2),
+                Segment.from_two_waypoints(rw0, rw1, segment_id=index + 2))
+
+    def evaluate_at(self, t, to_motor_rad=lambda pos: pos):
+        raise NotImplementedError('This method not implemented for DiffDriveTrajectory.')
+
+    def is_valid(self, v_des, a_des, translate_to_motor_rad, rotate_to_motor_rad):
+        """Determines whether trajectory is well-formed and adheres to dynamic limits.
+
+        Parameters
+        ----------
+        v_des : float
+            Velocity limit in motor space that the trajectory shouldn't exceed
+        a_des : float
+            Acceleration limit in motor space that the trajectory shouldn't exceed
+        translate_to_motor_rad : func or lambda
+            used to convert se2 waypoints into left motor space
+        rotate_to_motor_rad : func or lambda
+            used to convert se2 waypoints into right motor space
+
+        Returns
+        -------
+        Tuple(bool, str)
+            whether the segment is valid, and error message if not
+        """
+        # verify that spline has atleast two waypoints
+        if len(self.waypoints) < 2:
+            return False, "must have atleast two waypoints"
+
+        # verify that spline starts at time zero
+        if not np.isclose(self.waypoints[0].time, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
+            return False, "first waypoint must be planned for time zero"
+
+        # verify that spline starts at pose zero
+        if not np.isclose(self.waypoints[0].pose[0], 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
+            return False, "first base waypoint must have x component of pose be zero"
+        if not np.isclose(self.waypoints[0].pose[1], 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
+            return False, "first base waypoint must have y component of pose be zero"
+        if not np.isclose(self.waypoints[0].pose[2], 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
+            return False, "first base waypoint must have theta component of pose be zero"
+
+        # verify that waypoint time increases with index in the array
+        t = -1.0
+        for waypoint in self.waypoints:
+            if waypoint.time < 0.0:
+                return False, "waypoint cannot be planned for negative time"
+            if np.isclose(waypoint.time, t, atol=WAYPOINT_ISCLOSE_ATOL):
+                return False, "two waypoints cannot be planned for the same time"
+            if waypoint.time < t:
+                return False, "time must increase for each subsequent waypoint"
+            t = waypoint.time
+
+        # verify left and right trajectories adheres to joint dynamics limits
+        for i in range(self.get_num_segments()):
+            ls, rs = self.get_wheel_segments(i, translate_to_motor_rad, rotate_to_motor_rad)
+            if not hu.is_segment_feasible(ls.to_array(), v_des, a_des):
+                return False, "left wheel segment {0} exceeds dynamic bounds".format(i)
+            if not hu.is_segment_feasible(rs.to_array(), v_des, a_des):
+                return False, "right wheel segment {0} exceeds dynamic bounds".format(i)
+
+        return True, ""
