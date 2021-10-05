@@ -1,6 +1,6 @@
 # Logging level must be set before importing any stretch_body class
 import stretch_body.robot_params
-stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
+# stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
 import unittest
 import stretch_body.base
@@ -58,3 +58,20 @@ class TestBase(unittest.TestCase):
         self.assertTrue(r.base.fast_motion_allowed)
 
         r.stop()
+
+    def test_waypoint_trajectory(self):
+        """Test a basic waypoint trajectory to verify it works.
+        """
+        b = stretch_body.base.Base()
+        b.left_wheel.disable_sync_mode()
+        b.right_wheel.disable_sync_mode()
+        self.assertTrue(b.startup(threaded=True))
+
+        b.trajectory.add(0, 0, 0, 0)
+        b.trajectory.add(3, 0.05, 0, 0)
+        b.follow_trajectory()
+        b.pull_status()
+        # b.pretty_print()
+        time.sleep(4)
+
+        b.stop()
