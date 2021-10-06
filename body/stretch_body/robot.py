@@ -37,6 +37,7 @@ class DXLStatusThread(threading.Thread):
         while not self.shutdown_flag.is_set():
             self.stats.mark_loop_start()
             self.robot._pull_status_dynamixel()
+            self.robot._update_trajectory_dynamixel()
             self.first_status=True
             self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
@@ -57,6 +58,7 @@ class NonDXLStatusThread(threading.Thread):
         self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
         self.collision_downrate_int = 5  # Step the monitor at every Nth iteration
         self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
+        self.trajectory_downrate_int = 2  # Update hardware with waypoint trajectory segments at every Nth iteration
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         if self.robot.params['use_collision_manager']:
@@ -82,6 +84,10 @@ class NonDXLStatusThread(threading.Thread):
             if self.robot.params['use_sentry']:
                 if (self.titr % self.sentry_downrate_int) == 0:
                     self.robot._step_sentry()
+
+            if (self.titr % self.trajectory_downrate_int) == 0:
+                self.robot._update_trajectory_non_dynamixel()
+
             self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
                 time.sleep(self.stats.get_loop_sleep_time())
@@ -219,6 +225,23 @@ class Robot(Device):
             self.wacc.push_command()
             self.pimu.trigger_motor_sync()
 
+    # ######### Waypoint Trajectory Interface ##############################
+
+    def follow_trajectory(self):
+        self.arm.follow_trajectory(move_to_start_point=False)
+        self.lift.follow_trajectory(move_to_start_point=False)
+        self.base.follow_trajectory()
+        self.pimu.trigger_motor_sync()
+        self.end_of_arm.follow_trajectory(move_to_start_point=False)
+        self.head.follow_trajectory(move_to_start_point=False)
+
+    def stop_trajectory(self):
+        self.arm.stop_trajectory()
+        self.lift.stop_trajectory()
+        self.base.stop_trajectory()
+        self.end_of_arm.stop_trajectory()
+        self.head.stop_trajectory()
+
 # ##################Home and Stow #######################################
 
     def is_calibrated(self):
@@ -321,12 +344,24 @@ class Robot(Device):
         except SerialException:
             self.logger.warning('Serial Exception on Robot Step_Dynamixel')
 
+    def _update_trajectory_dynamixel(self):
+        try:
+            self.end_of_arm.update_trajectory()
+            self.head.update_trajectory()
+        except SerialException:
+            self.logger.warning('Serial Exception on Robot._update_trajectory_dynamixe()')
+
     def _pull_status_non_dynamixel(self):
         self.wacc.pull_status()
         self.base.pull_status()
         self.lift.pull_status()
         self.arm.pull_status()
         self.pimu.pull_status()
+
+    def _update_trajectory_non_dynamixel(self):
+        self.arm.update_trajectory()
+        self.lift.update_trajectory()
+        self.base.update_trajectory()
 
     def _step_sentry(self):
         self.head.step_sentry(self)
