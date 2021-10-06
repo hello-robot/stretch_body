@@ -19,6 +19,7 @@ class Base(Device):
         self.trajectory = DiffDriveTrajectory()
         self._waypoint_lwpos = None
         self._waypoint_rwpos = None
+        self.thread_rate_hz = 5.0
         self.first_step=True
         wheel_circumference_m = self.params['wheel_diameter_m'] * pi
         self.meters_per_motor_rad = (wheel_circumference_m / (2.0 * pi)) / self.params['gr']
@@ -37,6 +38,10 @@ class Base(Device):
         success=self.left_wheel.startup(threaded=False) and self.right_wheel.startup(threaded=False)
         self.__update_status()
         return success
+
+    def _thread_loop(self):
+        self.pull_status()
+        self.update_trajectory()
 
     def stop(self):
         Device.stop(self)
@@ -336,6 +341,46 @@ class Base(Device):
             self._waypoint_lwpos, self._waypoint_rwpos)
         self.left_wheel.start_waypoint_trajectory(ls0.to_array())
         self.right_wheel.start_waypoint_trajectory(rs0.to_array())
+
+    def update_trajectory(self):
+        """Updates hardware with the next segment of `self.trajectory`
+
+        This method must be called frequently to enable complete trajectory execution
+        and preemption of future segments. If used with `stretch_body.robot.Robot` or
+        with `self.startup(threaded=True)`, a background thread is launched for this.
+        Otherwise, the user must handle calling this method.
+        """
+        # check if joint valid, right protocol, and right mode
+        if not self.left_wheel.hw_valid or not self.right_wheel.hw_valid:
+            return
+        if int(str(self.left_wheel.board_info['protocol_version'])[1:]) < 1:
+            return
+        if int(str(self.right_wheel.board_info['protocol_version'])[1:]) < 1:
+            return
+        if self.left_wheel.status['mode'] != self.left_wheel.MODE_POS_TRAJ_WAYPOINT:
+            return
+        if self.right_wheel.status['mode'] != self.right_wheel.MODE_POS_TRAJ_WAYPOINT:
+            return
+
+        if self.left_wheel.status['waypoint_traj']['state'] == 'active':
+            next_segment_id = self.left_wheel.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
+            if next_segment_id < self.trajectory.get_num_segments():
+                ls1, _ = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
+                    self._waypoint_lwpos, self._waypoint_rwpos)
+                self.left_wheel.set_next_trajectory_segment(ls1.to_array())
+        elif self.left_wheel.status['waypoint_traj']['state'] == 'idle' and self.left_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+            self.left_wheel.enable_pos_traj()
+            self.push_command()
+
+        if self.right_wheel.status['waypoint_traj']['state'] == 'active':
+            next_segment_id = self.right_wheel.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
+            if next_segment_id < self.trajectory.get_num_segments():
+                _, rs1 = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
+                    self._waypoint_lwpos, self._waypoint_rwpos)
+                self.right_wheel.set_next_trajectory_segment(rs1.to_array())
+        elif self.right_wheel.status['waypoint_traj']['state'] == 'idle' and self.right_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+            self.right_wheel.enable_pos_traj()
+            self.push_command()
 
     def step_sentry(self,robot):
         """
