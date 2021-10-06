@@ -258,7 +258,8 @@ def evaluate_polynomial_at(poly, t):
     Tuple(float)
         array with three elements: evaluated position, velocity, and acceleration.
     """
-    a = poly
+    a = [float(elem) for elem in poly]
+    t = float(t)
     pos = a[0] + (a[1]*t) + (a[2]*t**2) + (a[3]*t**3) + (a[4]*t**4) + (a[5]*t**5)
     vel = a[1] + (2*a[2]*t) + (3*a[3]*t**2) + (4*a[4]*t**3) + (5*a[5]*t**4)
     accel = (2*a[2]) + (6*a[3]*t) + (12*a[4]*t**2) + (20*a[5]*t**3)
@@ -286,6 +287,8 @@ def is_segment_feasible(segment, v_des, a_des, t=0.0, inc=0.1):
     bool
         whether the segment is feasible
     """
+    v_des = float(v_des)
+    a_des = float(a_des)
     while t < segment[0]:
         _, vel_t, acc_t = evaluate_polynomial_at(segment[1:-1], t)
         if abs(vel_t) > v_des or abs(acc_t) > a_des:
@@ -311,6 +314,8 @@ def generate_quintic_polynomial(i, f):
         Represents a quintic polynomial as a coefficients + duration array [duration, a0, a1, a2, a3, a4, a5].
         The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
     """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
     duration = f[0] - i[0]
     a0 = i[1]
     a1 = i[2]
@@ -336,6 +341,8 @@ def generate_cubic_polynomial(i, f):
         Represents a cubic polynomial as a coefficients + duration array [duration, a0, a1, a2, a3, 0, 0].
         The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3
     """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
     duration = f[0] - i[0]
     a0 = i[1]
     a1 = i[2]
@@ -359,6 +366,8 @@ def generate_linear_polynomial(i, f):
         Represents a linear polynomial as a coefficients + duration array [duration, a0, a1, 0, 0, 0, 0].
         The polynomial is f(t) = a0 + a1*t
     """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
     duration = f[0] - i[0]
     a0 = i[1]
     a1 = (f[1] - i[1]) / duration

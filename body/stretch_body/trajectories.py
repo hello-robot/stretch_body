@@ -76,7 +76,7 @@ class Waypoint:
         """
         return Waypoint(self.time, transform(self.position), \
             transform(self.velocity) if self.velocity is not None else None, \
-            transform(self.acceleration) if self.velocity is not None else None)
+            transform(self.acceleration) if self.acceleration is not None else None)
 
 
 class Segment:
