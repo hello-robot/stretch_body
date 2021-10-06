@@ -345,11 +345,11 @@ class DynamixelHelloXL430(Device):
         #self.motor.pretty_print()
 
     def step_sentry(self, robot):
-
         if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:
             is_runstopped = robot.pimu.status['runstop_event']
             if is_runstopped is not self.was_runstopped:
                 if is_runstopped:
+                    self.stop_trajectory()
                     self.disable_torque()
                 else:
                     self.enable_torque()
@@ -538,8 +538,10 @@ class DynamixelHelloXL430(Device):
         with `self.startup(threaded=True)`, a background thread is launched for this.
         Otherwise, the user must handle calling this method.
         """
-        # check if joint valid and previous trajectory not executing
+        # check if joint valid, previous trajectory not executing, and not runstopped
         if not self.hw_valid or self._waypoint_ts is None:
+            return
+        if self.was_runstopped:
             return
 
         if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
