@@ -12,7 +12,7 @@ class TestBase(unittest.TestCase):
 
     def test_valid_startup_status(self):
         b = stretch_body.base.Base()
-        self.assertTrue(b.startup())
+        self.assertTrue(b.startup(threaded=False))
         self.assertNotEqual(b.status['timestamp_pc'],0)
 
     def test_fast_base_motion_allowed(self):
