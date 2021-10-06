@@ -10,7 +10,7 @@ parser=argparse.ArgumentParser(description='Calibrate the gripper position by cl
 args=parser.parse_args()
 
 g=gripper.StretchGripper()
-if not g.startup():
+if not g.startup(threaded=False):
     exit()
 g.home()
 time.sleep(3.0)

@@ -14,6 +14,9 @@ class WristYaw(DynamixelHelloXL430):
                       'forward': deg_to_rad(0.0),
                       'stow': deg_to_rad(180.0)}
 
+    def startup(self, threaded=True):
+        return DynamixelHelloXL430.startup(self, threaded=threaded)
+
     def home(self):
         """
         Home to hardstops
