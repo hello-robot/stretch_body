@@ -18,7 +18,7 @@ class TestEndOfArm(unittest.TestCase):
         class_name = e.robot_params[tool_name]['py_class_name']
         e = getattr(importlib.import_module(module_name), class_name)()
         self.assertTrue('stretch_gripper' in e.joints)
-        self.assertTrue(e.startup())
+        self.assertTrue(e.startup(threaded=False))
 
         e.home()
         e.pull_status()

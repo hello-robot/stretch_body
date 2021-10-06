@@ -75,22 +75,46 @@ factory_params = {
     "head_pan": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 4.0,
+                "accel_r": 8.0
+            }
+        }
     },
     "head_tilt": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 4.0,
+                "accel_r": 8.0
+            }
+        }
     },
     "wrist_yaw": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 4.0,
+                "accel_r": 8.0
+            }
+        }
     },
     "stretch_gripper": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 50.0,
+                "accel_r": 100.0
+            }
+        }
     },
     "base": {
         "sentry_max_velocity": {

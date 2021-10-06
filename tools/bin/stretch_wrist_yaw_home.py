@@ -9,7 +9,7 @@ parser=argparse.ArgumentParser(description='Calibrate the wrist_yaw position by 
 args=parser.parse_args()
 
 g=wrist_yaw.WristYaw()
-if not g.startup():
+if not g.startup(threaded=False):
     exit()
 g.home()
 g.stop()

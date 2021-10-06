@@ -17,6 +17,9 @@ class Head(DynamixelXChain):
                       'wheels': [deg_to_rad(0), deg_to_rad(-90)], 'left': [deg_to_rad(90), deg_to_rad(0)],
                       'up': [deg_to_rad(0), deg_to_rad(30)]}
 
+    def startup(self, threaded=True):
+        return DynamixelXChain.startup(self, threaded=threaded)
+
     def get_joint(self, joint_name):
         """Retrieves joint by name.
 
