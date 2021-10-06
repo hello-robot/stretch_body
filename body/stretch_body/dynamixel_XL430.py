@@ -298,7 +298,7 @@ class DynamixelXL430():
             p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE)
         if not self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error):
             return -1
-        return BAUD_MAP.keys()[BAUD_MAP.values().index(p)]
+        return list(BAUD_MAP.keys())[list(BAUD_MAP.values()).index(p)]
 
     def set_baud_rate(self, rate):
         """Sets the baud rate of Dynamixel communication.
