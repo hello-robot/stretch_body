@@ -100,3 +100,40 @@ class TestLift(unittest.TestCase):
 
         l.stop()
 
+    def test_waypoint_trajectory(self):
+        l = stretch_body.lift.Lift()
+        l.motor.disable_sync_mode()
+        self.assertTrue(l.startup(threaded=True))
+        if not l.motor.status['pos_calibrated']:
+            self.fail('test requires arm to be homed')
+
+        l.trajectory.add(0, 0.2)
+        l.trajectory.add(3, 0.3)
+        l.trajectory.add(6, 0.25)
+        l.logger.debug('Executing {0}'.format(l.trajectory.__repr_segments__()))
+        self.assertTrue(l.trajectory.is_valid(0.1, 0.15))
+        l.follow_trajectory()
+        time.sleep(6)
+        self.assertAlmostEqual(l.status['pos'], 0.15, places=2)
+
+        l.trajectory.clear()
+        l.trajectory.add(0, 0.2, 0.0)
+        l.trajectory.add(3, 0.3, 0.0)
+        l.trajectory.add(6, 0.25, 0.0)
+        l.logger.debug('Executing {0}'.format(l.trajectory.__repr_segments__()))
+        self.assertTrue(l.trajectory.is_valid(0.1, 0.15))
+        l.follow_trajectory()
+        time.sleep(6)
+        self.assertAlmostEqual(l.status['pos'], 0.15, places=2)
+
+        l.trajectory.clear()
+        l.trajectory.add(0, 0.2, 0.0, 0.0)
+        l.trajectory.add(3, 0.3, 0.0, 0.0)
+        l.trajectory.add(6, 0.25, 0.0, 0.0)
+        l.logger.debug('Executing {0}'.format(l.trajectory.__repr_segments__()))
+        self.assertTrue(l.trajectory.is_valid(0.1, 0.15))
+        l.follow_trajectory()
+        time.sleep(6)
+        self.assertAlmostEqual(l.status['pos'], 0.15, places=2)
+
+        l.stop()
