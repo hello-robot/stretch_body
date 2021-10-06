@@ -4,6 +4,11 @@ echo "# -----------------------------------------------"
 echo "# VERSION INFORMATION FOR THE STRETCH RE1 FROM HELLO ROBOT" 
 echo "# -----------------------------------------------" 
 echo 
+echo "# stretch_about_text.py" 
+stretch_about_text.py
+echo 
+echo "# -----------------------------------------------" 
+echo 
 echo "# uname -a" 
 uname -a 
 echo 
