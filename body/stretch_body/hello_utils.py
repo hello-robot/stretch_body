@@ -258,7 +258,8 @@ def evaluate_polynomial_at(poly, t):
     Tuple(float)
         array with three elements: evaluated position, velocity, and acceleration.
     """
-    a = poly
+    a = [float(elem) for elem in poly]
+    t = float(t)
     pos = a[0] + (a[1]*t) + (a[2]*t**2) + (a[3]*t**3) + (a[4]*t**4) + (a[5]*t**5)
     vel = a[1] + (2*a[2]*t) + (3*a[3]*t**2) + (4*a[4]*t**3) + (5*a[5]*t**4)
     accel = (2*a[2]) + (6*a[3]*t) + (12*a[4]*t**2) + (20*a[5]*t**3)
@@ -286,6 +287,8 @@ def is_segment_feasible(segment, v_des, a_des, t=0.0, inc=0.1):
     bool
         whether the segment is feasible
     """
+    v_des = float(v_des)
+    a_des = float(a_des)
     while t < segment[0]:
         _, vel_t, acc_t = evaluate_polynomial_at(segment[1:-1], t)
         if abs(vel_t) > v_des or abs(acc_t) > a_des:
@@ -294,3 +297,78 @@ def is_segment_feasible(segment, v_des, a_des, t=0.0, inc=0.1):
         t = min(segment[0], t + inc)
 
     return True
+
+def generate_quintic_polynomial(i, f):
+    """Generate quintic polynomial from two points
+
+    Parameters
+    ----------
+    i : List(float)
+        Represents the first waypoint as a list, [time, pos, vel, accel]
+    f : List(float)
+        Represents the second waypoint as a list, [time, pos, vel, accel]
+
+    Returns
+    -------
+    List(float)
+        Represents a quintic polynomial as a coefficients + duration array [duration, a0, a1, a2, a3, a4, a5].
+        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
+    """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
+    duration = f[0] - i[0]
+    a0 = i[1]
+    a1 = i[2]
+    a2 = i[3] / 2
+    a3 = (20 * f[1] - 20 * i[1] - (8 * f[2] + 12 * i[2]) * duration - (3 * i[3] - f[3]) * (duration ** 2)) / (2 * (duration ** 3))
+    a4 = (30 * i[1] - 30 * f[1] + (14 * f[2] + 16 * i[2]) * duration + (3 * i[3] - 2 * f[3]) * (duration ** 2)) / (2 * (duration ** 4))
+    a5 = (12 * f[1] - 12 * i[1] - (6 * f[2] + 6 * i[2]) * duration - (i[3] - f[3]) * (duration ** 2)) / (2 * (duration ** 5))
+    return [duration, a0, a1, a2, a3, a4, a5]
+
+def generate_cubic_polynomial(i, f):
+    """Generate cubic polynomial from two points
+
+    Parameters
+    ----------
+    i : List(float)
+        Represents the first waypoint as a list, [time, pos, vel]
+    f : List(float)
+        Represents the second waypoint as a list, [time, pos, vel]
+
+    Returns
+    -------
+    List(float)
+        Represents a cubic polynomial as a coefficients + duration array [duration, a0, a1, a2, a3, 0, 0].
+        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3
+    """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
+    duration = f[0] - i[0]
+    a0 = i[1]
+    a1 = i[2]
+    a2 = (3 / duration ** 2) * (f[1] - i[1]) - (2 / duration) * i[2] - (1 / duration) * f[2]
+    a3 = (-2 / duration ** 3) * (f[1] - i[1]) + (1 / duration ** 2) * (f[2] + i[2])
+    return [duration, a0, a1, a2, a3, 0, 0]
+
+def generate_linear_polynomial(i, f):
+    """Generate linear polynomial from two points
+
+    Parameters
+    ----------
+    i : List(float)
+        Represents the first waypoint as a list, [time, pos]
+    f : List(float)
+        Represents the second waypoint as a list, [time, pos]
+
+    Returns
+    -------
+    List(float)
+        Represents a linear polynomial as a coefficients + duration array [duration, a0, a1, 0, 0, 0, 0].
+        The polynomial is f(t) = a0 + a1*t
+    """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
+    duration = f[0] - i[0]
+    a0 = i[1]
+    a1 = (f[1] - i[1]) / duration
+    return [duration, a0, a1, 0, 0, 0, 0]
