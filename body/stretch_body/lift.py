@@ -137,15 +137,13 @@ class Lift(Device):
         else:
             a_r = self.accel_r
 
-        if contact_thresh_neg_N is not None:
-            i_contact_neg = max(self.translate_force_to_motor_current(contact_thresh_neg_N),self.params['contact_thresh_max_N'][0])
-        else:
-            i_contact_neg = self.i_contact_neg
+        i_contact_neg = self.translate_force_to_motor_current(
+            max(contact_thresh_neg_N, self.params['contact_thresh_max_N'][0])) \
+            if contact_thresh_neg_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][0])
+        i_contact_pos = self.translate_force_to_motor_current(
+            min(contact_thresh_pos_N, self.params['contact_thresh_max_N'][1])) \
+            if contact_thresh_pos_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][1])
 
-        if contact_thresh_pos_N is not None:
-            i_contact_pos = min(self.translate_force_to_motor_current(contact_thresh_pos_N),self.params['contact_thresh_max_N'][1])
-        else:
-            i_contact_pos = self.i_contact_pos
 
         self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
                                v_des=v_r,
@@ -185,17 +183,12 @@ class Lift(Device):
         else:
             a_r = self.accel_r
 
-        if contact_thresh_neg_N is not None:
-            i_contact_neg = max(self.translate_force_to_motor_current(contact_thresh_neg_N),
-                                self.params['contact_thresh_max_N'][0])
-        else:
-            i_contact_neg = self.i_contact_neg
-
-        if contact_thresh_pos_N is not None:
-            i_contact_pos = min(self.translate_force_to_motor_current(contact_thresh_pos_N),
-                                self.params['contact_thresh_max_N'][1])
-        else:
-            i_contact_pos = self.i_contact_pos
+        i_contact_neg = self.translate_force_to_motor_current(
+            max(contact_thresh_neg_N, self.params['contact_thresh_max_N'][0])) \
+            if contact_thresh_neg_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][0])
+        i_contact_pos = self.translate_force_to_motor_current(
+            min(contact_thresh_pos_N, self.params['contact_thresh_max_N'][1])) \
+            if contact_thresh_pos_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][1])
 
         self.motor.set_command(mode = Stepper.MODE_POS_TRAJ,
                                 x_des=self.translate_to_motor_rad(x_m),
@@ -241,17 +234,12 @@ class Lift(Device):
         else:
             a_r = self.accel_r
 
-        if contact_thresh_neg_N is not None:
-            i_contact_neg = max(self.translate_force_to_motor_current(contact_thresh_neg_N),
-                                self.params['contact_thresh_max_N'][0])
-        else:
-            i_contact_neg = self.i_contact_neg
-
-        if contact_thresh_pos_N is not None:
-            i_contact_pos = min(self.translate_force_to_motor_current(contact_thresh_pos_N),
-                                self.params['contact_thresh_max_N'][1])
-        else:
-            i_contact_pos = self.i_contact_pos
+        i_contact_neg = self.translate_force_to_motor_current(
+            max(contact_thresh_neg_N, self.params['contact_thresh_max_N'][0])) \
+            if contact_thresh_neg_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][0])
+        i_contact_pos = self.translate_force_to_motor_current(
+            min(contact_thresh_pos_N, self.params['contact_thresh_max_N'][1])) \
+            if contact_thresh_pos_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][1])
 
         #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate_m(v_r), self.motor_rad_to_translate_m(a_r)))
 
