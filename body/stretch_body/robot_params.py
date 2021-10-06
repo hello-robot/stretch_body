@@ -25,6 +25,22 @@ factory_params = {
         'models': ['collision_arm_camera']
     },
     'pimu':{'max_sync_rate_hz':20.0},
+    "arm": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.1,
+                "accel_m": 0.15
+            }
+        }
+    },
+    "lift": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.1,
+                "accel_m": 0.15
+            }
+        }
+    },
     'hello-motor-arm':{
         'gains': {'vel_near_setpoint_d': 3.5}
     },
