@@ -111,8 +111,8 @@ factory_params = {
         "enable_runstop": 1,
         "motion": {
             "trajectory_max": {
-                "vel_r": 4.0,
-                "accel_r": 8.0
+                "vel_r": 50.0,
+                "accel_r": 100.0
             }
         }
     },

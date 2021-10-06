@@ -90,8 +90,7 @@ class DynamixelXChain(Device):
 
     def _thread_loop(self):
         self.pull_status()
-        for motor in self.motors:
-            self.motors[motor].update_trajectory()
+        self.update_trajectory()
 
     def stop(self):
         Device.stop(self)
@@ -104,6 +103,17 @@ class DynamixelXChain(Device):
             self.motors[motor].stop()
         self.hw_valid = False
 
+    def follow_trajectory(self, v_r=None, a_r=None, req_calibration=False, move_to_start_point=True):
+        for motor in self.motors:
+            self.motors[motor].follow_trajectory(v_r, a_r, req_calibration, move_to_start_point)
+
+    def update_trajectory(self):
+        for motor in self.motors:
+            self.motors[motor].update_trajectory()
+
+    def stop_trajectory(self):
+        for motor in self.motors:
+            self.motors[motor].stop_trajectory()
 
     def pull_status(self):
         if not self.hw_valid:
