@@ -50,3 +50,9 @@ echo "# apt list --installed | grep opencv"
 apt list --installed | grep opencv 
 echo 
 echo "# -----------------------------------------------" 
+echo
+echo "# FOR FUTURE IMPLEMENTATION"
+echo "# RE1_firmware_updater.py --current"
+# RE1_firmware_updater.py --current
+echo 
+echo "# -----------------------------------------------" 
