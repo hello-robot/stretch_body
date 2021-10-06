@@ -372,3 +372,46 @@ def generate_linear_polynomial(i, f):
     a0 = i[1]
     a1 = (f[1] - i[1]) / duration
     return [duration, a0, a1, 0, 0, 0, 0]
+
+def get_pose_diff(pose0, pose1, translation_atol=2e-3, rotation_atol=2e-2):
+    """Return the motion required to get from pose 0 to pose 1.
+
+    Assumed that between pose 0 and pose 1, there has only been
+    either a translation or rotation motion.
+
+    Parameters
+    ----------
+    pose0 : Tuple(float, float, float)
+        x, y, theta in meters and radians
+    pose1 : Tuple(float, float, float)
+        x, y, theta in meters and radians
+
+    Returns
+    -------
+    float, float
+        Tuple (dx, dtheta) of translation and rotation required to
+        move from pose0 to pose1
+    """
+    x0, y0, theta0 = pose0
+    x1, y1, theta1 = pose1
+    theta0 = np.arctan2(np.sin(theta0), np.cos(theta0)) # constrains to [-pi, pi]
+    theta1 = np.arctan2(np.sin(theta1), np.cos(theta1)) # constrains to [-pi, pi]
+
+    # TODO: For now, we use a simplified motion model where we assume
+    # that every motion is either a translation OR a rotation,
+    # and the translation is either straight forward or straight back
+    if np.isclose(x0, x1, atol=translation_atol) and np.isclose(y0, y1, atol=translation_atol):
+        return 0.0, theta1 - theta0
+
+    if np.isclose(theta0, theta1, atol=rotation_atol):
+        dx = x1 - x0
+        dy = y1 - y0
+        drive_angle = math.atan2(dy, dx)
+        distance = math.hypot(dy, dx)
+        if np.isclose(drive_angle, theta0, atol=rotation_atol):
+            return distance, 0.0
+        opposite_theta0 = np.arctan2(np.sin(theta0 + np.pi), np.cos(theta0 + np.pi)) # constrains to [-pi, pi]
+        if np.isclose(drive_angle, opposite_theta0, atol=rotation_atol):
+            return -distance, 0.0
+
+    return 0.0, 0.0

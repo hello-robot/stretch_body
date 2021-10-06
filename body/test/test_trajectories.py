@@ -1,6 +1,8 @@
 import unittest
 import stretch_body.trajectories
 
+import numpy as np
+
 
 class TestTrajectories(unittest.TestCase):
 
@@ -459,3 +461,58 @@ class TestTrajectories(unittest.TestCase):
         self.assertTrue(isinstance(traj2_evaled, PrismaticTrajectory))
         for i, j in zip(traj2, traj2_evaled):
             self.assertEqual(i, j)
+
+    def test_diffdrivetrajectory_to_wheel_space(self):
+        def translate_to_motor_rad(x_m):
+            circ=0.1016*np.pi
+            return np.radians(360*3.4*x_m/circ)
+
+        def rotate_to_motor_rad(x_r):
+            r = 0.3153 / 2.0
+            c = r * x_r #distance wheel travels (m)
+            return translate_to_motor_rad(c)
+
+        traj = stretch_body.trajectories.DiffDriveTrajectory()
+        left, right = traj._to_wheel_space(0.1, 0.0, translate_to_motor_rad, rotate_to_motor_rad)
+        self.assertEqual(left, right)
+
+        left, right = traj._to_wheel_space(0.0, 1.57, translate_to_motor_rad, rotate_to_motor_rad)
+        self.assertEqual(left, -right)
+
+    def test_diffdrivetrajectory_compute_wheel_waypoints(self):
+        def translate_to_motor_rad(x_m):
+            circ=0.1016*np.pi
+            return np.radians(360*3.4*x_m/circ)
+
+        def rotate_to_motor_rad(x_r):
+            r = 0.3153 / 2.0
+            c = r * x_r #distance wheel travels (m)
+            return translate_to_motor_rad(c)
+
+        traj = stretch_body.trajectories.DiffDriveTrajectory()
+        traj.add(0, 0, 0, 0)
+        traj.add(3, 0.05, 0, 0)
+        traj.add(6, 0, 0, 0)
+        left, right = traj._compute_wheel_waypoints(translate_to_motor_rad, rotate_to_motor_rad)
+        self.assertEqual(len(left), 3)
+        self.assertAlmostEqual(left[0].position, 0.0)
+        self.assertNotAlmostEqual(left[1].position, 0.0)
+        self.assertAlmostEqual(left[2].position, 0.0)
+        self.assertEqual(len(right), 3)
+        self.assertAlmostEqual(right[0].position, 0.0)
+        self.assertNotAlmostEqual(right[1].position, 0.0)
+        self.assertAlmostEqual(right[2].position, 0.0)
+
+        traj.clear()
+        traj.add(0, 0, 0, 0)
+        traj.add(3, 0, 0, 1.0)
+        traj.add(6, 0, 0, 0)
+        left, right = traj._compute_wheel_waypoints(translate_to_motor_rad, rotate_to_motor_rad)
+        self.assertEqual(len(left), 3)
+        self.assertAlmostEqual(left[0].position, 0.0)
+        self.assertNotAlmostEqual(left[1].position, 0.0)
+        self.assertAlmostEqual(left[2].position, 0.0)
+        self.assertEqual(len(right), 3)
+        self.assertAlmostEqual(right[0].position, 0.0)
+        self.assertNotAlmostEqual(right[1].position, 0.0)
+        self.assertAlmostEqual(right[2].position, 0.0)

@@ -41,6 +41,21 @@ factory_params = {
             }
         }
     },
+    "base": {
+        "sentry_max_velocity": {
+            "limit_accel_m": 0.15,
+            "limit_vel_m": 0.1,
+            "max_arm_extension_m": 0.03,
+            "max_lift_height_m": 0.3,
+            "min_wrist_yaw_rad": 2.54,
+        },
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 25.0,
+                "accel_r": 10.0
+            }
+        }
+    },
     'hello-motor-arm':{
         'gains': {'vel_near_setpoint_d': 3.5}
     },
@@ -114,15 +129,6 @@ factory_params = {
                 "vel_r": 50.0,
                 "accel_r": 100.0
             }
-        }
-    },
-    "base": {
-        "sentry_max_velocity": {
-            "limit_accel_m": 0.15,
-            "limit_vel_m": 0.1,
-            "max_arm_extension_m": 0.03,
-            "max_lift_height_m": 0.3,
-            "min_wrist_yaw_rad": 2.54,
         }
     },
     "tool_none": {

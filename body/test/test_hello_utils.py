@@ -2,6 +2,7 @@ import unittest
 import stretch_body.hello_utils
 
 import time
+import math
 import random
 import warnings
 
@@ -400,3 +401,64 @@ class TestHelloUtils(unittest.TestCase):
         calculated_g_segment = stretch_body.hello_utils.generate_quintic_polynomial(g_waypoint1_arr, g_waypoint2_arr)
         for calculated, expected in zip(calculated_g_segment, expected_g_segment):
             self.assertAlmostEqual(calculated, expected, places=8)
+
+    def test_get_pose_diff(self):
+        pose0 = (0.0, 0.0, 0.0)
+        pose1 = (0.05, 0.0, 0.0)
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 0.05)
+        self.assertAlmostEqual(dtheta, 0.0)
+
+        pose0 = (0.0, 0.0, 0.0)
+        pose1 = (5.0, 0.0, 0.0)
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 5.0)
+        self.assertAlmostEqual(dtheta, 0.0)
+
+        pose0 = (0.0, 0.0, 0.0)
+        pose1 = (-5.0, 0.0, 0.0)
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, -5.0)
+        self.assertAlmostEqual(dtheta, 0.0)
+
+        pose0 = (0.0, 0.0, 0.0)
+        pose1 = (0.0, 0.0, 3.14)
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 0.0)
+        self.assertAlmostEqual(dtheta, 3.14)
+
+        pose0 = (0.0, 0.0, 0.0)
+        pose1 = (0.0, 0.0, -3.14)
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 0.0)
+        self.assertAlmostEqual(dtheta, -3.14)
+
+        pose0 = (0.0, 0.0, 0.0)
+        pose1 = (0.0, 0.0, 4.0) # not constrained between [-pi, pi]
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 0.0)
+        self.assertAlmostEqual(dtheta, -2.283185307)
+
+        pose0 = (0.0, 0.0, 1.0)
+        pose1 = (1.0, 1.0 * math.tan(1.0), 1.0) # not constrained between [-pi, pi]
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 1.0 / math.cos(1.0))
+        self.assertAlmostEqual(dtheta, 0.0)
+
+        pose0 = (1.0, 1.0 * math.tan(1.0), 1.0)
+        pose1 = (2.0, 2.0 * math.tan(1.0), 1.0) # not constrained between [-pi, pi]
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 2.0 / math.cos(1.0) - 1.0 / math.cos(1.0))
+        self.assertAlmostEqual(dtheta, 0.0)
+
+        pose0 = (1.0, 1.0 * math.tan(1.0), 1.0)
+        pose1 = (-2.0, -2.0 * math.tan(1.0), 1.0) # not constrained between [-pi, pi]
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, -2.0 / math.cos(1.0) - 1.0 / math.cos(1.0))
+        self.assertAlmostEqual(dtheta, 0.0)
+
+        pose0 = (1.0, 1.0 * math.tan(1.0), 1.0)
+        pose1 = (2.0, 2.0 * math.tan(1.0), 2.0) # not constrained between [-pi, pi]
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 0.0)
+        self.assertAlmostEqual(dtheta, 0.0)
