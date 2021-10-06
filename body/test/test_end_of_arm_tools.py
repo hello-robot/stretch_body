@@ -30,8 +30,8 @@ class TestEndOfArmTools(unittest.TestCase):
         if b==115200:
             e = stretch_body.end_of_arm_tools.ToolNone()
             e.params['baud']=57600
-            self.assertFalse(e.startup())
+            self.assertFalse(e.startup(threaded=False))
         else:
             e = stretch_body.end_of_arm_tools.ToolNone()
             e.params['baud'] = 115200
-            self.assertFalse(e.startup())
+            self.assertFalse(e.startup(threaded=False))

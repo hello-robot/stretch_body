@@ -177,7 +177,7 @@ class DynamixelHelloXL430(Device):
 
     def stop(self):
         Device.stop(self)
-        self._waypoint_ts = None
+        self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
         if self.hw_valid:
             self.disable_torque()
             self.hw_valid = False
@@ -538,7 +538,7 @@ class DynamixelHelloXL430(Device):
         with `self.startup(threaded=True)`, a background thread is launched for this.
         Otherwise, the user must handle calling this method.
         """
-        # check if joint valid and right protocol
+        # check if joint valid and previous trajectory not executing
         if not self.hw_valid or self._waypoint_ts is None:
             return
 

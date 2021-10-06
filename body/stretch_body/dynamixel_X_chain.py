@@ -23,6 +23,7 @@ class DynamixelXChain(Device):
         Device.__init__(self, name)
         self.usb = usb
         self.pt_lock = threading.RLock()
+        self.thread_rate_hz = 15.0
 
         try:
             prh.LATENCY_TIMER = self.params['dxl_latency_timer']
@@ -87,12 +88,20 @@ class DynamixelXChain(Device):
                 return False
         return True
 
+    def _thread_loop(self):
+        self.pull_status()
+        for motor in self.motors:
+            self.motors[motor].update_trajectory()
+
     def stop(self):
         Device.stop(self)
         if not self.hw_valid:
             return
-        for mk in self.motors.keys():
-            self.motors[mk].stop()
+        for motor in self.motors:
+            self.motors[motor]._waypoint_ts = None
+            self.motors[motor]._waypoint_vel = None
+            self.motors[motor]._waypoint_accel = None
+            self.motors[motor].stop()
         self.hw_valid = False
 
 

@@ -18,6 +18,9 @@ class StretchGripper(DynamixelHelloXL430):
                       'open': self.pct_max_open,
                       'close': -100}
 
+    def startup(self, threaded=True):
+        return DynamixelHelloXL430.startup(self, threaded=threaded)
+
     def home(self,move_to_zero=True):
         DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero,delay_at_stop=3.0)
 
