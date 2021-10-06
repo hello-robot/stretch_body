@@ -112,4 +112,42 @@ class TestBase(unittest.TestCase):
         constrained_theta = np.arctan2(np.sin(b.status['theta']), np.cos(b.status['theta'])) # constrains to [-pi, pi]
         self.assertAlmostEqual(constrained_theta, 0.0, places=1)
 
+        b.trajectory.clear()
+        b.trajectory.add(0, 0, 0, 0, 0, 0)
+        b.trajectory.add(6, 0, 0, np.pi / 2.0, 0, 0)
+        b.trajectory.add(12, 0, 0, 0, 0, 0)
+        b.logger.info('Executing {0}'.format(b.trajectory))
+        self.assertTrue(b.trajectory.is_valid(25, 10, b.translate_to_motor_rad, b.rotate_to_motor_rad))
+        b.follow_trajectory()
+        time.sleep(13)
+        self.assertAlmostEqual(b.status['x'], 0.0, places=1)
+        self.assertAlmostEqual(b.status['y'], 0.0, places=1)
+        constrained_theta = np.arctan2(np.sin(b.status['theta']), np.cos(b.status['theta'])) # constrains to [-pi, pi]
+        self.assertAlmostEqual(constrained_theta, 0.0, places=1)
+
+        b.stop()
+
+    def test_multidof_waypoint_trajectory(self):
+        b = stretch_body.base.Base()
+        b.left_wheel.disable_sync_mode()
+        b.right_wheel.disable_sync_mode()
+        self.assertTrue(b.startup(threaded=True))
+        b.first_step = True
+        b.pull_status()
+
+        b.trajectory.clear()
+        b.trajectory.add(0, 0, 0, 0, 0, 0, 0, 0)
+        b.trajectory.add(6, 0.4, 0, 0, 0, 0, 0, 0)
+        b.trajectory.add(12, 0.4, 0, np.pi, 0, 0, 0, 0)
+        b.trajectory.add(18, 0.0, 0, np.pi, 0, 0, 0, 0)
+        b.trajectory.add(24, 0.0, 0, 0, 0, 0, 0, 0)
+        b.logger.info('Executing {0}'.format(b.trajectory))
+        self.assertTrue(b.trajectory.is_valid(25, 10, b.translate_to_motor_rad, b.rotate_to_motor_rad))
+        b.follow_trajectory()
+        time.sleep(25)
+        self.assertAlmostEqual(b.status['x'], 0.0, places=1)
+        self.assertAlmostEqual(b.status['y'], 0.0, places=1)
+        constrained_theta = np.arctan2(np.sin(b.status['theta']), np.cos(b.status['theta'])) # constrains to [-pi, pi]
+        self.assertAlmostEqual(constrained_theta, 0.0, places=1)
+
         b.stop()
