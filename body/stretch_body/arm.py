@@ -349,8 +349,10 @@ class Arm(Device):
         with `self.startup(threaded=True)`, a background thread is launched for this.
         Otherwise, the user must handle calling this method.
         """
-        # check if joint valid and right protocol
+        # check if joint valid, right protocol, and right mode
         if not self.motor.hw_valid or int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
+            return
+        if self.motor.status['mode'] != self.motor.MODE_POS_TRAJ_WAYPOINT:
             return
 
         if self.motor.status['waypoint_traj']['state'] == 'active':
