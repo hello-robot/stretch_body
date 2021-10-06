@@ -59,12 +59,14 @@ factory_params = {
     "head_pan": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "pwm_homing":[-300,300]
     },
     "head_tilt": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "pwm_homing": [-300, 300]
     },
     "wrist_yaw": {
         "retry_on_comm_failure": 1,
