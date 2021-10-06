@@ -382,6 +382,12 @@ class Base(Device):
             self.right_wheel.enable_pos_traj()
             self.push_command()
 
+    def stop_trajectory(self):
+        """Stop waypoint trajectory immediately and resets hardware
+        """
+        self.left_wheel.stop_waypoint_trajectory()
+        self.right_wheel.stop_waypoint_trajectory()
+
     def step_sentry(self,robot):
         """
         Only allow fast mobile base motion if the lift is low,
