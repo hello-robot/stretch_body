@@ -361,24 +361,21 @@ class Base(Device):
             return
         if self.right_wheel.status['mode'] != self.right_wheel.MODE_POS_TRAJ_WAYPOINT:
             return
+        if self._waypoint_lwpos is None or self._waypoint_rwpos is None:
+            return
 
-        if self.left_wheel.status['waypoint_traj']['state'] == 'active':
+        if self.left_wheel.status['waypoint_traj']['state'] == 'active' and self.right_wheel.status['waypoint_traj']['state'] == 'active':
             next_segment_id = self.left_wheel.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
             if next_segment_id < self.trajectory.get_num_segments():
-                ls1, _ = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
+                ls1, rs1 = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
                     self._waypoint_lwpos, self._waypoint_rwpos)
                 self.left_wheel.set_next_trajectory_segment(ls1.to_array())
-        elif self.left_wheel.status['waypoint_traj']['state'] == 'idle' and self.left_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
-            self.left_wheel.enable_pos_traj()
-            self.push_command()
-
-        if self.right_wheel.status['waypoint_traj']['state'] == 'active':
-            next_segment_id = self.right_wheel.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
-            if next_segment_id < self.trajectory.get_num_segments():
-                _, rs1 = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
-                    self._waypoint_lwpos, self._waypoint_rwpos)
                 self.right_wheel.set_next_trajectory_segment(rs1.to_array())
-        elif self.right_wheel.status['waypoint_traj']['state'] == 'idle' and self.right_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+        elif self.left_wheel.status['waypoint_traj']['state'] == 'idle' and self.left_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT and \
+            self.right_wheel.status['waypoint_traj']['state'] == 'idle' and self.right_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+            self._waypoint_lwpos = None
+            self._waypoint_rwpos = None
+            self.left_wheel.enable_pos_traj()
             self.right_wheel.enable_pos_traj()
             self.push_command()
 

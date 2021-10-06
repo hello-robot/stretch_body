@@ -6,6 +6,7 @@ import unittest
 import stretch_body.base
 
 import time
+import numpy as np
 
 
 class TestBase(unittest.TestCase):
@@ -66,9 +67,11 @@ class TestBase(unittest.TestCase):
         b.left_wheel.disable_sync_mode()
         b.right_wheel.disable_sync_mode()
         self.assertTrue(b.startup(threaded=True))
+        b.first_step = True
+        b.pull_status()
 
         b.trajectory.add(0, 0, 0, 0)
-        b.trajectory.add(3, 0.05, 0, 0)
+        b.trajectory.add(3, 0.1, 0, 0)
         b.trajectory.add(6, 0, 0, 0)
         b.logger.info('Executing {0}'.format(b.trajectory))
         # b.logger.info('Segments:\n{0}\n{1}'.format(
@@ -78,5 +81,35 @@ class TestBase(unittest.TestCase):
         self.assertTrue(b.trajectory.is_valid(25, 10, b.translate_to_motor_rad, b.rotate_to_motor_rad))
         b.follow_trajectory()
         time.sleep(7)
+        self.assertAlmostEqual(b.status['x'], 0.0, places=1)
+        self.assertAlmostEqual(b.status['y'], 0.0, places=1)
+        constrained_theta = np.arctan2(np.sin(b.status['theta']), np.cos(b.status['theta'])) # constrains to [-pi, pi]
+        self.assertAlmostEqual(constrained_theta, 0.0, places=1)
+
+        b.trajectory.clear()
+        b.trajectory.add(0, 0, 0, 0, 0, 0)
+        b.trajectory.add(3, 0.1, 0, 0, 0, 0)
+        b.trajectory.add(6, 0, 0, 0, 0, 0)
+        b.logger.info('Executing {0}'.format(b.trajectory))
+        self.assertTrue(b.trajectory.is_valid(25, 10, b.translate_to_motor_rad, b.rotate_to_motor_rad))
+        b.follow_trajectory()
+        time.sleep(7)
+        self.assertAlmostEqual(b.status['x'], 0.0, places=1)
+        self.assertAlmostEqual(b.status['y'], 0.0, places=1)
+        constrained_theta = np.arctan2(np.sin(b.status['theta']), np.cos(b.status['theta'])) # constrains to [-pi, pi]
+        self.assertAlmostEqual(constrained_theta, 0.0, places=1)
+
+        b.trajectory.clear()
+        b.trajectory.add(0, 0, 0, 0, 0, 0, 0, 0)
+        b.trajectory.add(3, 0.1, 0, 0, 0, 0, 0, 0)
+        b.trajectory.add(6, 0, 0, 0, 0, 0, 0, 0)
+        b.logger.info('Executing {0}'.format(b.trajectory))
+        self.assertTrue(b.trajectory.is_valid(25, 10, b.translate_to_motor_rad, b.rotate_to_motor_rad))
+        b.follow_trajectory()
+        time.sleep(7)
+        self.assertAlmostEqual(b.status['x'], 0.0, places=1)
+        self.assertAlmostEqual(b.status['y'], 0.0, places=1)
+        constrained_theta = np.arctan2(np.sin(b.status['theta']), np.cos(b.status['theta'])) # constrains to [-pi, pi]
+        self.assertAlmostEqual(constrained_theta, 0.0, places=1)
 
         b.stop()

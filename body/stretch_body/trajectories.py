@@ -108,8 +108,8 @@ class SE2Waypoint(Waypoint):
 
     def __repr__(self):
         return "SE2Waypoint(time={0}, pose={1}{2}{3})".format(self.time, self.pose,
-            ', velocity={0}'.format(self.vel_twist) if self.vel_twist is not None else '',
-            ', acceleration={0}'.format(self.accel_twist) if self.accel_twist is not None else '')
+            ', vel_twist={0}'.format(self.vel_twist) if self.vel_twist is not None else '',
+            ', accel_twist={0}'.format(self.accel_twist) if self.accel_twist is not None else '')
 
     def apply_transform(self, transform=lambda pos: pos):
         raise NotImplementedError('transform are not applied to SE2 waypoints directly')
@@ -579,12 +579,14 @@ class DiffDriveTrajectory(Spline):
         right_wheel_waypoints = []
 
         # zero-th left and right waypoints
-        lvel, rvel = self._to_wheel_space(*self.waypoints[0].vel_twist, \
-            translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad) \
-            if self.waypoints[0].vel_twist is not None else None, None
-        laccel, raccel = self._to_wheel_space(*self.waypoints[0].accel_twist, \
-            translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad) \
-            if self.waypoints[0].accel_twist is not None else None, None
+        lvel = rvel = None
+        laccel = raccel = None
+        if self.waypoints[0].vel_twist is not None:
+            lvel, rvel = self._to_wheel_space(*self.waypoints[0].vel_twist, \
+                translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad)
+        if self.waypoints[0].accel_twist is not None:
+            laccel, raccel = self._to_wheel_space(*self.waypoints[0].accel_twist, \
+                translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad)
         lw0 = Waypoint(time=self.waypoints[0].time, position=lwpos, velocity=lvel, acceleration=laccel)
         rw0 = Waypoint(time=self.waypoints[0].time, position=rwpos, velocity=rvel, acceleration=raccel)
         left_wheel_waypoints.append(lw0)
@@ -592,12 +594,14 @@ class DiffDriveTrajectory(Spline):
 
         # remaining left and right waypoints
         for se2_w0, se2_w1 in zip(self.waypoints, self.waypoints[1:]):
-            lvel, rvel = self._to_wheel_space(*se2_w1.vel_twist, \
-                translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad) \
-                if se2_w1.vel_twist is not None else None, None
-            laccel, raccel = self._to_wheel_space(*se2_w1.accel_twist, \
-                translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad) \
-                if se2_w1.accel_twist is not None else None, None
+            lvel = rvel = None
+            laccel = raccel = None
+            if se2_w1.vel_twist is not None:
+                lvel, rvel = self._to_wheel_space(*se2_w1.vel_twist, \
+                    translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad)
+            if se2_w1.accel_twist is not None:
+                laccel, raccel = self._to_wheel_space(*se2_w1.accel_twist, \
+                    translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad)
             lprev, rprev = left_wheel_waypoints[-1].position, right_wheel_waypoints[-1].position
             ldelta, rdelta = self._to_wheel_space(*hu.get_pose_diff(se2_w0.pose, se2_w1.pose), \
                 translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad)
