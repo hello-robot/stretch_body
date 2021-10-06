@@ -404,6 +404,12 @@ class TestHelloUtils(unittest.TestCase):
 
     def test_get_pose_diff(self):
         pose0 = (0.0, 0.0, 0.0)
+        pose1 = (0.05, 0.0, 0.0)
+        dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
+        self.assertAlmostEqual(dx, 0.05)
+        self.assertAlmostEqual(dtheta, 0.0)
+
+        pose0 = (0.0, 0.0, 0.0)
         pose1 = (5.0, 0.0, 0.0)
         dx, dtheta = stretch_body.hello_utils.get_pose_diff(pose0, pose1)
         self.assertAlmostEqual(dx, 5.0)

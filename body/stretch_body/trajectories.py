@@ -111,6 +111,9 @@ class SE2Waypoint(Waypoint):
             ', velocity={0}'.format(self.vel_twist) if self.vel_twist is not None else '',
             ', acceleration={0}'.format(self.accel_twist) if self.accel_twist is not None else '')
 
+    def apply_transform(self, transform=lambda pos: pos):
+        raise NotImplementedError('transform are not applied to SE2 waypoints directly')
+
 
 class Segment:
 
@@ -509,6 +512,12 @@ class DiffDriveTrajectory(Spline):
     def __repr__(self):
         return "DiffDriveTrajectory({0})".format(repr(self.waypoints))
 
+    def __repr_segments__(self, translate_to_motor_rad, rotate_to_motor_rad):
+        if len(self.waypoints) < 2:
+            return repr([])
+        return repr([self.get_wheel_segments(i, translate_to_motor_rad, rotate_to_motor_rad) \
+            for i in range(self.get_num_segments())])
+
     def add(self, time, x, y, theta, translational_vel=None, rotational_vel=None, translational_accel=None, rotational_accel=None):
         """Add a waypoint to the diff drive trajectory.
 
@@ -592,8 +601,8 @@ class DiffDriveTrajectory(Spline):
             lprev, rprev = left_wheel_waypoints[-1].position, right_wheel_waypoints[-1].position
             ldelta, rdelta = self._to_wheel_space(*hu.get_pose_diff(se2_w0.pose, se2_w1.pose), \
                 translate_to_motor_rad=translate_to_motor_rad, rotate_to_motor_rad=rotate_to_motor_rad)
-            lw1 = Waypoint(time=se2_w1.time, position=lwpos + lprev + ldelta, velocity=lvel, acceleration=laccel)
-            rw1 = Waypoint(time=se2_w1.time, position=rwpos + rprev + rdelta, velocity=rvel, acceleration=raccel)
+            lw1 = Waypoint(time=se2_w1.time, position=lprev + ldelta, velocity=lvel, acceleration=laccel)
+            rw1 = Waypoint(time=se2_w1.time, position=rprev + rdelta, velocity=rvel, acceleration=raccel)
             left_wheel_waypoints.append(lw1)
             right_wheel_waypoints.append(rw1)
 

@@ -373,7 +373,7 @@ def generate_linear_polynomial(i, f):
     a1 = (f[1] - i[1]) / duration
     return [duration, a0, a1, 0, 0, 0, 0]
 
-def get_pose_diff(pose0, pose1, translation_atol=1e-1, rotation_atol=1e-2):
+def get_pose_diff(pose0, pose1, translation_atol=2e-3, rotation_atol=2e-2):
     """Return the motion required to get from pose 0 to pose 1.
 
     Assumed that between pose 0 and pose 1, there has only been

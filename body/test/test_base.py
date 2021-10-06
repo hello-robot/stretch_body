@@ -69,9 +69,14 @@ class TestBase(unittest.TestCase):
 
         b.trajectory.add(0, 0, 0, 0)
         b.trajectory.add(3, 0.05, 0, 0)
+        b.trajectory.add(6, 0, 0, 0)
+        b.logger.info('Executing {0}'.format(b.trajectory))
+        # b.logger.info('Segments:\n{0}\n{1}'.format(
+        #     eval(b.trajectory.__repr_segments__(b.translate_to_motor_rad, b.rotate_to_motor_rad))[0],
+        #     eval(b.trajectory.__repr_segments__(b.translate_to_motor_rad, b.rotate_to_motor_rad))[1]
+        # ))
+        self.assertTrue(b.trajectory.is_valid(25, 10, b.translate_to_motor_rad, b.rotate_to_motor_rad))
         b.follow_trajectory()
-        b.pull_status()
-        # b.pretty_print()
-        time.sleep(4)
+        time.sleep(7)
 
         b.stop()
