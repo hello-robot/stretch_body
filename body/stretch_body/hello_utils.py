@@ -242,3 +242,176 @@ def thread_service_shutdown(signum, frame):
     print('Caught signal %d' % signum)
     raise ThreadServiceExit
 
+def evaluate_polynomial_at(poly, t):
+    """Evaluate a quintic polynomial at a given time.
+
+    Parameters
+    ----------
+    poly : List(float)
+        Represents a quintic polynomial as a coefficients array [a0, a1, a2, a3, a4, a5].
+        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
+    t : float
+        the time in seconds at which to evaluate the polynomial
+
+    Returns
+    -------
+    Tuple(float)
+        array with three elements: evaluated position, velocity, and acceleration.
+    """
+    a = [float(elem) for elem in poly]
+    t = float(t)
+    pos = a[0] + (a[1]*t) + (a[2]*t**2) + (a[3]*t**3) + (a[4]*t**4) + (a[5]*t**5)
+    vel = a[1] + (2*a[2]*t) + (3*a[3]*t**2) + (4*a[4]*t**3) + (5*a[5]*t**4)
+    accel = (2*a[2]) + (6*a[3]*t) + (12*a[4]*t**2) + (20*a[5]*t**3)
+    return (pos, vel, accel)
+
+def is_segment_feasible(segment, v_des, a_des, t=0.0, inc=0.1):
+    """Determine whether a segment adheres to dynamic limits.
+
+    Parameters
+    ----------
+    segment : List
+        Represents a segment of a waypoint trajectory as a list of length eight,
+        structured like [duration_s, a0, a1, a2, a3, a4, a5, segment_id].
+    v_des : float
+        Velocity limit that the segment shouldn't exceed
+    a_des : float
+        Acceleration limit that the segment shouldn't exceed
+    t : float
+        optional, time in seconds at which to begin checking segment
+    inc : float
+        optional, increment in seconds at which the polynomial is evaluated along the segment
+
+    Returns
+    -------
+    bool
+        whether the segment is feasible
+    """
+    v_des = float(v_des)
+    a_des = float(a_des)
+    while t < segment[0]:
+        _, vel_t, acc_t = evaluate_polynomial_at(segment[1:-1], t)
+        if abs(vel_t) > v_des or abs(acc_t) > a_des:
+            return False
+
+        t = min(segment[0], t + inc)
+
+    return True
+
+def generate_quintic_polynomial(i, f):
+    """Generate quintic polynomial from two points
+
+    Parameters
+    ----------
+    i : List(float)
+        Represents the first waypoint as a list, [time, pos, vel, accel]
+    f : List(float)
+        Represents the second waypoint as a list, [time, pos, vel, accel]
+
+    Returns
+    -------
+    List(float)
+        Represents a quintic polynomial as a coefficients + duration array [duration, a0, a1, a2, a3, a4, a5].
+        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
+    """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
+    duration = f[0] - i[0]
+    a0 = i[1]
+    a1 = i[2]
+    a2 = i[3] / 2
+    a3 = (20 * f[1] - 20 * i[1] - (8 * f[2] + 12 * i[2]) * duration - (3 * i[3] - f[3]) * (duration ** 2)) / (2 * (duration ** 3))
+    a4 = (30 * i[1] - 30 * f[1] + (14 * f[2] + 16 * i[2]) * duration + (3 * i[3] - 2 * f[3]) * (duration ** 2)) / (2 * (duration ** 4))
+    a5 = (12 * f[1] - 12 * i[1] - (6 * f[2] + 6 * i[2]) * duration - (i[3] - f[3]) * (duration ** 2)) / (2 * (duration ** 5))
+    return [duration, a0, a1, a2, a3, a4, a5]
+
+def generate_cubic_polynomial(i, f):
+    """Generate cubic polynomial from two points
+
+    Parameters
+    ----------
+    i : List(float)
+        Represents the first waypoint as a list, [time, pos, vel]
+    f : List(float)
+        Represents the second waypoint as a list, [time, pos, vel]
+
+    Returns
+    -------
+    List(float)
+        Represents a cubic polynomial as a coefficients + duration array [duration, a0, a1, a2, a3, 0, 0].
+        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3
+    """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
+    duration = f[0] - i[0]
+    a0 = i[1]
+    a1 = i[2]
+    a2 = (3 / duration ** 2) * (f[1] - i[1]) - (2 / duration) * i[2] - (1 / duration) * f[2]
+    a3 = (-2 / duration ** 3) * (f[1] - i[1]) + (1 / duration ** 2) * (f[2] + i[2])
+    return [duration, a0, a1, a2, a3, 0, 0]
+
+def generate_linear_polynomial(i, f):
+    """Generate linear polynomial from two points
+
+    Parameters
+    ----------
+    i : List(float)
+        Represents the first waypoint as a list, [time, pos]
+    f : List(float)
+        Represents the second waypoint as a list, [time, pos]
+
+    Returns
+    -------
+    List(float)
+        Represents a linear polynomial as a coefficients + duration array [duration, a0, a1, 0, 0, 0, 0].
+        The polynomial is f(t) = a0 + a1*t
+    """
+    i = [float(elem) for elem in i]
+    f = [float(elem) for elem in f]
+    duration = f[0] - i[0]
+    a0 = i[1]
+    a1 = (f[1] - i[1]) / duration
+    return [duration, a0, a1, 0, 0, 0, 0]
+
+def get_pose_diff(pose0, pose1, translation_atol=2e-3, rotation_atol=2e-2):
+    """Return the motion required to get from pose 0 to pose 1.
+
+    Assumed that between pose 0 and pose 1, there has only been
+    either a translation or rotation motion.
+
+    Parameters
+    ----------
+    pose0 : Tuple(float, float, float)
+        x, y, theta in meters and radians
+    pose1 : Tuple(float, float, float)
+        x, y, theta in meters and radians
+
+    Returns
+    -------
+    float, float
+        Tuple (dx, dtheta) of translation and rotation required to
+        move from pose0 to pose1
+    """
+    x0, y0, theta0 = pose0
+    x1, y1, theta1 = pose1
+    theta0 = np.arctan2(np.sin(theta0), np.cos(theta0)) # constrains to [-pi, pi]
+    theta1 = np.arctan2(np.sin(theta1), np.cos(theta1)) # constrains to [-pi, pi]
+
+    # TODO: For now, we use a simplified motion model where we assume
+    # that every motion is either a translation OR a rotation,
+    # and the translation is either straight forward or straight back
+    if np.isclose(x0, x1, atol=translation_atol) and np.isclose(y0, y1, atol=translation_atol):
+        return 0.0, theta1 - theta0
+
+    if np.isclose(theta0, theta1, atol=rotation_atol):
+        dx = x1 - x0
+        dy = y1 - y0
+        drive_angle = math.atan2(dy, dx)
+        distance = math.hypot(dy, dx)
+        if np.isclose(drive_angle, theta0, atol=rotation_atol):
+            return distance, 0.0
+        opposite_theta0 = np.arctan2(np.sin(theta0 + np.pi), np.cos(theta0 + np.pi)) # constrains to [-pi, pi]
+        if np.isclose(drive_angle, opposite_theta0, atol=rotation_atol):
+            return -distance, 0.0
+
+    return 0.0, 0.0

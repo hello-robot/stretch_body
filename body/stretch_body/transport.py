@@ -91,6 +91,20 @@ class Transport():
 
 
     def startup(self):
+        try:
+            self.ser = serial.Serial(self.usb, write_timeout=1.0)#PosixPollSerial(self.usb)#Serial(self.usb)# 115200)  # , write_timeout=1.0)  # Baud not important since USB comms
+            if self.ser.isOpen():
+                try:
+                    fcntl.flock(self.ser.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except IOError:
+                    self.logger.error('Port %s is busy. Check if another Stretch Body process is already running'%self.usb)
+                    self.ser.close()
+                    self.ser=None
+        except serial.SerialException as e:
+            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.ser = None
+        if self.ser==None:
+            self.logger.warning('Unable to open serial port for device %s'%self.usb)
         return self.ser is not None #return if hardware connection valid
 
     def stop(self):
@@ -237,17 +251,24 @@ class Transport():
             self.ser.reset_input_buffer()
 
         #This will block until all RPCs have been commpleted
-        #called by body thread at cyclic rate
-        self.itr += 1
-        self.itr_time = time.time() - self.tlast
-        self.tlast = time.time()
-        #Now run RPC calls
-        while len(self.rpc_queue):
-            rpc,reply_callback=self.rpc_queue[0]
-            #if dbg_on:
-            #    print('RPC of',reply_callback)
-            self.step_rpc(rpc,reply_callback)
-            self.rpc_queue = self.rpc_queue[1:]
+        try:
+            #called by body thread at cyclic rate
+            self.itr += 1
+            self.itr_time = time.time() - self.tlast
+            self.tlast = time.time()
+            #Now run RPC calls
+            while len(self.rpc_queue):
+                rpc,reply_callback=self.rpc_queue[0]
+                #if dbg_on:
+                #    print('RPC of',reply_callback)
+                self.step_rpc(rpc,reply_callback)
+                self.rpc_queue = self.rpc_queue[1:]
+        except IOError as e:
+            print("IOError({0}): {1}".format(e.errno, e.strerror))
+            self.read_error=self.read_error+1
+        except serial.SerialTimeoutException as e:
+            self.write_error += 1
+            print("SerialException({0}): {1}".format(e.errno, e.strerror))
 
         # Update status
         if self.itr_time != 0:
@@ -265,10 +286,19 @@ class Transport():
             time.sleep(0.1)  # May have been a hard exit, give time for bad data to land, remove, do final RPC
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
-        while len(self.rpc_queue2):
-            rpc,reply_callback=self.rpc_queue2[0]
-            self.step_rpc(rpc,reply_callback)
-            self.rpc_queue2 = self.rpc_queue2[1:]
+
+        #This will block until all RPCs have been commpleted
+        try:
+            while len(self.rpc_queue2):
+                rpc,reply_callback=self.rpc_queue2[0]
+                self.step_rpc(rpc,reply_callback)
+                self.rpc_queue2 = self.rpc_queue2[1:]
+        except IOError as e:
+            print("IOError({0}): {1}".format(e.errno, e.strerror))
+            self.read_error=self.read_error+1
+        except serial.SerialTimeoutException as e:
+            self.write_error += 1
+            print("SerialException({0}): {1}".format(e.errno, e.strerror))
 
 
 # #####################################
@@ -284,6 +314,12 @@ def unpack_int32_t(s):
 
 def unpack_uint32_t(s):
     return struct.unpack('I',s[:4])[0]
+
+def unpack_int64_t(s):
+    return struct.unpack('q',s[:8])[0]
+
+def unpack_uint64_t(s):
+    return struct.unpack('Q',s[:8])[0]
 
 def unpack_int16_t(s):
     return struct.unpack('h',s[:2])[0]

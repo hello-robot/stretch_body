@@ -25,6 +25,37 @@ factory_params = {
         'models': ['collision_arm_camera']
     },
     'pimu':{'max_sync_rate_hz':20.0},
+    "arm": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.1,
+                "accel_m": 0.15
+            }
+        }
+    },
+    "lift": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.1,
+                "accel_m": 0.15
+            }
+        }
+    },
+    "base": {
+        "sentry_max_velocity": {
+            "limit_accel_m": 0.15,
+            "limit_vel_m": 0.1,
+            "max_arm_extension_m": 0.03,
+            "max_lift_height_m": 0.3,
+            "min_wrist_yaw_rad": 2.54,
+        },
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 25.0,
+                "accel_r": 10.0
+            }
+        }
+    },
     'hello-motor-arm':{
         'gains': {'vel_near_setpoint_d': 3.5}
     },
@@ -59,30 +90,45 @@ factory_params = {
     "head_pan": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 4.0,
+                "accel_r": 8.0
+            }
+        }
     },
     "head_tilt": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 4.0,
+                "accel_r": 8.0
+            }
+        }
     },
     "wrist_yaw": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 4.0,
+                "accel_r": 8.0
+            }
+        }
     },
     "stretch_gripper": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
-    },
-    "base": {
-        "sentry_max_velocity": {
-            "limit_accel_m": 0.15,
-            "limit_vel_m": 0.1,
-            "max_arm_extension_m": 0.03,
-            "max_lift_height_m": 0.3,
-            "min_wrist_yaw_rad": 2.54,
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 50.0,
+                "accel_r": 100.0
+            }
         }
     },
     "tool_none": {

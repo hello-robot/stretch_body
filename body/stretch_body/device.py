@@ -3,6 +3,7 @@ from stretch_body.robot_params import RobotParams
 import stretch_body.hello_utils as hello_utils
 import time
 import logging, logging.config
+import threading
 
 
 class DeviceTimestamp:
@@ -36,13 +37,45 @@ class Device:
         self.logger = logging.getLogger(self.name)
         self.timestamp = DeviceTimestamp()
 
+        self.thread_active = False
+        self.thread_rate_hz = 25.0
+        self.thread_stats = None
+        self.thread = None
+        self.thread_shutdown_flag = threading.Event()
+
     # ########### Primary interface #############
 
-    def startup(self):
+    def startup(self, threaded=False):
+        """Starts machinery required to interface with this device
+
+        Parameters
+        ----------
+        threaded : bool
+            whether a thread manages hardware polling/pushing in the background
+
+        Returns
+        -------
+        bool
+            whether the startup procedure succeeded
+        """
+        self.thread_active = threaded
+        if self.thread_active:
+            if self.thread is not None:
+                self.thread_shutdown_flag.set()
+                self.thread.join(1)
+            self.thread_stats = hello_utils.LoopStats(loop_name='{0}_thread'.format(self.name), target_loop_rate=self.thread_rate_hz)
+            self.thread = threading.Thread(target=self._thread_target)
+            self.thread.setDaemon(True)
+            self.thread_shutdown_flag.clear()
+            self.thread.start()
         return True
 
     def stop(self):
-        pass
+        """Shuts down machinery started in `startup()`
+        """
+        if self.thread_active:
+            self.thread_shutdown_flag.set()
+            self.thread.join(1)
 
     def push_command(self):
         pass
@@ -65,3 +98,18 @@ class Device:
         rp[device_name]=params
         hello_utils.write_fleet_yaml(self.user_params['factory_params'],rp)
 
+    # ########### Thread interface #############
+
+    def _thread_loop(self):
+        # self.step_sentry(robot=None) TODO: Support step_sentry here
+        self.pull_status()
+
+    def _thread_target(self):
+        self.logger.debug('Starting {0}'.format(self.thread_stats.loop_name))
+        while not self.thread_shutdown_flag.is_set():
+            self.thread_stats.mark_loop_start()
+            self._thread_loop()
+            self.thread_stats.mark_loop_end()
+            if not self.thread_shutdown_flag.is_set():
+                time.sleep(self.thread_stats.get_loop_sleep_time())
+        self.logger.debug('Shutting down {0}'.format(self.thread_stats.loop_name))

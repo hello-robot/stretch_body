@@ -7,6 +7,7 @@ import stretch_body.dynamixel_hello_XL430
 import stretch_body.hello_utils as hu
 import math
 import time
+import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -142,12 +143,9 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         servo.pull_status()
         self.assertNotAlmostEqual(servo.status['pos'], servo.get_soft_motion_limits()[0], places=1)
 
-    @unittest.skip(reason='TODO: Not working yet.')
     def test_runstop_multithread(self):
         """Verify dynamixel_hello respect runstop via step_sentry
         """
-        print('test_runstop_multithread')
-
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_pan", chain=None)
         self.assertTrue(servo.startup())
         servo.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] = True
@@ -193,7 +191,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
             r = R()
             while to_save['do_interrupt']:
                 servo.pull_status()
-                if servo.status['vel'] > 0.0:
+                if abs(servo.status['vel']) > 0.0:
                     time.sleep(1.0)
                     print('interrupt at {0} rad/s'.format(servo.status['vel']))
                     to_save['interrupts'] += 1
@@ -292,7 +290,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         servo.move_to(0.0)
         time.sleep(5)
 
-        servo.move_to(1.0, v_des=0.0, a_des=0.0)
+        servo.move_to(1.0, v_des=2.0, a_des=2.0)
         move1_vel_ticks = servo.motor.get_profile_velocity()
         move1_accel_ticks = servo.motor.get_profile_acceleration()
         time.sleep(5)
@@ -306,3 +304,32 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         self.assertNotEqual(move1_accel_ticks, move2_accel_ticks)
 
         servo.stop()
+
+    def test_status_velocity(self):
+        """Verify that the motor's velocity is correct in the status dict by
+        commanding the robot a known distance and integrating velocity over
+        time to confirm the two are approximately equal.
+        """
+        s = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw")
+        self.assertTrue(s.startup())
+
+        s.move_to(-1.1) # start at one end stop
+        time.sleep(5)
+        expected_traveled_distance = 4.3 + 1.1
+
+        s.move_to(4.3, v_des=1.0, a_des=1.0) # travel to other end stop
+        ts = time.time()
+        measured_traveled_distance = 0.0
+        s.pull_status()
+        while not np.isclose(s.status['pos'], 4.3, atol=1e-2):
+            dt = time.time() - ts
+            measured_traveled_distance += s.status['vel'] * dt
+            ts = time.time()
+            time.sleep(0.01)
+            s.pull_status()
+            # print(s.status['pos'], expected_traveled_distance, measured_traveled_distance)
+
+        dt = time.time() - ts
+        measured_traveled_distance += s.status['vel'] * dt
+        self.assertTrue(np.isclose(measured_traveled_distance, expected_traveled_distance, atol=0.3))
+        s.stop()

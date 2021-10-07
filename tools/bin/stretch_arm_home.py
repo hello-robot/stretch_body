@@ -10,7 +10,7 @@ parser.add_argument("--double", help="Home to both hardstops",action="store_true
 args=parser.parse_args()
 
 a=arm.Arm()
-if not a.startup():
+if not a.startup(threaded=False):
     exit()
 a.home(single_stop= not args.double)
 a.stop()

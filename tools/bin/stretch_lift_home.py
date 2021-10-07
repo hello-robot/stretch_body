@@ -9,7 +9,7 @@ parser=argparse.ArgumentParser(description='Calibrate the lift position by movin
 args=parser.parse_args()
 
 l=lift.Lift()
-if not l.startup():
+if not l.startup(threaded=False):
     exit()
 l.home()
 l.stop()

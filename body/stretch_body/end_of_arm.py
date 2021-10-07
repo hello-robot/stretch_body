@@ -19,6 +19,8 @@ class EndOfArm(DynamixelXChain):
             dynamixel_device = getattr(importlib.import_module(module_name), class_name)(chain=self)
             self.add_motor(dynamixel_device)
 
+    def startup(self, threaded=True):
+        return DynamixelXChain.startup(self, threaded=threaded)
 
     def get_joint(self, joint_name):
         """Retrieves joint by name.

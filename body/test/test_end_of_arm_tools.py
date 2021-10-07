@@ -42,3 +42,4 @@ class TestEndOfArmTools(unittest.TestCase):
         success = e.startup()
         stretch_body.hello_utils.write_fleet_yaml('stretch_re1_user_params.yaml', up_stash)
         self.assertFalse(success)
+

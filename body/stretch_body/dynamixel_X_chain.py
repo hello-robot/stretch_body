@@ -1,5 +1,6 @@
 from __future__ import print_function
 import stretch_body.hello_utils as hello_utils
+from stretch_body.device import Device
 import time
 
 # The code can be found in the following directory:
@@ -22,6 +23,7 @@ class DynamixelXChain(Device):
         Device.__init__(self, name)
         self.usb = usb
         self.pt_lock = threading.RLock()
+        self.thread_rate_hz = 15.0
 
         try:
             prh.LATENCY_TIMER = self.params['dxl_latency_timer']
@@ -51,7 +53,8 @@ class DynamixelXChain(Device):
         except (AttributeError, KeyError):
             return None
 
-    def startup(self):
+    def startup(self, threaded=False):
+        Device.startup(self, threaded=threaded)
         for mk in self.motors.keys():  # Provide nop data in case comm failures
             self.status[mk] = self.motors[mk].status
         if not self.hw_valid:
@@ -75,7 +78,7 @@ class DynamixelXChain(Device):
                                 self.logger.error('Dynamixel X sync read initialization failed.')
                                 raise DynamixelCommError
                 for mk in self.motors.keys():
-                    if not self.motors[mk].startup():
+                    if not self.motors[mk].startup(threaded=False):
                         raise DynamixelCommError
                     self.status[mk] = self.motors[mk].status
                 self.pull_status()
@@ -85,13 +88,32 @@ class DynamixelXChain(Device):
                 return False
         return True
 
+    def _thread_loop(self):
+        self.pull_status()
+        self.update_trajectory()
+
     def stop(self):
+        Device.stop(self)
         if not self.hw_valid:
             return
-        for mk in self.motors.keys():
-            self.motors[mk].stop()
+        for motor in self.motors:
+            self.motors[motor]._waypoint_ts = None
+            self.motors[motor]._waypoint_vel = None
+            self.motors[motor]._waypoint_accel = None
+            self.motors[motor].stop()
         self.hw_valid = False
 
+    def follow_trajectory(self, v_r=None, a_r=None, req_calibration=False, move_to_start_point=True):
+        for motor in self.motors:
+            self.motors[motor].follow_trajectory(v_r, a_r, req_calibration, move_to_start_point)
+
+    def update_trajectory(self):
+        for motor in self.motors:
+            self.motors[motor].update_trajectory()
+
+    def stop_trajectory(self):
+        for motor in self.motors:
+            self.motors[motor].stop_trajectory()
 
     def pull_status(self):
         if not self.hw_valid:

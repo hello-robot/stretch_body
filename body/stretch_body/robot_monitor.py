@@ -15,6 +15,7 @@ class RobotMonitor(Device):
         self.robot=robot
 
     def startup(self):
+        Device.startup(self, threaded=False)
         if self.robot.wacc is not None:
             stc=self.robot.wacc.status['single_tap_count']
         else:

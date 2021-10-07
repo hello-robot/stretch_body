@@ -67,6 +67,7 @@ class TestTimingStats(unittest.TestCase):
         non_dxl_thread.run()
         self.assertAlmostEqual(non_dxl_thread.stats.status['loop_rate_av=g_hz'], target)
 
+    @unittest.skip(reason='Used to measure perf, doesnt test anything')
     def test_stepper_on_status_thread(self):
         class StatusThread(threading.Thread):
             def __init__(self, device, target_rate_hz=15.0):

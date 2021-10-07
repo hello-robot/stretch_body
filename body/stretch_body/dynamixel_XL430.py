@@ -7,7 +7,6 @@ from dynamixel_sdk.robotis_def import *
 import dynamixel_sdk.port_handler as prh
 import dynamixel_sdk.packet_handler as pch
 import threading
-from stretch_body.device import Device
 import serial
 
 # The code can be found in the following directory:
@@ -299,7 +298,7 @@ class DynamixelXL430():
             p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE)
         if not self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error):
             return -1
-        return BAUD_MAP.keys()[BAUD_MAP.values().index(p)]
+        return list(BAUD_MAP.keys())[list(BAUD_MAP.values()).index(p)]
 
     def set_baud_rate(self, rate):
         """Sets the baud rate of Dynamixel communication.
@@ -510,7 +509,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_PRESENT_POSITION', dxl_comm_result, dxl_error)
         return xn
 
-
+    def get_moving_status(self):
+        if not self.hw_valid:
+            return
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING_STATUS)
+        self.handle_comm_result('XL430_ADDR_MOVING_STATUS', dxl_comm_result, dxl_error)
+        return p
 
     def get_load(self):
         if not self.hw_valid:
