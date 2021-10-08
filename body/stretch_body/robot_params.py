@@ -91,6 +91,7 @@ factory_params = {
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "enable_runstop": 1,
+        "pwm_homing":[-300,300],
         "motion": {
             "trajectory_max": {
                 "vel_r": 4.0,
@@ -102,6 +103,7 @@ factory_params = {
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "enable_runstop": 1,
+        "pwm_homing": [-300, 300],
         "motion": {
             "trajectory_max": {
                 "vel_r": 4.0,
