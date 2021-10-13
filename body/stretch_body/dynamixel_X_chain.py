@@ -182,7 +182,11 @@ class DynamixelXChain(Device):
             raise DynamixelCommError
 
         def get_val(id_num):
-            b = reader.getData(id_num, reader.start_address, reader.data_length)
+            try:
+                b = reader.getData(id_num, reader.start_address, reader.data_length)
+            except IndexError:
+                #Bad data struct size possible to raise Index Error
+                raise DynamixelCommError
             # The error code seems to be 0, yet there are also
             # circumstances where b will be 0 without an error, such
             # as being at position = 0. For now, I am commenting out
