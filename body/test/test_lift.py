@@ -113,8 +113,8 @@ class TestLift(unittest.TestCase):
         l.logger.debug('Executing {0}'.format(l.trajectory.__repr_segments__()))
         self.assertTrue(l.trajectory.is_valid(0.1, 0.15))
         l.follow_trajectory()
-        time.sleep(6)
-        self.assertAlmostEqual(l.status['pos'], 0.15, places=2)
+        time.sleep(7)
+        self.assertAlmostEqual(l.status['pos'], 0.25, places=2)
 
         l.trajectory.clear()
         l.trajectory.add(0, 0.2, 0.0)
@@ -123,8 +123,8 @@ class TestLift(unittest.TestCase):
         l.logger.debug('Executing {0}'.format(l.trajectory.__repr_segments__()))
         self.assertTrue(l.trajectory.is_valid(0.1, 0.15))
         l.follow_trajectory()
-        time.sleep(6)
-        self.assertAlmostEqual(l.status['pos'], 0.15, places=2)
+        time.sleep(7)
+        self.assertAlmostEqual(l.status['pos'], 0.25, places=2)
 
         l.trajectory.clear()
         l.trajectory.add(0, 0.2, 0.0, 0.0)
@@ -133,7 +133,7 @@ class TestLift(unittest.TestCase):
         l.logger.debug('Executing {0}'.format(l.trajectory.__repr_segments__()))
         self.assertTrue(l.trajectory.is_valid(0.1, 0.15))
         l.follow_trajectory()
-        time.sleep(6)
-        self.assertAlmostEqual(l.status['pos'], 0.15, places=2)
+        time.sleep(7)
+        self.assertAlmostEqual(l.status['pos'], 0.25, places=2)
 
         l.stop()
