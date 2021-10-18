@@ -4,7 +4,7 @@ import stretch_body.hello_utils as hu
 import numpy as np
 
 # Limits how close together waypoints can be planned
-WAYPOINT_ISCLOSE_ATOL = 1e-1
+WAYPOINT_ISCLOSE_ATOL = 0.25
 
 
 class Waypoint:
