@@ -253,10 +253,16 @@ class TestSteppers(unittest.TestCase):
         self.assertEqual(s.status['waypoint_traj']['state'],'idle')
         self.assertFalse(s.start_waypoint_trajectory(first_segment))
         self.assertFalse(s.start_waypoint_trajectory(second_segment))
-        self.assertFalse(s.set_next_trajectory_segment(first_segment))
-        self.assertFalse(s.set_next_trajectory_segment(second_segment))
+        # TODO: firmware doesn't reject bad set_next_trajectory_segments because
+        # in normal use, Stretch Body last pull_status says that the current
+        # segment ID is x, and by the time that set_next_trajectory_segment
+        # with ID x + 1 is called, the firmware is already onto segment x + 1.
+        # Therefore, the firmware reports error which fails unnecessarily.
+        # Currently, the firmware doesn't error, and silently rejects bad IDs.
+        # self.assertFalse(s.set_next_trajectory_segment(first_segment))
+        # self.assertFalse(s.set_next_trajectory_segment(second_segment))
         s.pull_status()
-        self.assertAlmostEqual(s.status['pos'], x_start, places=1)
+        self.assertAlmostEqual(s.status['pos'], x_start, places=0)
         self.assertEqual(s.status['waypoint_traj']['state'], 'idle')
 
 
@@ -434,7 +440,9 @@ class TestSteppers(unittest.TestCase):
         self.assertEqual(s.status['waypoint_traj']['segment_id'], 5)
 
         time.sleep(1.5) # wait until ~ half way into fouth segment
-        self.assertEqual(s.set_next_trajectory_segment(fifth_segment), 0) # expect the fifth segment to be rejected
+        # TODO: currently set_next_trajectory_segment never fails.
+        # See other TODOs for explanation why.
+        # self.assertEqual(s.set_next_trajectory_segment(fifth_segment), 0) # expect the fifth segment to be rejected
         s.pull_status()
         self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
         s.logger.debug(s.status['waypoint_traj'])
@@ -491,8 +499,10 @@ class TestSteppers(unittest.TestCase):
 
         # send waypoint trajectory's segment segment while no previous trajectory active
         second_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3]
-        self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
-        self.assertEqual(s._waypoint_traj_set_next_error_msg, "cannot set next trajectory segment while no previous trajectory active")
+        # TODO: currently set_next_trajectory_segment never fails.
+        # See other TODOs for explanation why.
+        # self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
+        # self.assertEqual(s._waypoint_traj_set_next_error_msg, "cannot set next trajectory segment while no previous trajectory active")
         s.stop_waypoint_trajectory()
 
         # send waypoint trajectory's segment segment while previous trajectory waiting on sync
@@ -501,8 +511,10 @@ class TestSteppers(unittest.TestCase):
         first_segment  = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
         second_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3]
         self.assertEqual(s.start_waypoint_trajectory(first_segment), 1)
-        self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
-        self.assertEqual(s._waypoint_traj_set_next_error_msg, "cannot set next trajectory segment while previous trajectory waiting on sync")
+        # TODO: currently set_next_trajectory_segment never fails.
+        # See other TODOs for explanation why.
+        # self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
+        # self.assertEqual(s._waypoint_traj_set_next_error_msg, "cannot set next trajectory segment while previous trajectory waiting on sync")
         s.stop_waypoint_trajectory()
 
         # send waypoint trajectory's segment segment with jump in segment id
@@ -511,8 +523,10 @@ class TestSteppers(unittest.TestCase):
         first_segment  = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2]
         second_segment = [3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4]
         self.assertEqual(s.start_waypoint_trajectory(first_segment), 1)
-        self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
-        self.assertEqual(s._waypoint_traj_set_next_error_msg, "next trajectory segment id must follow previous segment id")
+        # TODO: currently set_next_trajectory_segment never fails.
+        # See other TODOs for explanation why.
+        # self.assertEqual(s.set_next_trajectory_segment(second_segment), 0)
+        # self.assertEqual(s._waypoint_traj_set_next_error_msg, "next trajectory segment id must follow previous segment id")
         s.stop_waypoint_trajectory()
 
         s.stop()
@@ -564,17 +578,18 @@ class TestSteppers(unittest.TestCase):
             s.pull_status()
         s.stop_waypoint_trajectory()
 
-        # send waypoint trajectory that we don't expect to be able to execute
-        first_segment = [3.0, 22.425, 0, 0, -3.731, 1.866, -0.249, 2]
-        second_segment = [3.0, 12.35, 0, 0, 3.731, -1.866, 0.249, 3]
-        s.enable_pos_traj_waypoint()
-        velocity_rad = 5.0 # will exceed this bound
-        acceleration_rad = 10.0
-        s.set_command(v_des=velocity_rad,
-                      a_des=acceleration_rad)
-        s.push_command()
-        time.sleep(0.1)
-        self.assertFalse(s.start_waypoint_trajectory(first_segment))
+        # TODO: Firmware validation of segments disabled for transport purposes
+        # # send waypoint trajectory that we don't expect to be able to execute
+        # first_segment = [3.0, 22.425, 0, 0, -3.731, 1.866, -0.249, 2]
+        # second_segment = [3.0, 12.35, 0, 0, 3.731, -1.866, 0.249, 3]
+        # s.enable_pos_traj_waypoint()
+        # velocity_rad = 5.0 # will exceed this bound
+        # acceleration_rad = 10.0
+        # s.set_command(v_des=velocity_rad,
+        #               a_des=acceleration_rad)
+        # s.push_command()
+        # time.sleep(0.1)
+        # self.assertFalse(s.start_waypoint_trajectory(first_segment))
 
         s.pull_status()
         self.assertAlmostEqual(s.status['pos'], position_rad, places=1)
