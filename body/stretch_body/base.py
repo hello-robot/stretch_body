@@ -290,16 +290,16 @@ class Base(Device):
         # check if joint valid, traj active, and right protocol
         if not self.left_wheel.hw_valid or not self.right_wheel.hw_valid:
             self.logger.warning('Base connection to hardware not valid')
-            return
+            return False
         if self._waypoint_lwpos is not None or self._waypoint_rwpos is not None:
             self.logger.warning('Base waypoint trajectory already active')
-            return
+            return False
         if int(str(self.left_wheel.board_info['protocol_version'])[1:]) < 1:
             self.logger.warning("Base left motor firmware version doesn't support waypoint trajectories")
-            return
+            return False
         if int(str(self.right_wheel.board_info['protocol_version'])[1:]) < 1:
             self.logger.warning("Base right motor firmware version doesn't support waypoint trajectories")
-            return
+            return False
 
         # check if trajectory valid
         vel_limit = v_r if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
@@ -307,7 +307,10 @@ class Base(Device):
         valid, reason = self.trajectory.is_valid(vel_limit, acc_limit, self.translate_to_motor_rad, self.rotate_to_motor_rad)
         if not valid:
             self.logger.warning('Base trajectory not valid: {0}'.format(reason))
-            return
+            return False
+        if valid and reason == "must have atleast two waypoints":
+            # skip this device
+            return True
 
         # set defaults
         stiffness = max(0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
@@ -339,8 +342,8 @@ class Base(Device):
         self._waypoint_rwpos = self.right_wheel.status['pos']
         ls0, rs0 = self.trajectory.get_wheel_segments(0, self.translate_to_motor_rad, self.rotate_to_motor_rad,
             self._waypoint_lwpos, self._waypoint_rwpos)
-        self.left_wheel.start_waypoint_trajectory(ls0.to_array())
-        self.right_wheel.start_waypoint_trajectory(rs0.to_array())
+        return self.left_wheel.start_waypoint_trajectory(ls0.to_array()) and \
+            self.right_wheel.start_waypoint_trajectory(rs0.to_array())
 
     def update_trajectory(self):
         """Updates hardware with the next segment of `self.trajectory`

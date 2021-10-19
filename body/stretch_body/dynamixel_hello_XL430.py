@@ -495,14 +495,14 @@ class DynamixelHelloXL430(Device):
         # check if joint valid, homed, and previous trajectory not executing
         if not self.hw_valid:
             self.logger.warning('Dynamixel connection to hardware not valid')
-            return
+            return False
         if req_calibration:
             if not self.is_calibrated:
                 self.logger.warning('Dynamixel not homed')
-                return
+                return False
         if self._waypoint_ts is not None:
             self.logger.error('Dynamixel waypoint trajectory already active')
-            return
+            return False
 
         # check if trajectory valid
         vel_limit = v_r if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
@@ -510,7 +510,10 @@ class DynamixelHelloXL430(Device):
         valid, reason = self.trajectory.is_valid(vel_limit, acc_limit)
         if not valid:
             self.logger.warning('Dynamixel trajectory not valid: {0}'.format(reason))
-            return
+            return False
+        if valid and reason == "must have atleast two waypoints":
+            # skip this device
+            return True
 
         # set defaults
         self._waypoint_vel = min(abs(v_r), self.params['motion']['trajectory_max']['vel_r']) \
@@ -523,12 +526,13 @@ class DynamixelHelloXL430(Device):
             self.move_to(self.trajectory[0].position)
             if not self.wait_until_at_setpoint():
                 self.logger.warning('Dynamixel unable to reach starting point')
-                return
+                return False
 
         # start trajectory
         self._waypoint_ts = time.time()
         p0, _, _ = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
         self.move_to(p0, self._waypoint_vel, self._waypoint_accel)
+        return True
 
     def update_trajectory(self):
         """Updates hardware with the next position goal of `self.trajectory`

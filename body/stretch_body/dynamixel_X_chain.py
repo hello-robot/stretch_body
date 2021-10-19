@@ -104,8 +104,10 @@ class DynamixelXChain(Device):
         self.hw_valid = False
 
     def follow_trajectory(self, v_r=None, a_r=None, req_calibration=False, move_to_start_point=True):
+        success = True
         for motor in self.motors:
-            self.motors[motor].follow_trajectory(v_r, a_r, req_calibration, move_to_start_point)
+            success = success and self.motors[motor].follow_trajectory(v_r, a_r, req_calibration, move_to_start_point)
+        return success
 
     def update_trajectory(self):
         for motor in self.motors:

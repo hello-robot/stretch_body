@@ -4,7 +4,7 @@ import stretch_body.hello_utils as hu
 import numpy as np
 
 # Limits how close together waypoints can be planned
-WAYPOINT_ISCLOSE_ATOL = 0.25
+WAYPOINT_ISCLOSE_ATOL = 0.8
 
 
 class Waypoint:
@@ -406,9 +406,9 @@ class Spline:
         Tuple(bool, str)
             whether the segment is valid, and error message if not
         """
-        # verify that spline has atleast two waypoints
+        # only check if valid if there are enough waypoints
         if len(self.waypoints) < 2:
-            return False, "must have atleast two waypoints"
+            return True, "must have atleast two waypoints"
 
         # verify that spline starts at time zero
         if not np.isclose(self.waypoints[0].time, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
@@ -672,9 +672,9 @@ class DiffDriveTrajectory(Spline):
         Tuple(bool, str)
             whether the segment is valid, and error message if not
         """
-        # verify that spline has atleast two waypoints
+        # only check if valid if there are enough waypoints
         if len(self.waypoints) < 2:
-            return False, "must have atleast two waypoints"
+            return True, "must have atleast two waypoints"
 
         # verify that spline starts at time zero
         if not np.isclose(self.waypoints[0].time, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):

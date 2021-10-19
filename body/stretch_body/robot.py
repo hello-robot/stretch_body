@@ -228,12 +228,14 @@ class Robot(Device):
     # ######### Waypoint Trajectory Interface ##############################
 
     def follow_trajectory(self):
-        self.arm.follow_trajectory(move_to_start_point=False)
-        self.lift.follow_trajectory(move_to_start_point=False)
-        self.base.follow_trajectory()
+        success = True
+        success = success and self.arm.follow_trajectory(move_to_start_point=False)
+        success = success and self.lift.follow_trajectory(move_to_start_point=False)
+        success = success and self.base.follow_trajectory()
         self.pimu.trigger_motor_sync()
-        self.end_of_arm.follow_trajectory(move_to_start_point=False)
-        self.head.follow_trajectory(move_to_start_point=False)
+        success = success and self.end_of_arm.follow_trajectory(move_to_start_point=False)
+        success = success and self.head.follow_trajectory(move_to_start_point=False)
+        return success
 
     def stop_trajectory(self):
         self.arm.stop_trajectory()
