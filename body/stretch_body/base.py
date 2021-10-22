@@ -269,6 +269,8 @@ class Base(Device):
         self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
 
     # ######### Waypoint Trajectory Interface ##############################
+    def is_trajectory_active(self):
+        return self.left_wheel.is_trajectory_active() and self.right_wheel.is_trajectory_active()
 
     def follow_trajectory(self, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None):
         """Starts executing a waypoint trajectory
@@ -357,9 +359,7 @@ class Base(Device):
             return
         if int(str(self.right_wheel.board_info['protocol_version'])[1:]) < 1:
             return
-        if self.left_wheel.status['mode'] != self.left_wheel.MODE_POS_TRAJ_WAYPOINT:
-            return
-        if self.right_wheel.status['mode'] != self.right_wheel.MODE_POS_TRAJ_WAYPOINT:
+        if not self.is_trajectory_active():
             return
         if self._waypoint_lwpos is None or self._waypoint_rwpos is None:
             return
@@ -371,8 +371,8 @@ class Base(Device):
                     self._waypoint_lwpos, self._waypoint_rwpos)
                 self.left_wheel.set_next_trajectory_segment(ls1.to_array())
                 self.right_wheel.set_next_trajectory_segment(rs1.to_array())
-        elif self.left_wheel.status['waypoint_traj']['state'] == 'idle' and self.left_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT and \
-            self.right_wheel.status['waypoint_traj']['state'] == 'idle' and self.right_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+        elif self.left_wheel.status['waypoint_traj']['state'] == 'idle' and self.is_trajectory_active() and \
+            self.right_wheel.status['waypoint_traj']['state'] == 'idle':
             self._waypoint_lwpos = None
             self._waypoint_rwpos = None
             self.left_wheel.enable_pos_traj()

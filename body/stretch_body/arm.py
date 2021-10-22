@@ -250,6 +250,8 @@ class Arm(Device):
                                i_contact_neg=i_contact_neg)
 
     # ######### Waypoint Trajectory Interface ##############################
+    def is_trajectory_active(self):
+        return self.motor.is_trajectory_active()
 
     def follow_trajectory(self, v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None,
                           req_calibration=True, move_to_start_point=True):
@@ -341,7 +343,7 @@ class Arm(Device):
         # check if joint valid, right protocol, and right mode
         if not self.motor.hw_valid or int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
             return
-        if self.motor.status['mode'] != self.motor.MODE_POS_TRAJ_WAYPOINT:
+        if not self.is_trajectory_active():
             return
 
         if self.motor.status['waypoint_traj']['state'] == 'active':
@@ -349,7 +351,7 @@ class Arm(Device):
             if next_segment_id < self.trajectory.get_num_segments():
                 s1 = self.trajectory.get_segment(next_segment_id, to_motor_rad=self.translate_to_motor_rad).to_array()
                 self.motor.set_next_trajectory_segment(s1)
-        elif self.motor.status['waypoint_traj']['state'] == 'idle' and self.motor.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+        elif self.motor.status['waypoint_traj']['state'] == 'idle' and self.is_trajectory_active():
             self.motor.enable_pos_traj()
             self.push_command()
 

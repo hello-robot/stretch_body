@@ -474,6 +474,9 @@ class DynamixelHelloXL430(Device):
 
     # ######### Waypoint Trajectory Interface ##############################
 
+    def is_trajectory_active(self):
+        return self._waypoint_ts is not None
+
     def follow_trajectory(self, v_r=None, a_r=None, req_calibration=True, move_to_start_point=True):
         """Starts executing a waypoint trajectory
 
@@ -500,7 +503,7 @@ class DynamixelHelloXL430(Device):
             if not self.is_calibrated:
                 self.logger.warning('Dynamixel not homed')
                 return
-        if self._waypoint_ts is not None:
+        if self.is_trajectory_active():
             self.logger.error('Dynamixel waypoint trajectory already active')
             return
 
@@ -539,7 +542,7 @@ class DynamixelHelloXL430(Device):
         Otherwise, the user must handle calling this method.
         """
         # check if joint valid, previous trajectory not executing, and not runstopped
-        if not self.hw_valid or self._waypoint_ts is None:
+        if not self.hw_valid or not self.is_trajectory_active():
             return
         if self.was_runstopped:
             return

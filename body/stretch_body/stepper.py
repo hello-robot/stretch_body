@@ -520,6 +520,9 @@ class StepperBase(Device):
             return reply
 
     # ################Waypoint Trajectory Interface #####################
+    def is_trajectory_active(self):
+        return self.status['mode'] == self.MODE_POS_TRAJ_WAYPOINT
+
     def start_waypoint_trajectory(self, first_segment):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))

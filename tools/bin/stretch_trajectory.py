@@ -273,7 +273,7 @@ class TrajectoryScope:
 
     def _animate(self, i):
         self.device.pull_status()
-        if self.traj_man.status['trajectory_active']:
+        if self.device.is_trajectory_active():
             # self.traj_man.push_trajectory()
             self.sensex.append(self.traj_man.traj_curr_time - self.traj_man.traj_start_time)
             self.sensey.append(self.traj_man.status['pos'])
