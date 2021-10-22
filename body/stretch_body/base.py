@@ -16,6 +16,7 @@ class Base(Device):
         self.left_wheel = Stepper(usb='/dev/hello-motor-left-wheel')
         self.right_wheel = Stepper(usb='/dev/hello-motor-right-wheel')
         self.status = {'timestamp_pc':0,'x':0,'y':0,'theta':0,'x_vel':0,'y_vel':0,'theta_vel':0, 'pose_time_s':0,'effort': [0, 0], 'left_wheel': self.left_wheel.status, 'right_wheel': self.right_wheel.status, 'translation_force': 0, 'rotation_torque': 0}
+        self._waypoint_ts = None
         self.trajectory = DiffDriveTrajectory()
         self._waypoint_lwpos = None
         self._waypoint_rwpos = None
@@ -343,6 +344,7 @@ class Base(Device):
             self._waypoint_lwpos, self._waypoint_rwpos)
         self.left_wheel.start_waypoint_trajectory(ls0.to_array())
         self.right_wheel.start_waypoint_trajectory(rs0.to_array())
+        self._waypoint_ts = time.time()
 
     def update_trajectory(self):
         """Updates hardware with the next segment of `self.trajectory`
@@ -378,6 +380,10 @@ class Base(Device):
             self.left_wheel.enable_pos_traj()
             self.right_wheel.enable_pos_traj()
             self.push_command()
+
+    def get_trajectory_elapsed(self):
+        if self.is_trajectory_active():
+            return time.time() - self._waypoint_ts
 
     def stop_trajectory(self):
         """Stop waypoint trajectory immediately and resets hardware

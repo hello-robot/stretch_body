@@ -275,7 +275,7 @@ class TrajectoryScope:
         self.device.pull_status()
         if self.device.is_trajectory_active():
             # self.traj_man.push_trajectory()
-            self.sensex.append(self.traj_man.traj_curr_time - self.traj_man.traj_start_time)
+            self.sensex.append(self.device.get_trajectory_elapsed())
             self.sensey.append(self.traj_man.status['pos'])
             self._update(self)
 

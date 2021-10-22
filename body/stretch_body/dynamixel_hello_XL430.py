@@ -554,6 +554,10 @@ class DynamixelHelloXL430(Device):
             self.move_to(self.trajectory[-1].position, self._waypoint_vel, self._waypoint_accel)
             self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
 
+    def get_trajectory_elapsed(self):
+        if self.is_trajectory_active():
+            return time.time() - self._waypoint_ts
+
     def stop_trajectory(self):
         """Stop waypoint trajectory immediately and resets hardware
         """

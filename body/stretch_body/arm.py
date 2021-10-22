@@ -15,6 +15,7 @@ class Arm(Device):
         Device.__init__(self, 'arm')
         self.motor = Stepper(usb='/dev/hello-motor-arm')
         self.status = {'pos': 0.0, 'vel': 0.0, 'force':0.0, 'motor': self.motor.status,'timestamp_pc':0}
+        self._waypoint_ts = None
         self.trajectory = PrismaticTrajectory()
         self.thread_rate_hz = 5.0
         self.motor_rad_2_arm_m = self.params['chain_pitch']*self.params['chain_sprocket_teeth']/self.params['gr_spur']/(math.pi*2)
@@ -331,6 +332,7 @@ class Arm(Device):
         self.motor.push_command()
         s0 = self.trajectory.get_segment(0, to_motor_rad=self.translate_to_motor_rad).to_array()
         self.motor.start_waypoint_trajectory(s0)
+        self._waypoint_ts = time.time()
 
     def update_trajectory(self):
         """Updates hardware with the next segment of `self.trajectory`
@@ -354,6 +356,10 @@ class Arm(Device):
         elif self.motor.status['waypoint_traj']['state'] == 'idle' and self.is_trajectory_active():
             self.motor.enable_pos_traj()
             self.push_command()
+
+    def get_trajectory_elapsed(self):
+        if self.is_trajectory_active():
+            return time.time() - self._waypoint_ts
 
     def stop_trajectory(self):
         """Stop waypoint trajectory immediately and resets hardware
