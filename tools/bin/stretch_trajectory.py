@@ -252,7 +252,7 @@ class TrajectoryScope:
         if self.executing and self.pind is not None or \
            self.executing and isinstance(e, np.float64):
 
-           self.traj_man.trajectory.clear_waypoints()
+           self.traj_man.trajectory.clear()
            for t, p, v in zip(self.x, self.y, self.v):
                wp = Waypoint(t, p, v)
                self.traj_man.trajectory.add_waypoint(wp)
@@ -283,9 +283,9 @@ class TrajectoryScope:
         if not self.executing:
             for t, p, v in zip(self.x, self.y, self.v):
                 wp = Waypoint(t, p, v)
-                self.traj_man.trajectory.add_waypoint(wp)
+                self.device.trajectory.add_waypoint(wp)
 
-            self.traj_man.follow_trajectory(move_to_start_point=False)
+            self.device.follow_trajectory(move_to_start_point=False)
             self.anim.event_source.start()
             self.executing = True
 
@@ -293,10 +293,10 @@ class TrajectoryScope:
         self.anim.event_source.stop()
 
         self.traj_man.stop_trajectory()
-        self.traj_man.trajectory.clear_waypoints()
+        self.traj_man.trajectory.clear()
         time.sleep(0.25)
         self.device.pull_status()
-        stopped_pos = self.traj_man['pos']
+        stopped_pos = self.traj_man.status['pos']
         self.inity[0] = stopped_pos
         self.executing = False
         self.sensex = []
