@@ -207,7 +207,7 @@ class TrajectoryScope:
         # Setup plot and widgets
         self.fig, self.axes = plt.subplots(1, 1, figsize=(9.0, 8.0), sharex=True)
         self.fig.subplots_adjust(right=0.8)
-        self.fig.canvas.set_window_title('{} Trajectory'.format(proper_name))
+        self.fig.canvas.manager.set_window_title('{} Trajectory'.format(proper_name))
         self.axes.set_yscale('linear')
         self.axes.set_ylim(min(self.yrange) - 0.75, max(self.yrange) + 0.75)
         self.axes.axhspan(min(self.yrange) - 2 ** 32, min(self.yrange), facecolor='0.2', alpha=0.5)
