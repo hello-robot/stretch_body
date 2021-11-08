@@ -238,8 +238,8 @@ class DynamixelHelloXL430(Device):
                 ts = time.time()
             except(termios.error, DynamixelCommError):
                 #self.logger.warning('Dynamixel communication error on %s: '%self.name)
-                self.port_handler.ser.reset_output_buffer()
-                self.port_handler.ser.reset_input_buffer()
+                self.motor.port_handler.ser.reset_output_buffer()
+                self.motor.port_handler.ser.reset_input_buffer()
                 self.comm_errors.add_error(rx=True,gsr=False)
                 return
         else:
