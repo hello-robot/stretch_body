@@ -28,16 +28,16 @@ factory_params = {
     "arm": {
         "motion": {
             "trajectory_max": {
-                "vel_m": 0.1,
-                "accel_m": 0.15
+                "vel_m": 0.3,
+                "accel_m": 0.5
             }
         }
     },
     "lift": {
         "motion": {
             "trajectory_max": {
-                "vel_m": 0.1,
-                "accel_m": 0.15
+                "vel_m": 0.2,
+                "accel_m": 0.3
             }
         }
     },
@@ -51,8 +51,8 @@ factory_params = {
         },
         "motion": {
             "trajectory_max": {
-                "vel_r": 25.0,
-                "accel_r": 10.0
+                "vel_r": 50.0,
+                "accel_r": 30.0
             }
         }
     },
@@ -94,8 +94,8 @@ factory_params = {
         "pwm_homing":[-300,300],
         "motion": {
             "trajectory_max": {
-                "vel_r": 4.0,
-                "accel_r": 8.0
+                "vel_r": 8.0,
+                "accel_r": 16.0
             }
         }
     },
@@ -106,8 +106,8 @@ factory_params = {
         "pwm_homing": [-300, 300],
         "motion": {
             "trajectory_max": {
-                "vel_r": 4.0,
-                "accel_r": 8.0
+                "vel_r": 8.0,
+                "accel_r": 16.0
             }
         }
     },
@@ -117,8 +117,8 @@ factory_params = {
         "enable_runstop": 1,
         "motion": {
             "trajectory_max": {
-                "vel_r": 4.0,
-                "accel_r": 8.0
+                "vel_r": 8.0,
+                "accel_r": 16.0
             }
         }
     },
