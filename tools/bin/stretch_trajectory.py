@@ -155,7 +155,7 @@ class TrajectoryScope:
             units = 'rad'
         elif joint_name == 'arm':
             self.device = stretch_body.arm.Arm()
-            self.traj_man = self.device.motor
+            self.traj_man = self.device
             self.yrange = tuple(self.device.params['range_m'])
             vel_m = self.device.params['motion']['trajectory_max']['vel_m']
             vrange = (-vel_m, vel_m)
@@ -163,7 +163,7 @@ class TrajectoryScope:
             units = 'm'
         elif joint_name == 'lift':
             self.device = stretch_body.lift.Lift()
-            self.traj_man = self.device.motor
+            self.traj_man = self.device
             self.yrange = tuple(self.device.params['range_m'])
             vel_m = self.device.params['motion']['trajectory_max']['vel_m']
             vrange = (-vel_m, vel_m)
@@ -273,9 +273,9 @@ class TrajectoryScope:
 
     def _animate(self, i):
         self.device.pull_status()
-        if self.device.is_trajectory_active():
+        if self.traj_man.is_trajectory_active():
             # self.traj_man.push_trajectory()
-            self.sensex.append(self.device.get_trajectory_elapsed())
+            self.sensex.append(self.traj_man.get_trajectory_elapsed())
             self.sensey.append(self.traj_man.status['pos'])
             self._update(self)
 
@@ -283,9 +283,9 @@ class TrajectoryScope:
         if not self.executing:
             for t, p, v in zip(self.x, self.y, self.v):
                 wp = Waypoint(t, p, v)
-                self.device.trajectory.add_waypoint(wp)
+                self.traj_man.trajectory.add_waypoint(wp)
 
-            self.device.follow_trajectory(move_to_start_point=False)
+            self.traj_man.follow_trajectory(move_to_start_point=False)
             self.anim.event_source.start()
             self.executing = True
 
