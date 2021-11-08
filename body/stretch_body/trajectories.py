@@ -14,7 +14,7 @@ class Waypoint:
 
         A linear spline is constructed from position waypoints,
         a cubic spline is constructed from position and velocity waypoints, and
-        a quintic spline is constructed from position, velocity, and accleration waypoints.
+        a quintic spline is constructed from position, velocity, and acceleration waypoints.
 
         Attributes
         ----------
@@ -231,7 +231,7 @@ class Spline:
         Presents a interface to create splines from waypoints
         and generate polynomial segments. This class should be
         extended to support trajectories and enforce continuity
-        contraints.
+        constraints.
 
         Parameters
         ----------
@@ -406,9 +406,9 @@ class Spline:
         Tuple(bool, str)
             whether the segment is valid, and error message if not
         """
-        # verify that spline has atleast two waypoints
+        # verify that spline has at least two waypoints
         if len(self.waypoints) < 2:
-            return False, "must have atleast two waypoints"
+            return False, "must have at least two waypoints"
 
         # verify that spline starts at time zero
         if not np.isclose(self.waypoints[0].time, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
@@ -672,9 +672,9 @@ class DiffDriveTrajectory(Spline):
         Tuple(bool, str)
             whether the segment is valid, and error message if not
         """
-        # verify that spline has atleast two waypoints
+        # verify that spline has at least two waypoints
         if len(self.waypoints) < 2:
-            return False, "must have atleast two waypoints"
+            return False, "must have at least two waypoints"
 
         # verify that spline starts at time zero
         if not np.isclose(self.waypoints[0].time, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):

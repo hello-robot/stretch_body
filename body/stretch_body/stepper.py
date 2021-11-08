@@ -64,16 +64,16 @@ class StepperBase(Device):
         MODE_POS_TRAJ_WAYPOINT: 'MODE_POS_TRAJ_WAYPOINT',
     }
 
-    DIAG_POS_CALIBRATED = 1  # Has a pos zero RPC been recieved since powerup
+    DIAG_POS_CALIBRATED = 1  # Has a pos zero RPC been received since powerup
     DIAG_RUNSTOP_ON = 2  # Is controller in runstop mode
     DIAG_NEAR_POS_SETPOINT = 4  # Is pos controller within gains.pAs_d of setpoint
     DIAG_NEAR_VEL_SETPOINT = 8  # Is vel controller within gains.vAs_d of setpoint
     DIAG_IS_MOVING = 16  # Is measured velocity greater than gains.vAs_d
     DIAG_AT_CURRENT_LIMIT = 32  # Is controller current saturated
-    DIAG_IS_MG_ACCELERATING = 64  # Is controler motion generator acceleration non-zero
+    DIAG_IS_MG_ACCELERATING = 64  # Is controller motion generator acceleration non-zero
     DIAG_IS_MG_MOVING = 128  # Is controller motion generator velocity non-zero
     DIAG_CALIBRATION_RCVD = 256  # Is calibration table in flash
-    DIAG_IN_GUARDED_EVENT = 512  # Guarded event occured during motion
+    DIAG_IN_GUARDED_EVENT = 512  # Guarded event occurred during motion
     DIAG_IN_SAFETY_EVENT = 1024  # Is it forced into safety mode
     DIAG_WAITING_ON_SYNC = 2048  # Command received but no sync yet
     DIAG_TRAJ_ACTIVE     = 4096     # Whether a waypoint trajectory is actively executing
@@ -484,7 +484,7 @@ class StepperBase(Device):
         if reply[0] != self.RPC_REPLY_ENC_CALIB:
             self.logger.debug('Error RPC_REPLY_ENC_CALIB', reply[0])
 
-    # ######################Menu Inteface ################################3
+    # ######################Menu Interface ################################3
 
 
     def turn_rpc_interface_on(self):
@@ -818,7 +818,7 @@ class Stepper_Protocol_P1(StepperBase):
             self.status['in_sync_mode'] = self.status['diag'] & self.DIAG_IN_SYNC_MODE > 0
 
             if self.status['diag'] & self.DIAG_TRAJ_WAITING_ON_SYNC > 0:
-                self.status['waypoint_traj']['state']='waiting_on_snyc'
+                self.status['waypoint_traj']['state']='waiting_on_sync'
             elif self.status['diag'] & self.DIAG_TRAJ_ACTIVE > 0:
                 self.status['waypoint_traj']['state']='active'
             else:

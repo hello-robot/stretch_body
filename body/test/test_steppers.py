@@ -439,7 +439,7 @@ class TestSteppers(unittest.TestCase):
         self.assertEqual(s.status['waypoint_traj']['state'], 'active')
         self.assertEqual(s.status['waypoint_traj']['segment_id'], 5)
 
-        time.sleep(1.5) # wait until ~ half way into fouth segment
+        time.sleep(1.5) # wait until ~ half way into fourth segment
         # TODO: currently set_next_trajectory_segment never fails.
         # See other TODOs for explanation why.
         # self.assertEqual(s.set_next_trajectory_segment(fifth_segment), 0) # expect the fifth segment to be rejected

@@ -26,7 +26,7 @@ class TestEndOfArm(unittest.TestCase):
         self.assertAlmostEqual(e.status['stretch_gripper']['pos'], 0.0, places=1)
 
     def test_joints(self):
-        """Verify end_of_arm always has atleast one joint: wrist_yaw.
+        """Verify end_of_arm always has at least one joint: wrist_yaw.
         """
         e = stretch_body.end_of_arm.EndOfArm()
         self.assertTrue(len(e.joints) > 0)

@@ -178,7 +178,7 @@ Commanding robot motion through the Stretch_Body interface is covered in more de
 
 ### Stowing and Homing
 
-After power up the robot requires homing in order for its joint encoders to find their zero position. The homing procedure will run the robot through a series of moves to find these zeros. It can be done programatically:
+After power up the robot requires homing in order for its joint encoders to find their zero position. The homing procedure will run the robot through a series of moves to find these zeros. It can be done programmatically:
 
 ```python
 if not robot.is_calibrated():
@@ -511,8 +511,8 @@ robot.arm.status['force']					#Joint force (derived from motor current)
 robot.arm.motor.status['near_pos_setpoint']	#Is sensed position near commanded position
 robot.arm.motor.status['near_vel_setpoint'] #Is sensed velocity near commanded velocity
 robot.arm.motor.status['is_moving']			#Is the joint in motion
-robot.arm.motor.status['in_guarded_event']	#Has a guarded event occured
-robot.arm.motor.status['in_safety_event']	#Has a safety event occured
+robot.arm.motor.status['in_guarded_event']	#Has a guarded event occurred
+robot.arm.motor.status['in_safety_event']	#Has a safety event occurred
 ```
 
 ### Update Rates
@@ -528,7 +528,7 @@ The following update rates apply to Stretch:
 
 Motion commands are non-blocking and it is the responsibility of the user code to poll the Robot Status to determine when and if a motion target has been achieved.
 
-The Stretch_Body interface is not designed to support high bandwidth control applications. The natural dynamics of the robot actuators do not support high bandwidth contorl, and the USB based interface limits high rate communication.
+The Stretch_Body interface is not designed to support high bandwidth control applications. The natural dynamics of the robot actuators do not support high bandwidth control, and the USB based interface limits high rate communication.
 
 In practice, a Python based control loop that calls push_command( ) at 1Hz to 10Hz is sufficiently matched to the robot natural dynamics. 
 

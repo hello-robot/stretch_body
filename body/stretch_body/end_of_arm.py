@@ -5,7 +5,7 @@ import importlib
 class EndOfArm(DynamixelXChain):
     """
     The EndOfArm class allows for an extensible serial chain of Dynamixel X series devices
-    It allows the specifc type of device to be declared at runtime via the Yaml parameters
+    It allows the specific type of device to be declared at runtime via the Yaml parameters
     In this way, a user can add their own custom Dynamixel based tools to the robot end-of-arm by
     simply deriving it from DynamixelHelloXL430 and declaring the class name / Python module name
     in the User YAML file

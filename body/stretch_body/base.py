@@ -461,7 +461,7 @@ class Base(Device):
         else:
             ######################################################
             # The odometry related was wrtten starting on January 14,
-            # 2019 whle looking at the following BSD-3-Clause licensed
+            # 2019 while looking at the following BSD-3-Clause licensed
             # code for reference.
 
             # https://github.com/merose/diff_drive/blob/master/src/diff_drive/odometry.py
