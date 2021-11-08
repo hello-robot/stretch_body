@@ -403,7 +403,7 @@ class StepperBase(Device):
     def get_chip_id(self):
         self.turn_menu_interface_on()
         time.sleep(0.5)
-        cid = self.menu_transaction('b', do_print=False)[0][:-2]
+        cid = self.menu_transaction(b'b', do_print=False)[0][:-2]
         self.turn_rpc_interface_on()
         time.sleep(0.5)
         return cid
@@ -425,7 +425,7 @@ class StepperBase(Device):
         self.turn_menu_interface_on()
         time.sleep(0.5)
         self.logger.debug('Reading encoder calibration...')
-        e = self.menu_transaction('q',do_print=False)[19]
+        e = self.menu_transaction(b'q',do_print=False)[19]
         self.turn_rpc_interface_on()
         self.push_command()
         self.logger.debug('Reseting board')
@@ -478,7 +478,7 @@ class StepperBase(Device):
 
     def turn_rpc_interface_on(self):
         with self.lock:
-            self.menu_transaction('zyx')
+            self.menu_transaction(b'zyx')
 
 
     def turn_menu_interface_on(self):
@@ -492,7 +492,7 @@ class StepperBase(Device):
 
     def print_menu(self):
         with self.lock:
-            self.menu_transaction('m')
+            self.menu_transaction(b'm')
 
     def menu_transaction(self,x,do_print=True):
         if not self.hw_valid:
