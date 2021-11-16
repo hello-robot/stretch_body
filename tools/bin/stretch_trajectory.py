@@ -156,6 +156,7 @@ class TrajectoryScope:
         elif joint_name == 'arm':
             self.device = stretch_body.arm.Arm()
             self.traj_man = self.device
+            self.device.motor.disable_sync_mode()
             self.yrange = tuple(self.device.params['range_m'])
             vel_m = self.device.params['motion']['trajectory_max']['vel_m']
             vrange = (-vel_m, vel_m)
@@ -163,6 +164,7 @@ class TrajectoryScope:
             units = 'm'
         elif joint_name == 'lift':
             self.device = stretch_body.lift.Lift()
+            self.device.motor.disable_sync_mode()
             self.traj_man = self.device
             self.yrange = tuple(self.device.params['range_m'])
             vel_m = self.device.params['motion']['trajectory_max']['vel_m']
@@ -285,7 +287,7 @@ class TrajectoryScope:
                 wp = Waypoint(t, p, v)
                 self.traj_man.trajectory.add_waypoint(wp)
 
-            self.traj_man.follow_trajectory(move_to_start_point=False)
+            self.device.follow_trajectory(move_to_start_point=False)
             self.anim.event_source.start()
             self.executing = True
 
