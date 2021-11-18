@@ -60,23 +60,27 @@ factory_params = {
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "enable_runstop": 1,
-        "pwm_homing":[-300,300]
+        "pwm_homing":[-300,300],
+        'disable_torque_on_stop':1
     },
     "head_tilt": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "enable_runstop": 1,
-        "pwm_homing": [-300, 300]
+        "pwm_homing": [-300, 300],
+        'disable_torque_on_stop':1
     },
     "wrist_yaw": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        'disable_torque_on_stop':1
     },
     "stretch_gripper": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
-        "enable_runstop": 1
+        "enable_runstop": 1,
+        'disable_torque_on_stop':1
     },
     "base": {
         "sentry_max_velocity": {
