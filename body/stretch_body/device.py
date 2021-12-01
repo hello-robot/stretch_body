@@ -60,8 +60,8 @@ class Device:
         print('----- {0} ------ '.format(self.name))
         hello_utils.pretty_print_dict("params", self.params)
 
-    def write_device_params(self,device_name, params):
-        rp=hello_utils.read_fleet_yaml(self.user_params['factory_params'])
+    def write_device_params(self,device_name, params,fleet_dir=None):
+        rp=hello_utils.read_fleet_yaml(self.user_params['factory_params'],fleet_dir=fleet_dir)
         rp[device_name]=params
-        hello_utils.write_fleet_yaml(self.user_params['factory_params'],rp)
+        hello_utils.write_fleet_yaml(self.user_params['factory_params'],rp,fleet_dir=fleet_dir)
 
