@@ -419,6 +419,7 @@ class StepperBase(Device):
         device_name = self.usb[5:]
         sn = self.robot_params[device_name]['serial_no']
         fn = 'calibration_steppers/'+device_name + '_' + sn + '.yaml'
+        print('Writing encoder calibration: %s'%fn)
         write_fleet_yaml(fn,data)
 
     def read_encoder_calibration_from_flash(self):
