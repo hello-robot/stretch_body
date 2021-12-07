@@ -406,7 +406,7 @@ class StepperBase(Device):
         cid = self.menu_transaction(b'b', do_print=False)[0][:-2]
         self.turn_rpc_interface_on()
         time.sleep(0.5)
-        return str(cid)
+        return cid.decode('utf-8')
 
     def read_encoder_calibration_from_YAML(self):
         device_name=self.usb[5:]
@@ -432,7 +432,7 @@ class StepperBase(Device):
         self.logger.debug('Reseting board')
         self.board_reset()
         self.push_command()
-        e = str(e[:-4])  # We now have string of floats, convert to list of floats
+        e = e[:-4].decode('utf-8')  # We now have string of floats, convert to list of floats
         enc_calib = []
         while len(e):
             ff = e.find(',')
