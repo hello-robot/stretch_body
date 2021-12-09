@@ -61,7 +61,8 @@ factory_params = {
         "baud": 57600,
         "enable_runstop": 1,
         "pwm_homing":[-300,300],
-        'disable_torque_on_stop':1
+        'disable_torque_on_stop':1,
+        'pid':[800,200,200]
     },
     "head_tilt": {
         "retry_on_comm_failure": 1,
