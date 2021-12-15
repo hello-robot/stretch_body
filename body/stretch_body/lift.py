@@ -282,14 +282,14 @@ class Lift(Device):
         # check if joint valid, homed, and right protocol
         if not self.motor.hw_valid:
             self.logger.warning('Lift connection to hardware not valid')
-            return
+            return False
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('Lift not calibrated')
-                return
+                return False
         if int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
             self.logger.warning("Lift firmware version doesn't support waypoint trajectories")
-            return
+            return False
 
         # check if trajectory valid
         vel_limit = v_m if v_m is not None else self.params['motion']['trajectory_max']['vel_m']
@@ -297,7 +297,10 @@ class Lift(Device):
         valid, reason = self.trajectory.is_valid(vel_limit, acc_limit)
         if not valid:
             self.logger.warning('Lift traj not valid: {0}'.format(reason))
-            return
+            return False
+        if valid and reason == "must have atleast two waypoints":
+            # skip this device
+            return True
 
         # set defaults
         stiffness = max(0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
@@ -331,7 +334,7 @@ class Lift(Device):
                                i_contact_neg=i_contact_neg)
         self.motor.push_command()
         s0 = self.trajectory.get_segment(0, to_motor_rad=self.translate_to_motor_rad).to_array()
-        self.motor.start_waypoint_trajectory(s0)
+        return self.motor.start_waypoint_trajectory(s0)
 
     def update_trajectory(self):
         """Updates hardware with the next segment of `self.trajectory`
