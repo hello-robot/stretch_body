@@ -97,6 +97,7 @@ class TestRobot(unittest.TestCase):
         r.pull_status()
         time.sleep(1.0)
         self.assertNotAlmostEqual(r.status['arm']['pos'], bad_goal, places=3)
+        r.stop()
 
     def test_dynamixel_runstop(self):
         """Test end_of_arm respects runstop from pimu
@@ -125,4 +126,84 @@ class TestRobot(unittest.TestCase):
         # Verify not at stow position
         r.pull_status()
         self.assertNotAlmostEqual(r.status['end_of_arm']['wrist_yaw']['pos'], math.pi, places=2)
+        r.stop()
+
+    def test_waypoint_trajectory(self):
+        r = stretch_body.robot.Robot()
+        r.startup()
+
+        # Move robot to starting position
+        r.end_of_arm.move_to('wrist_yaw', 3.14)
+        r.end_of_arm.move_to('stretch_gripper', 0)
+        r.head.move_to('head_tilt', 0)
+        r.head.move_to('head_pan', 0)
+        r.arm.move_to(0)
+        r.lift.move_to(0.2)
+        time.sleep(10.0)
+
+        r.end_of_arm.get_joint('stretch_gripper').trajectory.add(0, 0)
+        r.end_of_arm.get_joint('stretch_gripper').trajectory.add(6, 50)
+        r.end_of_arm.get_joint('stretch_gripper').trajectory.add(12, 0)
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(0, 3.14)
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(6, 2.14)
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(12, 3.14)
+        r.head.get_joint('head_tilt').trajectory.add(0, 0)
+        r.head.get_joint('head_tilt').trajectory.add(6, -1.0)
+        r.head.get_joint('head_tilt').trajectory.add(12, 0)
+        r.head.get_joint('head_pan').trajectory.add(0, 0)
+        r.head.get_joint('head_pan').trajectory.add(6, -1.0)
+        r.head.get_joint('head_pan').trajectory.add(12, 0)
+        r.arm.trajectory.add(0, 0)
+        r.arm.trajectory.add(6, 0.1)
+        r.arm.trajectory.add(12, 0.0)
+        r.base.trajectory.add(0, 0, 0, 0)
+        r.base.trajectory.add(6, 0.05, 0, 0)
+        r.base.trajectory.add(12, 0, 0, 0)
+        r.follow_trajectory()
+        time.sleep(13)
+
+        r.stop()
+
+    def test_waypoint_trajectory_multidof_base(self):
+        r = stretch_body.robot.Robot()
+        r.startup()
+
+        # Move robot to starting position
+        r.end_of_arm.move_to('wrist_yaw', 3.14)
+        r.end_of_arm.move_to('stretch_gripper', 0)
+        r.head.move_to('head_tilt', 0)
+        r.head.move_to('head_pan', 0)
+        r.arm.move_to(0)
+        r.lift.move_to(0.2)
+        time.sleep(10.0)
+
+        r.end_of_arm.get_joint('stretch_gripper').trajectory.add(0, 0)
+        r.end_of_arm.get_joint('stretch_gripper').trajectory.add(6, 50)
+        r.end_of_arm.get_joint('stretch_gripper').trajectory.add(24, 0)
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(0, 3.14)
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(6, 2.14)
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(24, 3.14)
+        r.head.get_joint('head_tilt').trajectory.add(0, 0)
+        r.head.get_joint('head_tilt').trajectory.add(6, -1.0)
+        r.head.get_joint('head_tilt').trajectory.add(12, 0)
+        r.head.get_joint('head_tilt').trajectory.add(6, 0.2)
+        r.head.get_joint('head_tilt').trajectory.add(24, 0)
+        r.head.get_joint('head_pan').trajectory.add(0, 0)
+        r.head.get_joint('head_pan').trajectory.add(6, -1.0)
+        r.head.get_joint('head_pan').trajectory.add(12, 0)
+        r.head.get_joint('head_pan').trajectory.add(18, 0.2)
+        r.head.get_joint('head_pan').trajectory.add(24, 0)
+        r.arm.trajectory.add(0, 0, 0)
+        r.arm.trajectory.add(6, 0.1, 0)
+        r.arm.trajectory.add(12, 0.0, 0)
+        r.arm.trajectory.add(18, 0.15, 0)
+        r.arm.trajectory.add(24, 0.0, 0)
+        r.base.trajectory.add(0, 0, 0, 0, 0, 0, 0, 0)
+        r.base.trajectory.add(6, 0.4, 0, 0, 0, 0, 0, 0)
+        r.base.trajectory.add(12, 0.4, 0, math.pi, 0, 0, 0, 0)
+        r.base.trajectory.add(18, 0.0, 0, math.pi, 0, 0, 0, 0)
+        r.base.trajectory.add(24, 0.0, 0, 0, 0, 0, 0, 0)
+        r.follow_trajectory()
+        time.sleep(26)
+
         r.stop()

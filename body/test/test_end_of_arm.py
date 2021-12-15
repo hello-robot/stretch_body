@@ -18,7 +18,7 @@ class TestEndOfArm(unittest.TestCase):
         class_name = e.robot_params[tool_name]['py_class_name']
         e = getattr(importlib.import_module(module_name), class_name)()
         self.assertTrue('stretch_gripper' in e.joints)
-        self.assertTrue(e.startup())
+        self.assertTrue(e.startup(threaded=False))
 
         e.home()
         e.pull_status()
@@ -26,7 +26,7 @@ class TestEndOfArm(unittest.TestCase):
         self.assertAlmostEqual(e.status['stretch_gripper']['pos'], 0.0, places=1)
 
     def test_joints(self):
-        """Verify end_of_arm always has atleast one joint: wrist_yaw.
+        """Verify end_of_arm always has at least one joint: wrist_yaw.
         """
         e = stretch_body.end_of_arm.EndOfArm()
         self.assertTrue(len(e.joints) > 0)

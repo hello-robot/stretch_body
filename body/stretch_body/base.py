@@ -2,6 +2,7 @@ from __future__ import print_function
 from math import *
 from stretch_body.stepper import *
 from stretch_body.device import Device
+from stretch_body.trajectories import DiffDriveTrajectory
 from stretch_body.hello_utils import *
 import logging
 import numpy
@@ -15,6 +16,10 @@ class Base(Device):
         self.left_wheel = Stepper(usb='/dev/hello-motor-left-wheel')
         self.right_wheel = Stepper(usb='/dev/hello-motor-right-wheel')
         self.status = {'timestamp_pc':0,'x':0,'y':0,'theta':0,'x_vel':0,'y_vel':0,'theta_vel':0, 'pose_time_s':0,'effort': [0, 0], 'left_wheel': self.left_wheel.status, 'right_wheel': self.right_wheel.status, 'translation_force': 0, 'rotation_torque': 0}
+        self.trajectory = DiffDriveTrajectory()
+        self._waypoint_lwpos = None
+        self._waypoint_rwpos = None
+        self.thread_rate_hz = 5.0
         self.first_step=True
         wheel_circumference_m = self.params['wheel_diameter_m'] * pi
         self.meters_per_motor_rad = (wheel_circumference_m / (2.0 * pi)) / self.params['gr']
@@ -28,12 +33,24 @@ class Base(Device):
         self.fast_motion_allowed = True
     # ###########  Device Methods #############
 
-    def startup(self):
-        success=self.left_wheel.startup() and self.right_wheel.startup()
+    def startup(self, threaded=True):
+        Device.startup(self, threaded=threaded)
+        success=self.left_wheel.startup(threaded=False) and self.right_wheel.startup(threaded=False)
         self.__update_status()
         return success
 
+    def _thread_loop(self):
+        self.pull_status()
+        self.update_trajectory()
+
     def stop(self):
+        Device.stop(self)
+        if self.left_wheel.hw_valid and int(str(self.left_wheel.board_info['protocol_version'])[1:]) >= 1:
+            self.left_wheel.stop_waypoint_trajectory()
+            self._waypoint_lwpos = None
+        if self.right_wheel.hw_valid and int(str(self.right_wheel.board_info['protocol_version'])[1:]) >= 1:
+            self.right_wheel.stop_waypoint_trajectory()
+            self._waypoint_rwpos = None
         self.left_wheel.stop()
         self.right_wheel.stop()
 
@@ -251,6 +268,126 @@ class Base(Device):
         self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr)
         self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
 
+    # ######### Waypoint Trajectory Interface ##############################
+
+    def follow_trajectory(self, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None):
+        """Starts executing a waypoint trajectory
+
+        `self.trajectory` must be populated with a valid trajectory before calling
+        this method.
+
+        Parameters
+        ----------
+        v_r : float
+            velocity limit for trajectory in motor space in meters per second
+        a_r : float
+            acceleration limit for trajectory in motor space in meters per second squared
+        stiffness : float
+            stiffness of motion. Range 0.0 (min) to 1.0 (max)
+        contact_thresh_N : float
+            force threshold to stop motion (~Newtons)
+        """
+        # check if joint valid, traj active, and right protocol
+        if not self.left_wheel.hw_valid or not self.right_wheel.hw_valid:
+            self.logger.warning('Base connection to hardware not valid')
+            return False
+        if self._waypoint_lwpos is not None or self._waypoint_rwpos is not None:
+            self.logger.warning('Base waypoint trajectory already active')
+            return False
+        if int(str(self.left_wheel.board_info['protocol_version'])[1:]) < 1:
+            self.logger.warning("Base left motor firmware version doesn't support waypoint trajectories")
+            return False
+        if int(str(self.right_wheel.board_info['protocol_version'])[1:]) < 1:
+            self.logger.warning("Base right motor firmware version doesn't support waypoint trajectories")
+            return False
+
+        # check if trajectory valid
+        vel_limit = v_r if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
+        acc_limit = a_r if a_r is not None else self.params['motion']['trajectory_max']['accel_r']
+        valid, reason = self.trajectory.is_valid(vel_limit, acc_limit, self.translate_to_motor_rad, self.rotate_to_motor_rad)
+        if not valid:
+            self.logger.warning('Base trajectory not valid: {0}'.format(reason))
+            return False
+        if valid and reason == "must have atleast two waypoints":
+            # skip this device
+            return True
+
+        # set defaults
+        stiffness = max(0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
+        v = self.translate_to_motor_rad(min(abs(v_r), self.params['motion']['trajectory_max']['vel_r'])) \
+            if v_r is not None else self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_r'])
+        a = self.translate_to_motor_rad(min(abs(a), self.params['motion']['trajectory_max']['accel_r'])) \
+            if a_r is not None else self.translate_to_motor_rad(self.params['motion']['trajectory_max']['accel_r'])
+        i_contact_l, i_contact_r = self.translation_force_to_motor_current(min(contact_thresh_N, self.params['contact_thresh_max_N'])) \
+            if contact_thresh_N is not None else self.translation_force_to_motor_current(self.params['contact_thresh_N'])
+
+        # start trajectory
+        self.left_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
+                                    v_des=v,
+                                    a_des=a,
+                                    stiffness=stiffness,
+                                    i_contact_pos=i_contact_l,
+                                    i_contact_neg=-i_contact_l)
+        self.right_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
+                                     v_des=v,
+                                     a_des=a,
+                                     stiffness=stiffness,
+                                     i_contact_pos=i_contact_r,
+                                     i_contact_neg=-i_contact_r)
+        self.left_wheel.push_command()
+        self.right_wheel.push_command()
+        self.left_wheel.pull_status()
+        self.right_wheel.pull_status()
+        self._waypoint_lwpos = self.left_wheel.status['pos']
+        self._waypoint_rwpos = self.right_wheel.status['pos']
+        ls0, rs0 = self.trajectory.get_wheel_segments(0, self.translate_to_motor_rad, self.rotate_to_motor_rad,
+            self._waypoint_lwpos, self._waypoint_rwpos)
+        return self.left_wheel.start_waypoint_trajectory(ls0.to_array()) and \
+            self.right_wheel.start_waypoint_trajectory(rs0.to_array())
+
+    def update_trajectory(self):
+        """Updates hardware with the next segment of `self.trajectory`
+
+        This method must be called frequently to enable complete trajectory execution
+        and preemption of future segments. If used with `stretch_body.robot.Robot` or
+        with `self.startup(threaded=True)`, a background thread is launched for this.
+        Otherwise, the user must handle calling this method.
+        """
+        # check if joint valid, right protocol, and right mode
+        if not self.left_wheel.hw_valid or not self.right_wheel.hw_valid:
+            return
+        if int(str(self.left_wheel.board_info['protocol_version'])[1:]) < 1:
+            return
+        if int(str(self.right_wheel.board_info['protocol_version'])[1:]) < 1:
+            return
+        if self.left_wheel.status['mode'] != self.left_wheel.MODE_POS_TRAJ_WAYPOINT:
+            return
+        if self.right_wheel.status['mode'] != self.right_wheel.MODE_POS_TRAJ_WAYPOINT:
+            return
+        if self._waypoint_lwpos is None or self._waypoint_rwpos is None:
+            return
+
+        if self.left_wheel.status['waypoint_traj']['state'] == 'active' and self.right_wheel.status['waypoint_traj']['state'] == 'active':
+            next_segment_id = self.left_wheel.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
+            if next_segment_id < self.trajectory.get_num_segments():
+                ls1, rs1 = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
+                    self._waypoint_lwpos, self._waypoint_rwpos)
+                self.left_wheel.set_next_trajectory_segment(ls1.to_array())
+                self.right_wheel.set_next_trajectory_segment(rs1.to_array())
+        elif self.left_wheel.status['waypoint_traj']['state'] == 'idle' and self.left_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT and \
+            self.right_wheel.status['waypoint_traj']['state'] == 'idle' and self.right_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+            self._waypoint_lwpos = None
+            self._waypoint_rwpos = None
+            self.left_wheel.enable_pos_traj()
+            self.right_wheel.enable_pos_traj()
+            self.push_command()
+
+    def stop_trajectory(self):
+        """Stop waypoint trajectory immediately and resets hardware
+        """
+        self.left_wheel.stop_waypoint_trajectory()
+        self.right_wheel.stop_waypoint_trajectory()
+
     def step_sentry(self,robot):
         """
         Only allow fast mobile base motion if the lift is low,
@@ -327,7 +464,7 @@ class Base(Device):
         else:
             ######################################################
             # The odometry related was wrtten starting on January 14,
-            # 2019 whle looking at the following BSD-3-Clause licensed
+            # 2019 while looking at the following BSD-3-Clause licensed
             # code for reference.
 
             # https://github.com/merose/diff_drive/blob/master/src/diff_drive/odometry.py

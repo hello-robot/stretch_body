@@ -25,6 +25,37 @@ factory_params = {
         'models': ['collision_arm_camera']
     },
     'pimu':{'max_sync_rate_hz':20.0},
+    "arm": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.3,
+                "accel_m": 0.5
+            }
+        }
+    },
+    "lift": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.2,
+                "accel_m": 0.3
+            }
+        }
+    },
+    "base": {
+        "sentry_max_velocity": {
+            "limit_accel_m": 0.15,
+            "limit_vel_m": 0.1,
+            "max_arm_extension_m": 0.03,
+            "max_lift_height_m": 0.3,
+            "min_wrist_yaw_rad": 2.54,
+        },
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 50.0,
+                "accel_r": 30.0
+            }
+        }
+    },
     'hello-motor-arm':{
         'gains': {'vel_near_setpoint_d': 3.5}
     },
@@ -61,36 +92,51 @@ factory_params = {
         "baud": 57600,
         "enable_runstop": 1,
         "pwm_homing":[-300,300],
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
+            }
+        },
         'disable_torque_on_stop':1,
-        'pid':[800,200,200]
+        'pid':[800,200,200],
     },
     "head_tilt": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "enable_runstop": 1,
         "pwm_homing": [-300, 300],
-        'disable_torque_on_stop':1
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
+            }
+        },
+        'disable_torque_on_stop':1,
     },
     "wrist_yaw": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "enable_runstop": 1,
-        'disable_torque_on_stop':1
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
+            }
+        },
+        'disable_torque_on_stop':1,
     },
     "stretch_gripper": {
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 50.0,
+                "accel_r": 100.0
+            }
+        },
         'disable_torque_on_stop':1
-    },
-    "base": {
-        "sentry_max_velocity": {
-            "limit_accel_m": 0.15,
-            "limit_vel_m": 0.1,
-            "max_arm_extension_m": 0.03,
-            "max_lift_height_m": 0.3,
-            "min_wrist_yaw_rad": 2.54,
-        }
     },
     "tool_none": {
         'use_group_sync_read': 1,
@@ -174,9 +220,9 @@ factory_params = {
 }
 
 class RobotParams:
-    """Build the parameter dictionary that is availale as stretch_body.Device().robot_params.
+    """Build the parameter dictionary that is available as stretch_body.Device().robot_params.
 
-    Overwrite dictionaries in order of ascending priorty
+    Overwrite dictionaries in order of ascending priority
     1. stretch_re1_factory_params.yaml | Factory YAML settings that shipped with the robot. (Including robot specific calibrations)
     2. stretch_body.robot_params.factory_params | Factory Python settings (Common across robots. Factory may modify these via Pip updates)
     3. Outside parameters | (eg, from stretch_tool_share.stretch_dex_wrist.params)

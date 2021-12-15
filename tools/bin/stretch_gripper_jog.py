@@ -12,7 +12,7 @@ parser=argparse.ArgumentParser(description='Jog the griper from the keyboard')
 args=parser.parse_args()
 
 g=gripper.StretchGripper()
-if not g.startup():
+if not g.startup(threaded=False):
     exit()
 g.pull_status()
 v_des=g.params['motion']['default']['vel']

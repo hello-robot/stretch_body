@@ -1,6 +1,7 @@
 # Logging level must be set before importing any stretch_body class
 import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
+
 import stretch_body.hello_utils as hu
 import unittest
 import stretch_body.robot
@@ -63,7 +64,7 @@ class TestCollisionGripperBase(unittest.TestCase):
         time.sleep(3.0)
         self.assertAlmostEqual(r.status['lift']['pos'],.005, places=1)
 
-        #Check that arm retaction wont collide wrist
+        #Check that arm retaction won't collide wrist
         print('###################################')
         print('Ready for collision test...')
         print('Monitor for accidental collision between the wrist and the base')
@@ -84,7 +85,7 @@ class TestCollisionGripperBase(unittest.TestCase):
             r.push_command()
         self.assertTrue(success)
 
-        # Check that cant rotate gripper into base
+        # Check that can't rotate gripper into base
         r.end_of_arm.move_to('wrist_yaw', x_r=1.27)
         print('###################################')
         print('Ready for collision test...')

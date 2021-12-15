@@ -12,7 +12,7 @@ class RobotCollisionModel(Device):
     """
     The RobotCollisionModel  is a base class to provide simple self-collision avoidance
     Derived (custom) classes should implement the collision logic
-    It works by defining acceptible joint ranges for the joints based on the current
+    It works by defining acceptable joint ranges for the joints based on the current
     kinematic state of the robot.
 
     A joint soft limit of None denotes that no constraint is placed on motion in that direction
@@ -48,7 +48,7 @@ class RobotCollision(Device):
     """
     The RobotCollision class manages a set of collision models, as defined in YAML.
     It is called periodically by the Robot thread.
-    Each model computes the acceptible range of motion for a subset of joints given the current kinematic state of the robot.
+    Each model computes the acceptable range of motion for a subset of joints given the current kinematic state of the robot.
     The RobotCollision class then sets the joint limits for each joint to the most restrive set of ranges, given all models.
     """
     def __init__(self,robot):
@@ -60,6 +60,7 @@ class RobotCollision(Device):
         self.models_enabled={}
 
     def startup(self):
+        Device.startup(self, threaded=False)
         model_names = []
         if self.params.get('models'):
             model_names=model_names+self.params.get('models')

@@ -36,7 +36,7 @@ class TestRobotParams(unittest.TestCase):
         up, rp = stretch_body.robot_params.RobotParams.get_params()
         self.assertEqual(rp['logging']['handlers']['console_handler']['level'], "INFO")
 
-        stretch_body.robot_params.RobotParams.set_logging_level("NONEXISTANT")
+        stretch_body.robot_params.RobotParams.set_logging_level("NONEXISTENT")
         self.assertEqual(rp['logging']['handlers']['console_handler']['level'], "INFO")
 
         stretch_body.robot_params.RobotParams.set_logging_level(-1000)

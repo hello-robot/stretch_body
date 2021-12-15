@@ -20,7 +20,7 @@ The  packet is:
 
 Data can be up to X bytes.
 
-Data is mannually packed / unpacked into dictionaries (Python) and C-structs (Arduino). 
+Data is manually packed / unpacked into dictionaries (Python) and C-structs (Arduino).
 Care should be taken that the pack/unpack size and types are consistent between the two.
 This is not automated.
 """
@@ -91,6 +91,20 @@ class Transport():
 
 
     def startup(self):
+        try:
+            self.ser = serial.Serial(self.usb, write_timeout=1.0)#PosixPollSerial(self.usb)#Serial(self.usb)# 115200)  # , write_timeout=1.0)  # Baud not important since USB comms
+            if self.ser.isOpen():
+                try:
+                    fcntl.flock(self.ser.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except IOError:
+                    self.logger.error('Port %s is busy. Check if another Stretch Body process is already running'%self.usb)
+                    self.ser.close()
+                    self.ser=None
+        except serial.SerialException as e:
+            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.ser = None
+        if self.ser==None:
+            self.logger.warning('Unable to open serial port for device %s'%self.usb)
         return self.ser is not None #return if hardware connection valid
 
     def stop(self):
@@ -236,7 +250,7 @@ class Transport():
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
 
-        #This will block until all RPCs have been commpleted
+        #This will block until all RPCs have been completed
         try:
             #called by body thread at cyclic rate
             self.itr += 1
@@ -273,7 +287,7 @@ class Transport():
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
 
-        #This will block until all RPCs have been commpleted
+        #This will block until all RPCs have been completed
         try:
             while len(self.rpc_queue2):
                 rpc,reply_callback=self.rpc_queue2[0]
