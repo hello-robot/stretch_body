@@ -14,7 +14,7 @@ class Waypoint:
 
         A linear spline is constructed from position waypoints,
         a cubic spline is constructed from position and velocity waypoints, and
-        a quintic spline is constructed from position, velocity, and accleration waypoints.
+        a quintic spline is constructed from position, velocity, and acceleration waypoints.
 
         Attributes
         ----------
@@ -231,7 +231,7 @@ class Spline:
         Presents a interface to create splines from waypoints
         and generate polynomial segments. This class should be
         extended to support trajectories and enforce continuity
-        contraints.
+        constraints.
 
         Parameters
         ----------

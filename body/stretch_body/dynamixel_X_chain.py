@@ -17,7 +17,7 @@ class DynamixelXChain(Device):
     """
     This class manages a daisy chain of Dynamixel X-Series servos
     It allows adding more than one servo at run time
-    It allos manage group reading of status data from servos so as to not overload the control bus
+    It allows manage group reading of status data from servos so as to not overload the control bus
     """
     def __init__(self, usb, name):
         Device.__init__(self, name)

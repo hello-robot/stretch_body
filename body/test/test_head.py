@@ -19,7 +19,7 @@ class TestHead(unittest.TestCase):
         h.stop()
 
     def test_joints(self):
-        """Verify end_of_arm always has atleast one joint: wrist_yaw.
+        """Verify end_of_arm always has at least one joint: wrist_yaw.
         """
         h = stretch_body.head.Head()
         self.assertTrue(len(h.joints) ==2)

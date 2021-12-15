@@ -215,9 +215,9 @@ factory_params = {
 }
 
 class RobotParams:
-    """Build the parameter dictionary that is availale as stretch_body.Device().robot_params.
+    """Build the parameter dictionary that is available as stretch_body.Device().robot_params.
 
-    Overwrite dictionaries in order of ascending priorty
+    Overwrite dictionaries in order of ascending priority
     1. stretch_re1_factory_params.yaml | Factory YAML settings that shipped with the robot. (Including robot specific calibrations)
     2. stretch_body.robot_params.factory_params | Factory Python settings (Common across robots. Factory may modify these via Pip updates)
     3. Outside parameters | (eg, from stretch_tool_share.stretch_dex_wrist.params)

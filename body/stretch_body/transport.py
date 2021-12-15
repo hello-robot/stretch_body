@@ -20,7 +20,7 @@ The  packet is:
 
 Data can be up to X bytes.
 
-Data is mannually packed / unpacked into dictionaries (Python) and C-structs (Arduino). 
+Data is manually packed / unpacked into dictionaries (Python) and C-structs (Arduino).
 Care should be taken that the pack/unpack size and types are consistent between the two.
 This is not automated.
 """
@@ -250,7 +250,7 @@ class Transport():
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
 
-        #This will block until all RPCs have been commpleted
+        #This will block until all RPCs have been completed
         try:
             #called by body thread at cyclic rate
             self.itr += 1
@@ -287,7 +287,7 @@ class Transport():
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
 
-        #This will block until all RPCs have been commpleted
+        #This will block until all RPCs have been completed
         try:
             while len(self.rpc_queue2):
                 rpc,reply_callback=self.rpc_queue2[0]

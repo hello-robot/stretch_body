@@ -12,7 +12,7 @@ import locally within the test  and dont configure the logger per usual
 
 class TestEndOfArmTools(unittest.TestCase):
     def test_toolnone_joints(self):
-        """Verify ToolNone always has atleast one joint: wrist_yaw.
+        """Verify ToolNone always has at least one joint: wrist_yaw.
         """
         import stretch_body.end_of_arm_tools
         e = stretch_body.end_of_arm_tools.ToolNone()
@@ -20,7 +20,7 @@ class TestEndOfArmTools(unittest.TestCase):
         self.assertTrue('wrist_yaw' in e.joints)
 
     def test_toolstretchgripper_joints(self):
-        """Verify ToolStretchGripper always has atleast one joint: wrist_yaw.
+        """Verify ToolStretchGripper always has at least one joint: wrist_yaw.
         """
         import stretch_body.end_of_arm_tools
         e = stretch_body.end_of_arm_tools.ToolStretchGripper()

@@ -581,7 +581,7 @@ class DynamixelHelloXL430(Device):
     In single-turn mode, position values are bound to 0-4095 and homing values to -1,024 ~ 1,024
     In addition, the home offset stored during a multi-turn homing procedure may not be valid in single turn (out of range)
     
-    The Home Offset(20) adjusts the home position. The offest value is added to the Present Position(132).
+    The Home Offset(20) adjusts the home position. The offset value is added to the Present Position(132).
     Present Position(132) = Actual Position + Homing Offset(20)
     Range: -1,044,479 ~ 1,044,479
     

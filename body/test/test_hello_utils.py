@@ -195,7 +195,7 @@ class TestHelloUtils(unittest.TestCase):
             time.sleep(1/target_freq)
             test_stats.mark_loop_end()
 
-        #Average caclulated over the last 100 runs, so a few dry runs to ensure fair checking
+        #Average calculated over the last 100 runs, so a few dry runs to ensure fair checking
         for i in range(iterations):
             test_stats.mark_loop_start()
             time.sleep(1/target_freq)

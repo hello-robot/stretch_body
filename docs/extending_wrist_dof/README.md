@@ -16,7 +16,7 @@ Adding one or more custom Dynamixel X Series servos to Stretch wrist involves:
 
 * Creating a new class that derives from [DynamixelHelloXL430](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/dynamixel_hello_XL430.py)
 * Adding YAML parameters to `stretch_re1_tool_params.yaml `that configure the servo as desired
-* Adding YAML paramerters to `stretch_re1_user_params.yaml` that tell Stretch to include this class in its EndOfArm list of servos
+* Adding YAML parameters to `stretch_re1_user_params.yaml` that tell Stretch to include this class in its EndOfArm list of servos
 
 Let's create a new DOF called WristPitch in a file named [wrist_pitch.py](./wrist_pitch.py).  Place the file somewhere on the $PYTHONPATH.
 

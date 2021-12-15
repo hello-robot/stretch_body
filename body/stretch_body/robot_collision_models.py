@@ -135,7 +135,7 @@ class CollisionStretchGripper(RobotCollisionModel):
     def dist_puller_past_base(self,x_arm,x_yaw):
         return self.dist_yaw_forward_of_base(x_arm) + self.dist_puller_forward_of_yaw(x_yaw)
 
-    def dist_palm_past_base(selfs,x_arm):
+    def dist_palm_past_base(self,x_arm):
         return x_arm-.04
 
 
