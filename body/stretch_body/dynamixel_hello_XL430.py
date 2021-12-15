@@ -179,7 +179,8 @@ class DynamixelHelloXL430(Device):
         Device.stop(self)
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
         if self.hw_valid:
-            self.disable_torque()
+            if self.params['disable_torque_on_stop']:
+                self.disable_torque()
             self.hw_valid = False
 
     def pull_status(self,data=None):

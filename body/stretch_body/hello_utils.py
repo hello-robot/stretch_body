@@ -60,7 +60,7 @@ def get_stretch_directory(sub_directory=''):
     full_path = base_path + '/' + sub_directory if base_path is not None else '/tmp/'
     return full_path
 
-def read_fleet_yaml(f):
+def read_fleet_yaml(f,fleet_dir=None):
     """Reads yaml by filename from fleet directory
 
     Parameters
@@ -74,14 +74,18 @@ def read_fleet_yaml(f):
         yaml as dictionary if valid file, else empty dict
     """
     try:
-        with open(get_fleet_directory()+f, 'r') as s:
+        if fleet_dir is None:
+            fleet_dir=get_fleet_directory()
+        with open(fleet_dir+f, 'r') as s:
             p = yaml.load(s,Loader=yaml.FullLoader)
             return {} if p is None else p
     except IOError:
         return {}
 
-def write_fleet_yaml(fn,rp):
-    with open(get_fleet_directory()+fn, 'w') as yaml_file:
+def write_fleet_yaml(fn,rp,fleet_dir=None):
+    if fleet_dir is None:
+        fleet_dir = get_fleet_directory()
+    with open(fleet_dir+fn, 'w') as yaml_file:
         yaml.dump(rp, yaml_file, default_flow_style=False)
 
 def overwrite_dict(overwritee_dict, overwriter_dict):

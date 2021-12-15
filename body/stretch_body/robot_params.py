@@ -97,7 +97,9 @@ factory_params = {
                 "vel_r": 8.0,
                 "accel_r": 16.0
             }
-        }
+        },
+        'disable_torque_on_stop':1,
+        'pid':[800,200,200],
     },
     "head_tilt": {
         "retry_on_comm_failure": 1,
@@ -109,7 +111,8 @@ factory_params = {
                 "vel_r": 8.0,
                 "accel_r": 16.0
             }
-        }
+        },
+        'disable_torque_on_stop':1,
     },
     "wrist_yaw": {
         "retry_on_comm_failure": 1,
@@ -120,7 +123,8 @@ factory_params = {
                 "vel_r": 8.0,
                 "accel_r": 16.0
             }
-        }
+        },
+        'disable_torque_on_stop':1,
     },
     "stretch_gripper": {
         "retry_on_comm_failure": 1,
@@ -131,7 +135,8 @@ factory_params = {
                 "vel_r": 50.0,
                 "accel_r": 100.0
             }
-        }
+        },
+        'disable_torque_on_stop':1
     },
     "tool_none": {
         'use_group_sync_read': 1,

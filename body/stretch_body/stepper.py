@@ -414,10 +414,10 @@ class StepperBase(Device):
     def get_chip_id(self):
         self.turn_menu_interface_on()
         time.sleep(0.5)
-        cid = self.menu_transaction('b', do_print=False)[0][:-2]
+        cid = self.menu_transaction(b'b', do_print=False)[0][:-2]
         self.turn_rpc_interface_on()
         time.sleep(0.5)
-        return cid
+        return cid.decode('utf-8')
 
     def read_encoder_calibration_from_YAML(self):
         device_name=self.usb[5:]
@@ -430,19 +430,20 @@ class StepperBase(Device):
         device_name = self.usb[5:]
         sn = self.robot_params[device_name]['serial_no']
         fn = 'calibration_steppers/'+device_name + '_' + sn + '.yaml'
+        print('Writing encoder calibration: %s'%fn)
         write_fleet_yaml(fn,data)
 
     def read_encoder_calibration_from_flash(self):
         self.turn_menu_interface_on()
         time.sleep(0.5)
         self.logger.debug('Reading encoder calibration...')
-        e = self.menu_transaction('q',do_print=False)[19]
+        e = self.menu_transaction(b'q',do_print=False)[19]
         self.turn_rpc_interface_on()
         self.push_command()
         self.logger.debug('Reseting board')
         self.board_reset()
         self.push_command()
-        e = e[:-4]  # We now have string of floats, convert to list of floats
+        e = e[:-4].decode('utf-8')  # We now have string of floats, convert to list of floats
         enc_calib = []
         while len(e):
             ff = e.find(',')
@@ -489,7 +490,7 @@ class StepperBase(Device):
 
     def turn_rpc_interface_on(self):
         with self.lock:
-            self.menu_transaction('zyx')
+            self.menu_transaction(b'zyx')
 
 
     def turn_menu_interface_on(self):
@@ -503,7 +504,7 @@ class StepperBase(Device):
 
     def print_menu(self):
         with self.lock:
-            self.menu_transaction('m')
+            self.menu_transaction(b'm')
 
     def menu_transaction(self,x,do_print=True):
         if not self.hw_valid:
