@@ -3,6 +3,8 @@ import stretch_body.trajectories
 
 import numpy as np
 
+stretch_body.trajectories.WAYPOINT_ISCLOSE_ATOL = 0.25
+
 
 class TestTrajectories(unittest.TestCase):
 
