@@ -382,7 +382,10 @@ class DynamixelHelloXL430(Device):
             return
         try:
             self.set_motion_params(v_des,a_des)
+            old_x_des = x_des
             x_des = min(max(self.get_soft_motion_limits()[0], x_des), self.get_soft_motion_limits()[1])
+            if x_des != old_x_des:
+                self.logger.debug('Clipping move_to({0}) with soft limits {1}'.format(old_x_des, self.soft_motion_limits['current']))
             t_des = self.world_rad_to_ticks(x_des)
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
