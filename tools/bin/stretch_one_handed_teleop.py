@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 from __future__ import print_function
 import stretch_body.xbox_controller as xc
 import stretch_body.robot as rb
@@ -201,7 +201,7 @@ def manage_base(robot,controller_state):
     turn_command = controller_state['left_stick_x']
 
     fast_navigation_mode = False
-    navigation_mode_trigger = controller_state['right_trigger_pulled']
+    navigation_mode_trigger = controller_state['left_trigger_pulled']
     if (navigation_mode_trigger > 0.5):
         fast_navigation_mode = True
 
@@ -229,8 +229,8 @@ def manage_base(robot,controller_state):
 # ######################### LIFT & ARM  ########################################
 
 def manage_lift_arm(robot,controller_state):
-    lift_command = controller_state['right_stick_y']
-    arm_command = controller_state['right_stick_x']
+    lift_command = controller_state['left_stick_y']
+    arm_command = controller_state['left_stick_x']
 
     if abs(lift_command) > dead_zone:
         output_sign = math.copysign(1, lift_command)
@@ -249,12 +249,13 @@ wrist_pitch_target=0.0
 
 def manage_end_of_arm(robot,controller_state):
     global wrist_yaw_target, wrist_roll_target, wrist_pitch_target
-    wrist_yaw_left = controller_state['left_shoulder_button_pressed']
-    wrist_yaw_right = controller_state['right_shoulder_button_pressed']
+
+    wrist_yaw_left = controller_state['left_pad_pressed']
+    wrist_yaw_right = controller_state['right_pad_pressed']
 
 
-    close_gripper = controller_state['bottom_button_pressed']
-    open_gripper = controller_state['right_button_pressed']
+    close_gripper = controller_state['bottom_pad_pressed']
+    open_gripper = controller_state['top_pad_pressed']
 
     wrist_yaw_rotate_rad = deg_to_rad(25.0)  # 60.0 #10.0 #5.0
     wrist_yaw_accel = 15.0  # 25.0 #30.0 #15.0 #8.0 #15.0
@@ -290,34 +291,37 @@ def manage_end_of_arm(robot,controller_state):
 
 
     if use_dex_wrist_mapping:
-        wrist_roll_cw = controller_state['right_pad_pressed']
-        wrist_roll_ccw = controller_state['left_pad_pressed']
-        wrist_pitch_down = controller_state['top_pad_pressed']
-        wrist_pitch_up = controller_state['bottom_pad_pressed']
+        if True:
+            print('dex wrist not supported by one-handed teleop')
+        else: 
+            wrist_roll_cw = controller_state['right_pad_pressed']
+            wrist_roll_ccw = controller_state['left_pad_pressed']
+            wrist_pitch_down = controller_state['top_pad_pressed']
+            wrist_pitch_up = controller_state['bottom_pad_pressed']
 
-        if not wrist_roll_cw and not wrist_roll_ccw:
-            if wrist_roll_target >= 0:
-                wrist_roll_target = max(0, wrist_roll_target - wrist_roll_slew_down)
-            else:
-                wrist_roll_target = min(0, wrist_roll_target + wrist_roll_slew_down)
-        if wrist_roll_cw:
-            wrist_roll_target = max(wrist_roll_target - wrist_roll_slew_up, -wrist_roll_rotate_rad)
-        if wrist_roll_ccw:
-            wrist_roll_target = min(wrist_roll_target + wrist_roll_slew_up, wrist_roll_rotate_rad)
+            if not wrist_roll_cw and not wrist_roll_ccw:
+                if wrist_roll_target >= 0:
+                    wrist_roll_target = max(0, wrist_roll_target - wrist_roll_slew_down)
+                else:
+                    wrist_roll_target = min(0, wrist_roll_target + wrist_roll_slew_down)
+            if wrist_roll_cw:
+                wrist_roll_target = max(wrist_roll_target - wrist_roll_slew_up, -wrist_roll_rotate_rad)
+            if wrist_roll_ccw:
+                wrist_roll_target = min(wrist_roll_target + wrist_roll_slew_up, wrist_roll_rotate_rad)
 
-        if not wrist_pitch_up and not wrist_pitch_down:
-            if wrist_pitch_target >= 0:
-                wrist_pitch_target = max(0, wrist_pitch_target - wrist_pitch_slew_down)
-            else:
-                wrist_pitch_target = min(0, wrist_pitch_target + wrist_pitch_slew_down)
-        if wrist_pitch_up:
-            wrist_pitch_target = max(wrist_pitch_target - wrist_pitch_slew_up, -wrist_pitch_rotate_rad)
-        if wrist_pitch_down:
-            wrist_pitch_target = min(wrist_pitch_target + wrist_pitch_slew_up, wrist_pitch_rotate_rad)
+            if not wrist_pitch_up and not wrist_pitch_down:
+                if wrist_pitch_target >= 0:
+                    wrist_pitch_target = max(0, wrist_pitch_target - wrist_pitch_slew_down)
+                else:
+                    wrist_pitch_target = min(0, wrist_pitch_target + wrist_pitch_slew_down)
+            if wrist_pitch_up:
+                wrist_pitch_target = max(wrist_pitch_target - wrist_pitch_slew_up, -wrist_pitch_rotate_rad)
+            if wrist_pitch_down:
+                wrist_pitch_target = min(wrist_pitch_target + wrist_pitch_slew_up, wrist_pitch_rotate_rad)
 
-        robot.end_of_arm.move_by('wrist_roll', wrist_roll_target, wrist_pitch_vel, wrist_pitch_accel)
-        #print('WW',rad_to_deg(wrist_roll_target),robot.end_of_arm.motors['wrist_roll'].status['pos_ticks'])
-        robot.end_of_arm.move_by('wrist_pitch', wrist_pitch_target, wrist_pitch_vel, wrist_pitch_accel)
+            robot.end_of_arm.move_by('wrist_roll', wrist_roll_target, wrist_pitch_vel, wrist_pitch_accel)
+            #print('WW',rad_to_deg(wrist_roll_target),robot.end_of_arm.motors['wrist_roll'].status['pos_ticks'])
+            robot.end_of_arm.move_by('wrist_pitch', wrist_pitch_target, wrist_pitch_vel, wrist_pitch_accel)
 
     if use_stretch_gripper_mapping:
         gripper_rotate_pct = 10.0
@@ -407,15 +411,25 @@ def main():
         robot.push_command()
         time.sleep(0.5)
 
+        left_stick_mobile_base = True
+        left_stick_switch_released = False
+        
         while True:
             controller_state = xbox_controller.get_state()
+            if not controller_state['left_shoulder_button_pressed']:
+                left_stick_switch_released = True
+            if left_stick_switch_released and controller_state['left_shoulder_button_pressed']:
+                left_stick_mobile_base = not left_stick_mobile_base
+                left_stick_switch_released = False
             if not robot.is_calibrated():
                 manage_calibration(robot, controller_state)
             else:
-                manage_base(robot, controller_state)
-                manage_lift_arm(robot, controller_state)
+                if left_stick_mobile_base: 
+                    manage_base(robot, controller_state)
+                else: 
+                    manage_lift_arm(robot, controller_state)
                 manage_end_of_arm(robot, controller_state)
-                manage_head(robot, controller_state)
+                #manage_head(robot, controller_state)
                 manage_stow(robot, controller_state)
             manage_shutdown(robot, controller_state)
             robot.push_command()
