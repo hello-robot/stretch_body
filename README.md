@@ -18,7 +18,7 @@ pip3 install -U hello-robot-stretch-body
 pip3 install -U hello-robot-stretch-body-tools
 ```
 
-See [docs.hello-robot.com](docs.hello-robot.com) for documentation on using Stretch RE1. In particular, see the [Stretch Body User Guide](docs.hello-robot.com/stretch_body_guide/) for information on using these packages.
+See [docs.hello-robot.com](https://docs.hello-robot.com) for documentation on using Stretch RE1. In particular, see the [Stretch Body User Guide](https://docs.hello-robot.com/stretch_body_guide/) for information on using these packages.
 
 # Testing and Development
 
