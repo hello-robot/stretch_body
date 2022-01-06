@@ -50,7 +50,7 @@ def step_interaction():
         if x[0]=='p':
             p = float(x[1:])
             p = h.motors['head_pan'].ticks_to_world_rad(p)
-            h.move_to('head_pan',p,v_des,a_des)
+            h.move_to('head_pan', p, v_des[0], a_des[0])
 
         if x[0]=='x':
             h.home()
@@ -58,7 +58,7 @@ def step_interaction():
         if x[0]=='t':
             t = float(x[1:])
             t= h.motors['head_tilt'].ticks_to_world_rad(t)
-            h.move_to('head_tilt', t, v_des, a_des)
+            h.move_to('head_tilt', t, v_des[1], a_des[1])
 
         if x[0] == 'a':
             h.move_by('head_pan',deg_to_rad(10), v_des[0], a_des[0])
