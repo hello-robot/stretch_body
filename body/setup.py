@@ -27,5 +27,6 @@ setuptools.setup(
                       'llvmlite==0.31.0; python_version < "3.0"', 'numba', # numba required by stretch_funmap, depends on old llvmlite for py2
                       'dynamixel-sdk>=3.1; python_version >= "3.0.0"', # py2 gets dynamixel-sdk through ROS
                       'pyyaml>=5.1', # required for yaml.FullLoader
-                      'hello-robot-stretch-tool-share']
+                      'hello-robot-stretch-tool-share>=0.2.0' # defines other Stretch end effectors
+                      ]
 )
