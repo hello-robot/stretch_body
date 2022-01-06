@@ -23,7 +23,7 @@ class TestWristYaw(unittest.TestCase):
         self.assertTrue(w.trajectory.is_valid(4, 8))
         w.follow_trajectory()
         time.sleep(7)
-        self.assertAlmostEqual(w.status['pos'], 3.14, places=2)
+        self.assertAlmostEqual(w.status['pos'], 3.14, places=1)
 
         w.trajectory.clear()
         w.trajectory.add(0, 3.14, 0.0)
@@ -33,7 +33,7 @@ class TestWristYaw(unittest.TestCase):
         self.assertTrue(w.trajectory.is_valid(4, 8))
         w.follow_trajectory()
         time.sleep(7)
-        self.assertAlmostEqual(w.status['pos'], 3.14, places=2)
+        self.assertAlmostEqual(w.status['pos'], 3.14, places=1)
 
         w.trajectory.clear()
         w.trajectory.add(0, 3.14, 0.0, 0.0)
@@ -43,7 +43,7 @@ class TestWristYaw(unittest.TestCase):
         self.assertTrue(w.trajectory.is_valid(4, 8))
         w.follow_trajectory()
         time.sleep(7)
-        self.assertAlmostEqual(w.status['pos'], 3.14, places=2)
+        self.assertAlmostEqual(w.status['pos'], 3.14, places=1)
 
         w.stop()
 
