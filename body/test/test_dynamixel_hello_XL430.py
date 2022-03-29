@@ -333,3 +333,27 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         measured_traveled_distance += s.status['vel'] * dt
         self.assertTrue(np.isclose(measured_traveled_distance, expected_traveled_distance, atol=0.3))
         s.stop()
+
+    def test_wait_until_at_setpoint(self, setpoint_thres_ticks=25):
+        """Verify the `wait_until_at_setpoint` method works correctly.
+        """
+        s = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_tilt")
+        self.assertTrue(s.startup())
+
+        goal_rad = 0.0
+        goal_ticks = s.world_rad_to_ticks(goal_rad)
+        s.move_to(goal_rad)
+        self.assertTrue(s.wait_until_at_setpoint(5))
+        s.pull_status()
+        # print(s.status['pos_ticks'], goal_ticks)
+        self.assertTrue(abs(s.status['pos_ticks'] - goal_ticks) <= setpoint_thres_ticks)
+
+        goal_rad = -1.0
+        goal_ticks = s.world_rad_to_ticks(goal_rad)
+        s.move_to(goal_rad)
+        self.assertTrue(s.wait_until_at_setpoint(5))
+        s.pull_status()
+        # print(s.status['pos_ticks'], goal_ticks)
+        self.assertTrue(abs(s.status['pos_ticks'] - goal_ticks) <= setpoint_thres_ticks)
+
+        s.stop()
