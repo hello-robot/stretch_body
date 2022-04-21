@@ -105,7 +105,7 @@ class StepperBase(Device):
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0,
                        'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,}}
-        self.board_info={'board_version':None, 'firmware_version':None,'protocol_version':None}
+        self.board_info={'board_version':None, 'firmware_version':None,'protocol_version':None,'hardware_id':0}
         self.motion_limits=[0,0]
         self.is_moving_history = [False] * 10
 
@@ -392,12 +392,18 @@ class StepperBase(Device):
         return self.status['near_pos_setpoint']
 
     def current_to_effort(self,i_A):
-        mA_per_tick = (3300 / 255) / (10 * 0.1)
+        if self.board_info['hardware_version']==0: # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
+            mA_per_tick = (3300 / 255) / (10 * 0.1)
+        if self.board_info['hardware_version']==1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+            mA_per_tick = (3300 / 255) / (5 * 0.15)
         effort = (i_A * 1000.0) / mA_per_tick
         return min(255,max(-255,int(effort)))
 
     def effort_to_current(self,e):
-        mA_per_tick = (3300 / 255) / (10 * 0.1)
+        if self.board_info['hardware_version'] == 0:  # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
+            mA_per_tick = (3300 / 255) / (10 * 0.1)
+        if self.board_info['hardware_version'] == 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+            mA_per_tick = (3300 / 255) / (5 * 0.15)
         return e * mA_per_tick / 1000.0
 
     #Very rough, not accounting for motor dynamics / temp / etc
@@ -538,6 +544,7 @@ class StepperBase(Device):
         with self.lock:
             sidx=0
             self.board_info['board_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
+            self.board_info['hardware_id']=int(self.board_info['board_version'][-1])
             sidx += 20
             self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
             self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]
