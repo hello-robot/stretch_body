@@ -165,7 +165,10 @@ class Arm(Device):
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('Arm not calibrated')
                 return
+            old_x_m = x_m
             x_m = min(max(self.soft_motion_limits['current'][0], x_m), self.soft_motion_limits['current'][1]) #Only clip motion when calibrated
+            if x_m != old_x_m:
+                self.logger.debug('Clipping move_to({0}) with soft limits {1}'.format(old_x_m, self.soft_motion_limits['current']))
 
         if stiffness is not None:
             stiffness = max(0, min(1.0, stiffness))
@@ -213,10 +216,13 @@ class Arm(Device):
                 self.logger.warning('Arm not calibrated')
                 return
 
+            old_x_m = x_m
             if self.status['pos'] + x_m < self.soft_motion_limits['current'][0]:  #Only clip motion when calibrated
                 x_m = self.soft_motion_limits['current'][0] - self.status['pos']
             if self.status['pos'] + x_m > self.soft_motion_limits['current'][1]:
                 x_m = self.soft_motion_limits['current'][1] - self.status['pos']
+            if x_m != old_x_m:
+                self.logger.debug('Clipping {0} + move_by({1}) with soft limits {2}'.format(self.status['pos'], old_x_m, self.soft_motion_limits['current']))
 
         if stiffness is not None:
             stiffness = max(0, min(1.0, stiffness))
