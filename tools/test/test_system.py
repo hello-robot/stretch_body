@@ -6,6 +6,7 @@ import importlib
 import subprocess
 import os, fnmatch
 from pprint import pformat
+from johnnydep.lib import JohnnyDist
 import stretch_body.device
 import stretch_body.pimu
 import stretch_body.hello_utils
@@ -14,6 +15,7 @@ import stretch_body.wacc
 import stretch_body.base
 import stretch_body.lift
 import stretch_body.arm
+import stretch_factory.firmware_updater
 
 
 def system_check_warn(warning=None):
@@ -368,3 +370,44 @@ class TestArm(unittest.TestCase):
         """
         is_homed = self.a.motor.status['pos_calibrated']
         self.assertTrue(is_homed)
+
+
+class TestSoftware(unittest.TestCase):
+    """Checking Software
+    """
+
+    @system_check_warn()
+    def test_latest_hello_pip_packages(self):
+        """Latest Stretch Python libraries
+        """
+        dummy_device = stretch_body.device.Device('dummy')
+
+        dist = JohnnyDist("hello-robot-stretch-body")
+        dummy_device.logger.debug("hello-robot-stretch-body installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
+        self.assertEqual(dist.version_installed, dist.version_latest, msg="run pip2 install -U hello-robot-stretch-body")
+
+        dist = JohnnyDist("hello-robot-stretch-body-tools")
+        dummy_device.logger.debug("hello-robot-stretch-body-tools installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
+        self.assertEqual(dist.version_installed, dist.version_latest, msg="run pip2 install -U hello-robot-stretch-body-tools")
+
+        dist = JohnnyDist("hello-robot-stretch-factory")
+        dummy_device.logger.debug("hello-robot-stretch-factory installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
+        self.assertEqual(dist.version_installed, dist.version_latest, msg="run pip2 install -U hello-robot-stretch-factory")
+
+        dist = JohnnyDist("hello-robot-stretch-tool-share")
+        dummy_device.logger.debug("hello-robot-stretch-tool-share installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
+        self.assertEqual(dist.version_installed, dist.version_latest, msg="run pip2 install -U hello-robot-stretch-tool-share")
+
+    @system_check_warn(warning="run RE1_firmware_updater.py --recommended")
+    def test_latest_firmware(self):
+        """Latest Stretch firmware
+        """
+        hello_devices = {'hello-motor-lift': True, 'hello-motor-arm': True, 'hello-motor-right-wheel': True, 'hello-motor-left-wheel': True, 'hello-pimu': True, 'hello-wacc': True}
+        r = stretch_factory.firmware_updater.RecommendedFirmware(hello_devices)
+        is_latest = {'hello-motor-lift': False, 'hello-motor-arm': False, 'hello-motor-right-wheel': False, 'hello-motor-left-wheel': False, 'hello-pimu': False, 'hello-wacc': False}
+        for device_name in r.recommended.keys():
+            if r.fw_installed.is_device_valid(device_name):
+                installed_version = r.fw_installed.get_version(device_name)
+                if r.recommended[device_name] == installed_version:
+                    is_latest[device_name] = True
+        self.assertTrue(all(list(is_latest.values())), msg='updateable devices={0}'.format([k for k, v in is_latest.items() if not v]))
