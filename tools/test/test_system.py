@@ -10,6 +10,7 @@ import stretch_body.pimu
 import stretch_body.hello_utils
 import stretch_body.head
 import stretch_body.wacc
+import stretch_body.base
 
 
 def system_check_warn(warning=None):
@@ -275,3 +276,31 @@ class TestWACC(unittest.TestCase):
         self.w.logger.debug('digital input 1={0}'.format(d1))
         self.assertEqual(d0, 1, msg="D0 reads low")
         self.assertEqual(d1, 1, msg="D1 reads low")
+
+
+class TestBase(unittest.TestCase):
+    """Checking Mobile Base
+    """
+
+    @classmethod
+    def setUpClass(self):
+        self.b = stretch_body.base.Base()
+        self.b.startup()
+
+    @classmethod
+    def tearDownClass(self):
+        self.b.stop()
+
+    def test_valid_lwheel_pos(self):
+        """Valid left wheel odometry
+        """
+        pos = self.b.left_wheel.status['pos']
+        self.b.logger.debug('left wheel pos={0}'.format(pos))
+        self.assertNotEqual(pos, 0, msg='odometry not initialized')
+
+    def test_valid_rwheel_pos(self):
+        """Valid right wheel odometry
+        """
+        pos = self.b.right_wheel.status['pos']
+        self.b.logger.debug('right wheel pos={0}'.format(pos))
+        self.assertNotEqual(pos, 0, msg='odometry not initialized')
