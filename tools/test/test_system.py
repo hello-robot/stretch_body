@@ -12,6 +12,7 @@ import stretch_body.head
 import stretch_body.wacc
 import stretch_body.base
 import stretch_body.lift
+import stretch_body.arm
 
 
 def system_check_warn(warning=None):
@@ -332,4 +333,32 @@ class TestLift(unittest.TestCase):
         """Homed
         """
         is_homed = self.l.motor.status['pos_calibrated']
+        self.assertTrue(is_homed)
+
+
+class TestArm(unittest.TestCase):
+    """Checking Telescoping Arm
+    """
+
+    @classmethod
+    def setUpClass(self):
+        self.a = stretch_body.arm.Arm()
+        self.a.startup()
+
+    @classmethod
+    def tearDownClass(self):
+        self.a.stop()
+
+    def test_valid_motor_pos(self):
+        """Arm feedback valid
+        """
+        pos = self.a.motor.status['pos']
+        self.a.logger.debug('arm pos={0}'.format(pos))
+        self.assertNotEqual(pos, 0, msg='odometry not initialized')
+
+    @system_check_warn(warning="run stretch_robot_home.py")
+    def test_arm_homed(self):
+        """Homed
+        """
+        is_homed = self.a.motor.status['pos_calibrated']
         self.assertTrue(is_homed)
