@@ -8,6 +8,7 @@ from pprint import pformat
 import stretch_body.device
 import stretch_body.pimu
 import stretch_body.hello_utils
+import stretch_body.head
 
 
 def system_check_warn(warning=None):
@@ -199,6 +200,41 @@ class TestEndOfArm(unittest.TestCase):
         joints_homed = {}
         for k in self.e.joints:
             joint = self.e.get_joint(k)
+            if joint.params['req_calibration']:
+                joints_homed[k] = joint.motor.is_calibrated()
+        unhomed_joints = [k for k, v in joints_homed.items() if not v]
+        self.assertEqual(len(unhomed_joints), 0, msg="not yet homed joints={0}".format(unhomed_joints))
+
+
+class TestHead(unittest.TestCase):
+    """Checking Head
+    """
+
+    @classmethod
+    def setUpClass(self):
+        self.h = stretch_body.head.Head()
+        self.h.startup()
+
+    @classmethod
+    def tearDownClass(self):
+        self.h.stop()
+
+    def test_joints_pingable(self):
+        """All joints pingable
+        """
+        joints_pinged = {}
+        for k in self.h.joints:
+            joints_pinged[k] = self.h.get_joint(k).do_ping(verbose=False)
+        unpingable_joints = [k for k, v in joints_pinged.items() if not v]
+        self.assertEqual(len(unpingable_joints), 0, msg="ping failed for joints={0}".format(unpingable_joints))
+
+    @system_check_warn(warning="run stretch_robot_home.py")
+    def test_joints_homed(self):
+        """All joints homed
+        """
+        joints_homed = {}
+        for k in self.h.joints:
+            joint = self.h.get_joint(k)
             if joint.params['req_calibration']:
                 joints_homed[k] = joint.motor.is_calibrated()
         unhomed_joints = [k for k, v in joints_homed.items() if not v]
