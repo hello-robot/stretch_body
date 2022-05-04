@@ -1,156 +1,172 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import time
-import stretch_body.robot as robot
-import os, fnmatch
-import subprocess
-from colorama import Fore, Back, Style
 import argparse
+parser = argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
+parser.add_argument('-v', "--verbose", help="verbose logging", action="store_true")
+parser.add_argument('-n', "--nocolor", help="no color", action="store_true")
+args = parser.parse_args()
+
+import stretch_body.robot_params
+stretch_body.robot_params.RobotParams.set_logging_level("DEBUG" if args.verbose else "CRITICAL")
+import stretch_body.device # must be imported directly after using RobotParams.set_logging_level
+
+import unittest
+import sys
+sys.path.insert(0, "/home/hello-robot/repos/stretch_body/tools")
+import test.test_system
+from colorama import Fore, Back, Style
 import stretch_body.hello_utils as hu
-from stretch_body.dynamixel_XL430 import *
 hu.print_stretch_re_use()
 
 
-parser=argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
-args=parser.parse_args()
+if args.nocolor:
+    Fore.GREEN = ''
+    Fore.RED = ''
+    Fore.YELLOW = ''
+    Style.RESET_ALL = ''
 
-# #####################################################
-def val_in_range(val_name, val,vmin, vmax):
-    p=val <=vmax and val>=vmin
-    if p:
-        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
-    else:
-        print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val)+ ' out of range ' +str(vmin) + ' to ' + str(vmax))
 
-def val_is_not(val_name, val,vnot):
-    if val is not vnot:
-        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
-    else:
-        print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val))
+class SystemCheckTestResult(unittest.result.TestResult):
 
-#Turn off logging so get a clean output
-import logging
-#logging.disable(logging.CRITICAL)
-r=robot.Robot()
-r.startup()
+    def __init__(self, stream):
+        super(SystemCheckTestResult, self).__init__(stream, None, None)
+        self.stream = stream
 
-# #####################################################
-print(Style.RESET_ALL)
-print('---- Checking Devices ----')
-robot_devices={'hello-wacc':0, 'hello-motor-left-wheel':0,'hello-pimu':0, 'hello-lrf':0,'hello-dynamixel-head':0,'hello-dynamixel-wrist':0,'hello-motor-arm':0,'hello-motor-right-wheel':0,
-               'hello-motor-lift':0,'hello-respeaker':0}
+    def startTest(self, test):
+        super(SystemCheckTestResult, self).startTest(test)
+        test_description = test.shortDescription()
+        if test_description is None:
+            print('SYSTEM CHECK ERROR: Each method in the test case must have method-level docstrings\n')
 
-listOfFiles = os.listdir('/dev')
-pattern = "hello*"
-for entry in listOfFiles:
-    if fnmatch.fnmatch(entry, pattern):
-            robot_devices[entry]=1
-for k in robot_devices.keys():
-    if robot_devices[k]:
-        print(Fore.GREEN +'[Pass] : '+k)
-    else:
-        print(Fore.RED +'[Fail] : '+ k)
-# #####################################################
+        self.stream.write(test_description)
+        self.stream.write("... ")
+        self.stream.flush()
 
-print(Style.RESET_ALL)
-if robot_devices['hello-pimu']:
-    print('---- Checking Pimu ----')
-    p=r.pimu
-    val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
-    val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert'])
-    val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40)
-    val_in_range('Cliff-0',p.status['cliff_range'][0], vmin=p.config['cliff_thresh'], vmax=20)
-    val_in_range('Cliff-1',p.status['cliff_range'][1], vmin=p.config['cliff_thresh'], vmax=20)
-    val_in_range('Cliff-2',p.status['cliff_range'][2], vmin=p.config['cliff_thresh'], vmax=20)
-    val_in_range('Cliff-3',p.status['cliff_range'][3], vmin=p.config['cliff_thresh'], vmax=20)
-    val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5)
-    val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12)
-    val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12)
-    print(Style.RESET_ALL)
+    def addSuccess(self, test):
+        super(SystemCheckTestResult, self).addSuccess(test)
+        self.stream.writeln(Fore.GREEN + "PASS" + Style.RESET_ALL)
+        self.stream.flush()
 
-# #####################################################
-print(Style.RESET_ALL)
+    def addError(self, test, err):
+        super(SystemCheckTestResult, self).addError(test, err)
+        self.stream.writeln(Fore.RED + "FAIL ({0})".format(err[1]) + Style.RESET_ALL)
+        self.stream.flush()
 
-if robot_devices['hello-dynamixel-wrist']:
-    print('---- Checking EndOfArm ----')
-    w = r.end_of_arm
-    try:
-        for mk in w.motors.keys():
-            if w.motors[mk].do_ping():
-                print(Fore.GREEN +'[Pass] Ping of: '+mk)
-                if w.motors[mk].params['req_calibration']:
-                    if w.motors[mk].motor.is_calibrated():
-                        print(Fore.GREEN + '[Pass] Calibrated: ' + mk)
-                    else:
-                        print(Fore.RED + '[Fail] Not Calibrated: ' + mk)
-            else:
-                print(Fore.RED + '[Fail] Ping of: ' + mk)
-            print(Style.RESET_ALL)
-    except(IOError, DynamixelCommError):
-        print(Fore.RED + '[Fail] Startup of EndOfArm')
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-dynamixel-head']:
-    print('---- Checking Head ----')
-    h = r.head
-    try:
-        for mk in h.motors.keys():
-            if h.motors[mk].do_ping():
-                print(Fore.GREEN +'[Pass] Ping of: '+mk)
-            else:
-                print(Fore.RED + '[Fail] Ping of: ' + mk)
-            print(Style.RESET_ALL)
-    except(IOError, DynamixelCommError):
-        print(Fore.RED + '[Fail] Startup of EndOfArm')
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-wacc']:
-    print('---- Checking Wacc ----')
-    w=r.wacc
-    val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0)
-    print(Style.RESET_ALL)
+    def addFailure(self, test, err):
+        super(SystemCheckTestResult, self).addFailure(test, err)
+        print_as_warn = False
+        what_to_warn = None
+        testMethod = getattr(test, test._testMethodName, None)
+        if testMethod is not None:
+            print_as_warn = getattr(testMethod, "__system_check_warn__", False)
+            what_to_warn = getattr(testMethod, "__system_check_warning__", None)
+        if print_as_warn:
+            msg = err[1] if what_to_warn is None else what_to_warn
+            self.stream.writeln(Fore.YELLOW + "WARN ({0})".format(msg) + Style.RESET_ALL)
+        else:
+            self.stream.writeln(Fore.RED + "FAIL ({0})".format(err[1]) + Style.RESET_ALL)
+        self.stream.flush()
 
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-left-wheel']:
-    print('---- Checking hello-motor-left-wheel ----')
-    m = r.base.left_wheel
-    val_is_not('Position',m.status['pos'], vnot=0)
-    print(Style.RESET_ALL)
-    m.stop()
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-right-wheel']:
-    print('---- Checking hello-motor-right-wheel ----')
-    m = r.base.right_wheel
-    val_is_not('Position',m.status['pos'], vnot=0)
-    print(Style.RESET_ALL)
+    def addSkip(self, test, reason):
+        super(SystemCheckTestResult, self).addSkip(test, reason)
+        self.stream.writeln(Fore.YELLOW + "SKIP" + Style.RESET_ALL)
+        self.stream.flush()
 
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-arm']:
-    print('---- Checking hello-motor-arm ----')
-    m = r.arm.motor
-    val_is_not('Position',m.status['pos'], vnot=0)
-    val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
-    print(Style.RESET_ALL)
+    def addExpectedFailure(self, test, err):
+        super(SystemCheckTestResult, self).addExpectedFailure(test, err)
+        self.stream.writeln(Fore.GREEN + "PASS" + Style.RESET_ALL)
+        self.stream.flush()
 
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-lift']:
-    print('---- Checking hello-motor-lift ----')
-    m = r.lift.motor
-    val_is_not('Position',m.status['pos'], vnot=0)
-    val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
-    print(Style.RESET_ALL)
+    def addUnexpectedSuccess(self, test):
+        super(SystemCheckTestResult, self).addUnexpectedSuccess(test)
+        self.stream.writeln(Fore.RED + "FAIL" + Style.RESET_ALL)
+        self.stream.flush()
 
-# #####################################################
-print(Style.RESET_ALL)
-print ('---- Checking for Intel D435i ----')
-cmd = "lsusb -d 8086:0b3a"
-returned_value = subprocess.call(cmd,shell=True)  # returns the exit code in unix
-if returned_value==0:
-    print(Fore.GREEN + '[Pass] : Device found ')
-else:
-    print(Fore.RED + '[Fail] : No device found')
-r.stop()
+
+class SystemCheckTestRunner(unittest.TextTestRunner):
+
+    def run(self, suite):
+        if len(suite._tests) == 0:
+            print('SYSTEM CHECK ERROR: A test suite must have at least one test\n')
+            return
+        class_doc = suite._tests[0].__doc__
+        if class_doc is None:
+            print('SYSTEM CHECK ERROR: A test case must have a class-level docstring\n')
+            return
+
+        self.stream.write("---- ")
+        self.stream.write(class_doc.split("\n")[0].strip())
+        self.stream.writeln(" ----")
+        self.stream.flush()
+        result = SystemCheckTestResult(self.stream)
+        suite(result)
+        self.stream.writeln()
+        self.stream.flush()
+        return result
+
+usbdevices_suite = unittest.TestSuite()
+usbdevices_suite.addTests([
+    test.test_system.TestUSBDevices('test_usb_aliases_present'),
+    test.test_system.TestUSBDevices('test_num_acm_devices_present'),
+])
+
+head_suite = unittest.TestSuite()
+head_suite.addTests([
+    test.test_system.TestHead('test_joints_pingable'),
+    test.test_system.TestHead('test_joints_homed'),
+    test.test_system.TestHead('test_head_camera_present'),
+])
+
+endofarm_suite = unittest.TestSuite()
+endofarm_suite.addTests([
+    test.test_system.TestEndOfArm('test_joints_pingable'),
+    test.test_system.TestEndOfArm('test_joints_homed'),
+])
+
+arm_suite = unittest.TestSuite()
+arm_suite.addTests([
+    test.test_system.TestArm('test_valid_motor_pos'),
+    test.test_system.TestArm('test_arm_homed'),
+])
+
+lift_suite = unittest.TestSuite()
+lift_suite.addTests([
+    test.test_system.TestLift('test_valid_motor_pos'),
+    test.test_system.TestLift('test_lift_homed'),
+])
+
+base_suite = unittest.TestSuite()
+base_suite.addTests([
+    test.test_system.TestBase('test_valid_lwheel_pos'),
+    test.test_system.TestBase('test_valid_rwheel_pos'),
+])
+
+wacc_suite = unittest.TestSuite()
+wacc_suite.addTests([
+    test.test_system.TestWACC('test_valid_accelx'),
+    test.test_system.TestWACC('test_valid_digital_inputs'),
+])
+
+pimu_suite = unittest.TestSuite()
+pimu_suite.addTests([
+    test.test_system.TestPIMU('test_valid_voltage'),
+    test.test_system.TestPIMU('test_valid_current'),
+    test.test_system.TestPIMU('test_valid_temperature'),
+    test.test_system.TestPIMU('test_valid_cliff0'),
+    test.test_system.TestPIMU('test_valid_cliff1'),
+    test.test_system.TestPIMU('test_valid_cliff2'),
+    test.test_system.TestPIMU('test_valid_cliff3'),
+    test.test_system.TestPIMU('test_valid_imu_az'),
+    test.test_system.TestPIMU('test_valid_imu_pitch'),
+    test.test_system.TestPIMU('test_valid_imu_roll'),
+])
+
+runner = SystemCheckTestRunner(stream=sys.stdout)
+runner.run(usbdevices_suite)
+runner.run(head_suite)
+runner.run(endofarm_suite)
+runner.run(arm_suite)
+runner.run(lift_suite)
+runner.run(base_suite)
+runner.run(wacc_suite)
+runner.run(pimu_suite)
