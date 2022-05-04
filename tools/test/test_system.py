@@ -3,6 +3,7 @@ stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
 import unittest
 import importlib
+import subprocess
 import os, fnmatch
 from pprint import pformat
 import stretch_body.device
@@ -246,6 +247,11 @@ class TestHead(unittest.TestCase):
         unhomed_joints = [k for k, v in joints_homed.items() if not v]
         self.assertEqual(len(unhomed_joints), 0, msg="not yet homed joints={0}".format(unhomed_joints))
 
+    def test_head_camera_present(self):
+        """Head camera present
+        """
+        exit_code = subprocess.call("lsusb -d 8086:0b3a", stdout=open(os.devnull, 'w'), shell=True)
+        self.assertEqual(exit_code, 0, msg="camera not connected")
 
 class TestWACC(unittest.TestCase):
     """Checking Wrist + Accelerometer Board (WACC)
