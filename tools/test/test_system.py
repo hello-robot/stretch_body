@@ -2,6 +2,7 @@ import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
 import unittest
+import importlib
 import os, fnmatch
 from pprint import pformat
 import stretch_body.device
@@ -163,3 +164,42 @@ class TestPIMU(unittest.TestCase):
         self.dummy.logger.debug('gyroscope roll (deg)={0}'.format(roll))
         self.assertGreater(roll, -12)
         self.assertLess(roll, 12)
+
+
+class TestEndOfArm(unittest.TestCase):
+    """Checking End of Arm
+    """
+
+    @classmethod
+    def setUpClass(self):
+        dummy = stretch_body.device.Device('dummy')
+        tool_name = dummy.robot_params['robot']['tool']
+        module_name = dummy.robot_params[tool_name]['py_module_name']
+        class_name = dummy.robot_params[tool_name]['py_class_name']
+        self.e = getattr(importlib.import_module(module_name), class_name)()
+        self.e.startup()
+
+    @classmethod
+    def tearDownClass(self):
+        self.e.stop()
+
+    def test_joints_pingable(self):
+        """All joints pingable
+        """
+        joints_pinged = {}
+        for k in self.e.joints:
+            joints_pinged[k] = self.e.get_joint(k).do_ping(verbose=False)
+        unpingable_joints = [k for k, v in joints_pinged.items() if not v]
+        self.assertEqual(len(unpingable_joints), 0, msg="ping failed for joints={0}".format(unpingable_joints))
+
+    @system_check_warn(warning="run stretch_robot_home.py")
+    def test_joints_homed(self):
+        """All joints homed
+        """
+        joints_homed = {}
+        for k in self.e.joints:
+            joint = self.e.get_joint(k)
+            if joint.params['req_calibration']:
+                joints_homed[k] = joint.motor.is_calibrated()
+        unhomed_joints = [k for k, v in joints_homed.items() if not v]
+        self.assertEqual(len(unhomed_joints), 0, msg="not yet homed joints={0}".format(unhomed_joints))
