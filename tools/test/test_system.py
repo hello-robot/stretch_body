@@ -9,6 +9,7 @@ import stretch_body.device
 import stretch_body.pimu
 import stretch_body.hello_utils
 import stretch_body.head
+import stretch_body.wacc
 
 
 def system_check_warn(warning=None):
@@ -146,7 +147,7 @@ class TestPIMU(unittest.TestCase):
         """Accelerometer Z-axis in range
         """
         az = self.p.status['imu']['az']
-        self.dummy.logger.debug('accelerometer z-axis={0}'.format(az))
+        self.dummy.logger.debug('pimu accelerometer z-axis={0}'.format(az))
         self.assertGreater(az, -10.1)
         self.assertLess(az, -9.5)
 
@@ -202,6 +203,7 @@ class TestEndOfArm(unittest.TestCase):
             joint = self.e.get_joint(k)
             if joint.params['req_calibration']:
                 joints_homed[k] = joint.motor.is_calibrated()
+        self.e.logger.debug('homing status for endofarm joints that require homing={0}'.format(joints_homed))
         unhomed_joints = [k for k, v in joints_homed.items() if not v]
         self.assertEqual(len(unhomed_joints), 0, msg="not yet homed joints={0}".format(unhomed_joints))
 
@@ -237,5 +239,39 @@ class TestHead(unittest.TestCase):
             joint = self.h.get_joint(k)
             if joint.params['req_calibration']:
                 joints_homed[k] = joint.motor.is_calibrated()
+        self.h.logger.debug('homing status for head joints that require homing={0}'.format(joints_homed))
         unhomed_joints = [k for k, v in joints_homed.items() if not v]
         self.assertEqual(len(unhomed_joints), 0, msg="not yet homed joints={0}".format(unhomed_joints))
+
+
+class TestWACC(unittest.TestCase):
+    """Checking Wrist + Accelerometer Board (WACC)
+    """
+
+    @classmethod
+    def setUpClass(self):
+        self.w = stretch_body.wacc.Wacc()
+        self.w.startup()
+
+    @classmethod
+    def tearDownClass(self):
+        self.w.stop()
+
+    def test_valid_accelx(self):
+        """Accelerometer X-axis in range
+        """
+        ax = self.w.status['ax']
+        self.w.logger.debug('wacc accelerometer x-axis={0}'.format(ax))
+        self.assertGreater(ax, 8.0)
+        self.assertLess(ax, 11.0)
+
+    @system_check_warn(warning="ignore if external hardware connected")
+    def test_valid_digital_inputs(self):
+        """Pins D0 and D1 read high
+        """
+        d0 = self.w.status['d0']
+        d1 = self.w.status['d1']
+        self.w.logger.debug('digital input 0={0}'.format(d0))
+        self.w.logger.debug('digital input 1={0}'.format(d1))
+        self.assertEqual(d0, 1, msg="D0 reads low")
+        self.assertEqual(d1, 1, msg="D1 reads low")
