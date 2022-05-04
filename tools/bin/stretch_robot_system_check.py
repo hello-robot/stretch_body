@@ -9,6 +9,8 @@ args = parser.parse_args()
 import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG" if args.verbose else "CRITICAL")
 import stretch_body.device # must be imported directly after using RobotParams.set_logging_level
+from johnnydep.logs import configure_logging
+configure_logging(verbosity=0)
 
 import unittest
 import sys
@@ -161,6 +163,12 @@ pimu_suite.addTests([
     test.test_system.TestPIMU('test_valid_imu_roll'),
 ])
 
+software_suite = unittest.TestSuite()
+software_suite.addTests([
+    test.test_system.TestSoftware('test_latest_hello_pip_packages'),
+    test.test_system.TestSoftware('test_latest_firmware'),
+])
+
 runner = SystemCheckTestRunner(stream=sys.stdout)
 runner.run(usbdevices_suite)
 runner.run(head_suite)
@@ -170,3 +178,4 @@ runner.run(lift_suite)
 runner.run(base_suite)
 runner.run(wacc_suite)
 runner.run(pimu_suite)
+runner.run(software_suite)
