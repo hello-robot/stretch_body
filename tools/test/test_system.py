@@ -11,6 +11,7 @@ import stretch_body.hello_utils
 import stretch_body.head
 import stretch_body.wacc
 import stretch_body.base
+import stretch_body.lift
 
 
 def system_check_warn(warning=None):
@@ -292,15 +293,43 @@ class TestBase(unittest.TestCase):
         self.b.stop()
 
     def test_valid_lwheel_pos(self):
-        """Valid left wheel odometry
+        """Left wheel odometry valid
         """
         pos = self.b.left_wheel.status['pos']
         self.b.logger.debug('left wheel pos={0}'.format(pos))
         self.assertNotEqual(pos, 0, msg='odometry not initialized')
 
     def test_valid_rwheel_pos(self):
-        """Valid right wheel odometry
+        """Right wheel odometry valid
         """
         pos = self.b.right_wheel.status['pos']
         self.b.logger.debug('right wheel pos={0}'.format(pos))
         self.assertNotEqual(pos, 0, msg='odometry not initialized')
+
+
+class TestLift(unittest.TestCase):
+    """Checking Lift
+    """
+
+    @classmethod
+    def setUpClass(self):
+        self.l = stretch_body.lift.Lift()
+        self.l.startup()
+
+    @classmethod
+    def tearDownClass(self):
+        self.l.stop()
+
+    def test_valid_motor_pos(self):
+        """Lift feedback valid
+        """
+        pos = self.l.motor.status['pos']
+        self.l.logger.debug('lift pos={0}'.format(pos))
+        self.assertNotEqual(pos, 0, msg='odometry not initialized')
+
+    @system_check_warn(warning="run stretch_robot_home.py")
+    def test_lift_homed(self):
+        """Homed
+        """
+        is_homed = self.l.motor.status['pos_calibrated']
+        self.assertTrue(is_homed)
