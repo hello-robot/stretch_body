@@ -43,6 +43,10 @@ def set_fleet_id(id):
 def get_fleet_directory():
     return os.environ['HELLO_FLEET_PATH']+'/'+get_fleet_id()+'/'
 
+def set_fleet_directory(fleet_path,fleet_id):
+    os.environ['HELLO_FLEET_ID'] = fleet_id
+    os.environ['HELLO_FLEET_PATH'] = fleet_path
+
 def get_stretch_directory(sub_directory=''):
     """Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists
 
@@ -82,10 +86,12 @@ def read_fleet_yaml(f,fleet_dir=None):
     except IOError:
         return {}
 
-def write_fleet_yaml(fn,rp,fleet_dir=None):
+def write_fleet_yaml(fn,rp,fleet_dir=None,header=None):
     if fleet_dir is None:
         fleet_dir = get_fleet_directory()
     with open(fleet_dir+fn, 'w') as yaml_file:
+        if header is not None:
+            yaml_file.write(header)
         yaml.dump(rp, yaml_file, default_flow_style=False)
 
 def overwrite_dict(overwritee_dict, overwriter_dict):
@@ -97,7 +103,7 @@ def overwrite_dict(overwritee_dict, overwriter_dict):
                 else:
                     overwritee_dict[k]=overwriter_dict[k]
             else:
-                print('Overwritting Factory Params with User Params. Type mismatch for key:',k)
+                print('Overwritting Robot Params. Type mismatch for key:',k)
         else: #If key not present, add anyhow (useful for adding new end_of_arm)
             overwritee_dict[k] = overwriter_dict[k]
 
