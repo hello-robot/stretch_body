@@ -1,5 +1,5 @@
 #Robot parameters for Stretch RE1.0
-
+import stretch_body.hello_utils as hello_utils
 # ######################### USER PARAMS ##################################################
 #Template for the generated file: stretch_user_params.yaml
 user_params_header='#User parameters\n' \
@@ -52,7 +52,7 @@ configuration_params_template={
         'batch_name': 'NA',
         'serial_no': 'NA',
         'd435i_serial_no':'NA',
-        'variant_name':'RE1P0'},
+        'model_name':'RE1P0'},
     'stretch_gripper':{
         'range_t': [0, 8022],
         'zero_t': 5212},
@@ -554,55 +554,55 @@ nominal_params={
 # Kept here for migration / records
 
 factory_params_deprecated = {
-    'dxl_comm_errors':{
-        'warn_every_s':1.0,
-        'warn_above_rate':0.1,
+    "dxl_comm_errors":{
+        "warn_every_s":1.0,
+        "warn_above_rate":0.1,
         'verbose':0
     },
-    'robot': {
-        'tool': 'tool_stretch_gripper',
-        'use_collision_manager': 0,
+    "robot": {
+        "tool": "tool_stretch_gripper",
+        "use_collision_manager": 0,
     },
-    'robot_sentry': {
-        'dynamixel_stop_on_runstop': 1,
-        'base_fan_control': 1,
-        'base_max_velocity': 1,
-        'stretch_gripper_overload': 1,
-        'wrist_yaw_overload': 1,
-        'stepper_is_moving_filter': 1,
+    "robot_sentry": {
+        "dynamixel_stop_on_runstop": 1,
+        "base_fan_control": 1,
+        "base_max_velocity": 1,
+        "stretch_gripper_overload": 1,
+        "wrist_yaw_overload": 1,
+        "stepper_is_moving_filter": 1,
     },
-    'robot_collision': {
+    "robot_collision": {
         'models': ['collision_arm_camera']
     },
     'pimu':{'max_sync_rate_hz':20.0},
-    'arm': {
-        'motion': {
-            'trajectory_max': {
-                'vel_m': 0.3,
-                'accel_m': 0.5
+    "arm": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.3,
+                "accel_m": 0.5
             }
         }
     },
-    'lift': {
-        'motion': {
-            'trajectory_max': {
-                'vel_m': 0.2,
-                'accel_m': 0.3
+    "lift": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.2,
+                "accel_m": 0.3
             }
         }
     },
-    'base': {
-        'sentry_max_velocity': {
-            'limit_accel_m': 0.15,
-            'limit_vel_m': 0.1,
-            'max_arm_extension_m': 0.03,
-            'max_lift_height_m': 0.3,
-            'min_wrist_yaw_rad': 2.54,
+    "base": {
+        "sentry_max_velocity": {
+            "limit_accel_m": 0.15,
+            "limit_vel_m": 0.1,
+            "max_arm_extension_m": 0.03,
+            "max_lift_height_m": 0.3,
+            "min_wrist_yaw_rad": 2.54,
         },
-        'motion': {
-            'trajectory_max': {
-                'vel_r': 50.0,
-                'accel_r': 30.0
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 50.0,
+                "accel_r": 30.0
             }
         }
     },
@@ -618,17 +618,17 @@ factory_params_deprecated = {
     'hello-motor-left-wheel':{
         'gains': {'vel_near_setpoint_d': 3.5, 'pKd_d': 40.0}
     },
-    'head': {
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud': 57600,
-        'dxl_latency_timer':64
+    "head": {
+        "use_group_sync_read": 1,
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "dxl_latency_timer":64
     },
-    'end_of_arm': {
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud': 57600,
-        'dxl_latency_timer': 64,
+    "end_of_arm": {
+        "use_group_sync_read": 1,
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "dxl_latency_timer": 64,
         'stow': {'wrist_yaw': 3.4},
         'devices': {
             'wrist_yaw': {
@@ -637,62 +637,62 @@ factory_params_deprecated = {
             }
         }
     },
-    'head_pan': {
-        'retry_on_comm_failure': 1,
-        'baud': 57600,
-        'enable_runstop': 1,
-        'pwm_homing':[-300,300],
-        'motion': {
-            'trajectory_max': {
-                'vel_r': 8.0,
-                'accel_r': 16.0
+    "head_pan": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "enable_runstop": 1,
+        "pwm_homing":[-300,300],
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
             }
         },
         'disable_torque_on_stop':1,
         'pid':[800,200,200],
     },
-    'head_tilt': {
-        'retry_on_comm_failure': 1,
-        'baud': 57600,
-        'enable_runstop': 1,
-        'pwm_homing': [-300, 300],
-        'motion': {
-            'trajectory_max': {
-                'vel_r': 8.0,
-                'accel_r': 16.0
+    "head_tilt": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "enable_runstop": 1,
+        "pwm_homing": [-300, 300],
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
             }
         },
         'disable_torque_on_stop':1,
     },
-    'wrist_yaw': {
-        'retry_on_comm_failure': 1,
-        'baud': 57600,
-        'enable_runstop': 1,
-        'motion': {
-            'trajectory_max': {
-                'vel_r': 8.0,
-                'accel_r': 16.0
+    "wrist_yaw": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
             }
         },
         'disable_torque_on_stop':1,
     },
-    'stretch_gripper': {
-        'retry_on_comm_failure': 1,
-        'baud': 57600,
-        'enable_runstop': 1,
-        'motion': {
-            'trajectory_max': {
-                'vel_r': 50.0,
-                'accel_r': 100.0
+    "stretch_gripper": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 50.0,
+                "accel_r": 100.0
             }
         },
         'disable_torque_on_stop':1
     },
-    'tool_none': {
+    "tool_none": {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'baud':57600,
-        'dxl_latency_timer': 64,
+        "dxl_latency_timer": 64,
         'py_class_name': 'ToolNone',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'stow': {'wrist_yaw': 3.4},
@@ -703,11 +703,11 @@ factory_params_deprecated = {
             }
         }
     },
-    'tool_stretch_gripper': {
+    "tool_stretch_gripper": {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'baud':57600,
-        'dxl_latency_timer': 64,
+        "dxl_latency_timer": 64,
         'py_class_name': 'ToolStretchGripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
@@ -723,14 +723,48 @@ factory_params_deprecated = {
         },
         'collision_models': ['collision_stretch_gripper']
     },
-    'collision_arm_camera': {
+    "collision_arm_camera": {
         'enabled': 1,
         'py_class_name': 'CollisionArmCamera',
         'py_module_name': 'stretch_body.robot_collision_models'
     },
-    'collision_stretch_gripper': {
+    "collision_stretch_gripper": {
         'enabled': 1,
         'py_class_name': 'CollisionStretchGripper',
         'py_module_name': 'stretch_body.robot_collision_models',
-    }
+    },
+    "logging": {
+        "version": 1,
+        "disable_existing_loggers": True,
+        "root": {
+            "level": "DEBUG",
+            "handlers": ["console_handler", "file_handler"],
+            "propagate": False
+        },
+        "handlers": {
+            "console_handler": {
+                "class": "logging.StreamHandler",
+                "level": "INFO",
+                "formatter": "default_console_formatter",
+            },
+            "file_handler": {
+                "class": "logging.FileHandler",
+                "level": "DEBUG",
+                "formatter": "default_file_formatter",
+                "filename": hello_utils.get_stretch_directory('log/') + 'stretchbody_{0}.log'.format(hello_utils.create_time_string())
+            }
+        },
+        "formatters": {
+            "default_console_formatter": {
+                "format": "[%(levelname)s] [%(name)s]: %(message)s"
+            },
+            "brief_console_formatter": {
+                "format": "%(message)s"
+            },
+            "default_file_formatter": {
+                "format": "[%(levelname)-8s] [%(asctime)s.%(msecs)03d] [%(name)s]: %(message)s",
+                "datefmt": "%m/%d/%Y %H:%M:%S"
+            }
+        }
+    },
 }

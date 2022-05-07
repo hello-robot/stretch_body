@@ -31,6 +31,13 @@ def deg_to_rad(x):
 def rad_to_deg(x):
     return 180.0*x/math.pi
 
+def confirm(question):
+    reply = None
+    while reply not in ("y", "n"):
+        reply = input(question + " (y/n)").lower()
+    return (reply == "y")
+
+
 def get_display():
     return os.environ.get('DISPLAY', None)
 
