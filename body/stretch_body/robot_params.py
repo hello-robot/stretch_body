@@ -53,7 +53,8 @@ class RobotParams:
     5. stretch_user_params.yaml                         | User specific data (eg, contact thresholds, controller tunings, etc)
     """
     if not exists(hello_utils.get_fleet_directory()+'stretch_user_params.yaml') or not exists(hello_utils.get_fleet_directory()+'stretch_configuration_params.yaml'):
-        print('Stretch parameter files out of date. Please run tool RE1_migrate_params.py')
+        _valid_params=False
+        raise Exception('Stretch parameter files out of date. Please run tool RE1_migrate_params.py')
     else:
         _user_params = hello_utils.read_fleet_yaml('stretch_user_params.yaml')
         _config_params = hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
@@ -65,7 +66,11 @@ class RobotParams:
             hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
         hello_utils.overwrite_dict(_robot_params, _config_params)
         hello_utils.overwrite_dict(_robot_params, _user_params)
+        _valid_params=True
 
+    @classmethod
+    def are_params_valid(cls):
+        return (cls.valid_params)
 
     @classmethod
     def get_params(cls):

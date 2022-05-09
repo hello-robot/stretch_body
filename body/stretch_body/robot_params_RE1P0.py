@@ -7,7 +7,7 @@ user_params_header='#User parameters\n' \
                    '#USE WITH CAUTION. IT IS POSSIBLE TO CAUSE UNSAFE BEHAVIOR OF THE ROBOT \n'
 
 user_params_template={
-    'robot': {'use_collision_manager': 1}} #Include this just as an example
+    'robot': {'use_collision_manager': 0}} #Include this just as an example
 
 # ###################### CONFIGURATION PARAMS #####################################################
 #Template for the generated file: stretch_configuration_params.yaml
@@ -32,10 +32,15 @@ configuration_params_template={
         'wheel_separation_m': 0.3153},
     'head_pan':{
         'range_t': [0, 3827],
-        'zero_t': 1165},
+        'zero_t': 1165,
+        'baud':115200,
+        'use_multiturn': 0},
     'head_tilt':{
         'range_t': [1775,3150],
-        'zero_t': 2048},
+        'zero_t': 2048,
+        'baud':115200},
+    'head':{'baud':115200},
+    'end_of_arm':{'baud':115200},
     'hello-motor-arm':{'serial_no': 'NA'},
     'hello-motor-lift':{'serial_no': 'NA'},
     'hello-motor-left-wheel':{'serial_no': 'NA'},
@@ -55,12 +60,16 @@ configuration_params_template={
         'model_name':'RE1P0'},
     'stretch_gripper':{
         'range_t': [0, 8022],
-        'zero_t': 5212},
+        'zero_t': 5212,
+        'baud':115200},
+    'tool_stretch_gripper':{'baud':115200},
+    'tool_none':{'baud':115200},
     'wacc':{'config':{
         'accel_gravity_scale': 1.0}},
     'wrist_yaw':{
         'range_t': [0,9340],
-        'zero_t': 7175}}
+        'zero_t': 7175,
+        'baud':115200}}
 
 # ###################### NOMINAL PARAMS #####################################################
 #Parameters that are common across the RE1P0 fleet
@@ -134,14 +143,12 @@ nominal_params={
               'py_module_name': 'stretch_body.wrist_yaw'}},
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'dxl_latency_timer': 64,
         'stow': {'wrist_yaw': 3.4}},
     'head':{
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'dxl_latency_timer':64,
-        'baud': 115200},
+        'dxl_latency_timer':64},
     'head_pan':{
         'flip_encoder_polarity': 1,
         'gr': 1.0,
@@ -171,9 +178,7 @@ nominal_params={
         'return_delay_time': 0,
         'temperature_limit': 72,
         'usb_name': '/dev/hello-dynamixel-head',
-        'use_multiturn': 0,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'stall_max_effort': 20.0,
@@ -213,7 +218,6 @@ nominal_params={
         'use_multiturn': 0,
         'zero_t': 2048,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'stall_backoff': 0.017,
@@ -469,13 +473,11 @@ nominal_params={
         'usb_name': '/dev/hello-dynamixel-wrist',
         'use_multiturn': 1,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1},
     'tool_none': {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
         'dxl_latency_timer': 64,
         'py_class_name': 'ToolNone',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -487,7 +489,6 @@ nominal_params={
     'tool_stretch_gripper': {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
         'dxl_latency_timer': 64,
         'py_class_name': 'ToolStretchGripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -545,7 +546,6 @@ nominal_params={
         'usb_name': '/dev/hello-dynamixel-wrist',
         'use_multiturn': 1,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1}
 }

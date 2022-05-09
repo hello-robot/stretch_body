@@ -111,7 +111,7 @@ def overwrite_dict(overwritee_dict, overwriter_dict):
                     overwritee_dict[k]=overwriter_dict[k]
             else:
                 print('Overwritting Robot Params. Type mismatch for key:',k)
-        else: #If key not present, add anyhow (useful for adding new end_of_arm)
+        else: #If key not present, add anyhow (useful for adding new params)
             overwritee_dict[k] = overwriter_dict[k]
 
 def pretty_print_dict(title, d):

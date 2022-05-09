@@ -7,7 +7,7 @@ user_params_header='#User parameters\n' \
                    '#USE WITH CAUTION. IT IS POSSIBLE TO CAUSE UNSAFE BEHAVIOR OF THE ROBOT \n'
 
 user_params_template={
-    'robot': {'use_collision_manager': 1}} #Include this just as an example
+    'robot': {'log_to_console': 0}} #Include this just as an example
 
 # ###################### CONFIGURATION PARAMS #####################################################
 #Template for the generated file: stretch_configuration_params.yaml
@@ -302,7 +302,7 @@ nominal_params={
             'iMax_pos': 3.2,
             'i_contact_neg': -1.5,
             'i_contact_pos': 2.0,
-            'i_safety_feedforward': 0.4,
+            'i_safety_feedforward': 0.54,
             'pKd_d': 20.0,
             'pKi_d': 0.05,
             'pKi_limit': 100.0,
