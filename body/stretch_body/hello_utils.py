@@ -253,6 +253,11 @@ class ThreadServiceExit(Exception):
     """
     pass
 
+class ParameterMigrationRequired(Exception):
+    """
+    Custom exception which is used to signal that the user must migrate their robots parameters
+    """
+    pass
 
 #Signal handler, must be set from main thread
 def thread_service_shutdown(signum, frame):

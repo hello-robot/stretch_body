@@ -54,7 +54,8 @@ class RobotParams:
     """
     if not exists(hello_utils.get_fleet_directory()+'stretch_user_params.yaml') or not exists(hello_utils.get_fleet_directory()+'stretch_configuration_params.yaml'):
         _valid_params=False
-        raise Exception('Stretch parameter files out of date. Please run tool RE1_migrate_params.py')
+        print('Stretch parameter files out of date. Please run tool RE1_migrate_params.py before continuing.')
+        raise ParameterMigrationRequired
     else:
         _user_params = hello_utils.read_fleet_yaml('stretch_user_params.yaml')
         _config_params = hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
@@ -69,8 +70,16 @@ class RobotParams:
         _valid_params=True
 
     @classmethod
+    def get_user_params_header(cls):
+        return getattr(importlib.import_module(cls.param_module_name), 'user_params_header')
+
+    @classmethod
+    def get_configuration_params_header(cls):
+        return getattr(importlib.import_module(cls.param_module_name), 'configuration_params_header')
+
+    @classmethod
     def are_params_valid(cls):
-        return (cls.valid_params)
+        return (cls._valid_params)
 
     @classmethod
     def get_params(cls):
