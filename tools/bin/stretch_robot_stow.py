@@ -6,5 +6,8 @@ hu.print_stretch_re_use()
 
 robot = rb.Robot()
 robot.startup()
-robot.stow()
+if not robot.pimu.status['runstop_event']:
+    robot.stow()
+else:
+    robot.logger.warning('Cannot stow while run-stopped')
 robot.stop()
