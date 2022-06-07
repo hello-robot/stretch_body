@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#!/usr/bin/env python
 from __future__ import print_function
 import stretch_body.xbox_controller as xc
 import stretch_body.robot as rb
@@ -195,8 +196,37 @@ fast_max_dist_rad = 0.6
 fast_accel_rad = 0.8
 fast_command_to_rotary_motion = CommandToRotaryMotion(dead_zone, fast_move_s, fast_max_dist_rad, fast_accel_rad)
 ############################
-
 def manage_base(robot,controller_state):
+    forward_command = controller_state['left_stick_y']
+    turn_command = controller_state['left_stick_x']
+
+    fast_navigation_mode = False
+    navigation_mode_trigger = controller_state['right_trigger_pulled']
+    if (navigation_mode_trigger > 0.5):
+        fast_navigation_mode = True
+
+    ##################
+    # convert robot commands to robot movement
+    # only allow a pure translation or a pure rotation command
+    v_m_max = 0.3
+    a_max=0.1
+    w_r_max=1.0
+    if abs(forward_command) > abs(turn_command):
+        if abs(forward_command) > dead_zone:
+            output_sign = math.copysign(1, forward_command)
+            if not fast_navigation_mode:
+                d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, forward_command)
+            else:
+                d_m, v_m, a_m = fast_command_to_linear_motion.get_dist_vel_accel(output_sign, forward_command)
+            robot.base.translate_by(d_m, v_m, a_m)
+        else:
+            robot.base.translate_by(0, 0, 0)
+    else:
+        if (abs(turn_command) < .01):
+            turn_command = 0.0
+        robot.base.set_velocity(v_m=0, w_r=turn_command*w_r_max, a=a_max)
+
+def manage_base2(robot,controller_state):
     forward_command = controller_state['left_stick_y']
     turn_command = controller_state['left_stick_x']
 
@@ -409,14 +439,14 @@ def main():
 
         while True:
             controller_state = xbox_controller.get_state()
-            if not robot.is_calibrated():
+            if 0:#not robot.is_calibrated():
                 manage_calibration(robot, controller_state)
             else:
                 manage_base(robot, controller_state)
-                manage_lift_arm(robot, controller_state)
-                manage_end_of_arm(robot, controller_state)
+                #manage_lift_arm(robot, controller_state)
+                #manage_end_of_arm(robot, controller_state)
                 manage_head(robot, controller_state)
-                manage_stow(robot, controller_state)
+                #manage_stow(robot, controller_state)
             manage_shutdown(robot, controller_state)
             robot.push_command()
             time.sleep(0.05)

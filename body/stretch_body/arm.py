@@ -54,6 +54,7 @@ class Arm(Device):
         self.status['vel'] = self.motor_rad_to_translate(self.status['motor']['vel'])
         self.status['force'] = self.motor_current_to_translate_force(self.status['motor']['current'])
 
+
     def push_command(self):
         self.motor.push_command()
 
@@ -380,6 +381,8 @@ class Arm(Device):
         ts=time.time()
         while (time.time()-ts<timeout):
             self.pull_status()
+            print('GuardedEvent',self.motor.status['guarded_event'])
+            print('Force',self.status['force'])
             if self.motor.status['in_guarded_event']:
                 return True
             time.sleep(0.01)
