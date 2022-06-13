@@ -195,6 +195,13 @@ fast_move_s = 0.2
 fast_max_dist_rad = 0.6
 fast_accel_rad = 0.8
 fast_command_to_rotary_motion = CommandToRotaryMotion(dead_zone, fast_move_s, fast_max_dist_rad, fast_accel_rad)
+
+############################
+#Velocity based turning
+turn_a_max=0.1
+turn_w_r_max=1.0
+turn_a_max_fast=0.2
+turn_w_r_max_fast=2.0
 ############################
 def manage_base(robot,controller_state):
     forward_command = controller_state['left_stick_y']
@@ -208,9 +215,7 @@ def manage_base(robot,controller_state):
     ##################
     # convert robot commands to robot movement
     # only allow a pure translation or a pure rotation command
-    v_m_max = 0.3
-    a_max=0.1
-    w_r_max=1.0
+
     if abs(forward_command) > abs(turn_command):
         if abs(forward_command) > dead_zone:
             output_sign = math.copysign(1, forward_command)
@@ -224,7 +229,10 @@ def manage_base(robot,controller_state):
     else:
         if (abs(turn_command) < .01):
             turn_command = 0.0
-        robot.base.set_velocity(v_m=0, w_r=turn_command*w_r_max, a=a_max)
+        if not fast_navigation_mode:
+            robot.base.set_velocity(v_m=0, w_r=turn_command*turn_w_r_max, a=turn_a_max)
+        else:
+            robot.base.set_velocity(v_m=0, w_r=turn_command * turn_w_r_max_fast, a=turn_a_max_fast)
 
 def manage_base2(robot,controller_state):
     forward_command = controller_state['left_stick_y']
@@ -263,14 +271,19 @@ def manage_lift_arm(robot,controller_state):
     arm_command = controller_state['right_stick_x']
 
     if abs(lift_command) > dead_zone:
-        output_sign = math.copysign(1, lift_command)
-        d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, lift_command)
-        robot.lift.move_by(d_m, v_m, a_m)
-
+        # output_sign = math.copysign(1, lift_command)
+        # d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, lift_command)
+        # robot.lift.move_by(d_m, v_m, a_m)
+        robot.lift.set_velocity(0.75*lift_command)
+    else:
+        robot.lift.set_velocity(0.0)
     if abs(arm_command) > dead_zone:
-        output_sign = math.copysign(1, arm_command)
-        d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, arm_command)
-        robot.arm.move_by(d_m, v_m, a_m)
+        robot.arm.set_velocity(0.25*arm_command)
+    else:
+        robot.arm.set_velocity(0.0)
+        # output_sign = math.copysign(1, arm_command)
+        # d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, arm_command)
+        # robot.arm.move_by(d_m, v_m, a_m)
 
 # ######################### END OF ARM  ########################################
 wrist_yaw_target=0.0
