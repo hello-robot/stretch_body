@@ -2,7 +2,7 @@ import stretch_body.hello_utils as hello_utils
 from os.path import exists
 import importlib
 import logging
-
+import sys
 
 
 #System parameters that are common across models. May be updated by the factory via Pip.
@@ -55,7 +55,7 @@ class RobotParams:
     if not exists(hello_utils.get_fleet_directory()+'stretch_user_params.yaml') or not exists(hello_utils.get_fleet_directory()+'stretch_configuration_params.yaml'):
         _valid_params=False
         print('Stretch parameter files out of date. Please run tool RE1_migrate_params.py before continuing.')
-        raise ParameterMigrationRequired
+        sys.exit(1)
     else:
         _user_params = hello_utils.read_fleet_yaml('stretch_user_params.yaml')
         _config_params = hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')

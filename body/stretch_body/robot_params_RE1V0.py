@@ -1,5 +1,5 @@
-#Robot parameters for Stretch RE1.5
-
+#Robot parameters for Stretch RE1.0
+import stretch_body.hello_utils as hello_utils
 # ######################### USER PARAMS ##################################################
 #Template for the generated file: stretch_user_params.yaml
 user_params_header='#User parameters\n' \
@@ -7,11 +7,11 @@ user_params_header='#User parameters\n' \
                    '#USE WITH CAUTION. IT IS POSSIBLE TO CAUSE UNSAFE BEHAVIOR OF THE ROBOT \n'
 
 user_params_template={
-    'robot': {'log_to_console': 0}} #Include this just as an example
+    'robot': {'use_collision_manager': 0}} #Include this just as an example
 
 # ###################### CONFIGURATION PARAMS #####################################################
 #Template for the generated file: stretch_configuration_params.yaml
-#Configuration parameters may have variation across the fleet of RE1.5 robots
+#Configuration parameters may have variation across the fleet of RE1.0 robots
 configuration_params_header='#Parameters that are specific to this robot\n' \
                             '#Do not edit, instead edit stretch_user_params.yaml\n'
 
@@ -32,10 +32,15 @@ configuration_params_template={
         'wheel_separation_m': 0.3153},
     'head_pan':{
         'range_t': [0, 3827],
-        'zero_t': 1165},
+        'zero_t': 1165,
+        'baud':115200,
+        'use_multiturn': 0},
     'head_tilt':{
         'range_t': [1775,3150],
-        'zero_t': 2048},
+        'zero_t': 2048,
+        'baud':115200},
+    'head':{'baud':115200},
+    'end_of_arm':{'baud':115200},
     'hello-motor-arm':{'serial_no': 'NA'},
     'hello-motor-lift':{'serial_no': 'NA'},
     'hello-motor-left-wheel':{'serial_no': 'NA'},
@@ -52,18 +57,22 @@ configuration_params_template={
         'batch_name': 'NA',
         'serial_no': 'NA',
         'd435i_serial_no':'NA',
-        'model_name':'RE1.5'},
+        'model_name':'RE1V0'},
     'stretch_gripper':{
         'range_t': [0, 8022],
-        'zero_t': 5212},
+        'zero_t': 5212,
+        'baud':115200},
+    'tool_stretch_gripper':{'baud':115200},
+    'tool_none':{'baud':115200},
     'wacc':{'config':{
         'accel_gravity_scale': 1.0}},
     'wrist_yaw':{
         'range_t': [0,9340],
-        'zero_t': 7175}}
+        'zero_t': 7175,
+        'baud':115200}}
 
 # ###################### NOMINAL PARAMS #####################################################
-#Parameters that are common across the RE1.5 fleet
+#Parameters that are common across the RE1.0 fleet
 nominal_params={
     'arm':{
         'chain_pitch': 0.0167,
@@ -134,14 +143,12 @@ nominal_params={
               'py_module_name': 'stretch_body.wrist_yaw'}},
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'dxl_latency_timer': 64,
         'stow': {'wrist_yaw': 3.4}},
     'head':{
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'dxl_latency_timer':64,
-        'baud': 115200},
+        'dxl_latency_timer':64},
     'head_pan':{
         'flip_encoder_polarity': 1,
         'gr': 1.0,
@@ -171,9 +178,7 @@ nominal_params={
         'return_delay_time': 0,
         'temperature_limit': 72,
         'usb_name': '/dev/hello-dynamixel-head',
-        'use_multiturn': 0,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'stall_max_effort': 20.0,
@@ -213,7 +218,6 @@ nominal_params={
         'use_multiturn': 0,
         'zero_t': 2048,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'stall_backoff': 0.017,
@@ -302,7 +306,7 @@ nominal_params={
             'iMax_pos': 3.2,
             'i_contact_neg': -1.5,
             'i_contact_pos': 2.0,
-            'i_safety_feedforward': 0.54,
+            'i_safety_feedforward': 0.4,
             'pKd_d': 20.0,
             'pKi_d': 0.05,
             'pKi_limit': 100.0,
@@ -469,13 +473,11 @@ nominal_params={
         'usb_name': '/dev/hello-dynamixel-wrist',
         'use_multiturn': 1,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1},
     'tool_none': {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
         'dxl_latency_timer': 64,
         'py_class_name': 'ToolNone',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -487,7 +489,6 @@ nominal_params={
     'tool_stretch_gripper': {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
-        'baud':115200,
         'dxl_latency_timer': 64,
         'py_class_name': 'ToolStretchGripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -545,7 +546,225 @@ nominal_params={
         'usb_name': '/dev/hello-dynamixel-wrist',
         'use_multiturn': 1,
         'retry_on_comm_failure': 1,
-        'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1}
+}
+# ###################### OLDER: FACTORY PARAMS #####################################################
+#The deprecated factory params dictionary for RE1.0 (5.1.2022)
+# Kept here for migration / records
+
+factory_params_deprecated = {
+    "dxl_comm_errors":{
+        "warn_every_s":1.0,
+        "warn_above_rate":0.1,
+        'verbose':0
+    },
+    "robot": {
+        "tool": "tool_stretch_gripper",
+        "use_collision_manager": 0,
+    },
+    "robot_sentry": {
+        "dynamixel_stop_on_runstop": 1,
+        "base_fan_control": 1,
+        "base_max_velocity": 1,
+        "stretch_gripper_overload": 1,
+        "wrist_yaw_overload": 1,
+        "stepper_is_moving_filter": 1,
+    },
+    "robot_collision": {
+        'models': ['collision_arm_camera']
+    },
+    'pimu':{'max_sync_rate_hz':20.0},
+    "arm": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.3,
+                "accel_m": 0.5
+            }
+        }
+    },
+    "lift": {
+        "motion": {
+            "trajectory_max": {
+                "vel_m": 0.2,
+                "accel_m": 0.3
+            }
+        }
+    },
+    "base": {
+        "sentry_max_velocity": {
+            "limit_accel_m": 0.15,
+            "limit_vel_m": 0.1,
+            "max_arm_extension_m": 0.03,
+            "max_lift_height_m": 0.3,
+            "min_wrist_yaw_rad": 2.54,
+        },
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 50.0,
+                "accel_r": 30.0
+            }
+        }
+    },
+    'hello-motor-arm':{
+        'gains': {'vel_near_setpoint_d': 3.5}
+    },
+    'hello-motor-lift':{
+        'gains': {'vel_near_setpoint_d': 3.5}
+    },
+    'hello-motor-right-wheel':{
+        'gains': {'vel_near_setpoint_d': 3.5, 'pKd_d': 40.0}
+    },
+    'hello-motor-left-wheel':{
+        'gains': {'vel_near_setpoint_d': 3.5, 'pKd_d': 40.0}
+    },
+    "head": {
+        "use_group_sync_read": 1,
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "dxl_latency_timer":64
+    },
+    "end_of_arm": {
+        "use_group_sync_read": 1,
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "dxl_latency_timer": 64,
+        'stow': {'wrist_yaw': 3.4},
+        'devices': {
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            }
+        }
+    },
+    "head_pan": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "enable_runstop": 1,
+        "pwm_homing":[-300,300],
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
+            }
+        },
+        'disable_torque_on_stop':1,
+        'pid':[800,200,200],
+    },
+    "head_tilt": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "enable_runstop": 1,
+        "pwm_homing": [-300, 300],
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
+            }
+        },
+        'disable_torque_on_stop':1,
+    },
+    "wrist_yaw": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 8.0,
+                "accel_r": 16.0
+            }
+        },
+        'disable_torque_on_stop':1,
+    },
+    "stretch_gripper": {
+        "retry_on_comm_failure": 1,
+        "baud": 57600,
+        "enable_runstop": 1,
+        "motion": {
+            "trajectory_max": {
+                "vel_r": 50.0,
+                "accel_r": 100.0
+            }
+        },
+        'disable_torque_on_stop':1
+    },
+    "tool_none": {
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud':57600,
+        "dxl_latency_timer": 64,
+        'py_class_name': 'ToolNone',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'stow': {'wrist_yaw': 3.4},
+        'devices': {
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            }
+        }
+    },
+    "tool_stretch_gripper": {
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud':57600,
+        "dxl_latency_timer": 64,
+        'py_class_name': 'ToolStretchGripper',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
+        'devices': {
+            'stretch_gripper': {
+                'py_class_name': 'StretchGripper',
+                'py_module_name': 'stretch_body.stretch_gripper'
+            },
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            }
+        },
+        'collision_models': ['collision_stretch_gripper']
+    },
+    "collision_arm_camera": {
+        'enabled': 1,
+        'py_class_name': 'CollisionArmCamera',
+        'py_module_name': 'stretch_body.robot_collision_models'
+    },
+    "collision_stretch_gripper": {
+        'enabled': 1,
+        'py_class_name': 'CollisionStretchGripper',
+        'py_module_name': 'stretch_body.robot_collision_models',
+    },
+    "logging": {
+        "version": 1,
+        "disable_existing_loggers": True,
+        "root": {
+            "level": "DEBUG",
+            "handlers": ["console_handler", "file_handler"],
+            "propagate": False
+        },
+        "handlers": {
+            "console_handler": {
+                "class": "logging.StreamHandler",
+                "level": "INFO",
+                "formatter": "default_console_formatter",
+            },
+            "file_handler": {
+                "class": "logging.FileHandler",
+                "level": "DEBUG",
+                "formatter": "default_file_formatter",
+                "filename": hello_utils.get_stretch_directory('log/') + 'stretchbody_{0}.log'.format(hello_utils.create_time_string())
+            }
+        },
+        "formatters": {
+            "default_console_formatter": {
+                "format": "[%(levelname)s] [%(name)s]: %(message)s"
+            },
+            "brief_console_formatter": {
+                "format": "%(message)s"
+            },
+            "default_file_formatter": {
+                "format": "[%(levelname)-8s] [%(asctime)s.%(msecs)03d] [%(name)s]: %(message)s",
+                "datefmt": "%m/%d/%Y %H:%M:%S"
+            }
+        }
+    },
 }
