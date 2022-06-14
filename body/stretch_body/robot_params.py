@@ -96,7 +96,7 @@ class RobotParams:
         if level in level_names and handler in cls._robot_params['logging']['handlers']:
             cls._robot_params['logging']['handlers'][handler]['level'] = level
 
-# For Reference, the parameter loading organization prior to release of RE1P1
+# For Reference, the parameter loading organization prior to release of RE1.5
 # class RobotParams:
 #     """Build the parameter dictionary that is available as stretch_body.Device().robot_params.
 #
