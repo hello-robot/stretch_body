@@ -54,6 +54,7 @@ class Arm(Device):
         self.status['vel'] = self.motor_rad_to_translate(self.status['motor']['vel'])
         self.status['force'] = self.motor_current_to_translate_force(self.status['motor']['current'])
 
+
     def push_command(self):
         self.motor.push_command()
 
