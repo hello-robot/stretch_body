@@ -257,8 +257,9 @@ class PimuBase(Device):
         print('Low Voltage Alert', self.status['low_voltage_alert'])
         print('High Current Alert', self.status['high_current_alert'])
         print('Over Tilt Alert',self.status['over_tilt_alert'])
-        print('Charger Connected', self.status['charger_connected'])
-        print('Boot Detected', self.status['boot_detected'])
+        if self.board_info['hardware_id']>0:
+            print('Charger Connected', self.status['charger_connected'])
+            print('Boot Detected', self.status['boot_detected'])
         print('Debug', self.status['debug'])
         print('Timestamp (s)', self.status['timestamp'])
         print('Read error', self.transport.status['read_error'])
@@ -549,8 +550,9 @@ class Pimu_Protocol_P1(PimuBase):
             self.status['low_voltage_alert'] = (self.status['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
             self.status['high_current_alert'] = (self.status['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
             self.status['over_tilt_alert'] = (self.status['state'] & self.STATE_OVER_TILT_ALERT) != 0
-            self.status['charger_detected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
-            self.status['boot_detected'] = (self.status['state'] & self.STATE_BOOT_DETECTED) != 0
+            if self.board_info['hardware_id']>0:
+                self.status['charger_detected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
+                self.status['boot_detected'] = (self.status['state'] & self.STATE_BOOT_DETECTED) != 0
             self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
             self.imu.status['timestamp'] = self.status['timestamp']
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2

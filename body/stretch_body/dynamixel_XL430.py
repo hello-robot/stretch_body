@@ -338,7 +338,7 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HELLO_CALIBRATED, int(x))
+            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HELLO_CALIBRATED, int(x!=0))
         self.handle_comm_result('XL430_ADDR_HELLO_CALIBRATED', dxl_comm_result, dxl_error)
 
     def do_reboot(self):
@@ -400,6 +400,15 @@ class DynamixelXL430():
             dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_RETURN_DELAY_TIME, int(x))
         self.handle_comm_result('XL430_ADDR_RETURN_DELAY_TIME', dxl_comm_result, dxl_error)
 
+    def get_return_delay_time(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,
+                                                                              XL430_ADDR_RETURN_DELAY_TIME)
+        self.handle_comm_result('XL430_ADDR_HARDWARE_ERROR_STATUS', dxl_comm_result, dxl_error)
+        return p
+
     def set_pwm(self,x):
         if not self.hw_valid:
             return
@@ -411,6 +420,15 @@ class DynamixelXL430():
         with self.pt_lock:
             dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_CURRENT_LIMIT, int(i))
         self.handle_comm_result('XM430_ADDR_CURRENT_LIMIT', dxl_comm_result, dxl_error)
+
+    def get_current_limit(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id,
+                                                                              XM430_ADDR_CURRENT_LIMIT)
+        self.handle_comm_result('XM430_ADDR_CURRENT_LIMIT', dxl_comm_result, dxl_error)
+        return p
 
     def enable_multiturn(self):
         if not self.hw_valid:
@@ -487,6 +505,14 @@ class DynamixelXL430():
             dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_GOAL_CURRENT, int(i))
         self.handle_comm_result('XM430_ADDR_GOAL_CURRENT', dxl_comm_result, dxl_error)
 
+    def get_goal_current(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id,
+                                                                              XM430_ADDR_GOAL_CURRENT)
+        self.handle_comm_result('XM430_ADDR_GOAL_CURRENT', dxl_comm_result, dxl_error)
+        return p
 
     def go_to_pos(self,x):
         if not self.hw_valid:
@@ -532,7 +558,6 @@ class DynamixelXL430():
             xn, dxl_comm_result, dxl_error=  self.read_int16_t(XL430_ADDR_PRESENT_PWM)
         self.handle_comm_result('XL430_ADDR_PRESENT_PWM', dxl_comm_result, dxl_error)
         return xn
-
 
     def set_profile_velocity(self,v):
         if not self.hw_valid:
@@ -635,7 +660,6 @@ class DynamixelXL430():
             dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TEMPERATURE_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_TEMPERATURE_LIMIT', dxl_comm_result, dxl_error)
 
-
     def get_max_voltage_limit(self):
         if not self.hw_valid:
             return 0
@@ -703,7 +727,6 @@ class DynamixelXL430():
             dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_POS_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_MIN_POS_LIMIT', dxl_comm_result, dxl_error)
 
-
     def get_min_pos_limit(self):
         if not self.hw_valid:
             return 0
@@ -726,6 +749,15 @@ class DynamixelXL430():
         with self.pt_lock:
             dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING_THRESHOLD, int(x))
         self.handle_comm_result('XL430_ADDR_MOVING_THRESHOLD', dxl_comm_result, dxl_error)
+
+    def get_moving_threshold(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id,
+                                                                              XL430_ADDR_MOVING_THRESHOLD)
+        self.handle_comm_result('XL430_ADDR_MOVING_THRESHOLD', dxl_comm_result, dxl_error)
+        return p
 
     def set_pwm_limit(self,x): #0(0%) ~ 885(100%
         if not self.hw_valid:

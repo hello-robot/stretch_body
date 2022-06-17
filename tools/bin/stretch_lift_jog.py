@@ -19,8 +19,6 @@ l=lift.Lift()
 if not l.startup(threaded=False):
     exit()
 l.motor.disable_sync_mode()
-#l.motor.disable_runstop()
-#l.motor.disable_guarded_mode()
 l.push_command()
 
 def get_keystroke():
