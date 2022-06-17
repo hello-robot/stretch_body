@@ -227,10 +227,6 @@ class StepperBase(Device):
             self.gains=g.copy()
             self._dirty_gains = True
 
-    def write_gains_to_YAML(self):
-        self.params['gains']=self.gains.copy()
-        self.write_device_params(self.name,self.params)
-
     def write_gains_to_flash(self):
         with self.lock:
             self._trigger = self._trigger | self.TRIGGER_WRITE_GAINS_TO_FLASH

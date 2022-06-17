@@ -31,15 +31,15 @@ class TestEndOfArmTools(unittest.TestCase):
         """Verify that cleanly handle wrong baudrate exceptions
         """
         import stretch_body.hello_utils
-        up = stretch_body.hello_utils.read_fleet_yaml('stretch_re1_user_params.yaml')
+        up = stretch_body.hello_utils.read_fleet_yaml('stretch_user_params.yaml')
         up_stash=copy.deepcopy(up)
         if 'tool_none' not in up:
             up['tool_none']={}
         up['tool_none']['baud'] = 1000000 #Set baud to something not supported
-        stretch_body.hello_utils.write_fleet_yaml('stretch_re1_user_params.yaml', up)
+        stretch_body.hello_utils.write_fleet_yaml('stretch_user_params.yaml', up)
         import stretch_body.end_of_arm_tools
         e = stretch_body.end_of_arm_tools.ToolNone()
         success = e.startup()
-        stretch_body.hello_utils.write_fleet_yaml('stretch_re1_user_params.yaml', up_stash)
+        stretch_body.hello_utils.write_fleet_yaml('stretch_user_params.yaml', up_stash)
         self.assertFalse(success)
 

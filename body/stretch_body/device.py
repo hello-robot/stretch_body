@@ -93,10 +93,24 @@ class Device:
         print('----- {0} ------ '.format(self.name))
         hello_utils.pretty_print_dict("params", self.params)
 
-    def write_device_params(self,device_name, params,fleet_dir=None):
-        rp=hello_utils.read_fleet_yaml(self.user_params['factory_params'],fleet_dir=fleet_dir)
-        rp[device_name]=params
-        hello_utils.write_fleet_yaml(self.user_params['factory_params'],rp,fleet_dir=fleet_dir)
+    def write_configuration_param_to_YAML(self,param_name,value,fleet_dir=None):
+        """
+        Update the robot configuration YAML with a new value
+        The param_name has the form device.key, or for a nested dictionary, device.key1.key2...
+        For example, write_configuration_param_to_YAML('pimu.config.cliff_zero',100) will set this value to 100 in the YAML
+        """
+        cp = hello_utils.read_fleet_yaml('stretch_configuration_params.yaml', fleet_dir=fleet_dir)
+        param_keys=param_name.split('.')
+        d=cp
+        for param_key in param_keys:
+            if param_key in d:
+                if param_key==param_keys[-1]:
+                    d[param_key] = value
+                else:
+                    d = d[param_key]
+            else:
+                print('Improper param_name in write_configuration_param. Not able to update %s' % param_name)
+        hello_utils.write_fleet_yaml('stretch_configuration_params.yaml', cp, fleet_dir=fleet_dir)
 
     # ########### Thread interface #############
 

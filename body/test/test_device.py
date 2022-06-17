@@ -1,10 +1,33 @@
 import unittest
 import stretch_body.device
-
+import stretch_body.hello_utils
 import time
 
 
 class TestDevice(unittest.TestCase):
+
+
+    def test_write_configuration_params(self):
+        """
+        Check that we don't mangle the format when writing config params to YAML
+        """
+        print('Testing test_write_configuration_params')
+        d=stretch_body.device.Device()
+        cp = stretch_body.hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
+        for k in cp.keys(): #Write existing values up to 3 dict layers deep
+            key1=k
+            d.write_configuration_param_to_YAML(key1,cp[k])
+            if type(cp[k]) is dict:
+                for j in cp[k].keys():
+                    key2=key1+'.'+j
+                    d.write_configuration_param_to_YAML(key2, cp[k][j])
+                    if type(cp[k][j]) is dict:
+                        for l in cp[k][j].keys():
+                            key3 = key2 + '.' + l
+                            d.write_configuration_param_to_YAML(key3, cp[k][j][l])
+        new_cp=stretch_body.hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
+        self.assertTrue(cp==new_cp)
+
 
     def test_disable_existing_loggers(self):
         """Test multiple instances of device class all have enabled loggers.
