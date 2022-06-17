@@ -96,6 +96,8 @@ def read_fleet_yaml(f,fleet_dir=None):
 def write_fleet_yaml(fn,rp,fleet_dir=None,header=None):
     if fleet_dir is None:
         fleet_dir = get_fleet_directory()
+    if fleet_dir[-1]!='/':
+        fleet_dir+='/'
     with open(fleet_dir+fn, 'w') as yaml_file:
         if header is not None:
             yaml_file.write(header)
