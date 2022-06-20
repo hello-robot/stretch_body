@@ -54,7 +54,8 @@ class RobotParams:
     """
     if not exists(hello_utils.get_fleet_directory()+'stretch_user_params.yaml') or not exists(hello_utils.get_fleet_directory()+'stretch_configuration_params.yaml'):
         _valid_params=False
-        print('Stretch parameter files out of date. Please run tool RE1_migrate_params.py before continuing.')
+        print('Stretch parameter files require migration to the newest format.')
+        print('Please run tool RE1_migrate_params.py before continuing.')
         sys.exit(1)
     else:
         _user_params = hello_utils.read_fleet_yaml('stretch_user_params.yaml')
