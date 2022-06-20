@@ -541,7 +541,9 @@ class StepperBase(Device):
         with self.lock:
             sidx=0
             self.board_info['board_variant'] = unpack_string_t(s[sidx:], 20).strip('\x00')
-            self.board_info['hardware_id']=int(self.board_info['board_variant'][-1])
+            self.board_info['hardware_id'] = 0
+            if len(self.board_info['board_variant'])==9: #New format of Stepper.x  Older format of Stepper.BoardName.Vx' If older format,default to 0
+                self.board_info['hardware_id']=int(self.board_info['board_variant'][-1])
             sidx += 20
             self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
             self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]
