@@ -93,6 +93,9 @@ class Device:
         print('----- {0} ------ '.format(self.name))
         hello_utils.pretty_print_dict("params", self.params)
 
+    def write_device_params(self,device_name, params,fleet_dir=None):
+        raise DeprecationWarning('This method has been deprecated since v0.3.0')
+
     def write_configuration_param_to_YAML(self,param_name,value,fleet_dir=None):
         """
         Update the robot configuration YAML with a new value
