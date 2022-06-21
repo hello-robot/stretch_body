@@ -45,7 +45,7 @@ class WaccBase(Device):
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
                        'timestamp': 0,
                        'transport': self.transport.status}
-        self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
+        self.board_info = {'board_variant': None, 'firmware_version': None, 'protocol_version': None,'hardware_id':0}
         self.hw_valid = False
 
     # ###########  Device Methods #############
@@ -129,7 +129,7 @@ class WaccBase(Device):
         print('State ', self.status['state'])
         print('Debug',self.status['debug'])
         print('Timestamp (s)', self.status['timestamp'])
-        print('Board version:', self.board_info['board_version'])
+        print('Board variant:', self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
 
     # ####################### Utility functions ####################################################
@@ -143,7 +143,10 @@ class WaccBase(Device):
     def unpack_board_info(self,s):
         with self.lock:
             sidx=0
-            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['board_variant'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['hardware_id'] = 0
+            if len(self.board_info['board_variant'])==6: #New format of Wacc.x  Older format of Wacc.BoardName.Vx' If older format,default to 0
+                self.board_info['hardware_id']=int(self.board_info['board_variant'][-1])
             sidx += 20
             self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20)
             self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]

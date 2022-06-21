@@ -249,7 +249,6 @@ class Lift(Device):
             if contact_thresh_pos_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][1])
 
         #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate_m(v_r), self.motor_rad_to_translate_m(a_r)))
-
         self.motor.set_command(mode = Stepper.MODE_POS_TRAJ_INCR,
                                 x_des=self.translate_to_motor_rad(x_m),
                                 v_des=v_r,
