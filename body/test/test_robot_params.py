@@ -7,7 +7,7 @@ class TestRobotParams(unittest.TestCase):
     def test_getting_params(self):
         """Test class method robot_params.get_params()
 
-        Note: this test will fail if stretch_re1_user_params.yaml doesn't exist.
+        Note: this test will fail if stretch_user_params.yaml doesn't exist.
         """
         # TODO: skip if user yaml doesn't exist
         # if not user_yaml:

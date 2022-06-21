@@ -11,7 +11,7 @@ stretch_scripts={script_path+'/'+f for f in listdir(script_path) if isfile(join(
 
 setuptools.setup(
     name="hello_robot_stretch_body_tools",
-    version="0.2.1",
+    version="0.3.0",
     author="Hello Robot Inc",
     author_email="support@hello-robot.com",
     description="Stretch Body Tools",
@@ -21,7 +21,7 @@ setuptools.setup(
     scripts = stretch_scripts,
     packages=setuptools.find_packages(),
     classifiers=[
-        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
         "License :: OSI Approved :: Apache Software License"
     ],
@@ -30,7 +30,7 @@ setuptools.setup(
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'scikit-image', 'open3d', 'pyrealsense2',
                       'pyglet == 1.4.10; python_version < "3.0"', 'trimesh==3.6.38', 'urdfpy', # required for urdfpy viz in py2
                       'pyyaml>=5.1', # required for yaml.FullLoader
-                      'hello-robot-stretch-body']
+                      'hello-robot-stretch-body>=0.3.0']
 )
 
 #classifiers = [

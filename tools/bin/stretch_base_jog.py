@@ -80,7 +80,7 @@ try:
             #time.sleep(0.1)
             b.pull_status()
             #print('################################'
-            #b.pretty_print()
+            b.pretty_print()
 
             if c=='p':
                 b.pretty_print()

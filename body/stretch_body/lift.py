@@ -167,7 +167,11 @@ class Lift(Device):
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('Lift not calibrated')
                 return
+            old_x_m = x_m
             x_m = min(max(self.soft_motion_limits['current'][0], x_m), self.soft_motion_limits['current'][1]) #Only clip motion when calibrated
+            if x_m != old_x_m:
+                self.logger.debug('Clipping move_to({0}) with soft limits {1}'.format(old_x_m, self.soft_motion_limits['current']))
+
         if stiffness is not None:
             stiffness = max(0, min(1.0, stiffness))
         else:
@@ -214,10 +218,13 @@ class Lift(Device):
                 self.logger.warning('Lift not calibrated')
                 return
 
+            old_x_m = x_m
             if self.status['pos'] + x_m < self.soft_motion_limits['current'][0]:  #Only clip motion when calibrated
                 x_m = self.soft_motion_limits['current'][0] - self.status['pos']
             if self.status['pos'] + x_m > self.soft_motion_limits['current'][1]:
                 x_m = self.soft_motion_limits['current'][1] - self.status['pos']
+            if x_m != old_x_m:
+                self.logger.debug('Clipping {0} + move_by({1}) with soft limits {2}'.format(self.status['pos'], old_x_m, self.soft_motion_limits['current']))
 
         if stiffness is not None:
             stiffness = max(0, min(1.0, stiffness))
@@ -242,7 +249,6 @@ class Lift(Device):
             if contact_thresh_pos_N is not None else self.translate_force_to_motor_current(self.params['contact_thresh_N'][1])
 
         #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate_m(v_r), self.motor_rad_to_translate_m(a_r)))
-
         self.motor.set_command(mode = Stepper.MODE_POS_TRAJ_INCR,
                                 x_des=self.translate_to_motor_rad(x_m),
                                 v_des=v_r,

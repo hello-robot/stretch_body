@@ -145,6 +145,8 @@ class PimuBase(Device):
     STATE_LOW_VOLTAGE_ALERT = 256
     STATE_OVER_TILT_ALERT = 512
     STATE_HIGH_CURRENT_ALERT = 1024
+    STATE_CHARGER_CONNECTED = 2048
+    STATE_BOOT_DETECTED = 4096
 
     TRIGGER_BOARD_RESET = 1
     TRIGGER_RUNSTOP_RESET = 2
@@ -171,7 +173,7 @@ class PimuBase(Device):
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
-                       'imu': self.imu.status,'debug':0,'state':0,'motor_sync_drop':0,
+                       'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'motor_sync_drop':0,
                        'transport': self.transport.status}
         self._trigger=0
         self.ts_last_fan_on=None
@@ -181,7 +183,7 @@ class PimuBase(Device):
             self.runstop_event_reset()
             self.cliff_event_reset()
 
-        self.board_info = {'board_version': None, 'firmware_version': None, 'protocol_version': None}
+        self.board_info = {'board_variant': None, 'firmware_version': None, 'protocol_version': None,'hardware_id':0}
         self.hw_valid = False
         self.ts_last_motor_sync=None
         self.ts_last_motor_sync_warn=None
@@ -255,11 +257,14 @@ class PimuBase(Device):
         print('Low Voltage Alert', self.status['low_voltage_alert'])
         print('High Current Alert', self.status['high_current_alert'])
         print('Over Tilt Alert',self.status['over_tilt_alert'])
+        if self.board_info['hardware_id']>0:
+            print('Charger Connected', self.status['charger_connected'])
+            print('Boot Detected', self.status['boot_detected'])
         print('Debug', self.status['debug'])
         print('Timestamp (s)', self.status['timestamp'])
         print('Read error', self.transport.status['read_error'])
         print('Dropped motor sync',self.status['motor_sync_drop'])
-        print('Board version:',self.board_info['board_version'])
+        print('Board variant:',self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
         self.imu.pretty_print()
 
@@ -366,7 +371,10 @@ class PimuBase(Device):
     def unpack_board_info(self,s):
         with self.lock:
             sidx=0
-            self.board_info['board_version'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['board_variant'] = unpack_string_t(s[sidx:], 20)
+            self.board_info['hardware_id'] = 0
+            if len(self.board_info['board_variant'])==6: #New format of Pimu.x Older format of Pimu.BoardName.Vx' If older format,default to 0
+                self.board_info['hardware_id']=int(self.board_info['board_variant'][-1])
             sidx += 20
             self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20)
             self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]
@@ -507,6 +515,8 @@ class Pimu_Protocol_P0(PimuBase):
             self.status['low_voltage_alert'] = (self.status['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
             self.status['high_current_alert'] = (self.status['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
             self.status['over_tilt_alert'] = (self.status['state'] & self.STATE_OVER_TILT_ALERT) != 0
+            self.status['charger_detected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
+            self.status['boot_detected'] = (self.status['state'] & self.STATE_BOOT_DETECTED) != 0
             self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
             self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
@@ -542,7 +552,9 @@ class Pimu_Protocol_P1(PimuBase):
             self.status['low_voltage_alert'] = (self.status['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
             self.status['high_current_alert'] = (self.status['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
             self.status['over_tilt_alert'] = (self.status['state'] & self.STATE_OVER_TILT_ALERT) != 0
-
+            if self.board_info['hardware_id']>0:
+                self.status['charger_detected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
+                self.status['boot_detected'] = (self.status['state'] & self.STATE_BOOT_DETECTED) != 0
             self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
             self.imu.status['timestamp'] = self.status['timestamp']
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
