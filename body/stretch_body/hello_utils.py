@@ -107,13 +107,15 @@ def write_fleet_yaml(fn,rp,fleet_dir=None,header=None):
 def overwrite_dict(overwritee_dict, overwriter_dict):
     for k in overwriter_dict.keys():
         if k in overwritee_dict:
-            if type(overwritee_dict[k])==type(overwriter_dict[k]):
+            if (type(overwritee_dict[k])==type(overwriter_dict[k])) or (type(overwritee_dict[k])==int and type(overwriter_dict[k])==float) or (type(overwritee_dict[k])==float and type(overwriter_dict[k])==int):
                 if type(overwritee_dict[k])==dict:
                     overwrite_dict(overwritee_dict[k],overwriter_dict[k])
                 else:
                     overwritee_dict[k]=overwriter_dict[k]
             else:
                 print('Overwritting Robot Params. Type mismatch for key:',k)
+                print('Overwriter',overwriter_dict[k])
+                print('Overwritee', overwritee_dict[k])
         else: #If key not present, add anyhow (useful for adding new params)
             overwritee_dict[k] = overwriter_dict[k]
 
