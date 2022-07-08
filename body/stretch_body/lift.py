@@ -7,6 +7,7 @@ import time
 import math
 
 
+
 class Lift(Device):
     """
     API to the Stretch RE1 Lift
@@ -30,6 +31,13 @@ class Lift(Device):
                                    'current': [self.params['range_m'][0], self.params['range_m'][1]]}
         self.motor.set_motion_limits(self.translate_to_motor_rad(self.soft_motion_limits['current'][0]),
                                      self.translate_to_motor_rad(self.soft_motion_limits['current'][1]))
+
+
+        ######CURRENT MODEL PARAMETERS########
+        self.model_coefficients = 0
+        self.pause_time = 2000
+        self.test_positions = [0, 50, 0, -50, 0] #CHANGE TO FUNCTION OF ACTUAL POSITIONS
+
     # ###########  Device Methods #############
     def startup(self, threaded=True):
         Device.startup(self, threaded=threaded)

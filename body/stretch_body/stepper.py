@@ -6,6 +6,8 @@ import textwrap
 import threading
 import sys
 import time
+import numpy
+from numpy import linalg as LA
 
 # ######################## STEPPER #################################
 
@@ -104,7 +106,7 @@ class StepperBase(Device):
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0,
-                       'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,}}
+                       'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,},'accel_mg':0,'vel_mg':0}
         self.board_info={'board_version':None, 'firmware_version':None,'protocol_version':None}
         self.motion_limits=[0,0]
         self.is_moving_history = [False] * 10
@@ -125,6 +127,193 @@ class StepperBase(Device):
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.hw_valid=False
         self.gains = self.params['gains'].copy()
+
+        ###########################MODEL COEFFICIENTS HERE##################
+        self.model_coefficients = None
+        self.torque_coefficients = None
+
+        ##########################HARD CODED CONSTANTS HERE (SHOULD ANY BE REFERENCED TO YAML FILE?#
+        self.mass = 0.35 + 2.5  # kilograms
+        self.grav = 9.81  # meters per second squared, should be zero for wacc?
+        self.pulley_rad = 0.2  # meters
+        self.gear_ratio = 1  # unitless
+        self.static_friction = 13  # newtons
+        self.velocity_friction_constant = 100  # newtons per meter/second
+        self.pause_time = 1000 ###for initial data collection
+        self.test_positions = [0, 50, 0, 50, 0, 0.5*50, 0, 0.5*50, 0] #Test positions here are for collecting data, should be elsewhere?
+
+
+
+
+
+
+
+
+    #######################START MOTOR MODEL CODE#########################
+
+    """Call setup_current_model when motor is on in order to run sweeps and get coefficients for model"""
+    """MOTOR MUST BE SET UP FIRST"""
+    def setup_current_model(self):
+        A, b = self.get_least_squares_params()
+        x = LA.lstsq(A.T, b, rcond=0)[0]
+        self.model_coefficients = x
+
+    def get_least_squares_params(self):
+        print("Starting data gathering")
+        current_values = []
+        velocity_mg_values = []
+        acceleration_mg_values = []
+
+        for destination in self.test_positions:
+            print(destination)
+            self.motor.pull_status()
+            self.motor.set_command(x_des=destination)
+            self.motor.push_command()
+
+            # Gathering data while moving
+            while not self.motor.status['near_pos_setpoint']:
+                self.motor.pull_status()
+
+                current_values.append(self.motor.status['current'])
+                velocity_mg_values.append(self.motor.status['vel_mg'])
+                acceleration_mg_values.append(self.motor.status['accel_mg'])
+
+            # A rather hacky way to pause while still generating data
+            t = 0
+            while t < self.pause_time:
+                self.motor.pull_status()
+
+                current_values.append(self.motor.status['current'])
+                velocity_mg_values.append(self.motor.status['vel_mg'])
+                acceleration_mg_values.append(self.motor.status['accel_mg'])
+
+                t = t + 1
+
+        # velocity values and previous values
+        A_list = [np.array(velocity_mg_values), np.array(acceleration_mg_values)]
+
+        A = self.get_features(A_list)
+
+        b = np.array(current_values)
+
+        return A, b
+
+    def get_features(self, linear_features): ####NOTE THERE ARE FOUR FEATURES, SO STORE AS FOUR FLOATS################
+        velocity = linear_features[0]
+        acceleration = linear_features[1]
+        A = np.vstack((np.ones((np.shape(velocity))), velocity,
+                       np.sign(velocity) * (np.minimum(velocity * np.sign(acceleration), 0)),
+                       np.sign(acceleration) * (np.minimum(acceleration * np.sign(velocity), 0))))
+        return A
+
+    ######################END MOTOR MODEL CODE########################################
+
+
+
+    ######################START TORQUE MODEL CODE#####################################
+
+    """Set up the coefficients with a few sweeps as usual"""
+    def setup_torque_model(self, end_positions):
+        A, b = self.get_torque_params(end_positions)
+        coefficients = self.get_torque_model(A, b)
+        self.torque_coefficients = coefficients
+
+
+
+    """Calculate the expected torque given the speed, current, and acceleration (sometimes?)"""
+    def calculate_expected_torque(self):
+        assert self.torque_coefficients is not None
+        self.motor.pull_status()
+        current = self.motor.status['current']
+        vel = self.motor.status['vel_mg']
+        acc = self.motor.status['accel_mg']
+        A_list = [np.array(vel), np.array(current), np.array(acc)]
+
+        A = self.get_torque_features(A_list)
+
+        return np.dot(A, self.torque_coefficients)
+
+
+
+
+    ######################TORQUE MODEL UTILS#############################
+
+    """Get the A and b by running motor a bunch of times, getting data, getting features from data, and turning into matrix"""
+    def get_torque_params(self, test_end_positions):
+        print("Starting data gathering")
+        current_values = []
+        velocity_mg_values = []
+        torque_values = []
+        acc_values = []
+
+        for destination in test_end_positions:
+            print(destination)
+            self.motor.pull_status()
+            self.motor.set_command(x_des=destination)
+            self.motor.push_command()
+
+            while not self.motor.status['near_pos_setpoint']:
+                self.motor.pull_status()
+                current = self.motor.status['current']
+                vel = self.motor.status['vel_mg']
+                acc = self.motor.status['accel_mg']
+
+                current_values.append(current)
+                velocity_mg_values.append(vel)
+                acc_values.append(acc)
+
+                force = (self.grav + acc) * self.mass + self.velocity_friction_constant * np.sign(vel)
+                torque = self.calculate_torque(force)
+                torque_values.append(torque)
+
+            t = 0
+            while t < self.pause_time:
+                self.motor.pull_status()
+                current = self.motor.status['current']
+                vel = self.motor.status['vel_mg']
+                acc = self.motor.status['accel_mg']
+
+                current_values.append(current)
+                velocity_mg_values.append(vel)
+                acc_values.append(acc)
+
+                force = (self.grav + acc) * self.mass + self.velocity_friction_constant * np.sign(vel)
+                torque = self.calculate_torque(force)
+                torque_values.append(torque)
+
+                t = t + 1
+
+        # ax = plt.axes(projection='3d')
+        # ax.scatter3D(velocity_mg_values, current_values, torque_values, c=torque_values)
+        # plt.show()
+
+        A_list = [np.array(velocity_mg_values), np.array(current_values), np.array(acc_values)]
+
+        A = self.get_torque_features(A_list)
+
+        b = np.array(torque_values)
+
+        return A, b
+
+    """Get possibly higher order features from linear features fed in (current_amplitude, temperature, current_frequency)"""
+    def get_torque_features(self, linear_features):
+        # A = np.vstack((linear_features[0], linear_features[1]))
+        velocity = linear_features[0]
+        current = linear_features[1]
+        acceleration = linear_features[2]
+
+        A = np.vstack((np.ones((np.shape(velocity))), np.sign(velocity), current * np.sign(velocity),
+                       np.square(current) * np.sign(velocity)))
+
+        return A
+
+    """Get the torque from the input force"""
+    def calculate_torque(self, force):
+        return force * self.pulley_rad * self.gear_ratio
+
+    """Solve least squares with A and b to get the x such that Ax - b is minimized in L2 norm (can change if needed?)"""
+    def get_torque_model(self, A, b):
+        return LA.lstsq(A.T, b, rcond=0)[0]
 
     # ###########  Device Methods #############
     def startup(self, threaded=False):
@@ -647,6 +836,17 @@ class StepperBase(Device):
                 config = config | self.CONFIG_FLIP_EFFORT_POLARITY
 
             pack_uint8_t(s, sidx, config); sidx += 1
+
+            #######################MOTOR MODEL COEFFICIENTS####################################################
+            assert self.model_coefficients is not None
+            pack_float_t(s, sidx, self.model_coefficients[0]);sidx += 4
+            pack_float_t(s, sidx, self.model_coefficients[1]);sidx += 4
+            pack_float_t(s, sidx, self.model_coefficients[2]);sidx += 4
+            pack_float_t(s, sidx, self.model_coefficients[3]);sidx += 4
+
+            #######################MOTOR MODEL MARGIN (WHERE SHOULD PARAM BE SET?)#############################
+            pack_float_t(s, sidx, 1.0);sidx += 4
+
             return sidx
 
     def pack_trigger(self, s, sidx):
@@ -762,6 +962,7 @@ class Stepper_Protocol_P0(StepperBase):
         print('Feedforward', self._command['i_feedforward'])
         print('Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos']))
         print('Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel']))
+
         print('Effort', self.status['effort'])
         print('Current (A)', self.status['current'])
         print('Error (deg)', rad_to_deg(self.status['err']))
@@ -824,6 +1025,14 @@ class Stepper_Protocol_P1(StepperBase):
                 self.status['waypoint_traj']['state']='active'
             else:
                 self.status['waypoint_traj']['state']='idle'
+
+            self.status['accel_mg'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.status['vel_mg'] = unpack_float_t(s[sidx:]);sidx += 4
+
+            # MOTOR EXPECTED CURRENT HERE
+            self.status['expected_current'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.status['has_collided'] = s[sidx]; sidx += 1 #IS THIS CORRECT?
+
             return sidx
 
     def pretty_print(self):
@@ -836,6 +1045,8 @@ class Stepper_Protocol_P1(StepperBase):
         print('Feedforward', self._command['i_feedforward'])
         print('Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos']))
         print('Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel']))
+        print('Vel MG (rad/s)', self.status['vel_mg'], '(deg)', rad_to_deg(self.status['vel_mg']))
+        print('Accel MG (rad/s^2)', self.status['accel_mg'], '(deg)', rad_to_deg(self.status['accel_mg']))
         print('Effort', self.status['effort'])
         print('Current (A)', self.status['current'])
         print('Error (deg)', rad_to_deg(self.status['err']))
