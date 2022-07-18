@@ -1,6 +1,6 @@
 ![](./images/banner.png)
 # Working with Stretch Body
-The Stretch_Body package provides a pure Python SDK to the Stretch RE1 hardware.  
+The Stretch_Body package provides a low level Python API to the Stretch RE1 hardware.  
 
 The package is available on [Git and installable via Pip](https://github.com/hello-robot/stretch_body).
 
@@ -29,7 +29,7 @@ The primary developer interface to  Stretch_Body is the [Robot class](https://gi
 
 As an example, the Python script below prints all Robot sensor and state data to the console every 250ms. 
 
-```python
+```python linenums="1"
 import time
 import stretch_body.robot
 
@@ -41,36 +41,37 @@ for i in range(10):
 	time.sleep(0.25)
 	
 robot.stop()
+
 ```
 
 Looking at this in detail:
 
-```python
+```python linenums="2"
 import stretch_body.robot
 ```
 
 The package stretch_body includes the Python module for Robot as well as other Devices such as Lift and Arm.
 
-```python
+```python linenums="4"
 robot=stretch_body.robot.Robot()
 robot.startup()
 ```
 
-Here we instantiate an instance of our Robot. The call to startup( ) opens the serial ports to the various devices, loads the Robot YAML parameters, and launches a few helper threads.
+Here we instantiate an instance of our Robot. The call to `startup()` opens the serial ports to the various devices, loads the Robot YAML parameters, and launches a few helper threads.
 
-```python
+```python linenums="7"
 for i in range(10):
 	robot.pretty_print()
 	time.sleep(0.25)
 ```
 
-The call to pretty_print( ) prints to console all of the robot's sensor and state data. 
+The call to `pretty_print()` prints to console all of the robot's sensor and state data.
 
-```python
+```python linenums="11"
 robot.stop()
 ```
 
-Finally, the stop( ) method shuts down the Robot threads and cleanly closes the open serial ports.
+Finally, the `stop()` method shuts down the Robot threads and cleanly closes the open serial ports.
 
 ### Units
 
@@ -92,9 +93,9 @@ Parameters may be named with a suffix to help describe the unit type. For exampl
 
 The Robot derives from the [Device class](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/device.py). It also encapsulates a number of other Devices:
 
-* [robot.head](.https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/head.py)
+* [robot.head](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/head.py)
 * [robot.arm](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/arm.py)
-* [robot.lift](.https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/lift.py)
+* [robot.lift](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/lift.py)
 * [robot.base](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/base.py)
 * [robot.wacc](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/wacc.py)
 * [robot.pimu](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/pimu.py)
@@ -114,15 +115,15 @@ The Status dictionaries are  automatically updated by a background thread of the
 
 ```python
 if robot.arm.status['pos']>0.25:
-    print 'Arm extension greater than 0.25m'
+    print('Arm extension greater than 0.25m')
 ```
 
-If an instantaneous snapshot of the entire Robot Status is needed, the get_status() method can be used instead:
+If an instantaneous snapshot of the entire Robot Status is needed, the `get_status()` method can be used instead:
 
 ```python
 status=robot.get_status()
 if status['arm']['pos']>0.25:
-    print 'Arm extension greater than 0.25m'
+    print('Arm extension greater than 0.25m')
 ```
 
 ### The Robot Command
@@ -131,7 +132,7 @@ In contrast to the Robot Status which pulls data from the Devices, the Robot Com
 
 Consider the following example which extends and then retracts the arm by 0.1 meters:
 
-```python
+```python linenums="1"
 import time
 import stretch_body.robot
 
@@ -151,23 +152,23 @@ robot.stop()
 
 A few important things are going on:
 
-```
+```python linenums="7"
 robot.arm.move_by(0.1)
 ```
 
-The move_by( ) method queues up an RPC command to the stepper motor controller. However, the command does not yet execute.
+The `move_by()` method queues up an RPC command to the stepper motor controller. However, the command does not yet execute.
 
-```
+```python linenums="8"
 robot.push_command()
 ```
 
-The push_command( ) causes all queued up RPC commands to be executed at once.  In this example we call sleep( ) to allow time for the motion to complete before initiating a new motion.
+The `push_command()` causes all queued up RPC commands to be executed at once.  In this example we call `sleep()` to allow time for the motion to complete before initiating a new motion.
 
 **NOTE**: The Dynamixel servos do not use the Hello Robot RPC protocol. As such, the head, wrist, and gripper will move immediately upon issuing a motion command. 
 
 The stepper actuators support a synchronous mode, allowing the base, arm, and lift to synchronously track trajectories.  Thus, the following code will cause the base, arm, and lift to initiate motion simultaneously:
 
-```
+```python
 robot.arm.move_by(0.1)
 robot.lift.move_by(0.1)
 robot.base.translate_by(0.1)
@@ -178,7 +179,7 @@ Commanding robot motion through the Stretch_Body interface is covered in more de
 
 ### Stowing and Homing
 
-After power up the robot requires homing in order for its joint encoders to find their zero position. The homing procedure will run the robot through a series of moves to find these zeros. It can be done programmatically:
+After power up the robot requires homing in order for its joint encoders to find their zero position. The homing procedure will run the robot through a series of moves to find these zeros. It can be done programatically:
 
 ```python
 if not robot.is_calibrated():
@@ -187,8 +188,8 @@ if not robot.is_calibrated():
 
 Or it can be done manually after boot using the command line tool:
 
-```bash
->>$ stretch_robot_home.py 
+```console
+$ stretch_robot_home.py
 ```
 
 Likewise, stowing is a robot procedure that will cause it to move its arm and tool safely within the footprint of the base. 
@@ -199,16 +200,17 @@ robot.stow() #blocking
 
 Or it can be done manually from the command line when needed:
 
-```bash
->>$ stretch_robot_stow.py 
+```console
+$ stretch_robot_stow.py
 ```
 
 ## Scripting the Robot
 
 A simplified design pattern to script the Robot is as follows
 
-```python
+```python linenums="1"
 #!/usr/bin/env python
+import time
 import stretch_body.robot
 from stretch_body.hello_utils import ThreadServiceExit
 
@@ -249,7 +251,7 @@ try:
         
         #Wait for next control cycle
         time.sleep(0.1)
-except (KeyboardInterrupt, SystemExit,ThreadServiceExit)
+except (KeyboardInterrupt, SystemExit, ThreadServiceExit)
     pass
 
 robot.stop()
@@ -261,9 +263,8 @@ The Stretch_Body package comes with a suite of command line tools that allow dir
 
 These tools can be found by tab completion of  'stretch_' from a terminal.
 
-```bash
->>$ stretch_
-
+```console
+$ stretch_
 
 stretch_about.py                   
 stretch_gripper_home.py            
@@ -298,8 +299,8 @@ stretch_wacc_jog.py
 
 All tools accept '--help' as a command line argument to learn its function. For example:
 
-```bash
->>$ stretch_wacc_scope.py --help
+```console
+$ stretch_wacc_scope.py --help
 usage: stretch_wacc_scope.py [-h] [--ax] [--ay] [--az] [--a0] [--d0] [--d1]
                              [--tap]
 
@@ -336,9 +337,9 @@ The other tools are fairly self explanatory. They allow the user to quickly read
 
 Controlling the motion of the robot's actuators is typically done through the ROS interfaces. However it is also possible to control the robot directly through the  stretch_body interfaces. 
 
-Actuators are  commanded by either a **move_by** or **move_to** command (the former being incremental, the latter being absolute). For example, a relative move using the default motion parameters of the arm looks like:
+Actuators are commanded by either a `move_by` or `move_to` command (the former being incremental, the latter being absolute). For example, a relative move using the default motion parameters of the arm looks like:
 
-```
+```python linenums="1"
 import stretch_body.robot
 robot=stretch_body.robot.Robot()
 robot.startup()
@@ -375,9 +376,8 @@ To move the arm quickly instead:
 vel_fast_m = robot.arm.params['motion']['fast']['vel_m']
 accel_fast_m = robot.arm.params['motion']['fast']['accel_m']
 
-robot.arm.move_by(x_m=0.1,v_m=vel_fast_m, a_m=accel_fast_m)
+robot.arm.move_by(x_m=0.1, v_m=vel_fast_m, a_m=accel_fast_m)
 robot.push_command()
-
 ```
 
 The motion will fall back to the 'default' settings found in the YAML if no parameters are provided.
@@ -408,7 +408,7 @@ Each joint has a default safety mode and default control mode.  These are:
 | wrist_yaw       | Torque disabled             | Trapezoidal position control |
 | stretch_gripper | Torque disabled             | Trapezoidal position control |
 
-The actuator remains in Safety Mode when no program is running. When the device.startup( ) function is called it transitions to its Control Mode. It is placed back in Safety Mode when device.stop() is called.
+The actuator remains in Safety Mode when no program is running. When the `<device>.startup()` function is called it transitions to its Control Mode. It is placed back in Safety Mode when `<device>.stop()` is called.
 
 In addition, the Base supports a velocity control mode. The Base controllers will automatically switch between velocity and position based control.  For example:
 
@@ -433,7 +433,7 @@ Runstop activation will cause  the Base, Arm, and Lift to switch to Safety Mode 
 
 ```python
 if robot.pimu.status['runstop_event']:
-	robot.pimu.runstop_event_reset()
+    robot.pimu.runstop_event_reset()
     robot.push_command()
 ```
 
@@ -467,7 +467,7 @@ When a guarded motion event has occurred it is reported in the Status:
 
 ```python
 if robot.arm.motor.status['in_guarded_event']:
-	print 'Arm has made contact'
+	print('Arm has made contact')
 ```
 
 The guarded event can be reset and motion resumed by simply sending a new motion command to the joint (that is not identical to the previous command). Here is a simple example of moving to contact, then moving back:
@@ -478,14 +478,13 @@ robot.push_command()
 
 while robot.arm.status['pos']<0.5:
     if robot.arm.motor.status['in_guarded_event']:
-        print 'Contact made at', robot.arm.status['pos']
+        print('Contact made at', robot.arm.status['pos'])
         break
 	time.sleep(0.1)
     
-print 'Retracting...'
+print('Retracting...')
 robot.arm.move_to(0.0)
-robot.push_command( )
-
+robot.push_command()
 ```
 
 
@@ -511,8 +510,8 @@ robot.arm.status['force']					#Joint force (derived from motor current)
 robot.arm.motor.status['near_pos_setpoint']	#Is sensed position near commanded position
 robot.arm.motor.status['near_vel_setpoint'] #Is sensed velocity near commanded velocity
 robot.arm.motor.status['is_moving']			#Is the joint in motion
-robot.arm.motor.status['in_guarded_event']	#Has a guarded event occurred
-robot.arm.motor.status['in_safety_event']	#Has a safety event occurred
+robot.arm.motor.status['in_guarded_event']	#Has a guarded event occured
+robot.arm.motor.status['in_safety_event']	#Has a safety event occured
 ```
 
 ### Update Rates
@@ -528,7 +527,7 @@ The following update rates apply to Stretch:
 
 Motion commands are non-blocking and it is the responsibility of the user code to poll the Robot Status to determine when and if a motion target has been achieved.
 
-The Stretch_Body interface is not designed to support high bandwidth control applications. The natural dynamics of the robot actuators do not support high bandwidth control, and the USB based interface limits high rate communication.
+The Stretch_Body interface is not designed to support high bandwidth control applications. The natural dynamics of the robot actuators do not support high bandwidth contorl, and the USB based interface limits high rate communication.
 
 In practice, a Python based control loop that calls push_command( ) at 1Hz to 10Hz is sufficiently matched to the robot natural dynamics. 
 
@@ -588,16 +587,16 @@ The cliff detection logic can be found in the [Pimu firmware](https://github.com
 
 All robot data is stored in the stretch_user directory.  The location of this directory can be found by:
 
-```bash
->>$ echo $HELLO_FLEET_PATH
+```console
+$ echo $HELLO_FLEET_PATH
 /home/hello-robot/stretch_user
 ```
 
 The robot data stored here is identified by the robot ID (eg, stretch-re1-1002)
 
-```bash
-cd $HELLO_FLEET_PATH/$HELLO_FLEET_ID
->>$ ls
+```console
+$ cd $HELLO_FLEET_PATH/$HELLO_FLEET_ID
+$ ls
 calibration_base_imu  
 calibration_guarded_contact  
 calibration_steppers    
@@ -657,8 +656,6 @@ arm:
 base:
   motion:
     default: {accel_m: 0.1, vel_m: 0.15}
-
-
 ```
 
 ### End of Arm Tool Parameters
@@ -677,7 +674,7 @@ Upon instantiation, the Robot class opens a new log file for warning and informa
 
 The logging messages can be echoed to the console by setting:
 
-```
+```yaml
 robot:
   log_to_console: 1
 ```
@@ -745,7 +742,5 @@ The [Robot Sentry](https://github.com/hello-robot/stretch_body/blob/master/pytho
 | stretch_gripper_overload | Reset commanded position to prevent thermal overload during grasp |
 | wrist_yaw_overload       | Reset commanded position to prevent thermal overload during pushing |
 
-
-
 ------
-.<div align="center"> All materials are Copyright 2020 by Hello Robot Inc. The Stretch RE1 robot has patents pending</div>
+<div align="center"> All materials are Copyright 2020 by Hello Robot Inc. The Stretch RE1 robot has patents pending</div>
