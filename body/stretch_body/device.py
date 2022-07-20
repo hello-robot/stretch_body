@@ -4,7 +4,7 @@ import stretch_body.hello_utils as hello_utils
 import time
 import logging, logging.config
 import threading
-
+import sys
 
 class DeviceTimestamp:
     def __init__(self):
@@ -35,8 +35,9 @@ class Device:
         self.user_params, self.robot_params = RobotParams.get_params()
         self.params = self.robot_params.get(self.name, {})
         self.logger = logging.getLogger(self.name)
+        if self.params == {}:
+            self.logger.warning('Parameters for device %s not found. Check parameter YAML and device name.' % self.name)
         self.timestamp = DeviceTimestamp()
-
         self.thread_active = False
         self.thread_rate_hz = 25.0
         self.thread_stats = None
