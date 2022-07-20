@@ -126,7 +126,7 @@ class StepperBase(Device):
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.hw_valid=False
         self.gains = {}
-        
+
     # ###########  Device Methods #############
     def startup(self, threaded=False):
         try:
