@@ -55,41 +55,43 @@ class DynamixelHelloXL430(Device):
     """
     def __init__(self, name, chain=None):
         Device.__init__(self, name)
-        self.chain = chain
-        self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
-                     'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                     'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
-        self.thread_rate_hz = 15.0
-        self.trajectory = RevoluteTrajectory()
-        self._waypoint_ts = None
-        self._waypoint_vel = self.params['motion']['trajectory_max']['vel_r']
-        self._waypoint_accel = self.params['motion']['trajectory_max']['accel_r']
+        try:
+            self.chain = chain
+            self.hw_valid = False
+            self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
+                         'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
+                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+            self.thread_rate_hz = 15.0
+            self.trajectory = RevoluteTrajectory()
+            self._waypoint_ts = None
+            self._waypoint_vel = self.params['motion']['trajectory_max']['vel_r']
+            self._waypoint_accel = self.params['motion']['trajectory_max']['accel_r']
 
-        #Share bus resource amongst many XL430s
-        self.motor = DynamixelXL430(dxl_id=self.params['id'],
-                                    usb=self.params['usb_name'],
-                                    port_handler=None if chain is None else chain.port_handler,
-                                    pt_lock=None if chain is None else chain.pt_lock,
-                                    baud=self.params['baud'],
-                                    logger=self.logger)
-        self.polarity = -1.0 if self.params['flip_encoder_polarity'] else 1.0
-        self.ts_over_eff_start=None
-        self.hw_valid=False
-        self.is_calibrated=False
+            #Share bus resource amongst many XL430s
+            self.motor = DynamixelXL430(dxl_id=self.params['id'],
+                                        usb=self.params['usb_name'],
+                                        port_handler=None if chain is None else chain.port_handler,
+                                        pt_lock=None if chain is None else chain.pt_lock,
+                                        baud=self.params['baud'],
+                                        logger=self.logger)
+            self.polarity = -1.0 if self.params['flip_encoder_polarity'] else 1.0
+            self.ts_over_eff_start=None
+            self.is_calibrated=False
 
+            if self.params['flip_encoder_polarity']:
+                wr_max = self.ticks_to_world_rad(self.params['range_t'][0])
+                wr_min = self.ticks_to_world_rad(self.params['range_t'][1])
+            else:
+                wr_max = self.ticks_to_world_rad(self.params['range_t'][1])
+                wr_min = self.ticks_to_world_rad(self.params['range_t'][0])
+            self.soft_motion_limits = {'collision': [None, None], 'user': [None, None],'hard': [wr_min,wr_max],'current': [wr_min,wr_max]}
 
-        if self.params['flip_encoder_polarity']:
-            wr_max = self.ticks_to_world_rad(self.params['range_t'][0])
-            wr_min = self.ticks_to_world_rad(self.params['range_t'][1])
-        else:
-            wr_max = self.ticks_to_world_rad(self.params['range_t'][1])
-            wr_min = self.ticks_to_world_rad(self.params['range_t'][0])
-        self.soft_motion_limits = {'collision': [None, None], 'user': [None, None],'hard': [wr_min,wr_max],'current': [wr_min,wr_max]}
-
-        self.is_homing=False
-        self.status_mux_id = 0
-        self.was_runstopped = False
-        self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
+            self.is_homing=False
+            self.status_mux_id = 0
+            self.was_runstopped = False
+            self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
+        except KeyError:
+            self.motor=None
 
     # ###########  Device Methods #############
 
@@ -135,6 +137,8 @@ class DynamixelHelloXL430(Device):
         return self.motor.do_ping(verbose)
 
     def startup(self, threaded=False):
+        if self.motor is None:
+            return False
         Device.startup(self, threaded=threaded)
         try:
             if self.motor.do_ping(verbose=False):
