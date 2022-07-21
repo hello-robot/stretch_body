@@ -20,7 +20,7 @@ class IMUBase(Device):
     API to the Stretch RE1 IMU found in the base
     """
     def __init__(self):
-        Device.__init__(self, 'imu')
+        Device.__init__(self, 'imu',req_params=False)
         #pitch; //-180 to 180, rolls over
         #roll; //-90 to  90, rolls over at 180
         #heading; //0-360.0, rolls over
@@ -162,6 +162,7 @@ class PimuBase(Device):
 
     def __init__(self, event_reset=False):
         Device.__init__(self, 'pimu')
+        self.config = self.params['config']
         self.lock = threading.RLock()
         self.imu = IMU()
         self._dirty_config = True
@@ -192,7 +193,6 @@ class PimuBase(Device):
 
     def startup(self, threaded=False):
         try:
-            self.config = self.params['config']
             Device.startup(self, threaded=threaded)
             with self.lock:
                 self.hw_valid = self.transport.startup()

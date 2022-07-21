@@ -130,8 +130,9 @@ class DynamixelXL430():
                 self.port_handler = port_handler
             self.packet_handler = pch.PacketHandler(2.0)
         except serial.SerialException as e:
-            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.logger.error("Dynamixel SerialException({1}): {2}".format(self.usb,e.errno, e.strerror))
         self.hw_valid = self.packet_handler is not None
+
 
     @staticmethod
     def identify_baud_rate(dxl_id, usb):
@@ -149,15 +150,18 @@ class DynamixelXL430():
         int
             the baud rate the Dynamixel is communicating at
         """
-        for b in BAUD_MAP.keys():
-            port_h = prh.PortHandler(usb)
-            port_h.openPort()
-            port_h.setBaudRate(b)
-            packet_h = pch.PacketHandler(2.0)
-            _, dxl_comm_result, _ = packet_h.ping(port_h, dxl_id)
-            port_h.closePort()
-            if dxl_comm_result == COMM_SUCCESS:
-                return b
+        try:
+            for b in BAUD_MAP.keys():
+                port_h = prh.PortHandler(usb)
+                port_h.openPort()
+                port_h.setBaudRate(b)
+                packet_h = pch.PacketHandler(2.0)
+                _, dxl_comm_result, _ = packet_h.ping(port_h, dxl_id)
+                port_h.closePort()
+                if dxl_comm_result == COMM_SUCCESS:
+                    return b
+        except:
+            pass
         return -1
 
     def startup(self):
@@ -169,7 +173,7 @@ class DynamixelXL430():
                 if baud!=self.baud:
                     self.logger.error('DynamixelCommError. Mismatched baud rate. Expected %d but servo is set to %d.'%(self.baud,baud))
                 else:
-                    self.logger.error('DynamixelCommError. Unable to enable torque')
+                    self.logger.error('DynamixelCommError. Failed to startup servo %s at id %d . Check that id and usb bus are valid'%(self.usb,self.dxl_id))
                 self.hw_valid=False
                 return False
             return True
@@ -256,9 +260,9 @@ class DynamixelXL430():
             with self.pt_lock:
                 dxl_model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, self.dxl_id)
             if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error):
-                self.logger.debug("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d" % (self.dxl_id, dxl_model_number))
+                self.logger.debug("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d. Baud %d" % (self.dxl_id, dxl_model_number, self.baud))
                 if verbose:
-                    print("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d" % (self.dxl_id, dxl_model_number))
+                    print("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d. Baud %d" % (self.dxl_id, dxl_model_number, self.baud))
                 return True
             else:
                 self.logger.debug("[Dynamixel ID:%03d] ping Failed." % (self.dxl_id))

@@ -30,13 +30,16 @@ class Device:
     """
     Generic base class for all custom Stretch hardware
     """
-    def __init__(self, name=''):
+    def __init__(self, name='',req_params=True):
         self.name = name
         self.user_params, self.robot_params = RobotParams.get_params()
         self.params = self.robot_params.get(self.name, {})
         self.logger = logging.getLogger(self.name)
-        if self.params == {}:
-            self.logger.warning('Parameters for device %s not found. Check parameter YAML and device name.' % self.name)
+
+        if self.params == {} and req_params:
+                self.logger.warning('Parameters for device %s not found. Check parameter YAML and device name. Exiting...' % self.name)
+                sys.exit(1)
+
         self.timestamp = DeviceTimestamp()
         self.thread_active = False
         self.thread_rate_hz = 25.0

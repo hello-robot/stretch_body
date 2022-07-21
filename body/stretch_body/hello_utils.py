@@ -8,7 +8,8 @@ import numpy as np
 
 
 def print_stretch_re_use():
-    print("For use with S T R E T C H (R) RESEARCH EDITION from Hello Robot Inc.\n")
+    print("For use with S T R E T C H (R) RESEARCH EDITION from Hello Robot Inc.")
+    print("---------------------------------------------------------------------\n")
 
 def create_time_string(time_format='%Y%m%d%H%M%S'):
     """Returns current time formatted as `time_format`
