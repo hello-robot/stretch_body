@@ -600,7 +600,7 @@ class DynamixelHelloXL430(Device):
     -- Also, homing shouldn't be necessary in single-turn mode as the position reporting is already absolute
     """
 
-    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0,save_calibration=False):
+    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0,save_calibration=False,set_homing_offset=True):
         # Requires at least one hardstop in the pwm_homing[0] direction
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
@@ -639,11 +639,14 @@ class DynamixelHelloXL430(Device):
             self.logger.warning('Hardware error, unable to home. Exiting')
             return
 
-        print('Contact at position: %d'%self.motor.get_pos())
+        contact_0=self.motor.get_pos()
+        print('Contact at position: %d'%contact_0)
         print('Hit first hardstop, marking to zero ticks')
-        self.motor.disable_torque()
-        self.motor.zero_position()
-        print("Homing is now  %d"%self.motor.get_homing_offset())
+        if set_homing_offset:
+            self.motor.disable_torque()
+            self.motor.zero_position()
+            print("Homing offset is now  %d"%self.motor.get_homing_offset())
+            contact_0=0
 
         self.motor.disable_torque()
         self.motor.set_calibrated(1)
@@ -652,7 +655,8 @@ class DynamixelHelloXL430(Device):
 
         self.enable_pwm()
 
-        print('Raw position:',self.motor.get_pos())
+        print('Current position (ticks):',self.motor.get_pos())
+
         if not single_stop:
             #Measure the range and write to YAML
             print('Moving to second hardstop...')
@@ -673,18 +677,19 @@ class DynamixelHelloXL430(Device):
                 self.logger.warning('Hardware error, unable to home. Exiting')
                 return
 
-            x_dir_1 = self.motor.get_pos()
-            print('Hit second hardstop at: ', x_dir_1)
-            self.params['range_t']=[0,x_dir_1]
-            print('Homed to range of:')
-            print('   Ticks:',self.params['range_t'])
-            r1=self.ticks_to_world_rad(0)
-            r2=self.ticks_to_world_rad(x_dir_1)
+            contact_1 = self.motor.get_pos()
+            print('Hit second hardstop at: ', contact_1)
+
+            print('Homed to range of motion to (ticks):',[contact_0,contact_1])
+            self.params['range_t'] = [contact_0 + self.params['range_pad_t'][0], contact_1 + self.params['range_pad_t'][1]]
+            print('Padded range of motion is (ticks):',self.params['range_t'])
+            r1=self.ticks_to_world_rad(self.params['range_t'][0])
+            r2=self.ticks_to_world_rad(self.params['range_t'][1])
             print('   Radians:',[r1,r2])
             print('   Degrees:',[rad_to_deg(r1),rad_to_deg(r2)])
 
-        if save_calibration:
-            self.write_device_params(self.name, self.params)
+            if save_calibration:
+                self.write_configuration_param_to_YAML(self.name+'.range_t', self.params['range_t'])
 
         self.enable_pos()
         if move_to_zero:

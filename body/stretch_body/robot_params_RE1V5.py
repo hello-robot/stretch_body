@@ -179,7 +179,8 @@ nominal_params={
         'stall_max_effort': 20.0,
         'stall_backoff': 0.017,
         'stall_max_time': 1.0,
-        'stall_min_vel': 0.1},
+        'stall_min_vel': 0.1,
+        'range_pad_t':[50.0,-50.0]},
     'head_tilt':{
         'flip_encoder_polarity': 1,
         'gr': 1.0,
@@ -219,7 +220,8 @@ nominal_params={
         'stall_backoff': 0.017,
         'stall_max_effort': 20.0,
         'stall_max_time': 1.0,
-        'stall_min_vel': 0.1},
+        'stall_min_vel': 0.1,
+        'range_pad_t': [50.0, -50.0]},
     'hello-motor-arm':{
         'gains':{
             'effort_LPF': 10.0,
@@ -434,6 +436,7 @@ nominal_params={
         'wrist_yaw_overload': 1,
         'stepper_is_moving_filter': 1},
     'stretch_gripper':{
+        'range_pad_t': [50.0, -50.0],
         'flip_encoder_polarity': 0,
         'gr': 1.0,
         'id': 14,
@@ -547,5 +550,6 @@ nominal_params={
         'retry_on_comm_failure': 1,
         'baud': 115200,
         'enable_runstop': 1,
-        'disable_torque_on_stop': 1}
+        'disable_torque_on_stop': 1,
+        'range_pad_t': [50.0, -50.0]}
 }

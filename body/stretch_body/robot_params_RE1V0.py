@@ -150,6 +150,7 @@ nominal_params={
         'retry_on_comm_failure': 1,
         'dxl_latency_timer':64},
     'head_pan':{
+        'range_pad_t': [50.0, -50.0],
         'flip_encoder_polarity': 1,
         'gr': 1.0,
         'id': 11,
@@ -186,6 +187,7 @@ nominal_params={
         'stall_max_time': 1.0,
         'stall_min_vel': 0.1},
     'head_tilt':{
+        'range_pad_t': [50.0, -50.0],
         'flip_encoder_polarity': 1,
         'gr': 1.0,
         'id': 12,
@@ -438,6 +440,7 @@ nominal_params={
         'wrist_yaw_overload': 1,
         'stepper_is_moving_filter': 1},
     'stretch_gripper':{
+        'range_pad_t': [0.0, -0.0],
         'flip_encoder_polarity': 0,
         'gr': 1.0,
         'id': 14,
@@ -512,6 +515,7 @@ nominal_params={
         'accel_single_tap_thresh': 50,
         'ana_LPF': 10.0}},
     'wrist_yaw':{
+        'range_pad_t': [50.0, -50.0],
         'flip_encoder_polarity': 1,
         'gr': 2.4,
         'id': 13,
