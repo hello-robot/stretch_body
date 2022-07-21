@@ -20,7 +20,7 @@ class IMUBase(Device):
     API to the Stretch RE1 IMU found in the base
     """
     def __init__(self):
-        Device.__init__(self, 'imu')
+        Device.__init__(self, 'imu',req_params=False)
         #pitch; //-180 to 180, rolls over
         #roll; //-90 to  90, rolls over at 180
         #heading; //0-360.0, rolls over
@@ -162,9 +162,9 @@ class PimuBase(Device):
 
     def __init__(self, event_reset=False):
         Device.__init__(self, 'pimu')
+        self.config = self.params['config']
         self.lock = threading.RLock()
         self.imu = IMU()
-        self.config = self.params['config']
         self._dirty_config = True
         self._dirty_trigger = False
         self.frame_id_last = None
@@ -192,16 +192,22 @@ class PimuBase(Device):
     # ###########  Device Methods #############
 
     def startup(self, threaded=False):
-        Device.startup(self, threaded=threaded)
-        with self.lock:
-            self.hw_valid = self.transport.startup()
-            if self.hw_valid:
-                # Pull board info
-                self.transport.payload_out[0] = self.RPC_GET_PIMU_BOARD_INFO
-                self.transport.queue_rpc(1, self.rpc_board_info_reply)
-                self.transport.step(exiting=False)
-                return True
+        try:
+            Device.startup(self, threaded=threaded)
+            with self.lock:
+                self.hw_valid = self.transport.startup()
+                if self.hw_valid:
+                    # Pull board info
+                    self.transport.payload_out[0] = self.RPC_GET_PIMU_BOARD_INFO
+                    self.transport.queue_rpc(1, self.rpc_board_info_reply)
+                    self.transport.step(exiting=False)
+                    return True
+                return False
+        except KeyError:
+            self.hw_valid =False
             return False
+
+
 
     def stop(self):
         Device.stop(self)
@@ -515,7 +521,7 @@ class Pimu_Protocol_P0(PimuBase):
             self.status['low_voltage_alert'] = (self.status['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
             self.status['high_current_alert'] = (self.status['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
             self.status['over_tilt_alert'] = (self.status['state'] & self.STATE_OVER_TILT_ALERT) != 0
-            self.status['charger_detected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
+            self.status['charger_connected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
             self.status['boot_detected'] = (self.status['state'] & self.STATE_BOOT_DETECTED) != 0
             self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
             self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
@@ -553,7 +559,7 @@ class Pimu_Protocol_P1(PimuBase):
             self.status['high_current_alert'] = (self.status['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
             self.status['over_tilt_alert'] = (self.status['state'] & self.STATE_OVER_TILT_ALERT) != 0
             if self.board_info['hardware_id']>0:
-                self.status['charger_detected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
+                self.status['charger_connected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
                 self.status['boot_detected'] = (self.status['state'] & self.STATE_BOOT_DETECTED) != 0
             self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
             self.imu.status['timestamp'] = self.status['timestamp']

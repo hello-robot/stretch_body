@@ -99,6 +99,7 @@ class StepperBase(Device):
         self.usb=usb
         self.lock=threading.RLock()
         self.transport = Transport(usb=self.usb, logger=self.logger)
+
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
         self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
@@ -124,19 +125,24 @@ class StepperBase(Device):
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.hw_valid=False
-        self.gains = self.params['gains'].copy()
+        self.gains = {}
 
     # ###########  Device Methods #############
     def startup(self, threaded=False):
-        Device.startup(self, threaded=threaded)
-        with self.lock:
-            self.hw_valid = self.transport.startup()
-            if self.hw_valid:
-                # Pull board info
-                self.transport.payload_out[0] = self.RPC_GET_STEPPER_BOARD_INFO
-                self.transport.queue_rpc(1, self.rpc_board_info_reply)
-                self.transport.step(exiting=False)
-                return True
+        try:
+            Device.startup(self, threaded=threaded)
+            self.gains = self.params['gains'].copy()
+            with self.lock:
+                self.hw_valid = self.transport.startup()
+                if self.hw_valid:
+                    # Pull board info
+                    self.transport.payload_out[0] = self.RPC_GET_STEPPER_BOARD_INFO
+                    self.transport.queue_rpc(1, self.rpc_board_info_reply)
+                    self.transport.step(exiting=False)
+                    return True
+                return False
+        except KeyError:
+            self.hw_valid =False
             return False
 
     #Configure control mode prior to calling this on process shutdown (or default to freewheel)

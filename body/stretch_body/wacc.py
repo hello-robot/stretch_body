@@ -37,7 +37,6 @@ class WaccBase(Device):
         self.ext_status_cb=ext_status_cb
         self.ext_command_cb=ext_command_cb
         self.lock=threading.RLock()
-        self.config = self.params['config']
         self._dirty_config = True #Force push down
         self._dirty_command = False
         self._command = {'d2':0,'d3':0, 'trigger':0}
@@ -51,16 +50,23 @@ class WaccBase(Device):
     # ###########  Device Methods #############
 
     def startup(self, threaded=False):
-        Device.startup(self, threaded=threaded)
-        with self.lock:
-            self.hw_valid = self.transport.startup()
-            if self.hw_valid:
-                # Pull board info
-                self.transport.payload_out[0] = self.RPC_GET_WACC_BOARD_INFO
-                self.transport.queue_rpc(1, self.rpc_board_info_reply)
-                self.transport.step(exiting=False)
-                return True
+        try:
+            self.config = self.params['config']
+            Device.startup(self, threaded=threaded)
+            with self.lock:
+                self.hw_valid = self.transport.startup()
+                if self.hw_valid:
+                    # Pull board info
+                    self.transport.payload_out[0] = self.RPC_GET_WACC_BOARD_INFO
+                    self.transport.queue_rpc(1, self.rpc_board_info_reply)
+                    self.transport.step(exiting=False)
+                    return True
+                return False
+        except KeyError:
+            self.hw_valid =False
             return False
+
+
 
     def stop(self):
         Device.stop(self)
