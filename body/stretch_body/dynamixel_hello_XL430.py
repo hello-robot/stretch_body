@@ -160,8 +160,9 @@ class DynamixelHelloXL430(Device):
                 self.motor.set_return_delay_time(self.params['return_delay_time'])
                 self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['default']['vel']))
                 self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
-                self.v_des=self.params['motion']['default']['vel']
-                self.a_des=self.params['motion']['default']['accel']
+                self.v_des=None#self.params['motion']['default']['vel']
+                self.a_des=None#self.params['motion']['default']['accel']
+                self.set_motion_params()
                 self.is_calibrated=self.motor.is_calibrated()
                 self.enable_torque()
                 self.pull_status()
@@ -241,8 +242,8 @@ class DynamixelHelloXL430(Device):
                 if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
                     raise DynamixelCommError
                 ts = time.time()
-            except(termios.error, DynamixelCommError):
-                #self.logger.warning('Dynamixel communication error on %s: '%self.name)
+            except(termios.error, DynamixelCommError, IndexError):
+                self.logger.warning('Dynamixel communication error on %s: '%self.name)
                 self.motor.port_handler.ser.reset_output_buffer()
                 self.motor.port_handler.ser.reset_input_buffer()
                 self.comm_errors.add_error(rx=True,gsr=False)
@@ -377,6 +378,21 @@ class DynamixelHelloXL430(Device):
             return
         self.motor.disable_torque()
 
+    def move_to_vel(self,v_des,a_des=None):
+        if not self.hw_valid:
+            return
+        if self.params['req_calibration'] and not self.is_calibrated:
+            self.logger.warning('Dynamixel not calibrated: %s' % self.name)
+            print('Dynamixel not calibrated:', self.name)
+            return
+        try:
+            self.motor.set_vel(v_des)
+        except(termios.error, DynamixelCommError, IndexError):
+            self.logger.warning('Dynamixel communication error on %s: ' % self.name)
+            self.motor.port_handler.ser.reset_output_buffer()
+            self.motor.port_handler.ser.reset_input_buffer()
+            self.comm_errors.add_error(rx=True, gsr=False)
+
     def move_to(self,x_des, v_des=None, a_des=None):
         if not self.hw_valid:
             return
@@ -385,6 +401,7 @@ class DynamixelHelloXL430(Device):
             print('Dynamixel not calibrated:', self.name)
             return
         try:
+            #print('Motion Params',v_des,a_des)
             self.set_motion_params(v_des,a_des)
             old_x_des = x_des
             x_des = min(max(self.get_soft_motion_limits()[0], x_des), self.get_soft_motion_limits()[1])
@@ -393,7 +410,7 @@ class DynamixelHelloXL430(Device):
             t_des = self.world_rad_to_ticks(x_des)
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
-        except (termios.error, DynamixelCommError):
+        except (termios.error, DynamixelCommError, IndexError):
             #self.logger.warning('Dynamixel communication error on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
@@ -402,18 +419,18 @@ class DynamixelHelloXL430(Device):
         try:
             if not self.hw_valid:
                 return
-
             v_des = v_des if v_des is not None else self.params['motion']['default']['vel']
             v_des = min(self.params['motion']['max']['vel'], v_des)
             if v_des != self.v_des:
-                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
+                self.motor.set_profile_velocity(abs(self.world_rad_to_ticks_per_sec(v_des)))
                 self.v_des = v_des
 
             a_des = a_des if a_des is not None else self.params['motion']['default']['accel']
             a_des = min(self.params['motion']['max']['accel'], a_des)
             if a_des != self.a_des:
-                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(a_des))
+                self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(a_des)))
                 self.a_des = a_des
+            #print("MOTION PARAMS",self.a_des,self.v_des)
         except (termios.error, DynamixelCommError):
             #self.logger.warning('Dynamixel communication error on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
@@ -482,6 +499,16 @@ class DynamixelHelloXL430(Device):
 
     # ######### Waypoint Trajectory Interface ##############################
 
+    def is_trajectory_active(self):
+        return self._waypoint_ts !=None
+
+    def get_trajectory_ts(self):
+        if self.is_trajectory_active():
+            return time.time()-self._waypoint_ts
+        elif len(self.trajectory.waypoints):
+            return self.trajectory.waypoints[-1].time
+        else:
+            return 0
     def follow_trajectory(self, v_r=None, a_r=None, req_calibration=True, move_to_start_point=True):
         """Starts executing a waypoint trajectory
 
@@ -512,6 +539,10 @@ class DynamixelHelloXL430(Device):
             self.logger.error('Dynamixel waypoint trajectory already active')
             return False
 
+        #Store current vel/accel so can restore later
+        self.pre_traj_vel=self.v_des
+        self.pre_traj_acc=self.a_des
+
         # check if trajectory valid
         vel_limit = v_r if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
         acc_limit = a_r if a_r is not None else self.params['motion']['trajectory_max']['accel_r']
@@ -529,6 +560,7 @@ class DynamixelHelloXL430(Device):
         self._waypoint_accel = min(abs(a_r), self.params['motion']['trajectory_max']['accel_r']) \
             if a_r is not None else self.params['motion']['trajectory_max']['accel_r']
 
+
         # move to start point
         if move_to_start_point:
             self.move_to(self.trajectory[0].position)
@@ -538,8 +570,21 @@ class DynamixelHelloXL430(Device):
 
         # start trajectory
         self._waypoint_ts = time.time()
-        p0, _, _ = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
-        self.move_to(p0, self._waypoint_vel, self._waypoint_accel)
+        p0, v0, a0 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
+        self.traj_pos_mode=False
+        if self.traj_pos_mode:
+            self.move_to(p0, self.params['motion']['max']['vel'],self.params['motion']['max']['accel'])
+        else:
+            self.disable_torque()
+            # if watchdog_timeout is not None:
+            #     self.motor.enable_watchdog(watchdog_timeout)
+            # else:
+            #     self.motor.enable_watchdog()
+            self.motor.enable_vel()
+            self.motor.set_profile_acceleration(self.world_rad_to_ticks_per_sec_sec(self.params['motion']['trajectory_max']['accel_r']))
+            self.motor.set_vel_limit(self.world_rad_to_ticks_per_sec(self.params['motion']['trajectory_max']['vel_r']))
+            self.enable_torque()
+            self.motor.set_vel(v0)
         return True
 
     def update_trajectory(self):
@@ -556,17 +601,45 @@ class DynamixelHelloXL430(Device):
         if self.was_runstopped:
             return
 
+
         if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
-            p1, _, _ = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
-            self.move_to(p1, self._waypoint_vel, self._waypoint_accel)
+            p1, v1, a1 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
+            if self.traj_pos_mode:
+                self.move_to(p1, self.params['motion']['max']['vel'],self.params['motion']['max']['accel'])
+            else:
+                v_des = self.world_rad_to_ticks_per_sec(v1)
+                # Honor joint limits in velocity mode
+                lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
+                                self.ticks_to_world_rad(self.params['range_t'][1]))
+                lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
+                                self.ticks_to_world_rad(self.params['range_t'][1]))
+                x_curr = self.status['pos']
+                v_curr = self.status['vel']
+                if self.params['motion']['trajectory_max']['accel_r'] > 0:
+                    t_brake = abs(v_curr) / self.params['motion']['trajectory_max']['accel_r']  # How long to brake from current speed (s)
+                else:
+                    t_brake = 0
+                d_brake = t_brake * v_curr / 2  # How far it will go before breaking (pos/neg)
+                if (v1 > 0 and x_curr + d_brake >= lim_upper) or (v1 < 0 and x_curr + d_brake <= lim_lower):
+                    v_des = 0
+                self.motor.set_vel(v_des)
         else:
-            self.move_to(self.trajectory[-1].position, self._waypoint_vel, self._waypoint_accel)
+            if not self.traj_pos_mode:
+                self.disable_torque()
+                #self.motor.disable_watchdog()
+                self.enable_pos()
+                self.enable_torque()
+            self.move_to(self.trajectory[-1].position, self.pre_traj_vel,self.pre_traj_acc)
             self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
+
+
 
     def stop_trajectory(self):
         """Stop waypoint trajectory immediately and resets hardware
         """
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
+        self.trajectory.clear()
+        self.set_motion_params(self.pre_traj_vel,self.pre_traj_acc)
 
 # ##########################################
     """
@@ -700,6 +773,10 @@ class DynamixelHelloXL430(Device):
 
 # ##########################################
 
+    def ticks_to_world_rad_per_sec_sec(self,t):
+        rps_servo=self.ticks_to_rad_per_sec_sec(t)
+        return self.polarity*rps_servo/self.params['gr']
+
     def ticks_to_world_rad_per_sec(self,t):
         rps_servo=self.ticks_to_rad_per_sec(t)
         return self.polarity*rps_servo/self.params['gr']
@@ -719,6 +796,10 @@ class DynamixelHelloXL430(Device):
         t= self.rad_per_sec_to_ticks(rad_per_sec_servo)
         return t
 
+    def world_rad_to_ticks_per_sec_sec(self,r):
+        rad_per_sec_sec_servo = r*self.params['gr']*self.polarity
+        t= self.rad_per_sec_sec_to_ticks(rad_per_sec_sec_servo)
+        return t
 
     def ticks_to_rad(self,t):
         return deg_to_rad((360.0 * t / 4096.0))

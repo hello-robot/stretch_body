@@ -220,7 +220,8 @@ class Segment:
         bool
             whether the segment is valid
         """
-        return hu.is_segment_feasible(self.to_array(), v_des, a_des)
+        success,v_max,a_max=hu.is_segment_feasible(self.to_array(), v_des, a_des)
+        return success
 
 
 class Spline:
@@ -424,11 +425,11 @@ class Spline:
             if waypoint.time < t:
                 return False, "time must increase for each subsequent waypoint"
             t = waypoint.time
-
         # verify spline adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
-            if not hu.is_segment_feasible(self.get_segment(i).to_array(), v_des, a_des):
-                return False, "segment {0} exceeds dynamic bounds".format(i)
+            success, v_max, a_max=hu.is_segment_feasible(self.get_segment(i).to_array(), v_des, a_des)
+            if not success:
+                return False, "segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
 
         return True, ""
 
@@ -702,9 +703,11 @@ class DiffDriveTrajectory(Spline):
         # verify left and right trajectories adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
             ls, rs = self.get_wheel_segments(i, translate_to_motor_rad, rotate_to_motor_rad)
-            if not hu.is_segment_feasible(ls.to_array(), v_des, a_des):
-                return False, "left wheel segment {0} exceeds dynamic bounds".format(i)
-            if not hu.is_segment_feasible(rs.to_array(), v_des, a_des):
-                return False, "right wheel segment {0} exceeds dynamic bounds".format(i)
+            success, v_max, a_max =hu.is_segment_feasible(ls.to_array(), v_des, a_des)
+            if not success:
+                return False, "left wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
+            success, v_max, a_max =hu.is_segment_feasible(rs.to_array(), v_des, a_des)
+            if not success:
+                return False, "right wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
 
         return True, ""

@@ -306,19 +306,26 @@ def is_segment_feasible(segment, v_des, a_des, t=0.0, inc=0.1):
 
     Returns
     -------
-    bool
+    success: bool
         whether the segment is feasible
+    max_v: float
+        Maximum velocity of spline
+    max_a: float
+        Maximum acceleration of spline
     """
     v_des = float(v_des)
     a_des = float(a_des)
+    max_v = 0
+    max_a =0
+    success=True
     while t < segment[0]:
-        _, vel_t, acc_t = evaluate_polynomial_at(segment[1:-1], t)
+        x_t, vel_t, acc_t = evaluate_polynomial_at(segment[1:-1], t)
+        max_v=max(max_v,abs(vel_t))
+        max_a = max(max_a, abs(acc_t))
         if abs(vel_t) > v_des or abs(acc_t) > a_des:
-            return False
-
+            success=False
         t = min(segment[0], t + inc)
-
-    return True
+    return success, max_v, max_a
 
 def generate_quintic_polynomial(i, f):
     """Generate quintic polynomial from two points
