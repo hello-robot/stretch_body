@@ -12,7 +12,7 @@ class TestDevice(unittest.TestCase):
         Check that we don't mangle the format when writing config params to YAML
         """
         print('Testing test_write_configuration_params')
-        d=stretch_body.device.Device()
+        d=stretch_body.device.Device(req_params=False)
         cp = stretch_body.hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
         for k in cp.keys(): #Write existing values up to 3 dict layers deep
             key1=k
@@ -47,7 +47,7 @@ class TestDevice(unittest.TestCase):
     def test_threaded(self):
         class SometimesThreadedDevice(stretch_body.device.Device):
             def __init__(self):
-                stretch_body.device.Device.__init__(self)
+                stretch_body.device.Device.__init__(self,req_params=False)
             def startup(self, threaded=False):
                 self.pulling_status = False
                 stretch_body.device.Device.startup(self, threaded=threaded)
