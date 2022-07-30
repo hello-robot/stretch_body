@@ -60,7 +60,7 @@ class DynamixelHelloXL430(Device):
             self.hw_valid = False
             self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                          'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'watchdog_errors':0}
             self.thread_rate_hz = 15.0
             self.trajectory = RevoluteTrajectory()
             self._waypoint_ts = None
@@ -342,6 +342,7 @@ class DynamixelHelloXL430(Device):
         print('Hardware Error: Motor Encoder Error: ',self.status['motor_encoder_error'])
         print('Hardware Error: Electrical Shock Error: ', self.status['electrical_shock_error'])
         print('Hardware Error: Overload Error: ', self.status['overload_error'])
+        print('Watchdog Errors: ',self.status['watchdog_errors'])
         print('Timestamp PC', self.status['timestamp_pc'])
         print('Range (ticks)',self.params['range_t'])
         print('Range (rad) [',self.ticks_to_world_rad(self.params['range_t'][0]), ' , ',self.ticks_to_world_rad(self.params['range_t'][1]),']')
@@ -574,16 +575,7 @@ class DynamixelHelloXL430(Device):
         if not self.params['motion']['trajectory_vel_ctrl']:
             self.move_to(p0, self.params['motion']['max']['vel'],self.params['motion']['max']['accel'])
         else:
-            self.disable_torque()
-            # if watchdog_timeout is not None:
-            #     self.motor.enable_watchdog(watchdog_timeout)
-            # else:
-            #     self.motor.enable_watchdog()
-            self.motor.enable_vel()
-            self.motor.set_profile_acceleration(self.world_rad_to_ticks_per_sec_sec(self.params['motion']['trajectory_max']['accel_r']))
-            self.motor.set_vel_limit(self.world_rad_to_ticks_per_sec(self.params['motion']['trajectory_max']['vel_r']))
-            self.enable_torque()
-            self.motor.set_vel(v0)
+            self._enable_trajectory_vel_ctrl()
         return True
 
     def update_trajectory(self):
@@ -600,37 +592,18 @@ class DynamixelHelloXL430(Device):
         if self.was_runstopped:
             return
 
-
         if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
             p1, v1, a1 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
-            if not self.params['motion']['trajectory_vel_ctrl']:
-                self.move_to(p1, self.params['motion']['max']['vel'],self.params['motion']['max']['accel'])
-            else:
-                v_des = self.world_rad_to_ticks_per_sec(v1)
-                # Honor joint limits in velocity mode
-                lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
-                                self.ticks_to_world_rad(self.params['range_t'][1]))
-                lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
-                                self.ticks_to_world_rad(self.params['range_t'][1]))
-                x_curr = self.status['pos']
-                v_curr = self.status['vel']
-                if self.params['motion']['trajectory_max']['accel_r'] > 0:
-                    t_brake = abs(v_curr) / self.params['motion']['trajectory_max']['accel_r']  # How long to brake from current speed (s)
-                else:
-                    t_brake = 0
-                d_brake = t_brake * v_curr / 2  # How far it will go before breaking (pos/neg)
-                if (v1 > 0 and x_curr + d_brake >= lim_upper) or (v1 < 0 and x_curr + d_brake <= lim_lower):
-                    v_des = 0
-                self.motor.set_vel(v_des)
-        else:
             if self.params['motion']['trajectory_vel_ctrl']:
-                self.disable_torque()
-                self.motor.disable_watchdog()
-                self.enable_pos()
-                self.enable_torque()
-            self.move_to(self.trajectory[-1].position, self.pre_traj_vel,self.pre_traj_acc)
+                self._step_trajectory_vel_ctrl(v1)
+            else:
+                self.move_to(p1, self.params['motion']['max']['vel'], self.params['motion']['max']['accel'])
+        else:
+            if self.params['motion']['trajectory_vel_ctrl'] and not self._disable_trajectory_vel_ctrl(): #Turn off trajectory if hit a watchdog error during executiong
+                    self.trajectory.clear()
+            else:
+                self.move_to(self.trajectory[-1].position, self.pre_traj_vel,self.pre_traj_acc)
             self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
-
 
 
     def stop_trajectory(self):
@@ -639,11 +612,45 @@ class DynamixelHelloXL430(Device):
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
         self.trajectory.clear()
         if self.params['motion']['trajectory_vel_ctrl']:
-            self.disable_torque()
-            self.motor.disable_watchdog()
-            self.enable_pos()
-            self.enable_torque()
+            self._disable_trajectory_vel_ctrl()
         self.set_motion_params(self.pre_traj_vel,self.pre_traj_acc)
+
+    def _step_trajectory_vel_ctrl(self,v1):
+        v_des = self.world_rad_to_ticks_per_sec(v1)
+        # Honor joint limits in velocity mode
+        lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
+                        self.ticks_to_world_rad(self.params['range_t'][1]))
+        lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
+                        self.ticks_to_world_rad(self.params['range_t'][1]))
+        x_curr = self.status['pos']
+        v_curr = self.status['vel']
+        if self.params['motion']['trajectory_max']['accel_r'] > 0:
+            t_brake = abs(v_curr) / self.params['motion']['trajectory_max']['accel_r']  # How long to brake from current speed (s)
+        else:
+            t_brake = 0
+        d_brake = t_brake * v_curr / 2  # How far it will go before breaking (pos/neg)
+        if (v1 > 0 and x_curr + d_brake >= lim_upper) or (v1 < 0 and x_curr + d_brake <= lim_lower):
+            v_des = 0
+        self.motor.set_vel(v_des)
+
+    def _enable_trajectory_vel_ctrl(self):
+        self.disable_torque()
+        self.motor.enable_watchdog()
+        self.motor.enable_vel()
+        self.motor.set_profile_acceleration(self.world_rad_to_ticks_per_sec_sec(self.params['motion']['trajectory_max']['accel_r']))
+        self.motor.set_vel_limit(self.world_rad_to_ticks_per_sec(self.params['motion']['trajectory_max']['vel_r']))
+        self.enable_torque()
+
+    def _disable_trajectory_vel_ctrl(self):
+        wd_error=self.motor.get_watchdog_error()
+        self.disable_torque()
+        self.motor.disable_watchdog()
+        self.enable_pos()
+        self.enable_torque()
+        if wd_error:
+            self.logger.warning('Watchdog error during trajectory execution for %s. Unable to maintain update rates.' % self.name)
+            self.status['watchdog_errors']=self.status['watchdog_errors']+1
+        return not wd_error
 
 # ##########################################
     """
