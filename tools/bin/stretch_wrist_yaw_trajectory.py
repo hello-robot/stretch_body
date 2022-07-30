@@ -29,7 +29,7 @@ if args.preloaded_traj == '1':
     vpos = [w.status['pos'], deg_to_rad(-45), deg_to_rad(90.0)]
     vvel = [w.status['vel'], deg_to_rad(0.0), deg_to_rad(10.0)]
 elif args.preloaded_traj == '2':
-    vtime = [0.0, 3.0, 6.0, 9.0]
+    vtime = [0.0, 5.0, 10.0, 15.0]
     vpos = [w.status['pos'], deg_to_rad(40.0), deg_to_rad(-40.0), deg_to_rad(90.0)]
     vvel = [w.status['vel'], deg_to_rad(90.0), deg_to_rad(-90.0), deg_to_rad(0.0)]
 elif args.preloaded_traj == '3':
@@ -67,17 +67,13 @@ if not args.text:
             ylabel="Wrist Yaw Joint Range (rad)")
     s.start(start_trajectory, sense_trajectory, update_trajectory, stop_trajectory)
 else:
+
     def menu_top():
         print('------ MENU -------')
         print('m: menu')
         print('a: start trajectory')
         print('s: stop trajectory')
-        print('l: loop trajectory')
-        print('d: print trajectory status')
         print('q: quit')
-        print('1: default trajectory')
-        print('2: short trajectory')
-        print('3: long trajectory')
         print('-------------------')
 
     def step_interaction():
@@ -87,64 +83,24 @@ else:
             if x[0]=='m':
                 pass
             if x[0]=='a':
-                w.trajectory.delete_waypoint(0)
-                #w.pull_status()
-                w.trajectory.add_waypoint(t_s=0.0, x_r=w.status['pos'], v_r=w.status['vel'])
+                for waypoint in zip(vtime, vpos, vvel):
+                    w.trajectory.add(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
+                w.follow_trajectory(move_to_start_point=True)
                 print("\nExecuting trajectory: {0}\n".format(w.trajectory))
-                w.start_trajectory(position_ctrl=not args.velocity_ctrl)
             if x[0]=='s':
                 w.stop_trajectory()
-            if x[0]=='d':
-                #w.pull_status()
-                if w.status['trajectory_active']:
-                    print("\nDuration Remaining: {0}\nTracking Error: {1}\n".format(w.duration_remaining(), w.traj_curr_goal.position - w.status['pos']))
-                else:
-                    print("\nTrajectory inactive\n")
             if x[0]=='q':
                 w.stop_trajectory()
                 w.stop()
                 exit()
-            if x[0] == '1':
-                #w.pull_status()
-                w.traj_start_time = time.time() - 0.07
-                vtime = [0.0, 5.0, 10.0]
-                vpos = [w.status['pos'], deg_to_rad(-45), deg_to_rad(90.0)]
-                vvel = [w.status['vel'], deg_to_rad(0.0), deg_to_rad(10.0)]
-                w.trajectory.clear_waypoints()
-                for waypoint in zip(vtime, vpos, vvel):
-                    w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-                print("\nLoading trajectory: {0}\n".format(w.trajectory))
-            if x[0]=='2':
-                #w.pull_status()
-                w.traj_start_time = time.time() - 0.07
-                vtime = [0.0, 3.0, 6.0, 9.0]
-                vpos = [w.status['pos'], deg_to_rad(40.0), deg_to_rad(-40.0), deg_to_rad(90.0)]
-                vvel = [w.status['vel'], deg_to_rad(90.0), deg_to_rad(-90.0), deg_to_rad(0.0)]
-                w.trajectory.clear_waypoints()
-                for waypoint in zip(vtime, vpos, vvel):
-                    w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-                print("\nLoading trajectory: {0}\n".format(w.trajectory))
-            if x[0] == '3':
-                w.pull_status()
-                w.traj_start_time = time.time() - 0.07
-                vtime = [0.0, 30.0, 60.0]
-                vpos = [w.status['pos'], deg_to_rad(0.0), deg_to_rad(90.0)]
-                vvel = [w.status['vel'], deg_to_rad(0.0), deg_to_rad(10.0)]
-                w.trajectory.clear_waypoints()
-                for waypoint in zip(vtime, vpos, vvel):
-                    w.trajectory.add_waypoint(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-                print("\nLoading trajectory: {0}\n".format(w.trajectory))
         else:
-            #w.pull_status()
-            if w.status['trajectory_active']:
-                print("\nDuration Remaining: {0}\nTracking Error: {1}\n".format(w.duration_remaining(), w.traj_curr_goal.position - w.status['pos']))
+            if w._waypoint_ts is not None:
+                d = w.trajectory[-1].time-(time.time() - w._waypoint_ts)
+                print("\nDuration Remaining: {0}.\nCurrent pos {1}\n".format(d, w.status['pos']))
             else:
                 print("\nTrajectory inactive\n")
 
     try:
-        for waypoint in zip(vtime, vpos, vvel):
-            w.trajectory.add(t_s=waypoint[0], x_r=waypoint[1], v_r=waypoint[2])
-            print("TRAJ",w.trajectory.waypoints)
         while True:
             try:
                 step_interaction()

@@ -90,6 +90,7 @@ class DynamixelHelloXL430(Device):
             self.status_mux_id = 0
             self.was_runstopped = False
             self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
+
         except KeyError:
             self.motor=None
 
@@ -162,6 +163,8 @@ class DynamixelHelloXL430(Device):
                 self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
                 self.v_des=None#self.params['motion']['default']['vel']
                 self.a_des=None#self.params['motion']['default']['accel']
+                self.pre_traj_vel = None
+                self.pre_traj_acc = None
                 self.set_motion_params()
                 self.is_calibrated=self.motor.is_calibrated()
                 self.enable_torque()
@@ -551,7 +554,7 @@ class DynamixelHelloXL430(Device):
         if not valid:
             self.logger.warning('Dynamixel trajectory not valid: {0}'.format(reason))
             return False
-        if valid and reason == "must have atleast two waypoints":
+        if valid and reason == "must have at least two waypoints":
             # skip this device
             return True
 
@@ -613,7 +616,8 @@ class DynamixelHelloXL430(Device):
         self.trajectory.clear()
         if self.params['motion']['trajectory_vel_ctrl']:
             self._disable_trajectory_vel_ctrl()
-        self.set_motion_params(self.pre_traj_vel,self.pre_traj_acc)
+        if self.pre_traj_vel and self.pre_traj_acc:
+            self.set_motion_params(self.pre_traj_vel,self.pre_traj_acc)
 
     def _step_trajectory_vel_ctrl(self,v1):
         v_des = self.world_rad_to_ticks_per_sec(v1)
