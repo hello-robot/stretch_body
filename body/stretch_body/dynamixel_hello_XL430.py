@@ -571,8 +571,7 @@ class DynamixelHelloXL430(Device):
         # start trajectory
         self._waypoint_ts = time.time()
         p0, v0, a0 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
-        self.traj_pos_mode=False
-        if self.traj_pos_mode:
+        if not self.params['motion']['trajectory_vel_ctrl']:
             self.move_to(p0, self.params['motion']['max']['vel'],self.params['motion']['max']['accel'])
         else:
             self.disable_torque()
@@ -604,7 +603,7 @@ class DynamixelHelloXL430(Device):
 
         if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
             p1, v1, a1 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
-            if self.traj_pos_mode:
+            if not self.params['motion']['trajectory_vel_ctrl']:
                 self.move_to(p1, self.params['motion']['max']['vel'],self.params['motion']['max']['accel'])
             else:
                 v_des = self.world_rad_to_ticks_per_sec(v1)
@@ -624,9 +623,9 @@ class DynamixelHelloXL430(Device):
                     v_des = 0
                 self.motor.set_vel(v_des)
         else:
-            if not self.traj_pos_mode:
+            if self.params['motion']['trajectory_vel_ctrl']:
                 self.disable_torque()
-                #self.motor.disable_watchdog()
+                self.motor.disable_watchdog()
                 self.enable_pos()
                 self.enable_torque()
             self.move_to(self.trajectory[-1].position, self.pre_traj_vel,self.pre_traj_acc)
@@ -639,6 +638,11 @@ class DynamixelHelloXL430(Device):
         """
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
         self.trajectory.clear()
+        if self.params['motion']['trajectory_vel_ctrl']:
+            self.disable_torque()
+            self.motor.disable_watchdog()
+            self.enable_pos()
+            self.enable_torque()
         self.set_motion_params(self.pre_traj_vel,self.pre_traj_acc)
 
 # ##########################################

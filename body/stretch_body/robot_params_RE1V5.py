@@ -149,6 +149,7 @@ nominal_params={
         'max_voltage_limit': 15,
         'min_voltage_limit': 11,
         'motion': {
+            'trajectory_vel_ctrl':1,
             'default': {
                 'accel': 8.0,
                 'vel': 3.0},
@@ -188,6 +189,7 @@ nominal_params={
         'max_voltage_limit': 15,
         'min_voltage_limit': 11,
         'motion': {
+            'trajectory_vel_ctrl':1,
             'default': {
                 'accel': 8.0,
                 'vel': 3.0},
@@ -444,21 +446,22 @@ nominal_params={
         'min_grip_strength': -125,
         'min_voltage_limit': 11,
         'motion':{
-        'default':{
-          'accel': 10.0,
-          'vel': 4.0},
-        'fast':{
-          'accel': 10.0,
-          'vel': 6.0},
-        'max':{
-          'accel': 12,
-          'vel': 8},
-        'slow':{
-          'accel': 4.0,
-          'vel': 2.0},
-        'trajectory_max': {
-            'vel_r': 50.0,
-            'accel_r': 100.0}},
+            'trajectory_vel_ctrl':1,
+            'default':{
+              'accel': 10.0,
+              'vel': 4.0},
+            'fast':{
+              'accel': 10.0,
+              'vel': 6.0},
+            'max':{
+              'accel': 12,
+              'vel': 8},
+            'slow':{
+              'accel': 4.0,
+              'vel': 2.0},
+            'trajectory_max': {
+                'vel_r': 50.0,
+                'accel_r': 100.0}},
         'pid': [640.0,0,0],
         'pwm_homing': [-400, 0],
         'pwm_limit': 885,
@@ -520,21 +523,22 @@ nominal_params={
         'max_voltage_limit': 15,
         'min_voltage_limit': 11,
         'motion':{
-        'default':{
-          'accel': 8.0,
-          'vel': 3.0},
-        'fast':{
-          'accel': 10.0,
-          'vel': 5.0},
-        'max':{
-          'accel': 12,
-          'vel': 8},
-        'slow':{
-          'accel': 4.0,
-          'vel': 1.0},
-          'trajectory_max': {
-              'vel_r': 8.0,
-              'accel_r': 16.0}},
+            'trajectory_vel_ctrl':1,
+            'default':{
+              'accel': 8.0,
+              'vel': 3.0},
+            'fast':{
+              'accel': 10.0,
+              'vel': 5.0},
+            'max':{
+              'accel': 12,
+              'vel': 8},
+            'slow':{
+              'accel': 4.0,
+              'vel': 1.0},
+              'trajectory_max': {
+                  'vel_r': 8.0,
+                  'accel_r': 16.0}},
         'pid': [640,0,0],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
