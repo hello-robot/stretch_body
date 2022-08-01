@@ -393,8 +393,6 @@ class DynamixelHelloXL430(Device):
             self.motor.set_vel(v_des)
         except(termios.error, DynamixelCommError, IndexError):
             self.logger.warning('Dynamixel communication error on %s: ' % self.name)
-            self.motor.port_handler.ser.reset_output_buffer()
-            self.motor.port_handler.ser.reset_input_buffer()
             self.comm_errors.add_error(rx=True, gsr=False)
 
     def move_to(self,x_des, v_des=None, a_des=None):
@@ -415,7 +413,7 @@ class DynamixelHelloXL430(Device):
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
         except (termios.error, DynamixelCommError, IndexError):
-            #self.logger.warning('Dynamixel communication error on: %s' % self.name)
+            self.logger.warning('Dynamixel communication error on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
 
@@ -507,12 +505,20 @@ class DynamixelHelloXL430(Device):
         return self._waypoint_ts !=None
 
     def get_trajectory_ts(self):
+        #Return trajectory execution time
         if self.is_trajectory_active():
             return time.time()-self._waypoint_ts
         elif len(self.trajectory.waypoints):
             return self.trajectory.waypoints[-1].time
         else:
             return 0
+
+    def get_trajectory_time_remaining(self):
+        if not self.is_trajectory_active():
+            return 0
+        else:
+            return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
+
     def follow_trajectory(self, v_r=None, a_r=None, req_calibration=True, move_to_start_point=True):
         """Starts executing a waypoint trajectory
 
@@ -598,7 +604,7 @@ class DynamixelHelloXL430(Device):
         if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
             p1, v1, a1 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
             if self.params['motion']['trajectory_vel_ctrl']:
-                self._step_trajectory_vel_ctrl(v1)
+                self._step_trajectory_vel_ctrl(p1,v1,a1)
             else:
                 self.move_to(p1, self.params['motion']['max']['vel'], self.params['motion']['max']['accel'])
         else:
@@ -619,23 +625,28 @@ class DynamixelHelloXL430(Device):
         if self.pre_traj_vel and self.pre_traj_acc:
             self.set_motion_params(self.pre_traj_vel,self.pre_traj_acc)
 
-    def _step_trajectory_vel_ctrl(self,v1):
+    def _step_trajectory_vel_ctrl(self,p1, v1,a1):
+        # Command the instantaneious spline velocity to the servo velocity controller
+        # Add a proportional term on the position error to zero out small errors at low velocity
+        x_curr = self.status['pos']
+        v_curr = self.status['vel']
+        v1=v1-self.params['motion']['trajectory_vel_ctrl_kP']*(x_curr-p1)
         v_des = self.world_rad_to_ticks_per_sec(v1)
         # Honor joint limits in velocity mode
         lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
                         self.ticks_to_world_rad(self.params['range_t'][1]))
         lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
                         self.ticks_to_world_rad(self.params['range_t'][1]))
-        x_curr = self.status['pos']
-        v_curr = self.status['vel']
-        if self.params['motion']['trajectory_max']['accel_r'] > 0:
-            t_brake = abs(v_curr) / self.params['motion']['trajectory_max']['accel_r']  # How long to brake from current speed (s)
-        else:
-            t_brake = 0
-        d_brake = t_brake * v_curr / 2  # How far it will go before breaking (pos/neg)
-        if (v1 > 0 and x_curr + d_brake >= lim_upper) or (v1 < 0 and x_curr + d_brake <= lim_lower):
+
+        #if self.params['motion']['trajectory_max']['accel_r'] > 0:
+        t_brake = abs(v_curr /self.params['motion']['max']['accel'])  # How long to brake from current speed (s)
+        #else:
+        #    t_brake = 0
+        d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
+        d_brake = d_brake+deg_to_rad(5.0) #Pad out by 5 degrees to give a bit of safety margin
+        if (v1 > 0 and x_curr + d_brake >= lim_upper) or (v1 <=0 and x_curr - d_brake <= lim_lower):
             v_des = 0
-        self.motor.set_vel(v_des)
+        self.move_to_vel(v_des)
 
     def _enable_trajectory_vel_ctrl(self):
         self.disable_torque()

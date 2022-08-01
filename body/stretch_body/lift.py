@@ -342,6 +342,24 @@ class Lift(Device):
         s0 = self.trajectory.get_segment(0, to_motor_rad=self.translate_to_motor_rad).to_array()
         return self.motor.start_waypoint_trajectory(s0)
 
+    def is_trajectory_active(self):
+        return self.motor.status['waypoint_traj']['state'] == 'active'
+
+    def get_trajectory_ts(self):
+        # Return trajectory execution time
+        if self.is_trajectory_active():
+            return time.time()-self.motor._waypoint_ts
+        elif len(self.trajectory.waypoints):
+            return self.trajectory.waypoints[-1].time
+        else:
+            return 0
+
+    def get_trajectory_time_remaining(self):
+        if not self.is_trajectory_active():
+            return 0
+        else:
+            return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
+
     def update_trajectory(self):
         """Updates hardware with the next segment of `self.trajectory`
 

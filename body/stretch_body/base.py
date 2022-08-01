@@ -4,6 +4,7 @@ from stretch_body.stepper import *
 from stretch_body.device import Device
 from stretch_body.trajectories import DiffDriveTrajectory
 from stretch_body.hello_utils import *
+import time
 import logging
 import numpy
 
@@ -269,7 +270,6 @@ class Base(Device):
         self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
 
     # ######### Waypoint Trajectory Interface ##############################
-
     def follow_trajectory(self, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None):
         """Starts executing a waypoint trajectory
 
@@ -344,6 +344,24 @@ class Base(Device):
             self._waypoint_lwpos, self._waypoint_rwpos)
         return self.left_wheel.start_waypoint_trajectory(ls0.to_array()) and \
             self.right_wheel.start_waypoint_trajectory(rs0.to_array())
+
+    def is_trajectory_active(self):
+        return (self.left_wheel.status['waypoint_traj']['state'] == 'active' or self.right_wheel.status['waypoint_traj']['state'] == 'active')
+
+    def get_trajectory_ts(self):
+        # Return trajectory execution time
+        if self.is_trajectory_active():
+            return max(time.time()-self.left_wheel._waypoint_ts,time.time()-self.right_wheel._waypoint_ts)
+        elif len(self.trajectory.waypoints):
+            return self.trajectory.waypoints[-1].time
+        else:
+            return 0
+
+    def get_trajectory_time_remaining(self):
+        if not self.is_trajectory_active():
+            return 0
+        else:
+            return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
 
     def update_trajectory(self):
         """Updates hardware with the next segment of `self.trajectory`

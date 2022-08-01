@@ -115,6 +115,7 @@ class StepperBase(Device):
         self._waypoint_traj_set_next_traj_success = False
         self._waypoint_traj_start_error_msg = ""
         self._waypoint_traj_set_next_error_msg = ""
+        self._waypoint_ts = None
 
         self._dirty_command = False
         self._dirty_gains = False
@@ -902,6 +903,7 @@ class Stepper_Protocol_P1(StepperBase):
             self.logger.warning('start_waypoint_trajectory: Invalid segment arr length (must be 8)')
             return False
         self._waypoint_traj_segment = first_segment
+        self._waypoint_ts = time.time()
         with self.lock:
             if self._waypoint_traj_segment is not None:
                 self.transport.payload_out[0] = self.RPC_START_NEW_TRAJECTORY
@@ -910,8 +912,8 @@ class Stepper_Protocol_P1(StepperBase):
             self.transport.step2()
             if not self._waypoint_traj_start_success:
                 self.logger.warning('start_waypoint_trajectory: %s' % self._waypoint_traj_start_error_msg.capitalize())
-            return self._waypoint_traj_start_success
-
+            #return self._waypoint_traj_start_success
+        return self._waypoint_traj_start_success
     def set_next_trajectory_segment(self, next_segment):
         """Sets the next segment for the hardware to execute
 
@@ -951,6 +953,7 @@ class Stepper_Protocol_P1(StepperBase):
     def stop_waypoint_trajectory(self):
         """Stops execution of the waypoint trajectory running in hardware
         """
+        self._waypoint_ts = None
         with self.lock:
             self.transport.payload_out[0] = self.RPC_RESET_TRAJECTORY
             self.transport.queue_rpc2(1, self.rpc_reset_traj_reply)

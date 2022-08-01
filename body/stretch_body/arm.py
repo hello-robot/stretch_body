@@ -328,7 +328,6 @@ class Arm(Device):
             if prev_sync_mode:
                 self.motor.enable_sync_mode()
                 self.push_command()
-
         # start trajectory
         self.motor.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
                                v_des=v_r,
@@ -336,9 +335,28 @@ class Arm(Device):
                                stiffness=stiffness,
                                i_contact_pos=i_contact_pos,
                                i_contact_neg=i_contact_neg)
-        self.motor.push_command()
+        self.push_command()
         s0 = self.trajectory.get_segment(0, to_motor_rad=self.translate_to_motor_rad).to_array()
         return self.motor.start_waypoint_trajectory(s0)
+
+
+    def is_trajectory_active(self):
+        return self.motor.status['waypoint_traj']['state'] == 'active'
+
+    def get_trajectory_ts(self):
+        # Return trajectory execution time
+        if self.is_trajectory_active():
+            return time.time()-self.motor._waypoint_ts
+        elif len(self.trajectory.waypoints):
+            return self.trajectory.waypoints[-1].time
+        else:
+            return 0
+
+    def get_trajectory_time_remaining(self):
+        if not self.is_trajectory_active():
+            return 0
+        else:
+            return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
 
     def update_trajectory(self):
         """Updates hardware with the next segment of `self.trajectory`
@@ -351,10 +369,11 @@ class Arm(Device):
         # check if joint valid, right protocol, and right mode
         if not self.motor.hw_valid or int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
             return
+
         if self.motor.status['mode'] != self.motor.MODE_POS_TRAJ_WAYPOINT:
             return
 
-        if self.motor.status['waypoint_traj']['state'] == 'active':
+        if self.is_trajectory_active():
             next_segment_id = self.motor.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
             if next_segment_id < self.trajectory.get_num_segments():
                 s1 = self.trajectory.get_segment(next_segment_id, to_motor_rad=self.translate_to_motor_rad).to_array()

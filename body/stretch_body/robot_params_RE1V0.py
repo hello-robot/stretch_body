@@ -158,6 +158,7 @@ nominal_params={
         'min_voltage_limit': 11,
         'motion': {
             'trajectory_vel_ctrl': 1,
+            'trajectory_vel_ctrl_kP':1.5,
             'default': {
                 'accel': 8.0,
                 'vel': 3.0},
@@ -196,6 +197,7 @@ nominal_params={
         'min_voltage_limit': 11,
         'motion': {
             'trajectory_vel_ctrl': 1,
+            'trajectory_vel_ctrl_kP':1.5,
             'default': {
                 'accel': 8.0,
                 'vel': 3.0},
@@ -451,6 +453,7 @@ nominal_params={
         'min_voltage_limit': 11,
         'motion':{
             'trajectory_vel_ctrl': 1,
+            'trajectory_vel_ctrl_kP':1.5,
             'default':{
               'accel': 10.0,
               'vel': 4.0},
@@ -526,6 +529,7 @@ nominal_params={
         'min_voltage_limit': 11,
         'motion':{
             'trajectory_vel_ctrl':1,
+            'trajectory_vel_ctrl_kP':1.5,
             'default':{
               'accel': 8.0,
               'vel': 3.0},
