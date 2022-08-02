@@ -407,6 +407,13 @@ nominal_params={
         'temp_LPF': 1.0,
         'voltage_LPF': 1.0}},
     'robot':{
+        'rates':{
+            'DXLStatusThread_Hz': 15.0,
+            'NonDXLStatusThread_Hz': 25.0,
+            'NonDXLStatusThread_monitor_downrate_int': 5,
+            'NonDXLStatusThread_collision_downrate_int': 5,
+            'NonDXLStatusThread_sentry_downrate_int': 2,
+            'NonDXLStatusThread_trajectory_downrate_int': 2},
         'tool': 'tool_stretch_gripper',
         'use_collision_manager': 1,
         'log_to_console': 0,
