@@ -40,7 +40,7 @@ if args.wrist_yaw:
     j_yrange = (j.ticks_to_world_rad(j.params['range_t'][0]),
                 j.ticks_to_world_rad(j.params['range_t'][1]))
     #j_vrange = (-3.0, 3.0)
-    j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_m'], j.params['motion']['trajectory_max']['vel_m'])
+    j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_r'], j.params['motion']['trajectory_max']['vel_r'])
     key_pos='pos'
     j_title='Wrist Yaw Trajectory'
     j_label="Wrist Yaw Joint Range (rad)"
@@ -51,8 +51,8 @@ if args.wrist_yaw:
         vvel = [j.status['vel'], deg_to_rad(0.0), deg_to_rad(10.0)]
     elif args.preloaded_traj == '2':
         vtime = [0.0, 5.0, 10.0, 15.0]
-        vpos = [j.status['pos'], deg_to_rad(40.0), deg_to_rad(-40.0), deg_to_rad(90.0)]
-        vvel = [j.status['vel'], deg_to_rad(90.0), deg_to_rad(-90.0), deg_to_rad(0.0)]
+        vpos = [j.status['pos'], deg_to_rad(40.0), deg_to_rad(-30.0), deg_to_rad(90.0)]
+        vvel = [j.status['vel'], deg_to_rad(90.0), deg_to_rad(-40.0), deg_to_rad(0.0)]
     elif args.preloaded_traj == '3':
         vtime = [0.0, 30.0, 60.0]
         vpos = [j.status['pos'], deg_to_rad(0.0), deg_to_rad(90.0)]
@@ -67,7 +67,7 @@ if args.head_pan:
     j_yrange = (j.ticks_to_world_rad(j.params['range_t'][0]),
                 j.ticks_to_world_rad(j.params['range_t'][1]))
     #j_vrange = (-3.0, 3.0)
-    j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_m'], j.params['motion']['trajectory_max']['vel_m'])
+    j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_r'], j.params['motion']['trajectory_max']['vel_r'])
     key_pos='pos'
     j_title='Head Pan Trajectory'
     j_label="Head Pan Joint Range (rad)"
@@ -93,7 +93,7 @@ if args.gripper:
     j.startup(threaded=True)
     j_yrange = (j.pct_to_world_rad(j.poses['close']),j.pct_to_world_rad(j.poses['open']))
     #j_vrange = (-3.0, 3.0)
-    j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_m'], j.params['motion']['trajectory_max']['vel_m'])
+    j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_r'], j.params['motion']['trajectory_max']['vel_r'])
     key_pos='pos'
     j_title='Stretch Gripper Trajectory'
     j_label="Stretch Gripper Joint Range (Rad)"
@@ -120,7 +120,7 @@ if args.head_tilt:
     j.startup(threaded=True)
     j_yrange = (j.ticks_to_world_rad(j.params['range_t'][0]),
                 j.ticks_to_world_rad(j.params['range_t'][1]))
-    j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_m'], j.params['motion']['trajectory_max']['vel_m'])
+    j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_r'], j.params['motion']['trajectory_max']['vel_r'])
     #j_vrange = (-3.0, 3.0)
     key_pos='pos'
     j_title='Head Tilt Trajectory'
@@ -208,7 +208,6 @@ if args.base_translate or args.base_rotate:
     j.right_wheel.disable_sync_mode()
     j.left_wheel.disable_sync_mode()
     j.push_command()
-    j.pretty_print()
     if args.base_translate:
         j_yrange = (-0.5, 0.5) #meters
         j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_r'],j.params['motion']['trajectory_max']['accel_r'])
