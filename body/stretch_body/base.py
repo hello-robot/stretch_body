@@ -308,7 +308,7 @@ class Base(Device):
         if not valid:
             self.logger.warning('Base trajectory not valid: {0}'.format(reason))
             return False
-        if valid and reason == "must have atleast two waypoints":
+        if valid and reason == "must have at least two waypoints":
             # skip this device
             return True
 
@@ -350,7 +350,7 @@ class Base(Device):
 
     def get_trajectory_ts(self):
         # Return trajectory execution time
-        if self.is_trajectory_active():
+        if self.is_trajectory_active() and self.left_wheel._waypoint_ts is not None and self.right_wheel._waypoint_ts:
             return max(time.time()-self.left_wheel._waypoint_ts,time.time()-self.right_wheel._waypoint_ts)
         elif len(self.trajectory.waypoints):
             return self.trajectory.waypoints[-1].time

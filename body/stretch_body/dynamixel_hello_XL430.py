@@ -561,6 +561,7 @@ class DynamixelHelloXL430(Device):
             self.logger.warning('Dynamixel trajectory not valid: {0}'.format(reason))
             return False
         if valid and reason == "must have at least two waypoints":
+            #self.logger.warning('Dynamixel trajectory not valid: {0}'.format(reason))
             # skip this device
             return True
 
@@ -600,7 +601,6 @@ class DynamixelHelloXL430(Device):
             return
         if self.was_runstopped:
             return
-
         if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
             p1, v1, a1 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
             if self.params['motion']['trajectory_vel_ctrl']:

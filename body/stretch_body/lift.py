@@ -304,7 +304,7 @@ class Lift(Device):
         if not valid:
             self.logger.warning('Lift traj not valid: {0}'.format(reason))
             return False
-        if valid and reason == "must have atleast two waypoints":
+        if valid and reason == "must have at least two waypoints":
             # skip this device
             return True
 
@@ -330,12 +330,15 @@ class Lift(Device):
             if prev_sync_mode:
                 self.motor.enable_sync_mode()
                 self.push_command()
+            #print('WAIT')
+            #time.sleep(2.0)
 
         # start trajectory
         self.motor.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
                                v_des=v_r,
                                a_des=a_r,
                                stiffness=stiffness,
+                               i_feedforward=self.i_feedforward,
                                i_contact_pos=i_contact_pos,
                                i_contact_neg=i_contact_neg)
         self.motor.push_command()
@@ -347,7 +350,7 @@ class Lift(Device):
 
     def get_trajectory_ts(self):
         # Return trajectory execution time
-        if self.is_trajectory_active():
+        if self.is_trajectory_active() and self.motor._waypoint_ts is not None:
             return time.time()-self.motor._waypoint_ts
         elif len(self.trajectory.waypoints):
             return self.trajectory.waypoints[-1].time

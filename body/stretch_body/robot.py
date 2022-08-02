@@ -227,6 +227,13 @@ class Robot(Device):
 
     # ######### Waypoint Trajectory Interface ##############################
 
+
+    def is_trajectory_active(self):
+        return self.arm.is_trajectory_active() or self.lift.is_trajectory_active() or \
+               self.base.is_trajectory_active() or self.end_of_arm.is_trajectory_active() or \
+               self.head.is_trajectory_active()
+
+
     def follow_trajectory(self):
         success = True
         success = success and self.arm.follow_trajectory(move_to_start_point=False)

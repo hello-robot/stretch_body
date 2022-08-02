@@ -409,7 +409,7 @@ class Spline:
         """
         # only check if valid if there are enough waypoints
         if len(self.waypoints) < 2:
-            return True, "must have atleast two waypoints"
+            return True, "must have at least two waypoints"
 
         # verify that spline starts at time zero
         if not np.isclose(self.waypoints[0].time, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
@@ -675,7 +675,7 @@ class DiffDriveTrajectory(Spline):
         """
         # only check if valid if there are enough waypoints
         if len(self.waypoints) < 2:
-            return True, "must have atleast two waypoints"
+            return True, "must have at least two waypoints"
 
         # verify that spline starts at time zero
         if not np.isclose(self.waypoints[0].time, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):

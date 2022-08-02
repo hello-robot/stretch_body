@@ -302,7 +302,7 @@ class Arm(Device):
         if not valid:
             self.logger.warning('Arm traj not valid: {0}'.format(reason))
             return False
-        if valid and reason == "must have atleast two waypoints":
+        if valid and reason == "must have at least two waypoints":
             # skip this device
             return True
 
@@ -333,6 +333,7 @@ class Arm(Device):
                                v_des=v_r,
                                a_des=a_r,
                                stiffness=stiffness,
+                               i_feedforward=self.i_feedforward,
                                i_contact_pos=i_contact_pos,
                                i_contact_neg=i_contact_neg)
         self.push_command()
@@ -345,7 +346,7 @@ class Arm(Device):
 
     def get_trajectory_ts(self):
         # Return trajectory execution time
-        if self.is_trajectory_active():
+        if self.is_trajectory_active() and self.motor._waypoint_ts is not None:
             return time.time()-self.motor._waypoint_ts
         elif len(self.trajectory.waypoints):
             return self.trajectory.waypoints[-1].time

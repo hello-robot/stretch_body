@@ -168,7 +168,7 @@ if args.arm:
         vtime = [0.0, 30.0, 60.0]
         vpos = [j.status['pos'], 0.45, 0.0]
         vvel = [j.status['vel'], 0.0, -0.06]
-
+# ################### Lift ###################################
 if args.lift:
     import stretch_body.lift
     j = stretch_body.lift.Lift()
@@ -197,6 +197,7 @@ if args.lift:
         vpos = [j.status['pos'], 0.9, 0.2]
         vvel = [j.status['vel'], 0.0, -0.08]
 
+# ################### Base ###################################
 if args.base_translate or args.base_rotate:
     import stretch_body.base
     j = stretch_body.base.Base()
@@ -232,7 +233,86 @@ if args.base_translate or args.base_rotate:
             vvel=  [j.status['x_vel'], 0.2, -0.1,0.0]
 
     if args.base_rotate:
-        pass
+        j_yrange = (deg_to_rad(-180),deg_to_rad(180))  # radians
+        j_vrange = (-1 * j.params['motion']['trajectory_max']['vel_r'], j.params['motion']['trajectory_max']['accel_r'])
+        j_title = 'Stretch Base Rotate Trajectory'
+        j_label = "Stretch Base Rotate Range (Rad)"
+
+
+        def add_rotate_waypoints(times, positions, velocities):
+            for waypoint in zip(times, positions, velocities):
+                j.trajectory.add(time=waypoint[0], x=0, y=0, theta=waypoint[1], translational_vel=0,rotational_vel=waypoint[2])
+
+        add_waypoint_cb = add_rotate_waypoints
+        key_pos = 'theta'
+        if args.preloaded_traj == '1':
+            vtime = [0.0, 3.0, 6.0]
+            vpos = [j.status['theta'], deg_to_rad(90.0), 0.0]
+            vvel = [j.status['theta_vel'], 0.0, 0.0]
+        if args.preloaded_traj == '2':
+            vtime = [0.0, 3.0, 6.0, 9.0, 12.0]
+            vpos = [j.status['theta'], deg_to_rad(90.0),deg_to_rad(-45.0),deg_to_rad(45.0), 0.0]
+            vvel = [j.status['theta_vel'], deg_to_rad(10.0),deg_to_rad(-5.0),deg_to_rad(-10.0), 0.0]
+        if args.preloaded_traj == '3':
+            vtime = [0.0, 10.0, 15.0, 20.0]
+            vpos = [j.status['theta'], deg_to_rad(45.0),deg_to_rad(-10.0), 0.0]
+            vvel = [j.status['theta_vel'], deg_to_rad(5.0),deg_to_rad(-5.0), 0.0]
+
+
+# ################### Full Body ###################################
+if args.full_body:
+    import stretch_body.robot
+
+    r = stretch_body.robot.Robot()
+    r.startup()
+
+    print('move all joints to initial positions')
+    r.arm.move_to(0.0)
+    r.lift.move_to(0.2)
+    r.push_command()
+    r.head.pose('ahead')
+    r.end_of_arm.motors['wrist_yaw'].pose('side')
+    time.sleep(4.0)
+
+    r.lift.trajectory.add(t_s=0.0, x_m=0.2, v_m=0.0)
+    r.lift.trajectory.add(t_s=10.0, x_m=0.9, v_m=0.0)
+    r.lift.trajectory.add(t_s=20.0, x_m=0.2, v_m=0.0)
+    r.arm.trajectory.add(t_s=0.0, x_m=0.0, v_m=0.0)
+    r.arm.trajectory.add(t_s=10.0, x_m=0.5, v_m=0.0)
+    r.arm.trajectory.add(t_s=20.0, x_m=0.0, v_m=0.0)
+
+    r.base.trajectory.add(time=0.0, x=0,y=0, theta=deg_to_rad(0.0), translational_vel=0.0, rotational_vel=0.0 )
+    r.base.trajectory.add(time=10.0, x=0,y=0, theta=deg_to_rad(180.0), translational_vel=0.0, rotational_vel=0.0)
+    r.base.trajectory.add(time=20.0,  x=0,y=0,theta=deg_to_rad(0.0), translational_vel=0.0, rotational_vel=0.0)
+
+
+    r.end_of_arm.motors['wrist_yaw'].trajectory.add(t_s=0.0, x_r=deg_to_rad(90.0), v_r=0.0)
+    r.end_of_arm.motors['wrist_yaw'].trajectory.add(t_s=10.0, x_r=deg_to_rad(-45.0), v_r=0.0)
+    r.end_of_arm.motors['wrist_yaw'].trajectory.add(t_s=20.0, x_r=deg_to_rad(90.0), v_r=0.0)
+    #r.end_of_arm.motors['wrist_yaw'].trajectory.add_waypoint(t_s=40.0, x_r=deg_to_rad(180.0), v_r=0.0)
+
+    r.head.get_joint('head_tilt').trajectory.add(t_s=0.0, x_r=deg_to_rad(0.0), v_r=0.0)
+    r.head.get_joint('head_tilt').trajectory.add(t_s=10.0, x_r=deg_to_rad(-90.0), v_r=0.0)
+    r.head.get_joint('head_tilt').trajectory.add(t_s=20.0, x_r=deg_to_rad(0.0), v_r=0.0)
+
+    r.head.get_joint('head_pan').trajectory.add(t_s=0.0, x_r=deg_to_rad(0.0), v_r=0.0)
+    r.head.get_joint('head_pan').trajectory.add(t_s=10.0, x_r=deg_to_rad(-90.0), v_r=0.0)
+    r.head.get_joint('head_pan').trajectory.add(t_s=20.0, x_r=deg_to_rad(0.0), v_r=0.0)
+
+    print('start follow_trajectory')
+    r.follow_trajectory()
+    ts = time.time()
+    while r.is_trajectory_active():
+        #dt = (time.time() - ts) / 20.0  # 0-1
+        print('Time remaining: %f'%(20.0-(time.time()-ts)))
+        # r.base.set_translate_velocity(v_m=dt*0.5) #Uncomment this for base motion (put up on blocks first!)
+        #r.push_command()
+        time.sleep(0.1)
+
+    r.stop_trajectory()
+    r.stop()
+    print('done')
+    exit(0)
 
 # ##########################################################################
 
@@ -241,13 +321,16 @@ if not args.text:
     def start_trajectory(times, positions, velocities):
         add_waypoint_cb(times,positions,velocities)
         if not args.base_translate and not args.base_rotate:
-            j.follow_trajectory(req_calibration=j_req_calibration, move_to_start_point=True)
+            j.follow_trajectory(req_calibration=j_req_calibration, move_to_start_point=False)
         else:
             j.follow_trajectory()
 
     def sense_trajectory():
         #j.pretty_print()
         if j.is_trajectory_active():
+            if args.base_rotate:
+                if j.status['theta']>deg_to_rad(180.0): #Handle rollover in odometry
+                    return (j.get_trajectory_ts(), j.status['theta']-deg_to_rad(360.0))
             return (j.get_trajectory_ts(), j.status[key_pos])
 
     def update_trajectory(times, positions, velocities):
