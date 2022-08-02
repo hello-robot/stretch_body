@@ -55,10 +55,10 @@ class NonDXLStatusThread(threading.Thread):
         threading.Thread.__init__(self)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
-        self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
-        self.collision_downrate_int = 5  # Step the monitor at every Nth iteration
-        self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
-        self.trajectory_downrate_int = 2  # Update hardware with waypoint trajectory segments at every Nth iteration
+        self.monitor_downrate_int = int(robot.params['rates']['NonDXLStatusThread_monitor_downrate_int'])  # Step the monitor at every Nth iteration
+        self.collision_downrate_int = int(robot.params['rates']['NonDXLStatusThread_collision_downrate_int']) # Step the monitor at every Nth iteration
+        self.sentry_downrate_int = int(robot.params['rates']['NonDXLStatusThread_sentry_downrate_int']) # Step the sentry at every Nth iteration
+        self.trajectory_downrate_int = int(robot.params['rates']['NonDXLStatusThread_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         if self.robot.params['use_collision_manager']:
@@ -163,11 +163,11 @@ class Robot(Device):
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
         signal.signal(signal.SIGINT, hello_utils.thread_service_shutdown)
 
-        self.non_dxl_thread = NonDXLStatusThread(self)
+        self.non_dxl_thread = NonDXLStatusThread(self,target_rate_hz=self.params['rates']['NonDXLStatusThread_Hz'])
         self.non_dxl_thread.setDaemon(True)
         self.non_dxl_thread.start()
 
-        self.dxl_thread = DXLStatusThread(self)
+        self.dxl_thread = DXLStatusThread(self,target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
         self.dxl_thread.setDaemon(True)
         self.dxl_thread.start()
 
@@ -358,7 +358,7 @@ class Robot(Device):
             self.end_of_arm.update_trajectory()
             self.head.update_trajectory()
         except SerialException:
-            self.logger.warning('Serial Exception on Robot._update_trajectory_dynamixe()')
+            self.logger.warning('Serial Exception on Robot._update_trajectory_dynamixel()')
 
     def _pull_status_non_dynamixel(self):
         self.wacc.pull_status()
