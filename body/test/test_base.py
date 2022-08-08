@@ -61,7 +61,7 @@ class TestBase(unittest.TestCase):
         self.assertTrue(r.base.fast_motion_allowed)
 
         r.stop()
-    @unittest.skip(reason='TODO: cleanup')
+
     def test_waypoint_trajectory(self):
         """Test a basic waypoint trajectory to verify it works.
         """
@@ -129,7 +129,7 @@ class TestBase(unittest.TestCase):
         self.assertAlmostEqual(constrained_theta, 0.0, places=1)
 
         b.stop()
-    @unittest.skip(reason='TODO: cleanup')
+
     def test_multidof_waypoint_trajectory(self):
         print('test_multidof_waypoint_trajectory')
         b = stretch_body.base.Base()

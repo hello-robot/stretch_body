@@ -264,20 +264,27 @@ class Robot(Device):
             ready = ready and not req
         return ready
 
+    def get_stow_pos(self,joint):
+        """
+        Return the stow position of a joint.
+        Allow the end_of_arm to override the defaults in order to accomodate stowing different tools
+        """
+        if 'stow' in self.end_of_arm.params:
+            if joint in self.end_of_arm.params['stow']:
+                return self.end_of_arm.params['stow'][joint]
+        return self.params['stow'][joint]
+
     def stow(self):
         """
         Cause the robot to move to its stow position
         Blocking.
         """
-        self.head.move_to('head_pan', self.params['stow']['head_pan'])
-        self.head.move_to('head_tilt',self.params['stow']['head_tilt'])
+        self.head.move_to('head_pan', self.get_stow_pos('head_pan'))
+        self.head.move_to('head_tilt',self.get_stow_pos('head_pan'))
 
         lift_stowed=False
-        pos_lift = self.params['stow']['lift']
-        if 'stow' in self.end_of_arm.params:  # Allow tool defined stow position to take precedence
-            if 'lift' in self.end_of_arm.params['stow']:
-                pos_lift = self.end_of_arm.params['stow']['lift']
-        if self.lift.status['pos']<=self.params['stow']['lift']: #Needs to come up before bring in arm
+        pos_lift = self.get_stow_pos('lift')
+        if self.lift.status['pos']<=pos_lift: #Needs to come up before bring in arm
             print('--------- Stowing Lift ----')
             self.lift.move_to(pos_lift)
             self.push_command()
@@ -289,12 +296,7 @@ class Robot(Device):
 
         #Bring in arm before bring down
         print('--------- Stowing Arm ----')
-        pos_arm = self.params['stow']['arm']
-        if 'stow' in self.end_of_arm.params:  # Allow tool defined stow position to take precedence
-            if 'arm' in self.end_of_arm.params['stow']:
-                pos_arm = self.end_of_arm.params['stow']['arm']
-
-        self.arm.move_to(pos_arm)
+        self.arm.move_to(self.get_stow_pos('arm'))
         self.push_command()
         time.sleep(0.25)
         ts = time.time()
@@ -303,7 +305,6 @@ class Robot(Device):
 
         self.end_of_arm.stow()
         time.sleep(0.25)
-
 
         #Now bring lift down
         if not lift_stowed:
