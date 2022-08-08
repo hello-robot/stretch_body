@@ -46,7 +46,7 @@ class TestHead(unittest.TestCase):
         h.logger.info('Executing pan {0}'.format(h.get_joint('head_pan').trajectory.__repr_segments__()))
         self.assertTrue(h.get_joint('head_tilt').trajectory.is_valid(4, 8))
         h.follow_trajectory()
-        time.sleep(7)
+        time.sleep(10)
         self.assertAlmostEqual(h.get_joint('head_tilt').status['pos'], 0.0, places=1)
         self.assertAlmostEqual(h.get_joint('head_pan').status['pos'], 0.1, places=1)
 

@@ -9,8 +9,9 @@ import time
 
 
 class TestArm(unittest.TestCase):
-    @unittest.skip(reason='Temp disable')
+
     def test_vel_guarded_contact(self):
+        print('\nUnittest: test_vel_guarded_contact')
         """Test `set_velocity` API and check that guarded contact
         events are triggered at arm's end of range.
         """
@@ -51,28 +52,31 @@ class TestArm(unittest.TestCase):
         a.pull_status()
         self.assertAlmostEqual(a.status['pos'], 0.0, places=1)
         a.stop()
-    @unittest.skip(reason='Temp disable')
+
     def test_valid_startup_status(self):
+        print('\nUnittest: test_valid_startup_status')
         a = stretch_body.arm.Arm()
         self.assertTrue(a.startup(threaded=False))
         self.assertNotEqual(a.status['pos'],0)
-    @unittest.skip(reason='Temp disable')
+
     def test_homing(self):
+        print('\nUnittest: test_homing')
         """Test arm homes correctly.
         """
         a = stretch_body.arm.Arm()
         self.assertTrue(a.startup(threaded=False))
 
-        a.home(single_stop=False)
+        a.home(single_stop=True)
         time.sleep(2)
         a.pull_status()
         self.assertAlmostEqual(a.status['pos'], 0.1, places=3)
 
         a.stop()
-    @unittest.skip(reason='Temp disable')
+
     def test_move_arm_with_soft_limits(self):
         """Ensure that soft limits actual clip range of motion.
         """
+        print('\nUnittest: test_move_arm_with_soft_limits')
         a = stretch_body.arm.Arm()
         a.motor.disable_sync_mode()
         self.assertTrue(a.startup(threaded=False))
@@ -113,6 +117,7 @@ class TestArm(unittest.TestCase):
         a.stop()
 
     def test_waypoint_trajectory(self):
+        print('\nUnittest: test_waypoint_trajectory')
         a = stretch_body.arm.Arm()
         a.motor.disable_sync_mode()
         self.assertTrue(a.startup(threaded=True))

@@ -11,8 +11,8 @@ class TestDevice(unittest.TestCase):
         """
         Check that we don't mangle the format when writing config params to YAML
         """
-        print('Testing test_write_configuration_params')
-        d=stretch_body.device.Device()
+        print('\nUnittest: test_write_configuration_params')
+        d=stretch_body.device.Device(req_params=False)
         cp = stretch_body.hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
         for k in cp.keys(): #Write existing values up to 3 dict layers deep
             key1=k
@@ -37,6 +37,7 @@ class TestDevice(unittest.TestCase):
         means stretch_body classes can only initialize loggers after the config
         is loaded. We initialize config as class variables of Device for this.
         """
+        print('\nUnittest: test_disable_existing_loggers')
         d1 = stretch_body.device.Device('wrist_yaw') # loads logging config
         d2 = stretch_body.device.Device('stretch_gripper')
         d1.logger.info('hi')
@@ -45,9 +46,10 @@ class TestDevice(unittest.TestCase):
         #       verify output is '[INFO][wrist_yaw]hi\n[INFO][stretch_gripper]hi\n'
 
     def test_threaded(self):
+        print('\nUnittest: test_threaded')
         class SometimesThreadedDevice(stretch_body.device.Device):
             def __init__(self):
-                stretch_body.device.Device.__init__(self)
+                stretch_body.device.Device.__init__(self,req_params=False)
             def startup(self, threaded=False):
                 self.pulling_status = False
                 stretch_body.device.Device.startup(self, threaded=threaded)

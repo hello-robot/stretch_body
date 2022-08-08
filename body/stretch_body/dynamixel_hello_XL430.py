@@ -90,7 +90,8 @@ class DynamixelHelloXL430(Device):
             self.status_mux_id = 0
             self.was_runstopped = False
             self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
-
+            self.v_des = None #Track the motion profile settings on servo
+            self.a_des = None #Track the motion profile settings on servo
         except KeyError:
             self.motor=None
 
@@ -159,13 +160,10 @@ class DynamixelHelloXL430(Device):
                 self.motor.set_I_gain(self.params['pid'][1])
                 self.motor.set_D_gain(self.params['pid'][2])
                 self.motor.set_return_delay_time(self.params['return_delay_time'])
-                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['default']['vel']))
-                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
-                self.v_des=None#self.params['motion']['default']['vel']
-                self.a_des=None#self.params['motion']['default']['accel']
+                self.set_motion_params() #Initialize servo motion profile with default values
                 self.pre_traj_vel = None
                 self.pre_traj_acc = None
-                self.set_motion_params()
+
                 self.is_calibrated=self.motor.is_calibrated()
                 self.enable_torque()
                 self.pull_status()
@@ -421,18 +419,17 @@ class DynamixelHelloXL430(Device):
         try:
             if not self.hw_valid:
                 return
-            v_des = v_des if v_des is not None else self.params['motion']['default']['vel']
+            v_des = abs(v_des) if v_des is not None else self.params['motion']['default']['vel']
             v_des = min(self.params['motion']['max']['vel'], v_des)
             if v_des != self.v_des:
                 self.motor.set_profile_velocity(abs(self.world_rad_to_ticks_per_sec(v_des)))
                 self.v_des = v_des
 
-            a_des = a_des if a_des is not None else self.params['motion']['default']['accel']
+            a_des = abs(a_des) if a_des is not None else self.params['motion']['default']['accel']
             a_des = min(self.params['motion']['max']['accel'], a_des)
             if a_des != self.a_des:
                 self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(a_des)))
                 self.a_des = a_des
-            #print("MOTION PARAMS",self.a_des,self.v_des)
         except (termios.error, DynamixelCommError):
             #self.logger.warning('Dynamixel communication error on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
@@ -474,8 +471,8 @@ class DynamixelHelloXL430(Device):
                 self.motor.enable_multiturn()
             else:
                 self.motor.enable_pos()
-            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
-            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
+            self.motor.set_profile_velocity(abs(self.world_rad_to_ticks_per_sec(self.v_des)))
+            self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(self.a_des)))
             self.motor.enable_torque()
         except (termios.error, DynamixelCommError):
             self.comm_errors.add_error(rx=False, gsr=False)
@@ -604,6 +601,7 @@ class DynamixelHelloXL430(Device):
         if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
             p1, v1, a1 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
             if self.params['motion']['trajectory_vel_ctrl']:
+                #print('T %f p %f v %f a: %f'%(time.time() - self._waypoint_ts,p1,v1,a1))
                 self._step_trajectory_vel_ctrl(p1,v1,a1)
             else:
                 self.move_to(p1, self.params['motion']['max']['vel'], self.params['motion']['max']['accel'])

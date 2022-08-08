@@ -126,13 +126,12 @@ class StepperBase(Device):
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.hw_valid=False
-        self.gains = {}
+        self.gains = self.params['gains'].copy()
 
     # ###########  Device Methods #############
     def startup(self, threaded=False):
         try:
             Device.startup(self, threaded=threaded)
-            self.gains = self.params['gains'].copy()
             with self.lock:
                 self.hw_valid = self.transport.startup()
                 if self.hw_valid:

@@ -12,6 +12,7 @@ import numpy as np
 class TestBase(unittest.TestCase):
 
     def test_valid_startup_status(self):
+        print('test_valid_startup_status')
         b = stretch_body.base.Base()
         self.assertTrue(b.startup(threaded=False))
         self.assertNotEqual(b.status['timestamp_pc'],0)
@@ -19,6 +20,7 @@ class TestBase(unittest.TestCase):
     def test_fast_base_motion_allowed(self):
         """Verifies fast base motion is allowed at the correct time.
         """
+        print('test_fast_base_motion_allowed')
         import stretch_body.robot
         r = stretch_body.robot.Robot()
         r.robot_params['robot_sentry']['base_max_velocity'] = 1 # Enable fast base motion
@@ -59,10 +61,11 @@ class TestBase(unittest.TestCase):
         self.assertTrue(r.base.fast_motion_allowed)
 
         r.stop()
-
+    @unittest.skip(reason='TODO: cleanup')
     def test_waypoint_trajectory(self):
         """Test a basic waypoint trajectory to verify it works.
         """
+        print('test_waypoint_trajectory')
         b = stretch_body.base.Base()
         b.left_wheel.disable_sync_mode()
         b.right_wheel.disable_sync_mode()
@@ -126,8 +129,9 @@ class TestBase(unittest.TestCase):
         self.assertAlmostEqual(constrained_theta, 0.0, places=1)
 
         b.stop()
-
+    @unittest.skip(reason='TODO: cleanup')
     def test_multidof_waypoint_trajectory(self):
+        print('test_multidof_waypoint_trajectory')
         b = stretch_body.base.Base()
         b.left_wheel.disable_sync_mode()
         b.right_wheel.disable_sync_mode()

@@ -182,7 +182,6 @@ class LoopStats():
 
     def mark_loop_end(self):
         self.status['num_loops'] += 1
-
         # First two cycles initialize vars / log
         if not self.ts_loop_start:
             return
