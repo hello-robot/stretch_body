@@ -61,7 +61,7 @@ def step_interaction():
         if x[0] == 'c':
             g.move_to(g.poses['close'], v_des, a_des)
         if x[0]=='r':
-            g.do_reboot()
+            g.reboot()
             
         if x[0] == '1':
             v_des = g.params['motion']['slow']['vel']

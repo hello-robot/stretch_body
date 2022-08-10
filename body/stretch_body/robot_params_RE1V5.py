@@ -389,7 +389,6 @@ nominal_params={
     'pimu':{
       'base_fan_off': 70,
       'base_fan_on': 82,
-      'max_sync_rate_hz':20.0,
       'config':{
         'accel_LPF': 20.0,
         'bump_thresh': 20.0,

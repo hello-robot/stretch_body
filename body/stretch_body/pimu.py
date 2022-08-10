@@ -310,14 +310,17 @@ class PimuBase(Device):
         #Push out immediately
         if not self.hw_valid:
             return
-
         t = time.time()
-        if self.ts_last_motor_sync is not None and t-self.ts_last_motor_sync<1.0/self.params['max_sync_rate_hz']:
-            self.status['motor_sync_drop'] += 1
-            if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
-                print('Warning: Rate of calls to Pimu:trigger_motor_sync above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
-                self.ts_last_motor_sync_warn=t
-            return
+        if self.board_info['hardware_id'] ==0:
+            #For RE1.0 robots (hardware_id==0) the runstop and sync line are shared
+            #This limits the maximum rate that the motor sync can be triggered
+
+            if self.ts_last_motor_sync is not None and t-self.ts_last_motor_sync<1.0/self.params['max_sync_rate_hz']:
+                self.status['motor_sync_drop'] += 1
+                if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
+                    print('Warning: Rate of calls to Pimu:trigger_motor_sync above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
+                    self.ts_last_motor_sync_warn=t
+                return
 
         with self.lock:
             self.transport.payload_out[0] = self.RPC_SET_MOTOR_SYNC
