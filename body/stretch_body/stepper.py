@@ -7,6 +7,8 @@ import threading
 import sys
 import time
 
+
+
 # ######################## STEPPER #################################
 
 class StepperBase(Device):
@@ -101,7 +103,7 @@ class StepperBase(Device):
         self.transport = Transport(usb=self.usb, logger=self.logger)
 
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
-        self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
+        self.status = {'mode': 0, 'effort_ticks': 0, 'effort_pct':0,'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0,
@@ -357,7 +359,7 @@ class StepperBase(Device):
                 self._command['a_des'] = self.params['motion']['accel']
 
             if stiffness is not None:
-                self._command['stiffness'] = max(0, min(1.0, stiffness))
+                self._command['stiffness'] = max(0.0, min(1.0, stiffness))
             else:
                 self._command['stiffness'] =1
 
@@ -397,29 +399,45 @@ class StepperBase(Device):
             self.pull_status()
         return self.status['near_pos_setpoint']
 
-    def current_to_effort(self,i_A):
+    ########### Handle current and effort conversions  ###########
+
+    #Effort_ticks are in the units of the uC current controller (0-255 8 bit)
+    #Conversion to A is based on the sense resistor and motor driver (see firmware)
+    def current_to_effort_ticks(self,i_A):
         if self.board_info['hardware_id']==0: # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
         if self.board_info['hardware_id']==1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
-        effort = (i_A * 1000.0) / mA_per_tick
-        return min(255,max(-255,int(effort)))
+        effort_ticks = (i_A * 1000.0) / mA_per_tick
+        return min(255,max(-255,int(effort_ticks)))
 
-    def effort_to_current(self,e):
+    def effort_ticks_to_current(self,e):
         if self.board_info['hardware_id'] == 0:  # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
         if self.board_info['hardware_id'] == 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
         return e * mA_per_tick / 1000.0
 
-    #Very rough, not accounting for motor dynamics / temp / etc
+    # Effort_pct is defined as a percentage of the maximum allowable motor winding current
+    # Range is -1.0 to 1.0
+    def current_to_effort_pct(self,i_A):
+        if i_A>0:
+            return max(0.0,min(1.0,i_A/self.gains['iMax_pos']))
+        else:
+            return min(0.0, max(-1.0, i_A/ abs(self.gains['iMax_neg'])))
+
+    def effort_pct_to_current(self,e_pct):
+        if e_pct>0:
+            return min(1.0,e_pct)*self.gains['iMax_pos']
+        else:
+            return max(-1.0, e_pct) * abs(self.gains['iMax_neg'])
+
     def current_to_torque(self,i):
-        k_t = self.params['holding_torque']/self.params['rated_current'] #N-m/A
-        return i*k_t
+        raise DeprecationWarning('Method current_to_torque has been deprecated since v0.3.5')
 
     def torque_to_current(self, tq):
-        k_t = self.params['holding_torque'] / self.params['rated_current']  # N-m/A
-        return tq/k_t
+        raise DeprecationWarning('Method torque_to_current has been deprecated since v0.3.5')
+
 
         # ####################### Encoder Calibration ######################
 
@@ -743,8 +761,9 @@ class Stepper_Protocol_P0(StepperBase):
         with self.lock:
             sidx=0
             self.status['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
-            self.status['effort'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.status['current']=self.effort_to_current(self.status['effort'])
+            self.status['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
+            self.status['current']=self.effort_ticks_to_current(self.status['effort_ticks'])
+            self.status['effort_pct']=self.current_to_effort_pct(self.status['current'])
             self.status['pos'] = unpack_double_t(s[sidx:]);sidx+=8
             self.status['vel'] = unpack_float_t(s[sidx:]);sidx+=4
             self.status['err'] = unpack_float_t(s[sidx:]);sidx += 4
@@ -777,7 +796,8 @@ class Stepper_Protocol_P0(StepperBase):
         print('Feedforward', self._command['i_feedforward'])
         print('Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos']))
         print('Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel']))
-        print('Effort', self.status['effort'])
+        print('Effort (Ticks)', self.status['effort_ticks'])
+        print('Effort (Pct)',self.status['effort_pct'])
         print('Current (A)', self.status['current'])
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
@@ -807,8 +827,9 @@ class Stepper_Protocol_P1(StepperBase):
         with self.lock:
             sidx=0
             self.status['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
-            self.status['effort'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.status['current']=self.effort_to_current(self.status['effort'])
+            self.status['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
+            self.status['current']=self.effort_ticks_to_current(self.status['effort_ticks'])
+            self.status['effort_pct'] = self.current_to_effort_pct(self.status['current'])
             self.status['pos'] = unpack_double_t(s[sidx:]);sidx+=8
             self.status['vel'] = unpack_float_t(s[sidx:]);sidx+=4
             self.status['err'] = unpack_float_t(s[sidx:]);sidx += 4
@@ -851,7 +872,8 @@ class Stepper_Protocol_P1(StepperBase):
         print('Feedforward', self._command['i_feedforward'])
         print('Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos']))
         print('Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel']))
-        print('Effort', self.status['effort'])
+        print('Effort (Ticks)', self.status['effort_ticks'])
+        print('Effort (Pct)', self.status['effort_pct'])
         print('Current (A)', self.status['current'])
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
