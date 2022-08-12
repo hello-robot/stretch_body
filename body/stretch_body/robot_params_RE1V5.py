@@ -17,22 +17,24 @@ configuration_params_header='#Parameters that are specific to this robot\n' \
 
 configuration_params_template={
     'arm':{
-        'contact_thresh_N':[-70,70],
-        'contact_thresh_max_N':[-100, 100],
-        'homing_force_N': [-60, 80],
-        'i_feedforward': 0,
+        'i_feedforward':0,
+        'contact_models':{
+            'current_A':{
+                'contact_thresh_default':[-2.0, 2.0],
+                'contact_thresh_homing':[-2.0, 2.0]}},
         'range_m':[0.0,0.52]},
     'lift': {
-        'contact_thresh_N': [-70, 70],
-        'contact_thresh_max_N': [-100, 100],
-        'homing_force_N': [-70, 70],
+        'contact_models':{
+            'current_A':{
+                'contact_thresh_default':[-3.0, 3.0],
+                'contact_thresh_homing':[-3.0, 3.0]}},
         'i_feedforward': 0.54,
         'range_m': [0.0, 1.10]},
     'base':{
         'wheel_separation_m': 0.3153},
     'head_pan':{
         'range_t': [0, 3827],
-        'zero_t': 1165},
+        'zero_t': 1250},
     'head_tilt':{
         'range_t': [1775,3150],
         'zero_t': 2048},
@@ -70,7 +72,13 @@ nominal_params={
         'chain_sprocket_teeth': 10,
         'gr_spur': 3.875,
         'i_feedforward': 0,
-        'force_N_per_A': 55.9,
+        'calibration_range_bounds':[0.515, 0.525],
+        'contact_model': 'effort_pct',
+        'contact_model_homing': 'current_A',
+        'contact_models':{
+            'current_A':{
+                'contact_thresh_calibration_margin': 0.25,
+                'contact_thresh_max': [-4.0, 4.0]}},
         'motion':{
             'default':{
                 'accel_m': 0.14,
@@ -234,10 +242,10 @@ nominal_params={
             'enable_sync_mode': 1,
             'flip_effort_polarity': 0,
             'flip_encoder_polarity': 0,
-            'iMax_neg': -3.2,
-            'iMax_pos': 3.2,
-            'i_contact_neg': -3.2,
-            'i_contact_pos': 3.2,
+            'iMax_neg': -4.35,
+            'iMax_pos': 4.35,
+            'i_contact_neg': -2.0,
+            'i_contact_pos': 2.0,
             'i_safety_feedforward': 0.0,
             'pKd_d': 60.0,
             'pKi_d': 0.1,
@@ -304,10 +312,10 @@ nominal_params={
             'enable_sync_mode': 1,
             'flip_effort_polarity': 1,
             'flip_encoder_polarity': 1,
-            'iMax_neg': -3.2,
-            'iMax_pos': 3.2,
-            'i_contact_neg': -1.5,
-            'i_contact_pos': 2.0,
+            'iMax_neg': -4.35,
+            'iMax_pos': 4.35,
+            'i_contact_neg': -3.0,
+            'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.54,
             'pKd_d': 20.0,
             'pKi_d': 0.05,
@@ -367,8 +375,13 @@ nominal_params={
             'vel': 25},
         'rated_current': 2.8},
     'lift':{
+        'contact_model': 'effort_pct',
+        'contact_model_homing': 'current_A',
+        'contact_models': {
+            'current_A': {
+                'contact_thresh_calibration_margin': 0.5,
+                'contact_thresh_max': [-4.35, 4.35]}},
         'belt_pitch_m': 0.005,
-          'force_N_per_A': 75.0,
           'motion':{
             'default':{
               'accel_m': 0.15,

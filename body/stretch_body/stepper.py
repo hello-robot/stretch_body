@@ -95,6 +95,7 @@ class StepperBase(Device):
     TRIGGER_WRITE_GAINS_TO_FLASH = 8
     TRIGGER_RESET_POS_CALIBRATED = 16
     TRIGGER_POS_CALIBRATED = 32
+    TRIGGER_MARK_POS_ON_CONTACT=64
 
     def __init__(self, usb):
         Device.__init__(self, name=usb[5:])
@@ -251,9 +252,15 @@ class StepperBase(Device):
             self._trigger = self._trigger | self.TRIGGER_BOARD_RESET
             self._dirty_trigger=True
 
+    def mark_position_on_contact(self,x):
+        with self.lock:
+            self._trigger_data = x
+            self._trigger = self._trigger | self.TRIGGER_MARK_POS_ON_CONTACT
+            self._dirty_trigger=True
+
     def mark_position(self,x):
         if self.status['mode']!=self.MODE_SAFETY:
-            self.logger.warning('Can not mark position. Must be in MODE_SAFETY for',self.usb)
+            self.logger.warning('Can not mark position. Must be in MODE_SAFETY for %s'%self.usb)
             return
 
         with self.lock:
@@ -386,6 +393,19 @@ class StepperBase(Device):
             self._dirty_command=True
 
 
+    def wait_while_is_moving(self,timeout=15.0):
+        """
+        Poll until is moving flag is false
+        Return True if success
+        Return False if timeout
+        """
+        ts = time.time()
+        self.pull_status()
+        while self.status['is_moving'] and time.time() - ts < timeout:
+            time.sleep(0.1)
+            self.pull_status()
+        return not self.status['is_moving']
+
     def wait_until_at_setpoint(self,timeout=15.0):
         """
         Poll until near setpoint
@@ -419,18 +439,18 @@ class StepperBase(Device):
         return e * mA_per_tick / 1000.0
 
     # Effort_pct is defined as a percentage of the maximum allowable motor winding current
-    # Range is -1.0 to 1.0
+    # Range is -100.0 to 100.0
     def current_to_effort_pct(self,i_A):
         if i_A>0:
-            return max(0.0,min(1.0,i_A/self.gains['iMax_pos']))
+            return 100*max(0.0,min(1.0,i_A/self.gains['iMax_pos']))
         else:
-            return min(0.0, max(-1.0, i_A/ abs(self.gains['iMax_neg'])))
+            return 100*min(0.0, max(-1.0, i_A/ abs(self.gains['iMax_neg'])))
 
     def effort_pct_to_current(self,e_pct):
         if e_pct>0:
-            return min(1.0,e_pct)*self.gains['iMax_pos']
+            return min(1.0,e_pct/100.0)*self.gains['iMax_pos']
         else:
-            return max(-1.0, e_pct) * abs(self.gains['iMax_neg'])
+            return max(-1.0, e_pct/100.0) * abs(self.gains['iMax_neg'])
 
     def current_to_torque(self,i):
         raise DeprecationWarning('Method current_to_torque has been deprecated since v0.3.5')
