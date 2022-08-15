@@ -261,11 +261,10 @@ class PrismaticJoint(Device):
         contact_thresh_neg: negative threshold to stop motion (units of contact_model)
         req_calibration: Disallow motion prior to homing
         """
-        if req_calibration:
+        if req_calibration or self.motor.status['pos_calibrated']:
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
                 return
-
             old_x_m = x_m
             if self.status['pos'] + x_m < self.soft_motion_limits['current'][0]:  #Only clip motion when calibrated
                 x_m = self.soft_motion_limits['current'][0] - self.status['pos']
@@ -292,6 +291,7 @@ class PrismaticJoint(Device):
         i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos, contact_thresh_neg, contact_model)
 
         #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate_m(v_r), self.motor_rad_to_translate_m(a_r)))
+
         self.motor.set_command(mode = Stepper.MODE_POS_TRAJ_INCR,
                                 x_des=self.translate_m_to_motor_rad(x_m),
                                 v_des=v_r,
@@ -366,7 +366,7 @@ class PrismaticJoint(Device):
             self.motor.disable_sync_mode()
             self.push_command()
             if not self.motor.wait_until_at_setpoint():
-                self.logger.warning('%f unable to reach starting point'%self.name.upper())
+                self.logger.warning('%f unable to reach starting point'%self.name.capitalize())
             if prev_sync_mode:
                 self.motor.enable_sync_mode()
                 self.push_command()
@@ -469,94 +469,88 @@ class PrismaticJoint(Device):
 
     def home(self,end_pos,to_positive_stop, measuring=False):
         """
-        to_positive_stop: 
+        to_positive_stop:
         -- True: Move to the positive direction stop and mark to range_m[1]
         -- False: Move to the negative direction stop and mark to range_m[0]
         measuring: After homing to stop, move to opposite stop and report back measured distance
         return measured range-of-motion if measuring. Return None if not a valide measurement
         """
         if not self.motor.hw_valid:
-            self.logger.warning('Not able to home %s. Hardware not present'%self.name.capitalize())
+            self.logger.warning('Not able to home %s. Hardware not present' % self.name.capitalize())
             return None
-        #Legacy configurations will use pseudo_N. New configurations will be using current_A
+        # Legacy configurations will use pseudo_N. New configurations will be using current_A
         if self.params['contact_model_homing'] == 'pseudo_N':
-            contact_thresh_pos=self.params['homing_force_N'][1]
-            contact_thresh_neg=self.params['homing_force_N'][0]
+            contact_thresh_pos = self.params['homing_force_N'][1]
+            contact_thresh_neg = self.params['homing_force_N'][0]
         elif self.params['contact_model_homing'] == 'current_A':
-            contact_thresh_neg=min(self.params['contact_models']['current_A']['contact_thresh_homing'][0],self.params['contact_models']['current_A']['contact_thresh_default'][0])
-            contact_thresh_pos=max(self.params['contact_models']['current_A']['contact_thresh_homing'][1],self.params['contact_models']['current_A']['contact_thresh_default'][1])
+            contact_thresh_neg = self.params['contact_models']['current_A']['contact_thresh_homing'][0]
+            contact_thresh_pos = self.params['contact_models']['current_A']['contact_thresh_homing'][1]
         else:
             self.logger.warning('Invalid contact model for %s. Unable to home arm.' % self.name.capitalize())
             return None
-
-        success=True
-        print('Homing %s...'%self.name.capitalize())
+        measuring=True
+        success = True
+        print('Homing %s...' % self.name.capitalize())
         prev_guarded_mode = self.motor.gains['enable_guarded_mode']
         prev_sync_mode = self.motor.gains['enable_sync_mode']
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
         self.motor.reset_pos_calibrated()
         self.push_command()
-
-        pos_direction_m=None
-        if to_positive_stop:
-            x_goal_1=5.0 #Well past the stop
-            x_goal_2=-5.0
-        else:
-            x_goal_1=-5.0
-            x_goal_2=5.0
-
-        self.motor.gains['stiffness_stiffness']=1.0
-        self.motor.set_gains(self.motor.gains)
-        self.push_command()
-
-        #Move to stop
         self.pull_status()
-        self.motor.mark_position_on_contact(self.translate_m_to_motor_rad(self.params['range_m'][1]))
-        self.move_by(x_m=x_goal_1,  contact_thresh_pos=contact_thresh_pos,contact_thresh_neg=contact_thresh_neg, req_calibration=False,contact_model=self.params['contact_model_homing'])
+
+        if to_positive_stop:
+            x_goal_1 = 5.0  # Well past the stop
+            x_goal_2 = -5.0
+        else:
+            x_goal_1 = -5.0
+            x_goal_2 = 5.0
+
+        # Move to stop
+        self.move_by(x_m=x_goal_1, contact_thresh_pos=contact_thresh_pos, contact_thresh_neg=contact_thresh_neg,
+                     req_calibration=False, contact_model=self.params['contact_model_homing'])
         self.push_command()
-        if self.wait_for_contact(timeout=15.0):#timeout=15.0):
-            print('Hardstop detected at motor position (rad)',self.motor.status['pos'])
-            x_dir_1=self.status['pos']
+        if self.wait_for_contact(timeout=15.0):  # timeout=15.0):
+            self.pull_status()
+            print('Hardstop detected at motor position (rad)', self.motor.status['pos'])
+            x_dir_1 = self.status['pos']
             if to_positive_stop:
-                x=self.translate_m_to_motor_rad(self.params['range_m'][1])
-                print('Marking %s position to %f (m)'%(self.name.upper(),self.params['range_m'][1]))
+                x = self.translate_m_to_motor_rad(self.params['range_m'][1] )
+                print('Marking %s position to %f (m)' % (self.name.capitalize(), self.params['range_m'][1]))
             else:
                 x = self.translate_m_to_motor_rad(self.params['range_m'][0])
-                print('Marking %s position to %f (m)'%(self.name.upper(),self.params['range_m'][0]))
+                print('Marking %s position to %f (m)' % (self.name.capitalize(), self.params['range_m'][0]))
             if not measuring:
-                #self.motor.mark_position(x)
+                self.motor.mark_position(x)
                 self.motor.set_pos_calibrated()
                 self.push_command()
-
-            time.sleep(1.0) #Allow to settle
-
-            #Second direction
+            time.sleep(1.0)  # Allow to settle
+            # Second direction
             if measuring:
                 # Move to other direction
                 self.pull_status()
-                self.move_by(x_m=x_goal_2, contact_thresh_pos=contact_thresh_pos,contact_thresh_neg=contact_thresh_neg, req_calibration=False,contact_model=self.params['contact_model_homing'])
+                self.move_by(x_m=x_goal_2, contact_thresh_pos=contact_thresh_pos,contact_thresh_neg=contact_thresh_neg,
+                             req_calibration=False, contact_model=self.params['contact_model_homing'])
                 self.push_command()
                 if self.wait_for_contact(timeout=15.0):
                     print('Second hardstop detected at motor position (rad)', self.motor.status['pos'])
                     time.sleep(1.0)
                     self.pull_status()
-                    x_dir_2=self.status['pos']
+                    x_dir_2 = self.status['pos']
                 else:
-                    self.logger.warning('%s homing failed. Failed to detect contact'%self.name.upper())
+                    self.logger.warning('%s homing failed. Failed to detect contact' % self.name.capitalize())
                     success = False
         else:
-            self.logger.warning('%s homing failed. Failed to detect contact'%self.name.upper())
+            self.logger.warning('%s homing failed. Failed to detect contact' % self.name.capitalize())
             success = False
 
         if success:
-            self.pretty_print()
-            self.move_to(x_m=end_pos,req_calibration=False)
+            self.move_to(x_m=end_pos, req_calibration=False)
             self.push_command()
             time.sleep(1.0)
             if not self.motor.wait_until_at_setpoint():
-                self.logger.warning('%s failed to reach final position' % self.name.upper())
-                success=False
+                self.logger.warning('%s failed to reach final position' % self.name.capitalize())
+                success = False
 
         # Restore previous modes
         if not prev_guarded_mode:
@@ -566,10 +560,8 @@ class PrismaticJoint(Device):
         self.push_command()
         if success:
             if measuring:
-                print('%s range measuing successful: %f (m)' % (self.name.upper(), abs(x_dir_1 - x_dir_2)))
+                print('%s range measuing successful: %f (m)' % (self.name.capitalize(), abs(x_dir_1 - x_dir_2)))
                 return abs(x_dir_1 - x_dir_2)
             else:
-                print('%s homing successful' % self.name.upper())
+                print('%s homing successful' % self.name.capitalize())
         return None
-
-

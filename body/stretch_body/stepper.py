@@ -130,6 +130,7 @@ class StepperBase(Device):
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.hw_valid=False
         self.gains = self.params['gains'].copy()
+        self.gains_flash = {}
 
     # ###########  Device Methods #############
     def startup(self, threaded=False):
@@ -604,33 +605,33 @@ class StepperBase(Device):
     def unpack_gains(self,s):
         with self.lock:
             sidx=0
-            self.gains['pKp_d'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.gains['pKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['pKd_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['pLPF'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['pKi_limit'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vKp_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vKd_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vLPF'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vKi_limit'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vTe_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['iMax_pos'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['iMax_neg'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['phase_advance_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['pos_near_setpoint_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vel_near_setpoint_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vel_status_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['effort_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['safety_stiffness'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['i_safety_feedforward'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pKp_d'] = unpack_float_t(s[sidx:]);sidx+=4
+            self.gains_flash['pKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pKd_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pLPF'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pKi_limit'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vKp_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vKd_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vLPF'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vKi_limit'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vTe_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['iMax_pos'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['iMax_neg'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['phase_advance_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pos_near_setpoint_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vel_near_setpoint_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vel_status_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['effort_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['safety_stiffness'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['i_safety_feedforward'] = unpack_float_t(s[sidx:]);sidx += 4
             config = unpack_uint8_t(s[sidx:]);sidx += 1
-            self.gains['safety_hold']= int(config & self.CONFIG_SAFETY_HOLD>0)
-            self.gains['enable_runstop'] = int(config & self.CONFIG_ENABLE_RUNSTOP>0)
-            self.gains['enable_sync_mode'] = int(config & self.CONFIG_ENABLE_SYNC_MODE>0)
-            self.gains['enable_guarded_mode'] = int(config & self.CONFIG_ENABLE_GUARDED_MODE > 0)
-            self.gains['flip_encoder_polarity'] = int(config & self.CONFIG_FLIP_ENCODER_POLARITY > 0)
-            self.gains['flip_effort_polarity'] = int(config & self.CONFIG_FLIP_EFFORT_POLARITY > 0)
+            self.gains_flash['safety_hold']= int(config & self.CONFIG_SAFETY_HOLD>0)
+            self.gains_flash['enable_runstop'] = int(config & self.CONFIG_ENABLE_RUNSTOP>0)
+            self.gains_flash['enable_sync_mode'] = int(config & self.CONFIG_ENABLE_SYNC_MODE>0)
+            self.gains_flash['enable_guarded_mode'] = int(config & self.CONFIG_ENABLE_GUARDED_MODE > 0)
+            self.gains_flash['flip_encoder_polarity'] = int(config & self.CONFIG_FLIP_ENCODER_POLARITY > 0)
+            self.gains_flash['flip_effort_polarity'] = int(config & self.CONFIG_FLIP_EFFORT_POLARITY > 0)
             return sidx
 
     def pack_motion_limits(self,s,sidx):
