@@ -63,7 +63,6 @@ class PrismaticJoint(Device):
         print('----- %s ------ '%self.name.capitalize())
         print('Pos (m): ', self.status['pos'])
         print('Vel (m/s): ', self.status['vel'])
-        print('Vel (m/s): ', self.status['vel'])
         print('Soft motion limits (m)', self.soft_motion_limits['current'])
         print('Timestamp PC (s):', self.status['timestamp_pc'])
         self.motor.pretty_print()
@@ -127,7 +126,7 @@ class PrismaticJoint(Device):
             Due to the non-ideal actuators it provides only a rough approximation of 'Newtons'
             Users should migrate to newer models.
             """
-            if 'contact_thresh_max_N' in self.params and 'contact_thresh_N'in self.params:
+            if not 'contact_thresh_max_N' in self.params or not 'contact_thresh_N'in self.params:
                 self.logger.warning('Model paramters not found for contact model pseudo_N') #New systems won't have these
                 return 0,0
             i_contact_neg = self.translate_pseudo_N_to_motor_current(
@@ -144,10 +143,10 @@ class PrismaticJoint(Device):
             """
             This model converts from a specified percentage effort (-100 to 100) in the motor frame to motor currents
             """
-            i_cn = self.params['contact_models']['current_A']['contact_thresh_default'][0] if contact_thresh_neg is None else self.motor.effort_pct_to_current(contact_thresh_neg)
-            i_cp = self.params['contact_models']['current_A']['contact_thresh_default'][1] if contact_thresh_pos is None else self.motor.effort_pct_to_current(contact_thresh_pos)
-            i_contact_neg = max(i_cn, self.params['contact_models']['current_A']['contact_thresh_max'][0])
-            i_contact_pos = min(i_cp, self.params['contact_models']['current_A']['contact_thresh_max'][1])
+            e_cn = self.params['contact_models']['effort_pct']['contact_thresh_default'][0] if contact_thresh_neg is None else contact_thresh_neg
+            e_cp = self.params['contact_models']['effort_pct']['contact_thresh_default'][1] if contact_thresh_neg is None else contact_thresh_pos
+            i_contact_neg = self.motor.effort_pct_to_current(max(e_cn, self.params['contact_models']['effort_pct']['contact_thresh_max'][0]))
+            i_contact_pos = self.motor.effort_pct_to_current(min(e_cp, self.params['contact_models']['effort_pct']['contact_thresh_max'][1]))
             return i_contact_pos, i_contact_neg
 
         if contact_model == 'current_A':
@@ -166,7 +165,7 @@ class PrismaticJoint(Device):
 
     def set_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,contact_model=None):
         """
-        v_m: commanded lift velocity (m/s)
+        v_m: commanded joint velocity (m/s)
         a_m: acceleration for trapezoidal motion profile (m/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
         contact_effort_pos: positive effort threshold to stop motion (0.0 to 1.0, up direction)
@@ -290,8 +289,6 @@ class PrismaticJoint(Device):
 
         i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos, contact_thresh_neg, contact_model)
 
-        #print('Lift %.2f , %.2f  , %.2f' % (x_m, self.motor_rad_to_translate_m(v_r), self.motor_rad_to_translate_m(a_r)))
-
         self.motor.set_command(mode = Stepper.MODE_POS_TRAJ_INCR,
                                 x_des=self.translate_m_to_motor_rad(x_m),
                                 v_des=v_r,
@@ -328,14 +325,14 @@ class PrismaticJoint(Device):
         """
         # check if joint valid, homed, and right protocol
         if not self.motor.hw_valid:
-            self.logger.warning('Lift connection to hardware not valid')
+            self.logger.warning('%s connection to hardware not valid'%self.name.upper)
             return False
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
                 return False
         if int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
-            self.logger.warning("Lift firmware version doesn't support waypoint trajectories")
+            self.logger.warning("%s firmware version doesn't support waypoint trajectories"%self.name.capitalize())
             return False
 
         # check if trajectory valid
@@ -343,7 +340,7 @@ class PrismaticJoint(Device):
         acc_limit = a_m if a_m is not None else self.params['motion']['trajectory_max']['accel_m']
         valid, reason = self.trajectory.is_valid(vel_limit, acc_limit)
         if not valid:
-            self.logger.warning('Lift traj not valid: {0}'.format(reason))
+            self.logger.warning('Joint traj not valid: {0}'.format(reason))
             return False
         if valid and reason == "must have at least two waypoints":
             # skip this device
@@ -373,6 +370,7 @@ class PrismaticJoint(Device):
             #print('WAIT')
             #time.sleep(2.0)
 
+        self.traj_guarded_event=self.motor.status['guarded_event']
         # start trajectory
         self.motor.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
                                v_des=v_r,
@@ -415,6 +413,11 @@ class PrismaticJoint(Device):
         if not self.motor.hw_valid or int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
             return
         if self.motor.status['mode'] != self.motor.MODE_POS_TRAJ_WAYPOINT:
+            return
+
+        if self.traj_guarded_event!=self.motor.status['guarded_event']:
+            self.logger.warning('%s guarded contact. Stopping trajectory'%self.name.upper())
+            self.stop_trajectory()
             return
 
         if self.motor.status['waypoint_traj']['state'] == 'active':
@@ -482,11 +485,14 @@ class PrismaticJoint(Device):
         if self.params['contact_model_homing'] == 'pseudo_N':
             contact_thresh_pos = self.params['homing_force_N'][1]
             contact_thresh_neg = self.params['homing_force_N'][0]
+        elif self.params['contact_model_homing'] == 'effort_pct':
+            contact_thresh_neg = self.params['contact_models']['effort_pct']['contact_thresh_homing'][0]
+            contact_thresh_pos = self.params['contact_models']['effort_pct']['contact_thresh_homing'][1]
         elif self.params['contact_model_homing'] == 'current_A':
             contact_thresh_neg = self.params['contact_models']['current_A']['contact_thresh_homing'][0]
             contact_thresh_pos = self.params['contact_models']['current_A']['contact_thresh_homing'][1]
         else:
-            self.logger.warning('Invalid contact model for %s. Unable to home arm.' % self.name.capitalize())
+            self.logger.warning('Invalid contact model for %s. Unable to home joint.' % self.name.capitalize())
             return None
 
         success = True

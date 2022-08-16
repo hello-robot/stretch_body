@@ -28,6 +28,9 @@ configuration_params_template={
             'current_A':{
                 'contact_thresh_default':[-3.0, 3.0],
                 'contact_thresh_homing':[-3.0, 3.0]}},
+            'effort_pct': {
+                'contact_thresh_default': [-69.0, 69.0],
+                'contact_thresh_homing': [-69.0, 69.0]},
         'i_feedforward': 1.2,
         'range_m': [0.0, 1.10]},
     'base':{
@@ -74,26 +77,28 @@ nominal_params={
         'i_feedforward': 0,
         'calibration_range_bounds':[0.515, 0.525],
         'contact_model': 'effort_pct',
-        'contact_model_homing': 'current_A',
+        'contact_model_homing': 'effort_pct',
         'contact_models':{
             'current_A':{
-                'contact_thresh_max': [-4.0, 4.0]}},
+                'contact_thresh_max': [-4.0, 4.0]},
+                'contact_thresh_calibration_margin':0.25,
+            'effort_pct': {'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{
             'default':{
                 'accel_m': 0.14,
                 'vel_m': 0.14},
             'fast':{
-                'accel_m': 0.2,
-                'vel_m': 0.25},
-            'max':{
                 'accel_m': 0.3,
                 'vel_m': 0.3},
+            'max':{
+                'accel_m': 0.4,
+                'vel_m': 0.4},
             'slow':{
-                'accel_m': 0.07,
-                'vel_m': 0.06},
+                'accel_m': 0.05,
+                'vel_m': 0.05},
             'trajectory_max': {
-                'vel_m': 0.3,
-                'accel_m': 0.5}}},
+                'vel_m': 0.4,
+                'accel_m': 0.4}}},
     'base':{
         'force_N_per_A': 21.18,
         'gr': 3.4,
@@ -113,8 +118,13 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 50.0,
                 'accel_r': 30.0}},
-        'contact_thresh_N': 100,
-        'contact_thresh_max_N': 100,
+        'contact_model': 'effort_pct',
+        'contact_models':{
+            'effort_pct': {
+                'contact_thresh_translate_default':50.0,
+                'contact_thresh_rotate_default':50.0,
+                'contact_thresh_translate_max': 100.0,
+                'contact_thresh_rotate_max': 100.0}},
         'sentry_max_velocity':{
             'limit_accel_m': 0.15,
             'limit_vel_m': 0.1,
@@ -375,10 +385,12 @@ nominal_params={
         'rated_current': 2.8},
     'lift':{
         'contact_model': 'effort_pct',
-        'contact_model_homing': 'current_A',
+        'contact_model_homing': 'effort_pct',
         'contact_models': {
             'current_A': {
-                'contact_thresh_max': [-4.35, 4.35]}},
+                'contact_thresh_max': [-4.35, 4.35],
+                'contact_thresh_calibration_margin':0.5},
+            'effort_pct':{'contact_thresh_max': [-100, 100]}},
         'belt_pitch_m': 0.005,
           'motion':{
             'default':{
@@ -394,8 +406,8 @@ nominal_params={
               'accel_m': 0.05,
               'vel_m': 0.05},
             'trajectory_max': {
-              'vel_m': 0.15,
-              'accel_m': 0.3}},
+              'accel_m': 0.3,
+              'vel_m': 0.15}},
           'pinion_t': 12},
     'pimu':{
       'base_fan_off': 70,
