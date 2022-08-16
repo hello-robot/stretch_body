@@ -28,7 +28,7 @@ configuration_params_template={
             'current_A':{
                 'contact_thresh_default':[-3.0, 3.0],
                 'contact_thresh_homing':[-3.0, 3.0]}},
-        'i_feedforward': 0.54,
+        'i_feedforward': 1.2,
         'range_m': [0.0, 1.10]},
     'base':{
         'wheel_separation_m': 0.3153},
@@ -77,7 +77,6 @@ nominal_params={
         'contact_model_homing': 'current_A',
         'contact_models':{
             'current_A':{
-                'contact_thresh_calibration_margin': 0.25,
                 'contact_thresh_max': [-4.0, 4.0]}},
         'motion':{
             'default':{
@@ -316,12 +315,12 @@ nominal_params={
             'iMax_pos': 4.35,
             'i_contact_neg': -3.0,
             'i_contact_pos': 3.0,
-            'i_safety_feedforward': 0.54,
-            'pKd_d': 20.0,
+            'i_safety_feedforward': 1.2,
+            'pKd_d': 40.0,
             'pKi_d': 0.05,
             'pKi_limit': 100.0,
             'pKp_d': 10.0,
-            'pLPF': 60,
+            'pLPF': 100,
             'phase_advance_d': 1.8,
             'pos_near_setpoint_d': 0.5,
             'safety_hold': 1,
@@ -379,16 +378,15 @@ nominal_params={
         'contact_model_homing': 'current_A',
         'contact_models': {
             'current_A': {
-                'contact_thresh_calibration_margin': 0.5,
                 'contact_thresh_max': [-4.35, 4.35]}},
         'belt_pitch_m': 0.005,
           'motion':{
             'default':{
-              'accel_m': 0.15,
-              'vel_m': 0.095},
-            'fast':{
               'accel_m': 0.2,
-              'vel_m': 0.12},
+              'vel_m': 0.11},
+            'fast':{
+              'accel_m': 0.25,
+              'vel_m': 0.13},
             'max':{
               'accel_m': 0.3,
               'vel_m': 0.15},
@@ -396,7 +394,7 @@ nominal_params={
               'accel_m': 0.05,
               'vel_m': 0.05},
             'trajectory_max': {
-              'vel_m': 0.2,
+              'vel_m': 0.15,
               'accel_m': 0.3}},
           'pinion_t': 12},
     'pimu':{

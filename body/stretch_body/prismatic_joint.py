@@ -488,7 +488,7 @@ class PrismaticJoint(Device):
         else:
             self.logger.warning('Invalid contact model for %s. Unable to home arm.' % self.name.capitalize())
             return None
-        measuring=True
+
         success = True
         print('Homing %s...' % self.name.capitalize())
         prev_guarded_mode = self.motor.gains['enable_guarded_mode']
