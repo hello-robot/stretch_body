@@ -80,6 +80,8 @@ nominal_params={
         'gr_spur': 3.875,
         'i_feedforward': 0,
         'force_N_per_A': 55.9,
+        'contact_model': 'pseudo_N',
+        'contact_model_homing': 'pseudo_N',
         'motion':{
             'default':{
                 'accel_m': 0.14,
@@ -99,6 +101,7 @@ nominal_params={
     'base':{
         'force_N_per_A': 21.18,
         'gr': 3.4,
+        'contact_model': 'pseudo_N',
         'motion':{
             'default':{
                 'accel_m': 0.2,
@@ -372,24 +375,26 @@ nominal_params={
         'rated_current': 2.8},
     'lift':{
         'belt_pitch_m': 0.005,
-          'force_N_per_A': 75.0,
-          'motion':{
+        'contact_model': 'pseudo_N',
+        'contact_model_homing': 'pseudo_N',
+        'force_N_per_A': 75.0,
+        'motion':{
             'default':{
-              'accel_m': 0.15,
-              'vel_m': 0.095},
+                'accel_m': 0.15,
+                'vel_m': 0.095},
             'fast':{
-              'accel_m': 0.2,
-              'vel_m': 0.12},
+                'accel_m': 0.2,
+                'vel_m': 0.12},
             'max':{
-              'accel_m': 0.3,
-              'vel_m': 0.15},
+                'accel_m': 0.3,
+                'vel_m': 0.15},
             'slow':{
-              'accel_m': 0.05,
-              'vel_m': 0.05},
+                'accel_m': 0.05,
+                'vel_m': 0.05},
             'trajectory_max': {
-              'vel_m': 0.2,
-              'accel_m': 0.3}},
-          'pinion_t': 12},
+                'vel_m': 0.2,
+                'accel_m': 0.3}},
+        'pinion_t': 12},
     'pimu':{
       'base_fan_off': 70,
       'base_fan_on': 82,

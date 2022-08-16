@@ -149,15 +149,6 @@ class PrismaticJoint(Device):
             i_contact_pos = self.motor.effort_pct_to_current(min(e_cp, self.params['contact_models']['effort_pct']['contact_thresh_max'][1]))
             return i_contact_pos, i_contact_neg
 
-        if contact_model == 'current_A':
-            """
-            This model directly specifies the contact thresholds in terms of motor current
-            """
-            cn = contact_thresh_neg if contact_thresh_neg is not None else self.params['contact_models']['current_A']['contact_thresh_default'][0]
-            cp = contact_thresh_pos if contact_thresh_pos is not None else self.params['contact_models']['current_A']['contact_thresh_default'][1]
-            i_contact_neg = max(cn, self.params['contact_models']['current_A']['contact_thresh_max'][0])
-            i_contact_pos = min(cp, self.params['contact_models']['current_A']['contact_thresh_max'][1])
-            return i_contact_pos, i_contact_neg
         self.logger.warning('Invalid contact model %s for %s'%(contact_model,self.name.capitalize()))
         return 0,0
 
@@ -481,16 +472,13 @@ class PrismaticJoint(Device):
         if not self.motor.hw_valid:
             self.logger.warning('Not able to home %s. Hardware not present' % self.name.capitalize())
             return None
-        # Legacy configurations will use pseudo_N. New configurations will be using current_A
+        # Legacy configurations will use pseudo_N. New configurations will be using effort_pct
         if self.params['contact_model_homing'] == 'pseudo_N':
             contact_thresh_pos = self.params['homing_force_N'][1]
             contact_thresh_neg = self.params['homing_force_N'][0]
         elif self.params['contact_model_homing'] == 'effort_pct':
             contact_thresh_neg = self.params['contact_models']['effort_pct']['contact_thresh_homing'][0]
             contact_thresh_pos = self.params['contact_models']['effort_pct']['contact_thresh_homing'][1]
-        elif self.params['contact_model_homing'] == 'current_A':
-            contact_thresh_neg = self.params['contact_models']['current_A']['contact_thresh_homing'][0]
-            contact_thresh_pos = self.params['contact_models']['current_A']['contact_thresh_homing'][1]
         else:
             self.logger.warning('Invalid contact model for %s. Unable to home joint.' % self.name.capitalize())
             return None

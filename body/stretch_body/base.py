@@ -126,8 +126,8 @@ class Base(Device):
                 m=self.params['contact_models']['effort_pct']['contact_thresh_translate_max']
                 i_l, i_r = self.translation_effort_pct_to_motor_current(min(m,max(e_c,-1*m)))
             else:
-                e_c = self.params['contact_models']['effort_pct']['contact_thresh_translate_default'] if contact_thresh is None else contact_thresh
-                m = self.params['contact_models']['effort_pct']['contact_thresh_translate_max']
+                e_c = self.params['contact_models']['effort_pct']['contact_thresh_rotate_default'] if contact_thresh is None else contact_thresh
+                m = self.params['contact_models']['effort_pct']['contact_thresh_rotate_max']
                 i_l, i_r = self.rotation_effort_pct_to_motor_current(min(m, max(e_c, -1 * m)))
             return i_l,i_r
         self.logger.warning('Invalid contact model %s for %s'%(contact_model,self.name.capitalize()))
