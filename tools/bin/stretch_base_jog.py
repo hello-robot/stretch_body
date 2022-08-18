@@ -12,8 +12,8 @@ print_stretch_re_use()
 parser=argparse.ArgumentParser(description='Jog the base motion from the keyboard')
 args=parser.parse_args()
 
-small_rotate_rad=deg_to_rad(1.0)
-large_rotate_rad=deg_to_rad(10.0)
+small_rotate_rad=deg_to_rad(2.0)
+large_rotate_rad=deg_to_rad(20.0)
 
 b=base.Base()
 if not b.startup(threaded=False):
@@ -60,6 +60,8 @@ def menu():
     print('')
     print('f / b / l / r : small forward / back / left / right')
     print('F / B / L / R : large forward / back / left / right')
+    print('g: enable guarded contact')
+    print('d: disable guarded contact')
     print('o: freewheel')
     print('p: pretty print')
     print('q: quit')
@@ -81,7 +83,12 @@ try:
             b.pull_status()
             #print('################################'
             b.pretty_print()
-
+            if c=='g':
+                b.left_wheel.enable_guarded_mode()
+                b.right_wheel.enable_guarded_mode()
+            if c=='d':
+                b.left_wheel.disable_guarded_mode()
+                b.right_wheel.disable_guarded_mode()
             if c=='p':
                 b.pretty_print()
             if c == '1':

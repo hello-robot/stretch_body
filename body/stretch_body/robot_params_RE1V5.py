@@ -94,7 +94,7 @@ nominal_params={
                 'vel_m': 0.4,
                 'accel_m': 0.4}}},
     'base':{
-        'gr': 3.4,
+        'gr': 3.8,
         'motion':{
             'default':{
                 'accel_m': 0.2,
@@ -279,8 +279,8 @@ nominal_params={
             'enable_sync_mode': 1,
             'flip_effort_polarity': 1,
             'flip_encoder_polarity': 1,
-            'iMax_neg': -2.8,
-            'iMax_pos': 2.8,
+            'iMax_neg': -4.35,
+            'iMax_pos': 4.35,
             'i_contact_neg': -3.0,
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
@@ -349,8 +349,8 @@ nominal_params={
             'enable_sync_mode': 1,
             'flip_effort_polarity': 0,
             'flip_encoder_polarity': 0,
-            'iMax_neg': -2.8,
-            'iMax_pos': 2.8,
+            'iMax_neg': -4.35,
+            'iMax_pos': 4.35,
             'i_contact_neg': -3.0,
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,

@@ -164,6 +164,7 @@ class Base(Device):
 
         stiffness = max(0.0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
 
+
         self.left_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_INCR, x_des=x_mr,
                                     v_des=v_mr,
                                     a_des=a_mr,

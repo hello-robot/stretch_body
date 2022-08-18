@@ -89,6 +89,7 @@ class StepperBase(Device):
     CONFIG_FLIP_ENCODER_POLARITY = 16
     CONFIG_FLIP_EFFORT_POLARITY = 32
 
+
     TRIGGER_MARK_POS = 1
     TRIGGER_RESET_MOTION_GEN = 2
     TRIGGER_BOARD_RESET = 4
@@ -699,7 +700,6 @@ class StepperBase(Device):
                 config = config | self.CONFIG_FLIP_ENCODER_POLARITY
             if self.gains['flip_effort_polarity']:
                 config = config | self.CONFIG_FLIP_EFFORT_POLARITY
-
             pack_uint8_t(s, sidx, config); sidx += 1
             return sidx
 
