@@ -17,22 +17,23 @@ configuration_params_header='#Parameters that are specific to this robot\n' \
 
 configuration_params_template={
     'arm':{
-        'contact_thresh_N':[-70,70],
-        'contact_thresh_max_N':[-100, 100],
-        'homing_force_N': [-60, 80],
-        'i_feedforward': 0,
+        'contact_models':{
+            'effort_pct':{
+                'contact_thresh_default':[-45.0, 45.0],
+                'contact_thresh_homing':[-45.0, 45.0]}},
         'range_m':[0.0,0.52]},
     'lift': {
-        'contact_thresh_N': [-70, 70],
-        'contact_thresh_max_N': [-100, 100],
-        'homing_force_N': [-70, 70],
-        'i_feedforward': 0.54,
+        'contact_models':{
+            'effort_pct': {
+                'contact_thresh_default': [-69.0, 69.0],
+                'contact_thresh_homing': [-69.0, 69.0]}},
+        'i_feedforward': 1.2,
         'range_m': [0.0, 1.10]},
     'base':{
         'wheel_separation_m': 0.3153},
     'head_pan':{
         'range_t': [0, 3827],
-        'zero_t': 1165},
+        'zero_t': 1250},
     'head_tilt':{
         'range_t': [1775,3150],
         'zero_t': 2048},
@@ -70,44 +71,53 @@ nominal_params={
         'chain_sprocket_teeth': 10,
         'gr_spur': 3.875,
         'i_feedforward': 0,
-        'force_N_per_A': 55.9,
+        'calibration_range_bounds':[0.515, 0.525],
+        'contact_model': 'effort_pct',
+        'contact_model_homing': 'effort_pct',
+        'contact_models':{
+                'contact_thresh_calibration_margin':0.25,
+            'effort_pct': {'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{
             'default':{
                 'accel_m': 0.14,
                 'vel_m': 0.14},
             'fast':{
-                'accel_m': 0.2,
+                'accel_m': 0.3,
+                'vel_m': 0.3},
+            'max':{
+                'accel_m': 0.4,
+                'vel_m': 0.4},
+            'slow':{
+                'accel_m': 0.05,
+                'vel_m': 0.05},
+            'trajectory_max': {
+                'vel_m': 0.4,
+                'accel_m': 0.4}}},
+    'base':{
+        'gr': 3.8,
+        'motion':{
+            'default':{
+                'accel_m': 0.12,
+                'vel_m': 0.12},
+            'fast':{
+                'accel_m': 0.25,
                 'vel_m': 0.25},
             'max':{
                 'accel_m': 0.3,
                 'vel_m': 0.3},
             'slow':{
-                'accel_m': 0.07,
-                'vel_m': 0.06},
-            'trajectory_max': {
-                'vel_m': 0.3,
-                'accel_m': 0.5}}},
-    'base':{
-        'force_N_per_A': 21.18,
-        'gr': 3.4,
-        'motion':{
-            'default':{
-                'accel_m': 0.2,
-                'vel_m': 0.15},
-            'fast':{
-                'accel_m': 0.25,
-                'vel_m': 0.2},
-            'max':{
-                'accel_m': 0.4,
-                'vel_m': 0.3},
-            'slow':{
-                'accel_m': 0.15,
-                'vel_m': 0.1},
+                'accel_m': 0.06,
+                'vel_m': 0.04},
             'trajectory_max': {
                 'vel_r': 50.0,
                 'accel_r': 30.0}},
-        'contact_thresh_N': 100,
-        'contact_thresh_max_N': 100,
+        'contact_model': 'effort_pct',
+        'contact_models':{
+            'effort_pct': {
+                'contact_thresh_translate_default':60.0,
+                'contact_thresh_rotate_default':60.0,
+                'contact_thresh_translate_max': 100.0,
+                'contact_thresh_rotate_max': 100.0}},
         'sentry_max_velocity':{
             'limit_accel_m': 0.15,
             'limit_vel_m': 0.1,
@@ -234,10 +244,10 @@ nominal_params={
             'enable_sync_mode': 1,
             'flip_effort_polarity': 0,
             'flip_encoder_polarity': 0,
-            'iMax_neg': -3.2,
-            'iMax_pos': 3.2,
-            'i_contact_neg': -3.2,
-            'i_contact_pos': 3.2,
+            'iMax_neg': -4.35,
+            'iMax_pos': 4.35,
+            'i_contact_neg': -2.0,
+            'i_contact_pos': 2.0,
             'i_safety_feedforward': 0.0,
             'pKd_d': 60.0,
             'pKi_d': 0.1,
@@ -269,16 +279,16 @@ nominal_params={
             'enable_sync_mode': 1,
             'flip_effort_polarity': 1,
             'flip_encoder_polarity': 1,
-            'iMax_neg': -2.8,
-            'iMax_pos': 2.8,
+            'iMax_neg': -4.35,
+            'iMax_pos': 4.35,
             'i_contact_neg': -3.0,
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
-            'pKd_d': 40.0,
-            'pKi_d': 0.0,
-            'pKi_limit': 200,
-            'pKp_d': 8.0,
-            'pLPF': 200,
+            'pKd_d': 65.0,
+            'pKi_d': 0.01,
+            'pKi_limit': 50.0,
+            'pKp_d': 12.0,
+            'pLPF': 80.0,
             'phase_advance_d': 1.8,
             'pos_near_setpoint_d': 0.5,
             'safety_hold': 0,
@@ -304,16 +314,16 @@ nominal_params={
             'enable_sync_mode': 1,
             'flip_effort_polarity': 1,
             'flip_encoder_polarity': 1,
-            'iMax_neg': -3.2,
-            'iMax_pos': 3.2,
-            'i_contact_neg': -1.5,
-            'i_contact_pos': 2.0,
-            'i_safety_feedforward': 0.54,
-            'pKd_d': 20.0,
+            'iMax_neg': -4.35,
+            'iMax_pos': 4.35,
+            'i_contact_neg': -3.0,
+            'i_contact_pos': 3.0,
+            'i_safety_feedforward': 1.2,
+            'pKd_d': 40.0,
             'pKi_d': 0.05,
             'pKi_limit': 100.0,
             'pKp_d': 10.0,
-            'pLPF': 60,
+            'pLPF': 100,
             'phase_advance_d': 1.8,
             'pos_near_setpoint_d': 0.5,
             'safety_hold': 1,
@@ -339,16 +349,16 @@ nominal_params={
             'enable_sync_mode': 1,
             'flip_effort_polarity': 0,
             'flip_encoder_polarity': 0,
-            'iMax_neg': -2.8,
-            'iMax_pos': 2.8,
+            'iMax_neg': -4.35,
+            'iMax_pos': 4.35,
             'i_contact_neg': -3.0,
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
-            'pKd_d': 40.0,
-            'pKi_d': 0.0,
-            'pKi_limit': 200,
-            'pKp_d': 8.0,
-            'pLPF': 200,
+            'pKd_d': 65.0,
+            'pKi_d': 0.01,
+            'pKi_limit': 50.0,
+            'pKp_d': 12.0,
+            'pLPF': 80.0,
             'phase_advance_d': 1.8,
             'pos_near_setpoint_d': 0.5,
             'safety_hold': 0,
@@ -367,15 +377,19 @@ nominal_params={
             'vel': 25},
         'rated_current': 2.8},
     'lift':{
+        'contact_model': 'effort_pct',
+        'contact_model_homing': 'effort_pct',
+        'contact_models': {
+            'contact_thresh_calibration_margin':0.5,
+            'effort_pct':{'contact_thresh_max': [-100, 100]}},
         'belt_pitch_m': 0.005,
-          'force_N_per_A': 75.0,
           'motion':{
             'default':{
-              'accel_m': 0.15,
-              'vel_m': 0.095},
-            'fast':{
               'accel_m': 0.2,
-              'vel_m': 0.12},
+              'vel_m': 0.11},
+            'fast':{
+              'accel_m': 0.25,
+              'vel_m': 0.13},
             'max':{
               'accel_m': 0.3,
               'vel_m': 0.15},
@@ -383,8 +397,8 @@ nominal_params={
               'accel_m': 0.05,
               'vel_m': 0.05},
             'trajectory_max': {
-              'vel_m': 0.2,
-              'accel_m': 0.3}},
+              'accel_m': 0.3,
+              'vel_m': 0.15}},
           'pinion_t': 12},
     'pimu':{
       'base_fan_off': 70,
@@ -535,20 +549,20 @@ nominal_params={
             'trajectory_vel_ctrl':1,
             'trajectory_vel_ctrl_kP':1.5,
             'default':{
-              'accel': 8.0,
-              'vel': 3.0},
+              'accel': 3.0,
+              'vel': 2.0},
             'fast':{
-              'accel': 10.0,
-              'vel': 5.0},
+              'accel': 5.0,
+              'vel': 2.5},
             'max':{
-              'accel': 12,
-              'vel': 8},
+              'accel': 10,
+              'vel': 6.0},
             'slow':{
-              'accel': 4.0,
-              'vel': 1.0},
+              'accel': 1.5,
+              'vel': 0.75},
               'trajectory_max': {
-                  'vel_r': 8.0,
-                  'accel_r': 16.0}},
+                  'vel_r': 3.0,
+                  'accel_r': 3.0}},
         'pid': [640,0,0],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
