@@ -83,6 +83,8 @@ nominal_params={
         'contact_model': 'pseudo_N',
         'contact_model_homing': 'pseudo_N',
         'calibration_range_bounds': [0.515, 0.525],
+        'contact_models':{
+            'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{
             'default':{
                 'accel_m': 0.14,
@@ -121,6 +123,12 @@ nominal_params={
                 'accel_r': 30.0}},
         'contact_thresh_N': 100,
         'contact_thresh_max_N': 100,
+        'contact_models': {
+            'effort_pct': {
+                'contact_thresh_translate_default': 60.0,
+                'contact_thresh_rotate_default': 60.0,
+                'contact_thresh_translate_max': 100.0,
+                'contact_thresh_rotate_max': 100.0}},
         'sentry_max_velocity':{
             'limit_accel_m': 0.15,
             'limit_vel_m': 0.1,
@@ -253,7 +261,7 @@ nominal_params={
             'pKp_d': 8.0,
             'pLPF': 60,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 0.5,
+            'pos_near_setpoint_d': 2.0,
             'safety_hold': 0,
             'safety_stiffness': 1.0,
             'vKd_d': 0,
@@ -288,7 +296,7 @@ nominal_params={
             'pKp_d': 8.0,
             'pLPF': 200,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 0.5,
+            'pos_near_setpoint_d': 1.0,
             'safety_hold': 0,
             'safety_stiffness': 1.0,
             'vKd_d': 0,
@@ -323,7 +331,7 @@ nominal_params={
             'pKp_d': 10.0,
             'pLPF': 60,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 0.5,
+            'pos_near_setpoint_d': 4.0,
             'safety_hold': 1,
             'safety_stiffness': 0.0,
             'vKd_d': 0,
@@ -358,7 +366,7 @@ nominal_params={
             'pKp_d': 8.0,
             'pLPF': 200,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 0.5,
+            'pos_near_setpoint_d': 1.0,
             'safety_hold': 0,
             'safety_stiffness': 1.0,
             'vKd_d': 0,
@@ -378,6 +386,10 @@ nominal_params={
         'belt_pitch_m': 0.005,
         'contact_model': 'pseudo_N',
         'contact_model_homing': 'pseudo_N',
+        'contact_models': {
+            'effort_pct': {
+                'contact_thresh_calibration_margin': 10.0,
+                'contact_thresh_max': [-100, 100]}},
         'calibration_range_bounds': [1.094, 1.106],
         'force_N_per_A': 75.0,
         'motion':{
