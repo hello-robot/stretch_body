@@ -24,6 +24,7 @@ def menu():
     print('r: reset board')
     print('x: reset runstop event')
     print('o: trigger runstop event')
+    print('l: trigger lightbar test event')
     print('y: reset cliff event')
     print('-------------------')
 
@@ -37,6 +38,9 @@ def step_interaction():
         if x[0]=='x':
             print('Resetting Runstop Event')
             p.runstop_event_reset()
+        if x[0]=='l':
+            print('Starting lightbar test')
+            p.trigger_lightbar_test()
         if x[0]=='o':
             print('Triggering Runstop Event')
             p.runstop_event_trigger()

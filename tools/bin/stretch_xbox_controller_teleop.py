@@ -6,6 +6,7 @@ from stretch_body.hello_utils import *
 import os
 import time
 import argparse
+import lsb_release
 print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description=
@@ -342,8 +343,10 @@ def manage_shutdown(robot,controller_state):
             robot.stow()
             robot.stop()
             time.sleep(1.0)
-            os.system(
-                'paplay --device=alsa_output.pci-0000_00_1f.3.analog-stereo /usr/share/sounds/ubuntu/stereo/desktop-logout.ogg')
+            if lsb_release.get_distro_information()['RELEASE'] == '20.04':
+                os.system('canberra-gtk-play -f /usr/share/sounds/ubuntu/stereo/desktop-logout.ogg')
+            if lsb_release.get_distro_information()['RELEASE'] == '18.04':
+                os.system('paplay --device=alsa_output.pci-0000_00_1f.3.analog-stereo /usr/share/sounds/ubuntu/stereo/desktop-logout.ogg')
             os.system('sudo shutdown now')  # sudoers should be set up to not need a password
     else:
         shutdown_pc = False

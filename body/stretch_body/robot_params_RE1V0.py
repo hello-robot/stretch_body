@@ -82,6 +82,7 @@ nominal_params={
         'force_N_per_A': 55.9,
         'contact_model': 'pseudo_N',
         'contact_model_homing': 'pseudo_N',
+        'calibration_range_bounds': [0.515, 0.525],
         'motion':{
             'default':{
                 'accel_m': 0.14,
@@ -216,7 +217,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 8.0,
                 'accel_r': 16.0}},
-        'pid': [800, 0, 200],
+        'pid': [800,200,200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
         'range_t': [1775,3150],
@@ -377,6 +378,7 @@ nominal_params={
         'belt_pitch_m': 0.005,
         'contact_model': 'pseudo_N',
         'contact_model_homing': 'pseudo_N',
+        'calibration_range_bounds': [1.094, 1.106],
         'force_N_per_A': 75.0,
         'motion':{
             'default':{

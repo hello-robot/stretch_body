@@ -158,6 +158,7 @@ class PimuBase(Device):
     TRIGGER_IMU_RESET = 128
     TRIGGER_RUNSTOP_ON = 256
     TRIGGER_BEEP = 512
+    TRIGGER_LIGHTBAR_TEST = 1024
 
 
     def __init__(self, event_reset=False):
@@ -299,6 +300,11 @@ class PimuBase(Device):
         with self.lock:
             self._trigger=self._trigger | self.TRIGGER_BEEP
             self._dirty_trigger=True
+
+    def trigger_lightbar_test(self):
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_LIGHTBAR_TEST
+            self._dirty_trigger = True
 
     # ####################### Utility functions ####################################################
     def imu_reset(self):

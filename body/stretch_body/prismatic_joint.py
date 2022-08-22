@@ -485,10 +485,13 @@ class PrismaticJoint(Device):
 
         success = True
         print('Homing %s...' % self.name.capitalize())
+        self.pull_status()
+        prev_calibrated=self.motor.status['pos_calibrated']
         prev_guarded_mode = self.motor.gains['enable_guarded_mode']
         prev_sync_mode = self.motor.gains['enable_sync_mode']
         self.motor.enable_guarded_mode()
         self.motor.disable_sync_mode()
+
         self.motor.reset_pos_calibrated()
         self.push_command()
         self.pull_status()
@@ -513,8 +516,8 @@ class PrismaticJoint(Device):
                 print('Marking %s position to %f (m)' % (self.name.capitalize(), self.params['range_m'][1]))
             else:
                 x = self.translate_m_to_motor_rad(self.params['range_m'][0])
-                print('Marking %s position to %f (m)' % (self.name.capitalize(), self.params['range_m'][0]))
             if not measuring:
+                print('Marking %s position to %f (m)' % (self.name.capitalize(), self.params['range_m'][0]))
                 self.motor.mark_position(x)
                 self.motor.set_pos_calibrated()
                 self.push_command()
@@ -551,6 +554,8 @@ class PrismaticJoint(Device):
             self.motor.disable_guarded_mode()
         if prev_sync_mode:
             self.motor.enable_sync_mode()
+        if measuring and prev_calibrated:
+            self.motor.set_pos_calibrated()
         self.push_command()
         if success:
             if measuring:

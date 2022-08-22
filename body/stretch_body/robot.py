@@ -290,7 +290,7 @@ class Robot(Device):
             self.push_command()
             time.sleep(0.25)
             ts = time.time()
-            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 3.0:
+            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 4.0:
                 time.sleep(0.1)
             lift_stowed=True
 
@@ -300,9 +300,8 @@ class Robot(Device):
         self.push_command()
         time.sleep(0.25)
         ts = time.time()
-        while not self.arm.motor.status['near_pos_setpoint'] and time.time() - ts < 3.0:
+        while not self.arm.motor.status['near_pos_setpoint'] and time.time() - ts < 6.0:
             time.sleep(0.1)
-
         self.end_of_arm.stow()
         time.sleep(0.25)
 
@@ -313,9 +312,8 @@ class Robot(Device):
             self.push_command()
             time.sleep(0.25)
             ts = time.time()
-            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 10.0:
+            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 12.0:
                 time.sleep(0.1)
-
         #Make sure wrist yaw is done before exiting
         while self.end_of_arm.motors['wrist_yaw'].motor.is_moving():
             time.sleep(0.1)

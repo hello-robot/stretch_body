@@ -792,7 +792,7 @@ class DynamixelHelloXL430(Device):
         if move_to_zero:
             print('Moving to calibrated zero: (rad)')
             self.move_to(0)
-            time.sleep(3.0)
+            self.wait_until_at_setpoint(timeout=6.0)
         self.is_homing=False
 
 # ##########################################

@@ -75,8 +75,7 @@ nominal_params={
         'contact_model': 'effort_pct',
         'contact_model_homing': 'effort_pct',
         'contact_models':{
-                'contact_thresh_calibration_margin':0.25,
-            'effort_pct': {'contact_thresh_max': [-90.0, 90.0]}},
+            'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{
             'default':{
                 'accel_m': 0.14,
@@ -217,7 +216,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 8.0,
                 'accel_r': 16.0}},
-        'pid': [800, 0, 200],
+        'pid': [800,200,200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
         'range_t': [1775,3150],
@@ -255,7 +254,7 @@ nominal_params={
             'pKp_d': 8.0,
             'pLPF': 60,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 0.5,
+            'pos_near_setpoint_d': 2.0,
             'safety_hold': 0,
             'safety_stiffness': 1.0,
             'vKd_d': 0,
@@ -290,7 +289,7 @@ nominal_params={
             'pKp_d': 12.0,
             'pLPF': 80.0,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 0.5,
+            'pos_near_setpoint_d': 1.0,
             'safety_hold': 0,
             'safety_stiffness': 1.0,
             'vKd_d': 0,
@@ -325,7 +324,7 @@ nominal_params={
             'pKp_d': 10.0,
             'pLPF': 100,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 0.5,
+            'pos_near_setpoint_d': 4.0,
             'safety_hold': 1,
             'safety_stiffness': 0.0,
             'vKd_d': 0,
@@ -360,7 +359,7 @@ nominal_params={
             'pKp_d': 12.0,
             'pLPF': 80.0,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 0.5,
+            'pos_near_setpoint_d': 1.0,
             'safety_hold': 0,
             'safety_stiffness': 1.0,
             'vKd_d': 0,
@@ -377,11 +376,13 @@ nominal_params={
             'vel': 25},
         'rated_current': 2.8},
     'lift':{
+        'calibration_range_bounds': [1.094, 1.106],
         'contact_model': 'effort_pct',
         'contact_model_homing': 'effort_pct',
         'contact_models': {
-            'contact_thresh_calibration_margin':0.5,
-            'effort_pct':{'contact_thresh_max': [-100, 100]}},
+            'effort_pct':{
+                'contact_thresh_calibration_margin': 10.0,
+                'contact_thresh_max': [-100, 100]}},
         'belt_pitch_m': 0.005,
           'motion':{
             'default':{
@@ -434,7 +435,7 @@ nominal_params={
         'arm': 0.0,
         'head_pan': 0.0,
         'head_tilt': 0.0,
-        'lift': 0.2,
+        'lift': 0.23,
         'stretch_gripper': 0,
         'wrist_yaw': 3.4},
         'use_monitor': 1,
