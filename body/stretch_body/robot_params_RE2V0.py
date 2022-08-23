@@ -1,4 +1,4 @@
-#Robot parameters for Stretch RE1.5
+#Robot parameters for Stretch RE2
 
 # ######################### USER PARAMS ##################################################
 #Template for the generated file: stretch_user_params.yaml
@@ -11,7 +11,7 @@ user_params_template={
 
 # ###################### CONFIGURATION PARAMS #####################################################
 #Template for the generated file: stretch_configuration_params.yaml
-#Configuration parameters may have variation across the fleet of RE1.5 robots
+#Configuration parameters may have variation across the fleet of RE2 robots
 configuration_params_header='#Parameters that are specific to this robot\n' \
                             '#Do not edit, instead edit stretch_user_params.yaml\n'
 
@@ -53,7 +53,7 @@ configuration_params_template={
         'batch_name': 'NA',
         'serial_no': 'NA',
         'd435i':{'serial_no':'NA'},
-        'model_name':'RE1V5'},
+        'model_name':'RE2V0'},
     'stretch_gripper':{
         'range_t': [0, 8022],
         'zero_t': 5212},
@@ -64,7 +64,7 @@ configuration_params_template={
         'zero_t': 7175}}
 
 # ###################### NOMINAL PARAMS #####################################################
-#Parameters that are common across the RE1.5 fleet
+#Parameters that are common across the RE2 fleet
 nominal_params={
     'arm':{
         'chain_pitch': 0.0167,

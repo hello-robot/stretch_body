@@ -13,7 +13,7 @@ import time
 
 class StepperBase(Device):
     """
-    API to the Stretch RE1 stepper board
+    API to the Stretch Stepper Board
     """
     RPC_SET_COMMAND = 1
     RPC_REPLY_COMMAND = 2
@@ -1034,7 +1034,7 @@ class Stepper_Protocol_P1(StepperBase):
 # ######################## STEPPER #################################
 class Stepper(StepperBase):
     """
-    API to the Stretch RE1 Power and IMU board (Pimu)
+    API to the Stretch Stepper Board
     """
     def __init__(self,usb):
         StepperBase.__init__(self,usb)

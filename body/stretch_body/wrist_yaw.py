@@ -6,7 +6,7 @@ import time
 
 class WristYaw(DynamixelHelloXL430):
     """
-    API to the Stretch RE1 wrist yaw joint
+    API to the Stretch wrist yaw joint
     """
     def __init__(self, chain=None):
         DynamixelHelloXL430.__init__(self, 'wrist_yaw', chain)

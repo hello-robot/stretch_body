@@ -9,7 +9,7 @@ import math
 
 class PrismaticJoint(Device):
     """
-    API to the Stretch RE1 Prismatic Joints
+    API to the Stretch Prismatic Joints
     """
     def __init__(self,name):
         Device.__init__(self,name )

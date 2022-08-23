@@ -47,7 +47,7 @@ class RobotParams:
     """Build the parameter dictionary that is available as stretch_body.Device().robot_params.
     Overwrite dictionaries in order of ascending priority
     1. stretch_body.robot_params.nominal_system_params  | Generic systems settings (Common across all robot models. Factory may modify these via Pip updates)
-    2. stretch_body.robot_params_XXXX.py                | Nominal robot paramters for this robot model (e.g., RE1P0) as defined in stretch_user_params.yaml. Factory may modify these via Pip updates
+    2. stretch_body.robot_params_XXXX.py                | Nominal robot paramters for this robot model (e.g., RE1V0) as defined in stretch_user_params.yaml. Factory may modify these via Pip updates
     3. Outside parameters                               | (eg, from stretch_tool_share.stretch_dex_wrist.params). Factory may modify these via Pip updates.
     4. stretch_configuration_params.yaml                | Robot specific data (eg, serial numbers and calibrations). Calibration tools may update these.
     5. stretch_user_params.yaml                         | User specific data (eg, contact thresholds, controller tunings, etc)
@@ -96,7 +96,7 @@ class RobotParams:
         if level in level_names and handler in cls._robot_params['logging']['handlers']:
             cls._robot_params['logging']['handlers'][handler]['level'] = level
 
-# For Reference, the parameter loading organization prior to release of RE1.5
+# For Reference, the parameter loading organization prior to release of RE2
 # class RobotParams:
 #     """Build the parameter dictionary that is available as stretch_body.Device().robot_params.
 #
