@@ -9,7 +9,7 @@ import math
 
 class Lift(PrismaticJoint):
     """
-    API to the Stretch RE1 Lift
+    API to the Stretch Lift
     """
     def __init__(self):
         PrismaticJoint.__init__(self, 'lift')

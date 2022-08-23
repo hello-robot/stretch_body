@@ -10,7 +10,7 @@ import numpy
 
 class Base(Device):
     """
-    API to the Stretch RE1 Mobile Base
+    API to the Stretch Mobile Base
     """
     def __init__(self):
         Device.__init__(self, 'base')

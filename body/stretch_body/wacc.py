@@ -10,7 +10,7 @@ import textwrap
 
 class WaccBase(Device):
     """
-    API to the Stretch RE1 wrist+accelerometer (Wacc) board
+    API to the Stretch wrist+accelerometer (Wacc) board
     The Wacc has:
     -- 3-axis accelerometer reported as Ax,Ay,and Az
     -- Two digital inputs D0, D1
@@ -262,7 +262,7 @@ class Wacc_Protocol_P1(WaccBase):
 # ######################## PIMU #################################
 class Wacc(WaccBase):
     """
-    API to the Stretch RE1 Power and IMU board (Pimu)
+    API to the Stretch Wrist Accelerometer (Wacc) Board
     """
     def __init__(self):
         WaccBase.__init__(self)

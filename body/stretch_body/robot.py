@@ -96,7 +96,7 @@ class NonDXLStatusThread(threading.Thread):
 
 class Robot(Device):
     """
-    API to the Stretch RE1 Robot
+    API to the Stretch Robot
     """
     def __init__(self):
         Device.__init__(self, 'robot')

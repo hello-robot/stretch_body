@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "# -----------------------------------------------"
-echo "# VERSION INFORMATION FOR THE STRETCH RE1 FROM HELLO ROBOT"
+echo "# VERSION INFORMATION FOR THE STRETCH RE FROM HELLO ROBOT"
 echo "# -----------------------------------------------"
 echo
 echo "# stretch_about_text.py"
@@ -66,7 +66,7 @@ apt list --installed | grep opencv
 echo
 echo "# -----------------------------------------------"
 echo
-echo "# RE1_firmware_updater.py --current"
-RE1_firmware_updater.py --current
+echo "# REx_firmware_updater.py --current"
+REx_firmware_updater.py --current
 echo
 echo "# -----------------------------------------------"

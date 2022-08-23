@@ -17,7 +17,7 @@ The PIMU is the power and IMU Arduino board in the base
 
 class IMUBase(Device):
     """
-    API to the Stretch RE1 IMU found in the base
+    API to the Stretch IMU found in the base
     """
     def __init__(self):
         Device.__init__(self, 'imu',req_params=False)
@@ -121,7 +121,7 @@ class IMU(IMUBase):
 # ##################################################################################
 class PimuBase(Device):
     """
-    API to the Stretch RE1 Power and IMU board (Pimu)
+    API to the Stretch Power and IMU board (Pimu)
     """
     RPC_SET_PIMU_CONFIG = 1
     RPC_REPLY_PIMU_CONFIG = 2
@@ -580,7 +580,7 @@ class Pimu_Protocol_P1(PimuBase):
 # ######################## PIMU #################################
 class Pimu(PimuBase):
     """
-    API to the Stretch RE1 Power and IMU board (Pimu)
+    API to the Stretch Power and IMU board (Pimu)
     """
     def __init__(self, event_reset=False):
         PimuBase.__init__(self, event_reset)
