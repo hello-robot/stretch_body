@@ -88,6 +88,9 @@ def read_fleet_yaml(f,fleet_dir=None):
     try:
         if fleet_dir is None:
             fleet_dir=get_fleet_directory()
+        else:
+            if fleet_dir[-1] != '/':
+                fleet_dir = fleet_dir + '/'
         with open(fleet_dir+f, 'r') as s:
             p = yaml.load(s,Loader=yaml.FullLoader)
             return {} if p is None else p
