@@ -4,6 +4,11 @@ import stretch_body.hello_utils as hello_utils
 import importlib
 import stretch_body.robot_params
 
+import argparse
+parser=argparse.ArgumentParser(description='Print the Stretch parameters to the console')
+args=parser.parse_args()
+
+
 """
 Print out the robot parameters to the command line, 
 including where each parameter value originates from
