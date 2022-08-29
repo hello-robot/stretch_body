@@ -448,6 +448,9 @@ class PrismaticJoint(Device):
         self.logger.warning('motor_rad_to_translate_m not implemented in %s' % self.name)
         pass
 
+    def wait_until_at_setpoint(self, timeout=15.0):
+        self.motor.wait_until_at_setpoint(timeout)
+
     def wait_for_contact(self, timeout=5.0):
         ts=time.time()
         while (time.time()-ts<timeout):

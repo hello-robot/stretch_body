@@ -95,6 +95,10 @@ class Base(Device):
             time.sleep(0.01)
         return False
 
+    def wait_until_at_setpoint(self, timeout=15.0):
+        #Assume both are in motion. This will exit once both are at setpoints
+        self.left_wheel.wait_until_at_setpoint(timeout)
+        self.right_wheel.wait_until_at_setpoint(timeout)
 
     def contact_thresh_to_motor_current(self,is_translate,contact_thresh, contact_model):
         contact_model = self.params['contact_model'] if contact_model is None else contact_model
