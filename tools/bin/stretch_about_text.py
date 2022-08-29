@@ -2,6 +2,11 @@
 import os
 import yaml
 
+import argparse
+parser=argparse.ArgumentParser(description='Display model and serial number information')
+args=parser.parse_args()
+
+
 params_filename = os.environ['HELLO_FLEET_PATH']+'/'+os.environ['HELLO_FLEET_ID']+'/stretch_configuration_params.yaml'
 
 with open(params_filename, 'r') as fid:

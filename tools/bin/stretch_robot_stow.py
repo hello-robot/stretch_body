@@ -2,6 +2,12 @@
 from __future__ import print_function
 import stretch_body.robot as rb
 import stretch_body.hello_utils as hu
+
+import argparse
+parser=argparse.ArgumentParser(description='Move robot to stow position')
+args=parser.parse_args()
+
+
 hu.print_stretch_re_use()
 
 robot = rb.Robot()

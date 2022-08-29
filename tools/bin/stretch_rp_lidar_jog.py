@@ -6,13 +6,12 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Tool to control the RP-Lidar')
-group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument("--motor_on", help="Turn motor on",action="store_true")
-group.add_argument("--motor_off", help="Turn motor off",action="store_true")
-group.add_argument("--info", help="Device info",action="store_true")
-group.add_argument("--health", help="Get device health",action="store_true")
-group.add_argument("--reset", help="Reset device",action="store_true")
-group.add_argument("--range", help="Print range reading",action="store_true")
+parser.add_argument("--motor_on", help="Turn motor on",action="store_true")
+parser.add_argument("--motor_off", help="Turn motor off",action="store_true")
+parser.add_argument("--info", help="Device info",action="store_true")
+parser.add_argument("--health", help="Get device health",action="store_true")
+parser.add_argument("--reset", help="Reset device",action="store_true")
+parser.add_argument("--range", help="Print range reading",action="store_true")
 args=parser.parse_args()
 
 try:
