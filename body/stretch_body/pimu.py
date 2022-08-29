@@ -220,6 +220,11 @@ class PimuBase(Device):
             self.transport.stop()
             self.hw_valid = False
 
+    def set_config(self,c):
+        with self.lock:
+            self.config=c.copy()
+            self._dirty_config = True
+
     def pull_status(self,exiting=False):
         if not self.hw_valid:
             return
