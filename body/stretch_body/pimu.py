@@ -322,14 +322,15 @@ class PimuBase(Device):
         if not self.hw_valid:
             return
         t = time.time()
-        if self.board_info['hardware_id'] ==0:
-            #For RE1.0 robots (hardware_id==0) the runstop and sync line are shared
-            #This limits the maximum rate that the motor sync can be triggered
-
-            if self.ts_last_motor_sync is not None and t-self.ts_last_motor_sync<1.0/self.params['max_sync_rate_hz']:
+        #For RE1.0 robots (hardware_id==0) the runstop and sync line are shared
+        #This limits the maximum rate that the motor sync can be triggered
+        #For RE2.0 robots the sync rate is limited by the min pulse width (~10ms)
+        if self.ts_last_motor_sync is not None:
+            sync_rate = 1 / (t - self.ts_last_motor_sync)
+            if sync_rate>self.params['max_sync_rate_hz']:
                 self.status['motor_sync_drop'] += 1
                 if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
-                    print('Warning: Rate of calls to Pimu:trigger_motor_sync above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
+                    print('Warning: Rate of calls to Pimu:trigger_motor_sync rate of %f above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(sync_rate,self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
                     self.ts_last_motor_sync_warn=t
                 return
 

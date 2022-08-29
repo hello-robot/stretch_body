@@ -78,7 +78,7 @@ class NonDXLStatusThread(threading.Thread):
                 if (self.titr % self.monitor_downrate_int) == 0:
                     self.robot.monitor.step()
 
-            if self.robot.params['use_collision_manager']:
+            if self.robot.params['use_collision_manager'] and self.robot.is_calibrated():
                     self.robot.collision.step()
 
             if self.robot.params['use_sentry']:
