@@ -25,7 +25,7 @@ See [docs.hello-robot.com](https://docs.hello-robot.com) for documentation on us
 
 # Testing and Development
 
-See [Stretch Body's README](https://github.com/hello-robot/stretch_body/body/README.md) and [Stretch Body Commandline Tool's README](https://github.com/hello-robot/stretch_body/tools/README.md) for information on testing/developing these packages.
+See [Stretch Body's README](https://github.com/hello-robot/stretch_body/blob/master/body/README.md) and [Stretch Body Commandline Tool's README](https://github.com/hello-robot/stretch_body/blob/master/tools/README.md) for information on testing/developing these packages.
 
 ## License
 
