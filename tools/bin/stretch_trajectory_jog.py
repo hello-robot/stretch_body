@@ -14,7 +14,7 @@ parser.add_argument("--preloaded_traj", '-p', help="Load one of three predefined
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument("--head_pan", help="Test trajectories on the head_pan joint", action="store_true")
 group.add_argument("--head_tilt", help="Test trajectories on the head_tilt joint", action="store_true")
-group.add_argument("--wrist_yaw", help="CTest trajectories on the wrist_yaw joint", action="store_true")
+group.add_argument("--wrist_yaw", help="Test trajectories on the wrist_yaw joint", action="store_true")
 group.add_argument("--gripper", help="Test trajectories on the stretch_gripper joint", action="store_true")
 group.add_argument("--arm", help="Test trajectories on the arm joint", action="store_true")
 group.add_argument("--lift", help="Test trajectories on the lift joint", action="store_true")
