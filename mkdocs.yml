@@ -4,6 +4,8 @@ site_description: "Hello Robot Stretch Body Documentation"
 copyright: 'Copyright &copy; 2022 Hello Robot Inc'
 site_author: Hello Robot Inc
 use_directory_urls: True
+docs_dir: .
+site_dir: ../site
 
 theme:
  name: material
@@ -19,13 +21,13 @@ theme:
     toggle:
       icon: material/lightbulb
       name: Switch to light mode
- logo: images/hello_robot_logo_light.png
- favicon: images/hello_robot_favicon.png
+ logo: ./docs/images/hello_robot_logo_light.png
+ favicon: ./docs/images/hello_robot_favicon.png
  features:
   - navigation.instant
 
 extra_css:
-  - extra.css
+  - ./docs/extra.css
 
 markdown_extensions:
   - pymdownx.highlight
@@ -35,6 +37,7 @@ markdown_extensions:
   - admonition
 
 plugins:
+  - same-dir
   - mike:
       # these fields are all optional; the defaults are as below...
       version_selector: true   # set to false to leave out the version selector

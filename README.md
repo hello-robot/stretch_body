@@ -1,4 +1,4 @@
-![](./images/banner.png)
+![](./docs/images/banner.png)
 
 # Overview
 
@@ -21,7 +21,7 @@ pip3 install -U hello-robot-stretch-body
 pip3 install -U hello-robot-stretch-body-tools
 ```
 
-See [docs.hello-robot.com](https://docs.hello-robot.com) for documentation on using Stretch. In particular, see the [Stretch Body Tutorials](shttps://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/) for additional information on using these packages.
+See [docs.hello-robot.com](https://docs.hello-robot.com) for documentation on using Stretch. In particular, see the [Stretch Body Tutorials](https://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/) for additional information on using these packages.
 
 # Testing and Development
 
@@ -31,6 +31,7 @@ See [Stretch Body's README](https://github.com/hello-robot/stretch_body/blob/mas
 
 Each subdirectory contains a LICENSE.md file that applies to the directory's contents. This software is intended for use with the Stretch RE1 and RE2 mobile manipulators, which are robots produced and sold by Hello Robot Inc. For further information including inquiries about dual licensing, please contact Hello Robot Inc.
 
+
 ------
-<div align="center"> All materials are Copyright 2022 by Hello Robot Inc. Hello Robot and Stretch are registered trademarks. The Stretch RE1 and RE2 robots are covered by U.S. Patent 11,230,000 and other patents pending.</div>
+<div align="center"> All materials are Copyright 2022 by Hello Robot Inc. Hello Robot and Stretch are registered trademarks. </div>
 
