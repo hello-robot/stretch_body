@@ -1,6 +1,6 @@
 # Changelog
 
-The changes between releases of Stretch Body is documented here.
+The changes between releases of Stretch Body are documented here.
 
 ## [0.3.0](https://github.com/hello-robot/stretch_body/pull/129) - June 21, 2022
 This release moves Stretch Body to use a new parameter management format. This change will require older systems to migrate their parameters to the new format. For systems that haven't yet migrated, Stretch Body will exit with a warning that they must migrate first by running `RE1_migrate_params.py`. See the [forum post](https://forum.hello-robot.com/t/425) for more details.
