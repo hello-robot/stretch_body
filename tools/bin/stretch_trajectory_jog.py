@@ -295,10 +295,13 @@ if args.full_body:
     r.head.get_joint('head_tilt').trajectory.add(t_s=20.0, x_r=deg_to_rad(0.0), v_r=0.0)
 
     r.head.get_joint('head_pan').trajectory.add(t_s=0.0, x_r=deg_to_rad(0.0), v_r=0.0)
-    r.head.get_joint('head_pan').trajectory.add(t_s=10.0, x_r=deg_to_rad(-90.0), v_r=0.0)
+    r.head.get_joint('head_pan').trajectory.add(t_s=10.0, x_r=deg_to_rad(-180.0), v_r=0.0)
     r.head.get_joint('head_pan').trajectory.add(t_s=20.0, x_r=deg_to_rad(0.0), v_r=0.0)
 
     print('start follow_trajectory')
+    print('Remove all cables from base. Ensure robot is clear to make full body motion.')
+    print('Hit enter when ready.')
+    input()
     r.follow_trajectory()
     ts = time.time()
     while r.is_trajectory_active():

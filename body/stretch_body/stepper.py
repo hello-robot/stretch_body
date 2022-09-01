@@ -97,6 +97,8 @@ class StepperBase(Device):
     TRIGGER_RESET_POS_CALIBRATED = 16
     TRIGGER_POS_CALIBRATED = 32
     TRIGGER_MARK_POS_ON_CONTACT=64
+    TRIGGER_ENABLE_MOTOR_DRIVERS=128
+    TRIGGER_DISABLE_MOTOR_DRIVERS=256
 
     def __init__(self, usb):
         Device.__init__(self, name=usb[5:])
@@ -248,6 +250,21 @@ class StepperBase(Device):
 
     def read_gains_from_flash(self):
         self._dirty_read_gains_from_flash=True
+
+    def _trigger_disable_motor_drivers(self):
+        """ RE1: not implemented
+            RE2: For factory use only
+        """
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_DISABLE_MOTOR_DRIVERS
+            self._dirty_trigger=True
+    def _trigger_enable_motor_drivers(self):
+        """ RE1: not implemented
+            RE2: For factory use only
+        """
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_ENABLE_MOTOR_DRIVERS
+            self._dirty_trigger=True
 
     def board_reset(self):
         with self.lock:
