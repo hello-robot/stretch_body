@@ -152,9 +152,25 @@ class PrismaticJoint(Device):
         self.logger.warning('Invalid contact model %s for %s'%(contact_model,self.name.capitalize()))
         return 0,0
 
+    def check_deprecated_contact_model(self,method_name, contact_thresh_pos_N,contact_thresh_neg_N):
+        """
+        With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)
+        Catch older code that is using the older API and require updating of code
+        For code that was, for example:
+            arm.move_to(x_m=0.1, contact_thresh_pos_N=30.0, contact_thresh_neg_N=-30.0)
+        Should now be:
+            arm.move_to(x_m=0.1, contact_thresh_pos=30.0, contact_thresh_neg=-30.0, contact_model='pseudo_N')
+        """
+        if contact_thresh_pos_N is not None or contact_thresh_neg_N is not None:
+            msg='Use of parameters contact_thresh_pos_N and contact_thresh_neg_N no longer supported\n'
+            msg= msg + 'Update code to use (contact_model, contact_thresh_pos, contact_thresh_neg)\n'
+            msg=msg+'In method %s.%s'%(self.name,method_name)
 
+            self.logger.warning(msg)
+            raise DeprecationWarning(msg)
 
-    def set_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,contact_model=None):
+    def set_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,
+                     contact_model=None,contact_thresh_pos_N=None,contact_thresh_neg_N=None):
         """
         v_m: commanded joint velocity (m/s)
         a_m: acceleration for trapezoidal motion profile (m/s^2)
@@ -163,10 +179,14 @@ class PrismaticJoint(Device):
         contact_effort_neg: negative effort threshold to stop motion (-1.0 to 0.0, down direction)
         req_calibration: Disallow motion prior to homing
         """
+
+        self.check_deprecated_contact_model('set_velocity', contact_thresh_pos_N, contact_thresh_neg_N)
+
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
                 return
+
         v_m=min(self.params['motion']['max']['vel_m'],v_m) if v_m>=0 else max(-1*self.params['motion']['max']['vel_m'],v_m)
         v_r = self.translate_m_to_motor_rad(v_m)
 
@@ -193,7 +213,8 @@ class PrismaticJoint(Device):
 
 
 
-    def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True, contact_model=None):
+    def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,
+                contact_model=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None ):
         """
         x_m: commanded absolute position (meters). x_m=0 is down. x_m=~1.1 is up
         v_m: velocity for trapezoidal motion profile (m/s)
@@ -204,6 +225,8 @@ class PrismaticJoint(Device):
         req_calibration: Disallow motion prior to homing
         contact_model: name of contact model that converts contact thresholds to current limits on the motor
         """
+        self.check_deprecated_contact_model('move_to', contact_thresh_pos_N, contact_thresh_neg_N)
+
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
@@ -241,7 +264,8 @@ class PrismaticJoint(Device):
 
 
 
-    def move_by(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,contact_model=None):
+    def move_by(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,
+                contact_model=None,contact_thresh_pos_N=None,contact_thresh_neg_N=None):
         """
         x_m: commanded incremental motion (meters).
         v_m: velocity for trapezoidal motion profile (m/s)
@@ -251,6 +275,8 @@ class PrismaticJoint(Device):
         contact_thresh_neg: negative threshold to stop motion (units of contact_model)
         req_calibration: Disallow motion prior to homing
         """
+        self.check_deprecated_contact_model('move_by', contact_thresh_pos_N, contact_thresh_neg_N)
+
         if req_calibration or self.motor.status['pos_calibrated']:
             if not self.motor.status['pos_calibrated']:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
@@ -292,7 +318,7 @@ class PrismaticJoint(Device):
     # ######### Waypoint Trajectory Interface ##############################
 
     def follow_trajectory(self, v_m=None, a_m=None, stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None,
-                          req_calibration=True, move_to_start_point=True,contact_model=None):
+                          req_calibration=True, move_to_start_point=True,contact_model=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None):
         """Starts executing a waypoint trajectory
 
         `self.trajectory` must be populated with a valid trajectory before calling
@@ -315,6 +341,8 @@ class PrismaticJoint(Device):
             time to move doesn't count against the trajectory's timeline
         """
         # check if joint valid, homed, and right protocol
+        self.check_deprecated_contact_model('follow_trajectory', contact_thresh_pos_N, contact_thresh_neg_N)
+
         if not self.motor.hw_valid:
             self.logger.warning('%s connection to hardware not valid'%self.name.upper)
             return False

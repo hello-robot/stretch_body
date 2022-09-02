@@ -137,15 +137,34 @@ class Base(Device):
         self.logger.warning('Invalid contact model %s for %s'%(contact_model,self.name.capitalize()))
         return 0,0
 
-    def translate_by(self, x_m, v_m=None, a_m=None, stiffness=None, contact_thresh=None,contact_model=None):
+    def check_deprecated_contact_model(self,method_name, contact_thresh_N):
+        """
+        With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)
+        Catch older code that is using the older API and require updating of code
+        For code that was, for example:
+            base.translate_by(x_m=0.1, contact_thresh_N=30.0)
+        Should now be:
+            base.translate_byo(x_m=0.1, contact_thresh=30.0, contact_model='pseudo_N')
+        """
+        if contact_thresh_N is not None:
+            msg='Use of parameters contact_thresh_N no longer supported\n'
+            msg= msg + 'Update code to use (contact_model, contact_thresh_N)\n'
+            msg=msg+'In method %s.%s'%(self.name,method_name)
+            self.logger.warning(msg)
+            raise DeprecationWarning(msg)
+
+    def translate_by(self, x_m, v_m=None, a_m=None, stiffness=None, contact_thresh=None,contact_model=None, contact_thresh_N=None):
         """
         Incremental translation of the base
         x_m: desired motion (m)
         v_m: velocity for trapezoidal motion profile (m/s)
         a_m: acceleration for trapezoidal motion profile (m/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N: force threshold to stop motion (TODO: Not yet implemented)
+        contact_thresh: effort to stop at (units of contact_model)
+        contact_model: Name of contact model
+        contact_thresh_N: deprecated
         """
+        self.check_deprecated_contact_model('translate_by', contact_thresh_N)
         x_mr = self.translate_to_motor_rad(x_m)
 
         if v_m is not None:
@@ -185,15 +204,18 @@ class Base(Device):
                                     i_contact_neg=-1*i_contact_r)
 
 
-    def rotate_by(self, x_r, v_r=None, a_r=None, stiffness=None, contact_thresh=None,contact_model=None):
+    def rotate_by(self, x_r, v_r=None, a_r=None, stiffness=None, contact_thresh=None,contact_model=None, contact_thresh_N=None):
         """
         Incremental rotation of the base
         x_r: desired motion (radians)
         v_r: velocity for trapezoidal motion profile (rad/s)
         a_r: acceleration for trapezoidal motion profile (rad/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N: force threshold to stop motion (Not yet implemented)
+        contact_thresh: effort to stop at (units of contact_model)
+        contact_model: Name of contact model
+        contact_thresh_N: deprecated
         """
+        self.check_deprecated_contact_model('rotate_by', contact_thresh_N)
         x_mr = self.rotate_to_motor_rad(x_r)
 
         if v_r is not None:
@@ -241,7 +263,10 @@ class Base(Device):
         Use care to prevent collisions / avoid runaways
         v_m: desired velocity (m/s)
         a_m: acceleration of motion profile (m/s^2)
+        contact_thresh: effort to stop at (units of contact_model)
+        contact_model: Name of contact model
         """
+
         if a_m is not None:
             a_m = min(abs(a_m), self.params['motion']['max']['accel_m'])
             a_mr = self.translate_to_motor_rad(a_m)
@@ -271,7 +296,10 @@ class Base(Device):
         Use care to prevent collisions / avoid runaways
         v_r: desired rotational velocity (rad/s)
         a_r: acceleration of motion profile (rad/s^2)
+        contact_thresh: effort to stop at (units of contact_model)
+        contact_model: Name of contact model
         """
+
         if a_r is not None:
             a_mr_max=self.translate_to_motor_rad(self.params['motion']['max']['accel_m'])
             a_mr = self.rotate_to_motor_rad(a_r)
@@ -305,7 +333,11 @@ class Base(Device):
         v_m: desired velocity (m/s)
         w_r: desired rotational velocity (rad/s)
         a:   acceleration of motion profile (m/s^2 and rad/s^2)
+        contact_thresh: effort to stop at (units of contact_model)
+        contact_model: Name of contact model
         """
+
+
         if a is not None:
             a = min(abs(a), self.params['motion']['max']['accel_m'])
             a_mr = self.translate_to_motor_rad(a)
@@ -342,7 +374,7 @@ class Base(Device):
                                      i_contact_neg=-1 * i_contact_r)
 
     # ######### Waypoint Trajectory Interface ##############################
-    def follow_trajectory(self, v_r=None, a_r=None, stiffness=None, contact_thresh=None,contact_model=None):
+    def follow_trajectory(self, v_r=None, a_r=None, stiffness=None, contact_thresh=None,contact_model=None, contact_thresh_N=None):
         """Starts executing a waypoint trajectory
 
         `self.trajectory` must be populated with a valid trajectory before calling
@@ -356,9 +388,12 @@ class Base(Device):
             acceleration limit for trajectory in motor space in meters per second squared
         stiffness : float
             stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N : float
-            force threshold to stop motion (~Newtons)
+        contact_thresh: effort to stop at (units of contact_model)
+        contact_model: Name of contact model
+        contact_thresh_N: deprecated
         """
+        self.check_deprecated_contact_model('follow_trajectory', contact_thresh_N)
+
         # check if joint valid, traj active, and right protocol
         if not self.left_wheel.hw_valid or not self.right_wheel.hw_valid:
             self.logger.warning('Base connection to hardware not valid')
