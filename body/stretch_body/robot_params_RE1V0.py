@@ -17,14 +17,14 @@ configuration_params_header='#Parameters that are specific to this robot\n' \
 
 configuration_params_template={
     'arm':{
-        'contact_thresh_N':[-70,70],
-        'contact_thresh_max_N':[-100, 100],
+        'contact_thresh_N':[-70,70], #Legacy
+        'contact_thresh_max_N':[-100, 100], #Legacy
         'homing_force_N': [-60, 80],
         'i_feedforward': 0,
         'range_m':[0.0,0.52]},
     'lift': {
-        'contact_thresh_N': [-70, 70],
-        'contact_thresh_max_N': [-100, 100],
+        'contact_thresh_N': [-70, 70], #Legacy
+        'contact_thresh_max_N': [-100, 100], #Legacy
         'homing_force_N': [-70, 70],
         'i_feedforward': 0.54,
         'range_m': [0.0, 1.10]},
@@ -79,9 +79,7 @@ nominal_params={
         'chain_sprocket_teeth': 10,
         'gr_spur': 3.875,
         'i_feedforward': 0,
-        'force_N_per_A': 55.9,
-        'contact_model': 'pseudo_N',
-        'contact_model_homing': 'pseudo_N',
+        'force_N_per_A': 55.9, #Legacy
         'calibration_range_bounds': [0.515, 0.525],
         'contact_models':{
             'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
@@ -102,9 +100,8 @@ nominal_params={
                 'vel_m': 0.3,
                 'accel_m': 0.5}}},
     'base':{
-        'force_N_per_A': 21.18,
+        'force_N_per_A': 21.18, #Legacy
         'gr': 3.4,
-        'contact_model': 'pseudo_N',
         'motion':{
             'default':{
                 'accel_m': 0.2,
@@ -121,8 +118,6 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 50.0,
                 'accel_r': 30.0}},
-        'contact_thresh_N': 100,
-        'contact_thresh_max_N': 100,
         'contact_models': {
             'effort_pct': {
                 'contact_thresh_translate_default': 60.0,
@@ -384,14 +379,12 @@ nominal_params={
         'rated_current': 2.8},
     'lift':{
         'belt_pitch_m': 0.005,
-        'contact_model': 'pseudo_N',
-        'contact_model_homing': 'pseudo_N',
         'contact_models': {
             'effort_pct': {
                 'contact_thresh_calibration_margin': 10.0,
                 'contact_thresh_max': [-100, 100]}},
         'calibration_range_bounds': [1.094, 1.106],
-        'force_N_per_A': 75.0,
+        'force_N_per_A': 75.0, #Legacy
         'motion':{
             'default':{
                 'accel_m': 0.15,
