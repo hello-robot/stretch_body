@@ -72,8 +72,6 @@ nominal_params={
         'gr_spur': 3.875,
         'i_feedforward': 0,
         'calibration_range_bounds':[0.515, 0.525],
-        'contact_model': 'effort_pct',
-        'contact_model_homing': 'effort_pct',
         'contact_models':{
             'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{
@@ -110,7 +108,6 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 50.0,
                 'accel_r': 30.0}},
-        'contact_model': 'effort_pct',
         'contact_models':{
             'effort_pct': {
                 'contact_thresh_translate_default':60.0,
@@ -377,8 +374,6 @@ nominal_params={
         'rated_current': 2.8},
     'lift':{
         'calibration_range_bounds': [1.094, 1.106],
-        'contact_model': 'effort_pct',
-        'contact_model_homing': 'effort_pct',
         'contact_models': {
             'effort_pct':{
                 'contact_thresh_calibration_margin': 10.0,

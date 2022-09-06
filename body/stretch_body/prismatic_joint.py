@@ -2,9 +2,9 @@ from __future__ import print_function
 from stretch_body.stepper import Stepper
 from stretch_body.device import Device
 from stretch_body.trajectories import PrismaticTrajectory
-
+import stretch_body.hello_utils as hu
 import time
-import math
+import sys
 
 
 class PrismaticJoint(Device):
@@ -117,70 +117,32 @@ class PrismaticJoint(Device):
 
     # ###################################################
 
-    def contact_thresh_to_motor_current(self,contact_thresh_pos, contact_thresh_neg, contact_model):
-        contact_model = self.params['contact_model'] if contact_model is None else contact_model
-        if contact_model == 'pseudo_N':
-            """
-            This is a legacy model that was used upon release of RE1.0.
-            It scales transform from joint frame to motor frame and scales by param['force_N_per_A']
-            Due to the non-ideal actuators it provides only a rough approximation of 'Newtons'
-            Users should migrate to newer models.
-            """
-            if not 'contact_thresh_max_N' in self.params or not 'contact_thresh_N'in self.params:
-                self.logger.warning('Model paramters not found for contact model pseudo_N') #New systems won't have these
-                return 0,0
-            i_contact_neg = self.translate_pseudo_N_to_motor_current(
-                max(contact_thresh_neg, self.params['contact_thresh_max_N'][0])) \
-                if contact_thresh_neg is not None else self.translate_pseudo_N_to_motor_current(
-                self.params['contact_thresh_N'][0])
-            i_contact_pos = self.translate_pseudo_N_to_motor_current(
-                min(contact_thresh_pos, self.params['contact_thresh_max_N'][1])) \
-                if contact_thresh_pos is not None else self.translate_pseudo_N_to_motor_current(
-                self.params['contact_thresh_N'][1])
-            return i_contact_pos, i_contact_neg
-
-        if contact_model == 'effort_pct':
-            """
-            This model converts from a specified percentage effort (-100 to 100) in the motor frame to motor currents
-            """
-            e_cn = self.params['contact_models']['effort_pct']['contact_thresh_default'][0] if contact_thresh_neg is None else contact_thresh_neg
-            e_cp = self.params['contact_models']['effort_pct']['contact_thresh_default'][1] if contact_thresh_neg is None else contact_thresh_pos
-            i_contact_neg = self.motor.effort_pct_to_current(max(e_cn, self.params['contact_models']['effort_pct']['contact_thresh_max'][0]))
-            i_contact_pos = self.motor.effort_pct_to_current(min(e_cp, self.params['contact_models']['effort_pct']['contact_thresh_max'][1]))
-            return i_contact_pos, i_contact_neg
-
-        self.logger.warning('Invalid contact model %s for %s'%(contact_model,self.name.capitalize()))
-        return 0,0
-
-    def check_deprecated_contact_model(self,method_name, contact_thresh_pos_N,contact_thresh_neg_N):
+    def contact_thresh_to_motor_current(self,contact_thresh_pos, contact_thresh_neg):
         """
-        With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)
-        Catch older code that is using the older API and require updating of code
-        For code that was, for example:
-            arm.move_to(x_m=0.1, contact_thresh_pos_N=30.0, contact_thresh_neg_N=-30.0)
-        Should now be:
-            arm.move_to(x_m=0.1, contact_thresh_pos=30.0, contact_thresh_neg=-30.0, contact_model='pseudo_N')
+        This model converts from a specified percentage effort (-100 to 100) in the motor frame to motor currents
         """
-        if contact_thresh_pos_N is not None or contact_thresh_neg_N is not None:
-            msg='Use of parameters contact_thresh_pos_N and contact_thresh_neg_N no longer supported\n'
-            msg= msg + 'Update code to use (contact_model, contact_thresh_pos, contact_thresh_neg)\n'
-            msg=msg+'In method %s.%s'%(self.name,method_name)
+        e_cn = self.params['contact_models']['effort_pct']['contact_thresh_default'][0] if contact_thresh_neg is None else contact_thresh_neg
+        e_cp = self.params['contact_models']['effort_pct']['contact_thresh_default'][1] if contact_thresh_neg is None else contact_thresh_pos
+        i_contact_neg = self.motor.effort_pct_to_current(max(e_cn, self.params['contact_models']['effort_pct']['contact_thresh_max'][0]))
+        i_contact_pos = self.motor.effort_pct_to_current(min(e_cp, self.params['contact_models']['effort_pct']['contact_thresh_max'][1]))
+        return i_contact_pos, i_contact_neg
 
-            self.logger.warning(msg)
-            raise DeprecationWarning(msg)
 
-    def set_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,
-                     contact_model=None,contact_thresh_pos_N=None,contact_thresh_neg_N=None):
+
+    def set_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None,req_calibration=True,
+                     contact_model=None,contact_thresh_pos_EP=None, contact_thresh_neg_EP=None):
         """
         v_m: commanded joint velocity (m/s)
         a_m: acceleration for trapezoidal motion profile (m/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_effort_pos: positive effort threshold to stop motion (0.0 to 1.0, up direction)
-        contact_effort_neg: negative effort threshold to stop motion (-1.0 to 0.0, down direction)
+        contact_thresh_pos_N: Deprecated: positive threshold to stop motion (units: pseudo_N)
+        contact_thresh_neg_N: Deprecated: negative threshold to stop motion (units: pseudo_N)
         req_calibration: Disallow motion prior to homing
+        contact_thresh_pos_EP: positive threshold to stop motion (units: effort_pct -100:100)
+        contact_thresh_neg_EP: negative threshold to stop motion (units: effort_pct -100:100)
         """
 
-        self.check_deprecated_contact_model('set_velocity', contact_thresh_pos_N, contact_thresh_neg_N)
+        hu.check_deprecated_contact_model_prismatic_joint(self,'set_velocity', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos_EP,contact_thresh_neg_EP )
 
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
@@ -200,7 +162,7 @@ class PrismaticJoint(Device):
         else:
             a_r = self.accel_r
 
-        i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos, contact_thresh_neg, contact_model)
+        i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos_EP,contact_thresh_neg_EP )
 
 
         self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
@@ -213,19 +175,20 @@ class PrismaticJoint(Device):
 
 
 
-    def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,
-                contact_model=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None ):
+    def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None,
+                req_calibration=True,contact_thresh_pos_EP=None, contact_thresh_neg_EP=None):
         """
         x_m: commanded absolute position (meters). x_m=0 is down. x_m=~1.1 is up
         v_m: velocity for trapezoidal motion profile (m/s)
         a_m: acceleration for trapezoidal motion profile (m/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_pos: positive threshold to stop motion (units of contact_model)
-        contact_thresh_neg: negative threshold to stop motion (units of contact_model)
+        contact_thresh_pos_N: Deprecated: positive threshold to stop motion (units: pseudo_N)
+        contact_thresh_neg_N: Deprecated: negative threshold to stop motion (units: pseudo_N)
         req_calibration: Disallow motion prior to homing
-        contact_model: name of contact model that converts contact thresholds to current limits on the motor
+        contact_thresh_pos_EP: positive threshold to stop motion (units: effort_pct -100:100)
+        contact_thresh_neg_EP: negative threshold to stop motion (units: effort_pct -100:100)
         """
-        self.check_deprecated_contact_model('move_to', contact_thresh_pos_N, contact_thresh_neg_N)
+        hu.check_deprecated_contact_model_prismatic_joint(self,'move_to', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos_EP,contact_thresh_neg_EP )
 
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
@@ -251,7 +214,7 @@ class PrismaticJoint(Device):
         else:
             a_r = self.accel_r
 
-        i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos, contact_thresh_neg, contact_model)
+        i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos_EP,contact_thresh_neg_EP )
 
         self.motor.set_command(mode = Stepper.MODE_POS_TRAJ,
                                 x_des=self.translate_m_to_motor_rad(x_m),
@@ -264,18 +227,20 @@ class PrismaticJoint(Device):
 
 
 
-    def move_by(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None, req_calibration=True,
-                contact_model=None,contact_thresh_pos_N=None,contact_thresh_neg_N=None):
+    def move_by(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None, req_calibration=True,
+                contact_model=None,contact_thresh_pos_EP=None,contact_thresh_neg_EP=None):
         """
         x_m: commanded incremental motion (meters).
         v_m: velocity for trapezoidal motion profile (m/s)
         a_m: acceleration for trapezoidal motion profile (m/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_pos: positive threshold to stop motion (units of contact_model)
-        contact_thresh_neg: negative threshold to stop motion (units of contact_model)
+        contact_thresh_pos_N: Deprecated: positive threshold to stop motion (units: pseudo_N)
+        contact_thresh_neg_N: Deprecated: negative threshold to stop motion (units: pseudo_N)
         req_calibration: Disallow motion prior to homing
+        contact_thresh_pos_EP: positive threshold to stop motion (units: effort_pct -100:100)
+        contact_thresh_neg_EP: negative threshold to stop motion (units: effort_pct -100:100)
         """
-        self.check_deprecated_contact_model('move_by', contact_thresh_pos_N, contact_thresh_neg_N)
+        hu.check_deprecated_contact_model_prismatic_joint(self,'move_by', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos_EP,contact_thresh_neg_EP )
 
         if req_calibration or self.motor.status['pos_calibrated']:
             if not self.motor.status['pos_calibrated']:
@@ -304,7 +269,7 @@ class PrismaticJoint(Device):
         else:
             a_r = self.accel_r
 
-        i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos, contact_thresh_neg, contact_model)
+        i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos_EP,contact_thresh_neg_EP )
 
         self.motor.set_command(mode = Stepper.MODE_POS_TRAJ_INCR,
                                 x_des=self.translate_m_to_motor_rad(x_m),
@@ -317,8 +282,8 @@ class PrismaticJoint(Device):
 
     # ######### Waypoint Trajectory Interface ##############################
 
-    def follow_trajectory(self, v_m=None, a_m=None, stiffness=None, contact_thresh_pos=None, contact_thresh_neg=None,
-                          req_calibration=True, move_to_start_point=True,contact_model=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None):
+    def follow_trajectory(self, v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None,
+                          req_calibration=True, move_to_start_point=True,contact_thresh_pos_EP=None,contact_thresh_neg_EP=None):
         """Starts executing a waypoint trajectory
 
         `self.trajectory` must be populated with a valid trajectory before calling
@@ -330,19 +295,22 @@ class PrismaticJoint(Device):
             velocity limit for trajectory in meters per second
         a_m : float
             acceleration limit for trajectory in meters per second squared
-        stiffness : float
-            stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_pos: positive threshold to stop motion (units of contact_model)
-        contact_thresh_neg: negative threshold to stop motion (units of contact_model)
+        stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
+        contact_thresh_pos_N: Deprecated: positive threshold to stop motion (units: pseudo_N)
+        contact_thresh_neg_N: Deprecated: negative threshold to stop motion (units: pseudo_N)
+        contact_thresh_pos_EP: positive threshold to stop motion (units: effort_pct -100:100)
+        contact_thresh_neg_EP: negative threshold to stop motion (units: effort_pct -100:100)
         req_calibration : bool
             whether to allow motion prior to homing
         move_to_start_point : bool
             whether to move to the trajectory's start to avoid a jump, this
             time to move doesn't count against the trajectory's timeline
         """
-        # check if joint valid, homed, and right protocol
-        self.check_deprecated_contact_model('follow_trajectory', contact_thresh_pos_N, contact_thresh_neg_N)
 
+
+        hu.check_deprecated_contact_model_prismatic_joint(self,'follow_trajectory', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos_EP, contact_thresh_neg_EP)
+
+        # check if joint valid, homed, and right protocol
         if not self.motor.hw_valid:
             self.logger.warning('%s connection to hardware not valid'%self.name.upper)
             return False
@@ -372,7 +340,7 @@ class PrismaticJoint(Device):
         a_r = self.translate_m_to_motor_rad(min(abs(a_m), self.params['motion']['trajectory_max']['accel_m'])) \
             if a_m is not None else self.translate_m_to_motor_rad(self.params['motion']['trajectory_max']['accel_m'])
 
-        i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos, contact_thresh_neg, contact_model)
+        i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos_EP,contact_thresh_neg_EP )
 
 
         # move to start point
@@ -462,12 +430,6 @@ class PrismaticJoint(Device):
     def translate_force_to_motor_current(self,f):
         raise DeprecationWarning('Method translate_force_to_motor_current has been deprecated since v0.3.5')
 
-    def motor_current_to_translate_pseudo_N(self,i):
-        return self.params['force_N_per_A']*(i-self.params['i_feedforward'])
-
-    def translate_pseudo_N_to_motor_current(self, f):
-        return (f/self.params['force_N_per_A'])+self.params['i_feedforward']
-
     def motor_rad_to_translate_m(self,ang): #Override
         self.logger.warning('motor_rad_to_translate_m not implemented in %s'%self.name)
         pass
@@ -494,25 +456,24 @@ class PrismaticJoint(Device):
 
     def home(self,end_pos,to_positive_stop, measuring=False):
         """
+        end_pos: position to end on
         to_positive_stop:
         -- True: Move to the positive direction stop and mark to range_m[1]
         -- False: Move to the negative direction stop and mark to range_m[0]
         measuring: After homing to stop, move to opposite stop and report back measured distance
         return measured range-of-motion if measuring. Return None if not a valide measurement
         """
+
+        hu.check_deprecated_contact_model_prismatic_joint(self,'home',None,None,None,None)
+
         if not self.motor.hw_valid:
             self.logger.warning('Not able to home %s. Hardware not present' % self.name.capitalize())
             return None
-        # Legacy configurations will use pseudo_N. New configurations will be using effort_pct
-        if self.params['contact_model_homing'] == 'pseudo_N':
-            contact_thresh_pos = self.params['homing_force_N'][1]
-            contact_thresh_neg = self.params['homing_force_N'][0]
-        elif self.params['contact_model_homing'] == 'effort_pct':
-            contact_thresh_neg = self.params['contact_models']['effort_pct']['contact_thresh_homing'][0]
-            contact_thresh_pos = self.params['contact_models']['effort_pct']['contact_thresh_homing'][1]
-        else:
-            self.logger.warning('Invalid contact model for %s. Unable to home joint.' % self.name.capitalize())
-            return None
+
+
+        contact_thresh_neg = self.params['contact_models']['effort_pct']['contact_thresh_homing'][0]
+        contact_thresh_pos = self.params['contact_models']['effort_pct']['contact_thresh_homing'][1]
+
 
         success = True
         print('Homing %s...' % self.name.capitalize())
@@ -535,8 +496,7 @@ class PrismaticJoint(Device):
             x_goal_2 = 5.0
 
         # Move to stop
-        self.move_by(x_m=x_goal_1, contact_thresh_pos=contact_thresh_pos, contact_thresh_neg=contact_thresh_neg,
-                     req_calibration=False, contact_model=self.params['contact_model_homing'])
+        self.move_by(x_m=x_goal_1, contact_thresh_pos_EP=contact_thresh_pos, contact_thresh_neg_EP=contact_thresh_neg,req_calibration=False)
         self.push_command()
         if self.wait_for_contact(timeout=15.0):  # timeout=15.0):
             self.pull_status()
@@ -557,8 +517,7 @@ class PrismaticJoint(Device):
             if measuring:
                 # Move to other direction
                 self.pull_status()
-                self.move_by(x_m=x_goal_2, contact_thresh_pos=contact_thresh_pos,contact_thresh_neg=contact_thresh_neg,
-                             req_calibration=False, contact_model=self.params['contact_model_homing'])
+                self.move_by(x_m=x_goal_2, contact_thresh_pos_EP=contact_thresh_pos,contact_thresh_neg_EP=contact_thresh_neg,req_calibration=False)
                 self.push_command()
                 if self.wait_for_contact(timeout=15.0):
                     print('Second hardstop detected at motor position (rad)', self.motor.status['pos'])

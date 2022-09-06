@@ -87,7 +87,7 @@ class Device:
     def pull_status(self):
         pass
 
-    def home(self):
+    def home(self,end_pos,to_positive_stop, measuring=False):
         pass
 
     def step_sentry(self,robot):
