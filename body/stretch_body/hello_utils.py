@@ -453,7 +453,7 @@ def pseudo_N_to_effort_pct(joint_name,contact_thresh_N):
     motor_name = {'arm':'hello-motor-arm', 'lift': 'hello-motor-lift', 'base':'hello-motor-left-wheel'}[joint_name]
     iMax_name = 'iMax_neg' if contact_thresh_N<0 else 'iMax_pos'
     contact_A = contact_thresh_N / d[joint_name]['force_N_per_A']
-    return contact_A / abs(d[motor_name]['gains'][iMax_name])
+    return 100*contact_A / abs(d[motor_name]['gains'][iMax_name])
 
 
 def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,contact_thresh ):
