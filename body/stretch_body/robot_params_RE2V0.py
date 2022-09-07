@@ -67,6 +67,7 @@ configuration_params_template={
 #Parameters that are common across the RE2 fleet
 nominal_params={
     'arm':{
+        'force_N_per_A': 55.9,  # Legacy
         'chain_pitch': 0.0167,
         'chain_sprocket_teeth': 10,
         'gr_spur': 3.875,
@@ -91,6 +92,7 @@ nominal_params={
                 'vel_m': 0.4,
                 'accel_m': 0.4}}},
     'base':{
+        'force_N_per_A': 21.18,  # Legacy
         'gr': 3.8,
         'motion':{
             'default':{
@@ -373,6 +375,7 @@ nominal_params={
             'vel': 25},
         'rated_current': 2.8},
     'lift':{
+        'force_N_per_A': 75.0,  # Legacy
         'calibration_range_bounds': [1.094, 1.106],
         'contact_models': {
             'effort_pct':{
