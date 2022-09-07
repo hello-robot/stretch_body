@@ -451,8 +451,9 @@ def pseudo_N_to_effort_pct(joint_name,contact_thresh_N):
     import stretch_body.robot_params
     d = stretch_body.robot_params.RobotParams.get_params()[1] #Get complete param dict
     motor_name = {'arm':'hello-motor-arm', 'lift': 'hello-motor-lift', 'base':'hello-motor-left-wheel'}[joint_name]
+    i_feedforward = 0 if joint_name =='base' else d[joint_name]['i_feedforward']
     iMax_name = 'iMax_neg' if contact_thresh_N<0 else 'iMax_pos'
-    contact_A = contact_thresh_N / d[joint_name]['force_N_per_A']
+    contact_A = (contact_thresh_N / d[joint_name]['force_N_per_A'])+i_feedforward
     return 100*contact_A / abs(d[motor_name]['gains'][iMax_name])
 
 
