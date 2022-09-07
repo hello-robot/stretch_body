@@ -447,22 +447,14 @@ def get_pose_diff(pose0, pose1, translation_atol=2e-3, rotation_atol=2e-2):
 
     return 0.0, 0.0
 
-def pseudo_N_to_effort_pct(joint,contact_thresh_N):
-    import stretch_body.base
-    if type(joint)==stretch_body.base.Base:
-        if contact_thresh_N < 0:
-            contacts_A = contact_thresh_N / joint.params['force_N_per_A']
-            return contacts_A / abs(joint.left_wheel.params['gains']['iMax_neg'])
-        else:
-            contacts_A = contact_thresh_N / joint.params['force_N_per_A']
-            return contacts_A / abs(joint.left_wheel.params['gains']['iMax_pos'])
-    else:
-        if contact_thresh_N<0:
-            contacts_A = contact_thresh_N / joint.params['force_N_per_A']
-            return contacts_A / abs(joint.motor.params['gains']['iMax_neg'])
-        else:
-            contacts_A = contact_thresh_N / joint.params['force_N_per_A']
-            return contacts_A / abs(joint.motor.params['gains']['iMax_pos'])
+def pseudo_N_to_effort_pct(joint_name,contact_thresh_N):
+    import stretch_body.robot_params
+    d = stretch_body.robot_params.RobotParams.get_params()[1] #Get complete param dict
+    motor_name = {'arm':'hello-motor-arm', 'lift': 'hello-motor-lift', 'base':'hello-motor-left-wheel'}[joint_name]
+    iMax_name = 'iMax_neg' if contact_thresh_N<0 else 'iMax_pos'
+    contact_A = contact_thresh_N / d[joint_name]['force_N_per_A']
+    return contact_A / abs(d[motor_name]['gains'][iMax_name])
+
 
 def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,contact_thresh ):
     """
