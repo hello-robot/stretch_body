@@ -464,7 +464,7 @@ def pseudo_N_to_effort_pct(joint,contact_thresh_N):
             contacts_A = contact_thresh_N / joint.params['force_N_per_A']
             return contacts_A / abs(joint.motor.params['gains']['iMax_pos'])
 
-def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,contact_thresh_EP ):
+def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,contact_thresh ):
     """
     With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)
     Catch older code that is using the older API and require updating of code
@@ -483,22 +483,22 @@ def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,cont
     #Check if code is passing in old values
     if contact_thresh_N is not None:
         msg='Use of parameter contact_thresh_N is no longer supported\n'
-        msg= msg + 'Update your code to use (contact_thresh_EP)\n'
+        msg= msg + 'Update your code to use (contact_thresh)\n'
         msg = msg +  'For more details, see https://forum.hello-robot.com/t/476\n'
         msg=msg+'In method %s.%s'%(joint.name,method_name)
         print(msg)
         joint.logger.warning(msg)
         sys.exit(1)
 
-def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_thresh_pos_N,contact_thresh_neg_N,contact_thresh_pos_EP,contact_thresh_neg_EP ):
+def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_thresh_pos_N,contact_thresh_neg_N,contact_thresh_pos,contact_thresh_neg ):
     """
     With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)
     Catch older code that is using the older API and require updating of code
     For code that was, for example:
         arm.move_to(x_m=0.1, contact_thresh_pos_N=30.0, contact_thresh_neg_N=-30.0)
     Should now be:
-        arm.move_to(x_m=0.1, contact_thresh_pos_EP=pseudo_N_to_effort_pct(30.0),
-            contact_thresh_neg_EP=pseudo_N_to_effort_pct(-30.0))
+        arm.move_to(x_m=0.1, contact_thresh_pos=pseudo_N_to_effort_pct(30.0),
+            contact_thresh_neg=pseudo_N_to_effort_pct(-30.0))
     """
 
     #Check if old parameters still found in YAML
@@ -514,7 +514,7 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
     #Check if code is passing in old values
     if contact_thresh_pos_N is not None or contact_thresh_neg_N is not None:
         msg='Use of parameters contact_thresh_pos_N and contact_thresh_neg_N is no longer supported\n'
-        msg= msg + 'Update your code to use (contact_thresh_pos_EP, contact_thresh_neg_EP)\n'
+        msg= msg + 'Update your code to use (contact_thresh_pos, contact_thresh_neg)\n'
         msg = msg +  'For more details, see https://forum.hello-robot.com/t/476\n'
         msg=msg+'In method %s.%s'%(joint.name,method_name)
         print(msg)
@@ -522,8 +522,8 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
         sys.exit(1)
 
     #Check if code is passing in new values but not yet migrated
-    if contact_thresh_pos_EP is not None or contact_thresh_neg_EP is not None \
-            or (contact_thresh_pos_EP is None and contact_thresh_neg_EP is None):
+    if contact_thresh_pos is not None or contact_thresh_neg is not None \
+            or (contact_thresh_pos is None and contact_thresh_neg is None):
         if ('contact_models' not in joint.params) or ('effort_pct' not in joint.params['contact_models']) or\
                 ('contact_thresh_default' not in joint.params['contact_models']['effort_pct']) or\
                 ('contact_thresh_homing' not in joint.params['contact_models']['effort_pct']) :
