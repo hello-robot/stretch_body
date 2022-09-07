@@ -30,7 +30,7 @@ setuptools.setup(
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'scikit-image', 'open3d', 'pyrealsense2',
                       'pyglet == 1.4.10; python_version < "3.0"', 'trimesh==3.6.38', 'urdfpy', # required for urdfpy viz in py2
                       'pyyaml>=5.1', # required for yaml.FullLoader
-                      'hello-robot-stretch-body>=0.4.0']
+                      'hello-robot-stretch-body>=0.4.2.dev0']
 )
 
 #classifiers = [
