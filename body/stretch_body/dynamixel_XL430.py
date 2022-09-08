@@ -179,6 +179,7 @@ class DynamixelXL430():
             return True
         return False
 
+
     def stop(self):
         if self.hw_valid:
             self.hw_valid = False
