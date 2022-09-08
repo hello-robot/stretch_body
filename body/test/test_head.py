@@ -32,7 +32,7 @@ class TestHead(unittest.TestCase):
         m = h.get_joint('foo')
         self.assertEqual(m,None)
 
-
+    @unittest.skip(reason='TODO: cleanup')
     def test_waypoint_trajectory(self):
         h = stretch_body.head.Head()
         self.assertTrue(h.startup())

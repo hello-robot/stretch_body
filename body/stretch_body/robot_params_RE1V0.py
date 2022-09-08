@@ -540,7 +540,7 @@ nominal_params={
         'accel_single_tap_thresh': 50,
         'ana_LPF': 10.0}},
     'wrist_yaw':{
-        'range_pad_t': [50.0, -50.0],
+        'range_pad_t': [100.0, -100.0],
         'flip_encoder_polarity': 1,
         'gr': 2.4,
         'id': 13,

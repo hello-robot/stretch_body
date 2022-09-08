@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 class TestDynamixelHelloXL430(unittest.TestCase):
-    @unittest.skip(reason='Foo')
+
     def test_soft_motion_limits(self):
         print('test_soft_motion_limits')
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_pan", chain=None)
@@ -62,7 +62,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
 
         servo.stop()
 
-    @unittest.skip(reason='Foo')
+
     def test_valid_startup_status(self):
         print('test_valid_startup_status')
         servo = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="head_tilt", chain=None)
@@ -93,7 +93,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
 
         servo.stop()
 
-    @unittest.skip(reason='Foo')
+
     def test_non_multiturn_move_after_home(self):
         """Verify non-multiturn servo responds to move_to commands after homing.
         """
@@ -110,7 +110,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
 
         servo.stop()
 
-    @unittest.skip(reason='Foo')
+
     def test_two_hardstop_homing(self):
         """Verify servo hits two hardstops during homing when single_stop=False.
         """
@@ -124,7 +124,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
 
         servo.stop()
 
-    @unittest.skip(reason='Foo')
+
     def test_runstop(self):
         print('test_runstop')
         class R():
@@ -148,7 +148,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         time.sleep(2.0)
         servo.pull_status()
         self.assertNotAlmostEqual(servo.status['pos'], servo.get_soft_motion_limits()[0], places=1)
-    @unittest.skip(reason='Foo')
+
     def test_runstop_multithread(self):
         """Verify dynamixel_hello respect runstop via step_sentry
         """
@@ -225,7 +225,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         self.assertAlmostEqual(to_save['vel2'], 0.0, places=2)
 
         servo.stop()
-    @unittest.skip(reason='Foo')
+
     def test_set_motion_profile(self):
         """Verify set_motion_params sets the Dynamixel's vel/accel profile correctly.
         """
@@ -287,7 +287,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         servo.stop()
         
 
-    @unittest.skip(reason='Foo')
+
     def test_motion_profile_doesnt_persist(self):
         """Verify move_to/move_by with vel/accel doesn't set a motion profile that
         persists to subsequent move_to/move_by commands.
@@ -298,20 +298,14 @@ class TestDynamixelHelloXL430(unittest.TestCase):
 
         servo.move_to(0.0)
         time.sleep(5)
-        print('V',servo.motor.get_profile_velocity())
-        print('A',servo.motor.get_profile_acceleration())
         servo.move_to(1.0, v_des=1.95, a_des=1.95)
         move1_vel_ticks = servo.motor.get_profile_velocity()
         move1_accel_ticks = servo.motor.get_profile_acceleration()
-        print('VV',move1_vel_ticks)
-        print('AA',move1_accel_ticks)
         time.sleep(5)
 
         servo.move_to(0.0)
         move2_vel_ticks = servo.motor.get_profile_velocity()
         move2_accel_ticks = servo.motor.get_profile_acceleration()
-        print('VVV',move2_vel_ticks)
-        print('AAA',move2_accel_ticks)
         time.sleep(5)
 
         self.assertNotEqual(move1_vel_ticks, move2_vel_ticks)
@@ -319,7 +313,7 @@ class TestDynamixelHelloXL430(unittest.TestCase):
 
         servo.stop()
 
-    @unittest.skip(reason='Foo')
+    
     def test_status_velocity(self):
         """Verify that the motor's velocity is correct in the status dict by
         commanding the robot a known distance and integrating velocity over
@@ -329,23 +323,25 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         s = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_yaw")
         self.assertTrue(s.startup())
 
-        s.move_to(-1.1) # start at one end stop
+        s.move_to(-1.0) # start at one end stop
         time.sleep(5)
-        expected_traveled_distance = 4.3 + 1.1
+        expected_traveled_distance = 1.5 + 1.0
 
-        s.move_to(4.3, v_des=1.0, a_des=1.0) # travel to other end stop
-        ts = time.time()
+        s.move_to(1.5, v_des=1.0, a_des=1.0) # travel to other end stop
+        ts2 = time.time()
         measured_traveled_distance = 0.0
         s.pull_status()
-        while not np.isclose(s.status['pos'], 4.3, atol=1e-2):
+        ts=ts2
+        while not np.isclose(s.status['pos'], 1.5, atol=1e-2) and time.time()-ts2<6.0:
             dt = time.time() - ts
+            ts=time.time()
             measured_traveled_distance += s.status['vel'] * dt
-            ts = time.time()
             time.sleep(0.01)
             s.pull_status()
-            # print(s.status['pos'], expected_traveled_distance, measured_traveled_distance)
+            #print(dt,s.status['pos'], expected_traveled_distance, measured_traveled_distance)
 
         dt = time.time() - ts
         measured_traveled_distance += s.status['vel'] * dt
+        print('Measured',measured_traveled_distance)
         self.assertTrue(np.isclose(measured_traveled_distance, expected_traveled_distance, atol=0.3))
         s.stop()

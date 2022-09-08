@@ -460,7 +460,7 @@ nominal_params={
         'wrist_yaw_overload': 1,
         'stepper_is_moving_filter': 1},
     'stretch_gripper':{
-        'range_pad_t': [50.0, -50.0],
+        'range_pad_t': [100.0, -100.0],
         'flip_encoder_polarity': 0,
         'gr': 1.0,
         'id': 14,

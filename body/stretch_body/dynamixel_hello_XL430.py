@@ -701,22 +701,22 @@ class DynamixelHelloXL430(Device):
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
         # Second hardstop is optional
+        # Return success, measured range
 
         if not self.hw_valid:
             self.logger.warning('Not able to home %s. Hardware not present'%self.name)
-            return
+            return False, None
         if not self.params['req_calibration']:
             print('Homing not required for: '+self.name)
-            return
+            return False, None
 
         self.pull_status()
         if self.status['overload_error'] or self.status['overheating_error']:
             self.logger.warning('Hardware error, unable to home. Exiting')
-            return
+            return False, None
 
         self.is_homing=True
         self.enable_pwm()
-
         print('Moving to first hardstop...')
         self.set_pwm(self.params['pwm_homing'][0])
         ts=time.time()
@@ -730,18 +730,25 @@ class DynamixelHelloXL430(Device):
 
         if timeout:
             self.logger.warning('Timed out moving to first hardstop. Exiting.')
-            return
+            return False, None
         if self.status['overload_error'] or self.status['overheating_error']:
             self.logger.warning('Hardware error, unable to home. Exiting')
-            return
+            return False, None
 
-        contact_0=self.motor.get_pos()
-        print('Contact at position: %d'%contact_0)
-        print('Hit first hardstop, marking to zero ticks')
+        #Need to move back to pos mode to get the position (ticks) w/o the homing offset (single turn mode)
+        if not self.params['use_multiturn']:
+            self.enable_pos()
+        contact_0 = self.motor.get_pos()
+        print('First hardstop contact at position (ticks): %d' % contact_0)
+
         if set_homing_offset:
+            print('-----')
             self.motor.disable_torque()
+            print('Homing offset was %d'%self.motor.get_homing_offset())
+            print('Marking current position to zero ticks')
             self.motor.zero_position()
-            print("Homing offset is now  %d"%self.motor.get_homing_offset())
+            print("Homing offset is now  %d (ticks)"%self.motor.get_homing_offset())
+            print('-----')
             contact_0=0
 
         self.motor.disable_torque()
@@ -768,13 +775,16 @@ class DynamixelHelloXL430(Device):
 
             if timeout:
                 self.logger.warning('Timed out moving to second hardstop. Exiting.')
-                return
+                return False, None
             if self.status['overload_error'] or self.status['overheating_error']:
                 self.logger.warning('Hardware error, unable to home. Exiting')
-                return
+                return False, None
 
+            # Need to move back to pos mode to get the position (ticks) w/o the homing offset (single turn mode)
+            if not self.params['use_multiturn']:
+                self.enable_pos()
             contact_1 = self.motor.get_pos()
-            print('Hit second hardstop at: ', contact_1)
+            print('Hit second hardstop at: (ticks)', contact_1)
 
             print('Homed to range of motion to (ticks):',[contact_0,contact_1])
             self.params['range_t'] = [contact_0 + self.params['range_pad_t'][0], contact_1 + self.params['range_pad_t'][1]]
@@ -793,6 +803,9 @@ class DynamixelHelloXL430(Device):
             self.move_to(0)
             self.wait_until_at_setpoint(timeout=6.0)
         self.is_homing=False
+        if not single_stop:
+            return  True, self.params['range_t']
+        return True, None
 
 # ##########################################
 
