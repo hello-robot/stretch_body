@@ -432,7 +432,6 @@ nominal_params={
             'NonDXLStatusThread_trajectory_downrate_int': 2},
         'tool': 'tool_stretch_gripper',
         'use_collision_manager': 1,
-        'log_to_console': 0,
         'stow':{
         'arm': 0.0,
         'head_pan': 0.0,

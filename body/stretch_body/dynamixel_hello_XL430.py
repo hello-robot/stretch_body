@@ -97,6 +97,24 @@ class DynamixelHelloXL430(Device):
 
     # ###########  Device Methods #############
 
+    def check_homing_offset(self):
+        """
+        Users may incorrectly set the homing offset on a single-turn servo
+        In general on single-turn servos, the homing offset should be zero
+        In some cases it may be non-zero but between -1024 and 1024 (per DXL spec)
+        If it is outside of the valid range it is ignored. However,
+        when the servo is placed in other control modes (eg vel) the reported encoder position start using the offset
+        This can create unexpected behavior
+        """
+        if not self.params['use_multiturn']:
+            self.disable_torque()
+            xn = self.motor.get_homing_offset()
+            if abs(xn)>1024:
+                self.logger.warning('Dynamixel %s: Servo is in single-turn mode yet has invalid homing offset of %d. \n This may cause '
+                                    'unexpected results if not set to zero (using REx_dynamixel_jog.py)\n Please contact Hello Robot support for more information' % (self.name, xn))
+
+            self.enable_torque()
+
     def get_soft_motion_limits(self):
         """
             Return the currently applied soft motion limits: [min, max]
@@ -165,6 +183,7 @@ class DynamixelHelloXL430(Device):
                 self.pre_traj_acc = None
 
                 self.is_calibrated=self.motor.is_calibrated()
+                self.check_homing_offset()
                 self.enable_torque()
                 self.pull_status()
                 return True
