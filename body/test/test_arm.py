@@ -66,7 +66,7 @@ class TestArm(unittest.TestCase):
         a = stretch_body.arm.Arm()
         self.assertTrue(a.startup(threaded=False))
 
-        a.home(single_stop=True)
+        a.home()
         time.sleep(2)
         a.pull_status()
         self.assertAlmostEqual(a.status['pos'], 0.1, places=3)

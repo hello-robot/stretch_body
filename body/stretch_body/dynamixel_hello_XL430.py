@@ -415,19 +415,19 @@ class DynamixelHelloXL430(Device):
             self.comm_errors.add_error(rx=False, gsr=False)
 
 
-    def set_motion_params(self,v_des=None,a_des=None):
+    def set_motion_params(self,v_des=None,a_des=None, force=False):
         try:
             if not self.hw_valid:
                 return
             v_des = abs(v_des) if v_des is not None else self.params['motion']['default']['vel']
             v_des = min(self.params['motion']['max']['vel'], v_des)
-            if v_des != self.v_des:
+            if v_des != self.v_des or force:
                 self.motor.set_profile_velocity(abs(self.world_rad_to_ticks_per_sec(v_des)))
                 self.v_des = v_des
 
             a_des = abs(a_des) if a_des is not None else self.params['motion']['default']['accel']
             a_des = min(self.params['motion']['max']['accel'], a_des)
-            if a_des != self.a_des:
+            if a_des != self.a_des or force:
                 self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(a_des)))
                 self.a_des = a_des
         except (termios.error, DynamixelCommError):
@@ -471,9 +471,8 @@ class DynamixelHelloXL430(Device):
                 self.motor.enable_multiturn()
             else:
                 self.motor.enable_pos()
-            self.motor.set_profile_velocity(abs(self.world_rad_to_ticks_per_sec(self.v_des)))
-            self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(self.a_des)))
             self.motor.enable_torque()
+            self.set_motion_params(force=True)
         except (termios.error, DynamixelCommError):
             self.comm_errors.add_error(rx=False, gsr=False)
 
