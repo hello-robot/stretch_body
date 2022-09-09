@@ -2,22 +2,23 @@
 
 The changes between releases of Stretch Body are documented here.
 
-0.3.5 - Sept X, 2022
+## [0.4.7](https://github.com/hello-robot/stretch_body/pull/148) - Sept 14, 2022
 
-This is the initial production release that supports RE2 (Mitski batch).  This includes the `robot_params_RE2V0.py` which are the initial robot settings for the RE2 version of the product.
+This is the initial production release that supports the Stretch RE2 (Mitski batch).  This includes the `robot_params_RE2V0.py` which are the initial robot settings for the RE2 version of the product.
 
 * It introduces the [PrismaticJoint](https://github.com/hello-robot/stretch_body/blob/master/stretch_body/prismatic_joint.py) class which consolidates the common Arm and Lift functionality. 
 
-* It also  the notion of a Contact Model in PrismaticJoint and Base which converts a motion's contact_thresh into a current (A) that a joint should stop at. Previously the notions of contact model (and units) were implicit. With this release they are explicit (eg, 'pseudo_N' and 'effort_pct'). This change breaks the joint motion APIs (eg, move_to()). For robots running older code that has specified contact parameters using the older API, Stretch Body will throw a DeprecationWarning and instruct the user to upgrade their code.
+* It changes the units for guarded contact motion from approximate Newtons (suffix _N) to `effort_pct` - the pecentage [-100,100] of maximum current (A) that a joint should stop at. This change requires RE1 users to migrate their code and robot parameters. [See the forum post](https://forum.hello-robot.com/t/stretch-body-release-0-4-and-new-contact-model-units/476/2) for more details.
 
 * It introduces `mkdocs.yaml` to support serving the repository documenation via MKDocs.
 
-It introduces several new features and fixes several bugs, notable:
+It introduces several new features and fixes several bugs, notably:
 
 * [Adds `wait_until_setpoint` to the Arm and Lift classes](https://github.com/hello-robot/stretch_body/commit/d15e3fb4416a5b296a184148df7b2045cf16027d)
 * [Adds use of argparse with all tools](https://github.com/hello-robot/stretch_body/commit/c9c79d6fa08d0aec7d217e2e1d9a9d36b15145b1)
 * [Moves Robot thread rates to YAML](https://github.com/hello-robot/stretch_body/commit/0fa82e852f98031064a4dbfba722af6da43bc992)
 * [Cleans up the splined trajectory interface, enables velocity controlled splined trajectories for the Dynamixels](https://github.com/hello-robot/stretch_body/commit/13549e3662a3168c2a6f460f52c6577d0dbf5b5d)
+* [Flags a warning for users incorrectly setting the homing offset on DXL servos](https://github.com/hello-robot/stretch_body/pull/151)
 
 
 
