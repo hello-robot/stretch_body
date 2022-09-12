@@ -29,6 +29,7 @@ Release to add minor features and fix minor bugs:
 * Add a `range_pad_t` parameter to allow for padding of hardstops for joint homing
 * [Clean up tools and warnings to more consistent and legible #140](https://github.com/hello-robot/stretch_body/pull/140)
 
+
 ## [0.3.0](https://github.com/hello-robot/stretch_body/pull/129) - June 21, 2022
 This release moves Stretch Body to use a new parameter management format. This change will require older systems to migrate their parameters to the new format. For systems that haven't yet migrated, Stretch Body will exit with a warning that they must migrate first by running `RE1_migrate_params.py`. See the [forum post](https://forum.hello-robot.com/t/425) for more details.
 

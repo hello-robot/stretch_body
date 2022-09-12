@@ -27,6 +27,10 @@ See [docs.hello-robot.com](https://docs.hello-robot.com) for documentation on us
 
 See [Stretch Body's README](https://github.com/hello-robot/stretch_body/blob/master/body/README.md) and [Stretch Body Commandline Tool's README](https://github.com/hello-robot/stretch_body/blob/master/tools/README.md) for information on testing/developing these packages.
 
+## Changelog
+
+See the [changelog](./CHANGELOG.md) for information on what changed with each release.
+
 ## License
 
 Each subdirectory contains a LICENSE.md file that applies to the directory's contents. This software is intended for use with the Stretch RE1 and RE2 mobile manipulators, which are robots produced and sold by Hello Robot Inc. For further information including inquiries about dual licensing, please contact Hello Robot Inc.

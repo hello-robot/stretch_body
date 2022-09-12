@@ -11,7 +11,9 @@ class TestDevice(unittest.TestCase):
         """
         Check that we don't mangle the format when writing config params to YAML
         """
+
         print('\nUnittest: test_write_configuration_params')
+
         d=stretch_body.device.Device(req_params=False)
         cp = stretch_body.hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
         for k in cp.keys(): #Write existing values up to 3 dict layers deep
