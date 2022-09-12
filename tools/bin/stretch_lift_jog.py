@@ -8,6 +8,7 @@ import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Jog the lift motion from the keyboard')
+parser.add_argument("--no_rs", help="No runstop required",action="store_true")
 args=parser.parse_args()
 
 small_move_m=.01
@@ -19,6 +20,8 @@ l=lift.Lift()
 if not l.startup(threaded=False):
     exit()
 l.motor.disable_sync_mode()
+if args.no_rs:
+    l.motor.disable_runstop()
 l.push_command()
 
 def get_keystroke():
