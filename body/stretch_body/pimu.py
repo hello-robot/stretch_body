@@ -17,7 +17,7 @@ The PIMU is the power and IMU Arduino board in the base
 
 class IMUBase(Device):
     """
-    API to the Stretch RE1 IMU found in the base
+    API to the Stretch IMU found in the base
     """
     def __init__(self):
         Device.__init__(self, 'imu',req_params=False)
@@ -121,7 +121,7 @@ class IMU(IMUBase):
 # ##################################################################################
 class PimuBase(Device):
     """
-    API to the Stretch RE1 Power and IMU board (Pimu)
+    API to the Stretch Power and IMU board (Pimu)
     """
     RPC_SET_PIMU_CONFIG = 1
     RPC_REPLY_PIMU_CONFIG = 2
@@ -158,6 +158,7 @@ class PimuBase(Device):
     TRIGGER_IMU_RESET = 128
     TRIGGER_RUNSTOP_ON = 256
     TRIGGER_BEEP = 512
+    TRIGGER_LIGHTBAR_TEST = 1024
 
 
     def __init__(self, event_reset=False):
@@ -218,6 +219,11 @@ class PimuBase(Device):
             self.push_command(exiting=True)
             self.transport.stop()
             self.hw_valid = False
+
+    def set_config(self,c):
+        with self.lock:
+            self.config=c.copy()
+            self._dirty_config = True
 
     def pull_status(self,exiting=False):
         if not self.hw_valid:
@@ -300,6 +306,11 @@ class PimuBase(Device):
             self._trigger=self._trigger | self.TRIGGER_BEEP
             self._dirty_trigger=True
 
+    def trigger_lightbar_test(self):
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_LIGHTBAR_TEST
+            self._dirty_trigger = True
+
     # ####################### Utility functions ####################################################
     def imu_reset(self):
         with self.lock:
@@ -310,14 +321,18 @@ class PimuBase(Device):
         #Push out immediately
         if not self.hw_valid:
             return
-
         t = time.time()
-        if self.ts_last_motor_sync is not None and t-self.ts_last_motor_sync<1.0/self.params['max_sync_rate_hz']:
-            self.status['motor_sync_drop'] += 1
-            if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
-                print('Warning: Rate of calls to Pimu:trigger_motor_sync above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
-                self.ts_last_motor_sync_warn=t
-            return
+        #For RE1.0 robots (hardware_id==0) the runstop and sync line are shared
+        #This limits the maximum rate that the motor sync can be triggered
+        #For RE2.0 robots the sync rate is limited by the min pulse width (~10ms)
+        if self.ts_last_motor_sync is not None:
+            sync_rate = 1 / (t - self.ts_last_motor_sync)
+            if sync_rate>self.params['max_sync_rate_hz']:
+                self.status['motor_sync_drop'] += 1
+                if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
+                    print('Warning: Rate of calls to Pimu:trigger_motor_sync rate of %f above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(sync_rate,self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
+                    self.ts_last_motor_sync_warn=t
+                return
 
         with self.lock:
             self.transport.payload_out[0] = self.RPC_SET_MOTOR_SYNC
@@ -571,7 +586,7 @@ class Pimu_Protocol_P1(PimuBase):
 # ######################## PIMU #################################
 class Pimu(PimuBase):
     """
-    API to the Stretch RE1 Power and IMU board (Pimu)
+    API to the Stretch Power and IMU board (Pimu)
     """
     def __init__(self, event_reset=False):
         PimuBase.__init__(self, event_reset)

@@ -4,6 +4,10 @@ import os
 import yaml
 import cv2
 
+import argparse
+parser=argparse.ArgumentParser(description='Display model and serial number information')
+args=parser.parse_args()
+
 image_file = "/etc/hello-robot/stretch_about.png"
 image = cv2.imread(image_file)
 if image is None:

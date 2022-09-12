@@ -8,7 +8,7 @@ from stretch_body.hello_utils import *
 class CollisionArmCamera(RobotCollisionModel):
     """
     NOTE: Experimental. You may want to turn this off in the params (enable=0)
-    RE1 camera can clip the arm when lift is all the way up
+    RE1/ RE2 camera can clip the arm when lift is all the way up
     and the camera is looking parallel to the ground.
     """
 

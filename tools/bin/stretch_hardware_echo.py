@@ -3,6 +3,14 @@ from __future__ import print_function
 import os
 import subprocess
 import stretch_body.hello_utils as hu
+
+
+
+import argparse
+parser=argparse.ArgumentParser(description='Echo the robot and computer hardware details to the console')
+args=parser.parse_args()
+
+
 hu.print_stretch_re_use()
 
 print('Versions')

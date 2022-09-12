@@ -55,10 +55,10 @@ class NonDXLStatusThread(threading.Thread):
         threading.Thread.__init__(self)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
-        self.monitor_downrate_int = 5  # Step the monitor at every Nth iteration
-        self.collision_downrate_int = 5  # Step the monitor at every Nth iteration
-        self.sentry_downrate_int = 2  # Step the sentry at every Nth iteration
-        self.trajectory_downrate_int = 2  # Update hardware with waypoint trajectory segments at every Nth iteration
+        self.monitor_downrate_int = int(robot.params['rates']['NonDXLStatusThread_monitor_downrate_int'])  # Step the monitor at every Nth iteration
+        self.collision_downrate_int = int(robot.params['rates']['NonDXLStatusThread_collision_downrate_int']) # Step the monitor at every Nth iteration
+        self.sentry_downrate_int = int(robot.params['rates']['NonDXLStatusThread_sentry_downrate_int']) # Step the sentry at every Nth iteration
+        self.trajectory_downrate_int = int(robot.params['rates']['NonDXLStatusThread_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         if self.robot.params['use_collision_manager']:
@@ -78,7 +78,7 @@ class NonDXLStatusThread(threading.Thread):
                 if (self.titr % self.monitor_downrate_int) == 0:
                     self.robot.monitor.step()
 
-            if self.robot.params['use_collision_manager']:
+            if self.robot.params['use_collision_manager'] and self.robot.is_calibrated():
                     self.robot.collision.step()
 
             if self.robot.params['use_sentry']:
@@ -96,7 +96,7 @@ class NonDXLStatusThread(threading.Thread):
 
 class Robot(Device):
     """
-    API to the Stretch RE1 Robot
+    API to the Stretch Robot
     """
     def __init__(self):
         Device.__init__(self, 'robot')
@@ -163,11 +163,11 @@ class Robot(Device):
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
         signal.signal(signal.SIGINT, hello_utils.thread_service_shutdown)
 
-        self.non_dxl_thread = NonDXLStatusThread(self)
+        self.non_dxl_thread = NonDXLStatusThread(self,target_rate_hz=self.params['rates']['NonDXLStatusThread_Hz'])
         self.non_dxl_thread.setDaemon(True)
         self.non_dxl_thread.start()
 
-        self.dxl_thread = DXLStatusThread(self)
+        self.dxl_thread = DXLStatusThread(self,target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
         self.dxl_thread.setDaemon(True)
         self.dxl_thread.start()
 
@@ -227,6 +227,13 @@ class Robot(Device):
 
     # ######### Waypoint Trajectory Interface ##############################
 
+
+    def is_trajectory_active(self):
+        return self.arm.is_trajectory_active() or self.lift.is_trajectory_active() or \
+               self.base.is_trajectory_active() or self.end_of_arm.is_trajectory_active() or \
+               self.head.is_trajectory_active()
+
+
     def follow_trajectory(self):
         success = True
         success = success and self.arm.follow_trajectory(move_to_start_point=False)
@@ -257,46 +264,46 @@ class Robot(Device):
             ready = ready and not req
         return ready
 
+    def get_stow_pos(self,joint):
+        """
+        Return the stow position of a joint.
+        Allow the end_of_arm to override the defaults in order to accomodate stowing different tools
+        """
+        if 'stow' in self.end_of_arm.params:
+            if joint in self.end_of_arm.params['stow']:
+                return self.end_of_arm.params['stow'][joint]
+        return self.params['stow'][joint]
+
     def stow(self):
         """
         Cause the robot to move to its stow position
         Blocking.
         """
-        self.head.move_to('head_pan', self.params['stow']['head_pan'])
-        self.head.move_to('head_tilt',self.params['stow']['head_tilt'])
+        self.head.move_to('head_pan', self.get_stow_pos('head_pan'))
+        self.head.move_to('head_tilt',self.get_stow_pos('head_pan'))
 
         lift_stowed=False
-        pos_lift = self.params['stow']['lift']
-        if 'stow' in self.end_of_arm.params:  # Allow tool defined stow position to take precedence
-            if 'lift' in self.end_of_arm.params['stow']:
-                pos_lift = self.end_of_arm.params['stow']['lift']
-        if self.lift.status['pos']<=self.params['stow']['lift']: #Needs to come up before bring in arm
+        pos_lift = self.get_stow_pos('lift')
+        if self.lift.status['pos']<=pos_lift: #Needs to come up before bring in arm
             print('--------- Stowing Lift ----')
             self.lift.move_to(pos_lift)
             self.push_command()
             time.sleep(0.25)
             ts = time.time()
-            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 3.0:
+            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 4.0:
                 time.sleep(0.1)
             lift_stowed=True
 
         #Bring in arm before bring down
         print('--------- Stowing Arm ----')
-        pos_arm = self.params['stow']['arm']
-        if 'stow' in self.end_of_arm.params:  # Allow tool defined stow position to take precedence
-            if 'arm' in self.end_of_arm.params['stow']:
-                pos_arm = self.end_of_arm.params['stow']['arm']
-
-        self.arm.move_to(pos_arm)
+        self.arm.move_to(self.get_stow_pos('arm'))
         self.push_command()
         time.sleep(0.25)
         ts = time.time()
-        while not self.arm.motor.status['near_pos_setpoint'] and time.time() - ts < 3.0:
+        while not self.arm.motor.status['near_pos_setpoint'] and time.time() - ts < 6.0:
             time.sleep(0.1)
-
         self.end_of_arm.stow()
         time.sleep(0.25)
-
 
         #Now bring lift down
         if not lift_stowed:
@@ -305,9 +312,8 @@ class Robot(Device):
             self.push_command()
             time.sleep(0.25)
             ts = time.time()
-            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 10.0:
+            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 12.0:
                 time.sleep(0.1)
-
         #Make sure wrist yaw is done before exiting
         while self.end_of_arm.motors['wrist_yaw'].motor.is_moving():
             time.sleep(0.1)
@@ -351,7 +357,7 @@ class Robot(Device):
             self.end_of_arm.update_trajectory()
             self.head.update_trajectory()
         except SerialException:
-            self.logger.warning('Serial Exception on Robot._update_trajectory_dynamixe()')
+            self.logger.warning('Serial Exception on Robot._update_trajectory_dynamixel()')
 
     def _pull_status_non_dynamixel(self):
         self.wacc.pull_status()

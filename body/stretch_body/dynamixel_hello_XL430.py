@@ -60,7 +60,7 @@ class DynamixelHelloXL430(Device):
             self.hw_valid = False
             self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                          'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0}
+                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'watchdog_errors':0}
             self.thread_rate_hz = 15.0
             self.trajectory = RevoluteTrajectory()
             self._waypoint_ts = None
@@ -90,10 +90,30 @@ class DynamixelHelloXL430(Device):
             self.status_mux_id = 0
             self.was_runstopped = False
             self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
+            self.v_des = None #Track the motion profile settings on servo
+            self.a_des = None #Track the motion profile settings on servo
         except KeyError:
             self.motor=None
 
     # ###########  Device Methods #############
+
+    def check_homing_offset(self):
+        """
+        Users may incorrectly set the homing offset on a single-turn servo
+        In general on single-turn servos, the homing offset should be zero
+        In some cases it may be non-zero but between -1024 and 1024 (per DXL spec)
+        If it is outside of the valid range it is ignored. However,
+        when the servo is placed in other control modes (eg vel) the reported encoder position start using the offset
+        This can create unexpected behavior
+        """
+        if not self.params['use_multiturn']:
+            self.disable_torque()
+            xn = self.motor.get_homing_offset()
+            if abs(xn)>1024:
+                self.logger.warning('Dynamixel %s: Servo is in single-turn mode yet has invalid homing offset of %d. \n This may cause '
+                                    'unexpected results if not set to zero (using REx_dynamixel_jog.py)\n Please contact Hello Robot support for more information' % (self.name, xn))
+
+            self.enable_torque()
 
     def get_soft_motion_limits(self):
         """
@@ -158,11 +178,12 @@ class DynamixelHelloXL430(Device):
                 self.motor.set_I_gain(self.params['pid'][1])
                 self.motor.set_D_gain(self.params['pid'][2])
                 self.motor.set_return_delay_time(self.params['return_delay_time'])
-                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.params['motion']['default']['vel']))
-                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.params['motion']['default']['accel']))
-                self.v_des=self.params['motion']['default']['vel']
-                self.a_des=self.params['motion']['default']['accel']
+                self.set_motion_params() #Initialize servo motion profile with default values
+                self.pre_traj_vel = None
+                self.pre_traj_acc = None
+
                 self.is_calibrated=self.motor.is_calibrated()
+                self.check_homing_offset()
                 self.enable_torque()
                 self.pull_status()
                 return True
@@ -241,8 +262,8 @@ class DynamixelHelloXL430(Device):
                 if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
                     raise DynamixelCommError
                 ts = time.time()
-            except(termios.error, DynamixelCommError):
-                #self.logger.warning('Dynamixel communication error on %s: '%self.name)
+            except(termios.error, DynamixelCommError, IndexError):
+                self.logger.warning('Dynamixel communication error on %s: '%self.name)
                 self.motor.port_handler.ser.reset_output_buffer()
                 self.motor.port_handler.ser.reset_input_buffer()
                 self.comm_errors.add_error(rx=True,gsr=False)
@@ -341,6 +362,7 @@ class DynamixelHelloXL430(Device):
         print('Hardware Error: Motor Encoder Error: ',self.status['motor_encoder_error'])
         print('Hardware Error: Electrical Shock Error: ', self.status['electrical_shock_error'])
         print('Hardware Error: Overload Error: ', self.status['overload_error'])
+        print('Watchdog Errors: ',self.status['watchdog_errors'])
         print('Timestamp PC', self.status['timestamp_pc'])
         print('Range (ticks)',self.params['range_t'])
         print('Range (rad) [',self.ticks_to_world_rad(self.params['range_t'][0]), ' , ',self.ticks_to_world_rad(self.params['range_t'][1]),']')
@@ -377,6 +399,19 @@ class DynamixelHelloXL430(Device):
             return
         self.motor.disable_torque()
 
+    def move_to_vel(self,v_des,a_des=None):
+        if not self.hw_valid:
+            return
+        if self.params['req_calibration'] and not self.is_calibrated:
+            self.logger.warning('Dynamixel not calibrated: %s' % self.name)
+            print('Dynamixel not calibrated:', self.name)
+            return
+        try:
+            self.motor.set_vel(v_des)
+        except(termios.error, DynamixelCommError, IndexError):
+            self.logger.warning('Dynamixel communication error on %s: ' % self.name)
+            self.comm_errors.add_error(rx=True, gsr=False)
+
     def move_to(self,x_des, v_des=None, a_des=None):
         if not self.hw_valid:
             return
@@ -385,6 +420,7 @@ class DynamixelHelloXL430(Device):
             print('Dynamixel not calibrated:', self.name)
             return
         try:
+            #print('Motion Params',v_des,a_des)
             self.set_motion_params(v_des,a_des)
             old_x_des = x_des
             x_des = min(max(self.get_soft_motion_limits()[0], x_des), self.get_soft_motion_limits()[1])
@@ -393,26 +429,25 @@ class DynamixelHelloXL430(Device):
             t_des = self.world_rad_to_ticks(x_des)
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
-        except (termios.error, DynamixelCommError):
-            #self.logger.warning('Dynamixel communication error on: %s' % self.name)
+        except (termios.error, DynamixelCommError, IndexError):
+            self.logger.warning('Dynamixel communication error on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
 
-    def set_motion_params(self,v_des=None,a_des=None):
+    def set_motion_params(self,v_des=None,a_des=None, force=False):
         try:
             if not self.hw_valid:
                 return
-
-            v_des = v_des if v_des is not None else self.params['motion']['default']['vel']
+            v_des = abs(v_des) if v_des is not None else self.params['motion']['default']['vel']
             v_des = min(self.params['motion']['max']['vel'], v_des)
-            if v_des != self.v_des:
-                self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(v_des))
+            if v_des != self.v_des or force:
+                self.motor.set_profile_velocity(abs(self.world_rad_to_ticks_per_sec(v_des)))
                 self.v_des = v_des
 
-            a_des = a_des if a_des is not None else self.params['motion']['default']['accel']
+            a_des = abs(a_des) if a_des is not None else self.params['motion']['default']['accel']
             a_des = min(self.params['motion']['max']['accel'], a_des)
-            if a_des != self.a_des:
-                self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(a_des))
+            if a_des != self.a_des or force:
+                self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(a_des)))
                 self.a_des = a_des
         except (termios.error, DynamixelCommError):
             #self.logger.warning('Dynamixel communication error on: %s' % self.name)
@@ -455,9 +490,8 @@ class DynamixelHelloXL430(Device):
                 self.motor.enable_multiturn()
             else:
                 self.motor.enable_pos()
-            self.motor.set_profile_velocity(self.rad_per_sec_to_ticks(self.v_des))
-            self.motor.set_profile_acceleration(self.rad_per_sec_sec_to_ticks(self.a_des))
             self.motor.enable_torque()
+            self.set_motion_params(force=True)
         except (termios.error, DynamixelCommError):
             self.comm_errors.add_error(rx=False, gsr=False)
 
@@ -481,6 +515,24 @@ class DynamixelHelloXL430(Device):
             self.comm_errors.add_error(rx=False, gsr=False)
 
     # ######### Waypoint Trajectory Interface ##############################
+
+    def is_trajectory_active(self):
+        return self._waypoint_ts !=None
+
+    def get_trajectory_ts(self):
+        #Return trajectory execution time
+        if self.is_trajectory_active():
+            return time.time()-self._waypoint_ts
+        elif len(self.trajectory.waypoints):
+            return self.trajectory.waypoints[-1].time
+        else:
+            return 0
+
+    def get_trajectory_time_remaining(self):
+        if not self.is_trajectory_active():
+            return 0
+        else:
+            return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
 
     def follow_trajectory(self, v_r=None, a_r=None, req_calibration=True, move_to_start_point=True):
         """Starts executing a waypoint trajectory
@@ -512,6 +564,10 @@ class DynamixelHelloXL430(Device):
             self.logger.error('Dynamixel waypoint trajectory already active')
             return False
 
+        #Store current vel/accel so can restore later
+        self.pre_traj_vel=self.v_des
+        self.pre_traj_acc=self.a_des
+
         # check if trajectory valid
         vel_limit = v_r if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
         acc_limit = a_r if a_r is not None else self.params['motion']['trajectory_max']['accel_r']
@@ -519,7 +575,8 @@ class DynamixelHelloXL430(Device):
         if not valid:
             self.logger.warning('Dynamixel trajectory not valid: {0}'.format(reason))
             return False
-        if valid and reason == "must have atleast two waypoints":
+        if valid and reason == "must have at least two waypoints":
+            #self.logger.warning('Dynamixel trajectory not valid: {0}'.format(reason))
             # skip this device
             return True
 
@@ -528,6 +585,7 @@ class DynamixelHelloXL430(Device):
             if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
         self._waypoint_accel = min(abs(a_r), self.params['motion']['trajectory_max']['accel_r']) \
             if a_r is not None else self.params['motion']['trajectory_max']['accel_r']
+
 
         # move to start point
         if move_to_start_point:
@@ -538,8 +596,11 @@ class DynamixelHelloXL430(Device):
 
         # start trajectory
         self._waypoint_ts = time.time()
-        p0, _, _ = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
-        self.move_to(p0, self._waypoint_vel, self._waypoint_accel)
+        p0, v0, a0 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
+        if not self.params['motion']['trajectory_vel_ctrl']:
+            self.move_to(p0, self.params['motion']['max']['vel'],self.params['motion']['max']['accel'])
+        else:
+            self._enable_trajectory_vel_ctrl()
         return True
 
     def update_trajectory(self):
@@ -555,18 +616,72 @@ class DynamixelHelloXL430(Device):
             return
         if self.was_runstopped:
             return
-
         if (time.time() - self._waypoint_ts) < self.trajectory[-1].time:
-            p1, _, _ = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
-            self.move_to(p1, self._waypoint_vel, self._waypoint_accel)
+            p1, v1, a1 = self.trajectory.evaluate_at(time.time() - self._waypoint_ts)
+            if self.params['motion']['trajectory_vel_ctrl']:
+                #print('T %f p %f v %f a: %f'%(time.time() - self._waypoint_ts,p1,v1,a1))
+                self._step_trajectory_vel_ctrl(p1,v1,a1)
+            else:
+                self.move_to(p1, self.params['motion']['max']['vel'], self.params['motion']['max']['accel'])
         else:
-            self.move_to(self.trajectory[-1].position, self._waypoint_vel, self._waypoint_accel)
+            if self.params['motion']['trajectory_vel_ctrl'] and not self._disable_trajectory_vel_ctrl(): #Turn off trajectory if hit a watchdog error during executiong
+                    self.trajectory.clear()
+            else:
+                self.move_to(self.trajectory[-1].position, self.pre_traj_vel,self.pre_traj_acc)
             self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
+
 
     def stop_trajectory(self):
         """Stop waypoint trajectory immediately and resets hardware
         """
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
+        self.trajectory.clear()
+        if self.params['motion']['trajectory_vel_ctrl']:
+            self._disable_trajectory_vel_ctrl()
+        if self.pre_traj_vel and self.pre_traj_acc:
+            self.set_motion_params(self.pre_traj_vel,self.pre_traj_acc)
+
+    def _step_trajectory_vel_ctrl(self,p1, v1,a1):
+        # Command the instantaneious spline velocity to the servo velocity controller
+        # Add a proportional term on the position error to zero out small errors at low velocity
+        x_curr = self.status['pos']
+        v_curr = self.status['vel']
+        v1=v1-self.params['motion']['trajectory_vel_ctrl_kP']*(x_curr-p1)
+        v_des = self.world_rad_to_ticks_per_sec(v1)
+        # Honor joint limits in velocity mode
+        lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
+                        self.ticks_to_world_rad(self.params['range_t'][1]))
+        lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
+                        self.ticks_to_world_rad(self.params['range_t'][1]))
+
+        #if self.params['motion']['trajectory_max']['accel_r'] > 0:
+        t_brake = abs(v_curr /self.params['motion']['max']['accel'])  # How long to brake from current speed (s)
+        #else:
+        #    t_brake = 0
+        d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
+        d_brake = d_brake+deg_to_rad(5.0) #Pad out by 5 degrees to give a bit of safety margin
+        if (v1 > 0 and x_curr + d_brake >= lim_upper) or (v1 <=0 and x_curr - d_brake <= lim_lower):
+            v_des = 0
+        self.move_to_vel(v_des)
+
+    def _enable_trajectory_vel_ctrl(self):
+        self.disable_torque()
+        self.motor.enable_watchdog()
+        self.motor.enable_vel()
+        self.motor.set_profile_acceleration(self.world_rad_to_ticks_per_sec_sec(self.params['motion']['trajectory_max']['accel_r']))
+        self.motor.set_vel_limit(self.world_rad_to_ticks_per_sec(self.params['motion']['trajectory_max']['vel_r']))
+        self.enable_torque()
+
+    def _disable_trajectory_vel_ctrl(self):
+        wd_error=self.motor.get_watchdog_error()
+        self.disable_torque()
+        self.motor.disable_watchdog()
+        self.enable_pos()
+        self.enable_torque()
+        if wd_error:
+            self.logger.warning('Watchdog error during trajectory execution for %s. Unable to maintain update rates.' % self.name)
+            self.status['watchdog_errors']=self.status['watchdog_errors']+1
+        return not wd_error
 
 # ##########################################
     """
@@ -605,22 +720,22 @@ class DynamixelHelloXL430(Device):
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
         # Second hardstop is optional
+        # Return success, measured range
 
         if not self.hw_valid:
             self.logger.warning('Not able to home %s. Hardware not present'%self.name)
-            return
+            return False, None
         if not self.params['req_calibration']:
             print('Homing not required for: '+self.name)
-            return
+            return False, None
 
         self.pull_status()
         if self.status['overload_error'] or self.status['overheating_error']:
             self.logger.warning('Hardware error, unable to home. Exiting')
-            return
+            return False, None
 
         self.is_homing=True
         self.enable_pwm()
-
         print('Moving to first hardstop...')
         self.set_pwm(self.params['pwm_homing'][0])
         ts=time.time()
@@ -634,18 +749,25 @@ class DynamixelHelloXL430(Device):
 
         if timeout:
             self.logger.warning('Timed out moving to first hardstop. Exiting.')
-            return
+            return False, None
         if self.status['overload_error'] or self.status['overheating_error']:
             self.logger.warning('Hardware error, unable to home. Exiting')
-            return
+            return False, None
 
-        contact_0=self.motor.get_pos()
-        print('Contact at position: %d'%contact_0)
-        print('Hit first hardstop, marking to zero ticks')
+        #Need to move back to pos mode to get the position (ticks) w/o the homing offset (single turn mode)
+        if not self.params['use_multiturn']:
+            self.enable_pos()
+        contact_0 = self.motor.get_pos()
+        print('First hardstop contact at position (ticks): %d' % contact_0)
+
         if set_homing_offset:
+            print('-----')
             self.motor.disable_torque()
+            print('Homing offset was %d'%self.motor.get_homing_offset())
+            print('Marking current position to zero ticks')
             self.motor.zero_position()
-            print("Homing offset is now  %d"%self.motor.get_homing_offset())
+            print("Homing offset is now  %d (ticks)"%self.motor.get_homing_offset())
+            print('-----')
             contact_0=0
 
         self.motor.disable_torque()
@@ -672,13 +794,16 @@ class DynamixelHelloXL430(Device):
 
             if timeout:
                 self.logger.warning('Timed out moving to second hardstop. Exiting.')
-                return
+                return False, None
             if self.status['overload_error'] or self.status['overheating_error']:
                 self.logger.warning('Hardware error, unable to home. Exiting')
-                return
+                return False, None
 
+            # Need to move back to pos mode to get the position (ticks) w/o the homing offset (single turn mode)
+            if not self.params['use_multiturn']:
+                self.enable_pos()
             contact_1 = self.motor.get_pos()
-            print('Hit second hardstop at: ', contact_1)
+            print('Hit second hardstop at: (ticks)', contact_1)
 
             print('Homed to range of motion to (ticks):',[contact_0,contact_1])
             self.params['range_t'] = [contact_0 + self.params['range_pad_t'][0], contact_1 + self.params['range_pad_t'][1]]
@@ -695,10 +820,17 @@ class DynamixelHelloXL430(Device):
         if move_to_zero:
             print('Moving to calibrated zero: (rad)')
             self.move_to(0)
-            time.sleep(3.0)
+            self.wait_until_at_setpoint(timeout=6.0)
         self.is_homing=False
+        if not single_stop:
+            return  True, self.params['range_t']
+        return True, None
 
 # ##########################################
+
+    def ticks_to_world_rad_per_sec_sec(self,t):
+        rps_servo=self.ticks_to_rad_per_sec_sec(t)
+        return self.polarity*rps_servo/self.params['gr']
 
     def ticks_to_world_rad_per_sec(self,t):
         rps_servo=self.ticks_to_rad_per_sec(t)
@@ -719,6 +851,10 @@ class DynamixelHelloXL430(Device):
         t= self.rad_per_sec_to_ticks(rad_per_sec_servo)
         return t
 
+    def world_rad_to_ticks_per_sec_sec(self,r):
+        rad_per_sec_sec_servo = r*self.params['gr']*self.polarity
+        t= self.rad_per_sec_sec_to_ticks(rad_per_sec_sec_servo)
+        return t
 
     def ticks_to_rad(self,t):
         return deg_to_rad((360.0 * t / 4096.0))

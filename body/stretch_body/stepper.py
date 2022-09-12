@@ -7,11 +7,13 @@ import threading
 import sys
 import time
 
+
+
 # ######################## STEPPER #################################
 
 class StepperBase(Device):
     """
-    API to the Stretch RE1 stepper board
+    API to the Stretch Stepper Board
     """
     RPC_SET_COMMAND = 1
     RPC_REPLY_COMMAND = 2
@@ -87,12 +89,14 @@ class StepperBase(Device):
     CONFIG_FLIP_ENCODER_POLARITY = 16
     CONFIG_FLIP_EFFORT_POLARITY = 32
 
+
     TRIGGER_MARK_POS = 1
     TRIGGER_RESET_MOTION_GEN = 2
     TRIGGER_BOARD_RESET = 4
     TRIGGER_WRITE_GAINS_TO_FLASH = 8
     TRIGGER_RESET_POS_CALIBRATED = 16
     TRIGGER_POS_CALIBRATED = 32
+    TRIGGER_MARK_POS_ON_CONTACT=64
 
     def __init__(self, usb):
         Device.__init__(self, name=usb[5:])
@@ -101,7 +105,7 @@ class StepperBase(Device):
         self.transport = Transport(usb=self.usb, logger=self.logger)
 
         self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
-        self.status = {'mode': 0, 'effort': 0, 'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
+        self.status = {'mode': 0, 'effort_ticks': 0, 'effort_pct':0,'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0,
@@ -115,6 +119,7 @@ class StepperBase(Device):
         self._waypoint_traj_set_next_traj_success = False
         self._waypoint_traj_start_error_msg = ""
         self._waypoint_traj_set_next_error_msg = ""
+        self._waypoint_ts = None
 
         self._dirty_command = False
         self._dirty_gains = False
@@ -125,13 +130,13 @@ class StepperBase(Device):
         self._trigger_data=0
         self.load_test_payload = arr.array('B', range(256)) * 4
         self.hw_valid=False
-        self.gains = {}
+        self.gains = self.params['gains'].copy()
+        self.gains_flash = {}
 
     # ###########  Device Methods #############
     def startup(self, threaded=False):
         try:
             Device.startup(self, threaded=threaded)
-            self.gains = self.params['gains'].copy()
             with self.lock:
                 self.hw_valid = self.transport.startup()
                 if self.hw_valid:
@@ -249,9 +254,15 @@ class StepperBase(Device):
             self._trigger = self._trigger | self.TRIGGER_BOARD_RESET
             self._dirty_trigger=True
 
+    def mark_position_on_contact(self,x):
+        with self.lock:
+            self._trigger_data = x
+            self._trigger = self._trigger | self.TRIGGER_MARK_POS_ON_CONTACT
+            self._dirty_trigger=True
+
     def mark_position(self,x):
         if self.status['mode']!=self.MODE_SAFETY:
-            self.logger.warning('Can not mark position. Must be in MODE_SAFETY for',self.usb)
+            self.logger.warning('Can not mark position. Must be in MODE_SAFETY for %s'%self.usb)
             return
 
         with self.lock:
@@ -357,7 +368,7 @@ class StepperBase(Device):
                 self._command['a_des'] = self.params['motion']['accel']
 
             if stiffness is not None:
-                self._command['stiffness'] = max(0, min(1.0, stiffness))
+                self._command['stiffness'] = max(0.0, min(1.0, stiffness))
             else:
                 self._command['stiffness'] =1
 
@@ -384,6 +395,19 @@ class StepperBase(Device):
             self._dirty_command=True
 
 
+    def wait_while_is_moving(self,timeout=15.0):
+        """
+        Poll until is moving flag is false
+        Return True if success
+        Return False if timeout
+        """
+        ts = time.time()
+        self.pull_status()
+        while self.status['is_moving'] and time.time() - ts < timeout:
+            time.sleep(0.1)
+            self.pull_status()
+        return not self.status['is_moving']
+
     def wait_until_at_setpoint(self,timeout=15.0):
         """
         Poll until near setpoint
@@ -397,29 +421,45 @@ class StepperBase(Device):
             self.pull_status()
         return self.status['near_pos_setpoint']
 
-    def current_to_effort(self,i_A):
+    ########### Handle current and effort conversions  ###########
+
+    #Effort_ticks are in the units of the uC current controller (0-255 8 bit)
+    #Conversion to A is based on the sense resistor and motor driver (see firmware)
+    def current_to_effort_ticks(self,i_A):
         if self.board_info['hardware_id']==0: # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
         if self.board_info['hardware_id']==1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
-        effort = (i_A * 1000.0) / mA_per_tick
-        return min(255,max(-255,int(effort)))
+        effort_ticks = (i_A * 1000.0) / mA_per_tick
+        return min(255,max(-255,int(effort_ticks)))
 
-    def effort_to_current(self,e):
+    def effort_ticks_to_current(self,e):
         if self.board_info['hardware_id'] == 0:  # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
         if self.board_info['hardware_id'] == 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
         return e * mA_per_tick / 1000.0
 
-    #Very rough, not accounting for motor dynamics / temp / etc
+    # Effort_pct is defined as a percentage of the maximum allowable motor winding current
+    # Range is -100.0 to 100.0
+    def current_to_effort_pct(self,i_A):
+        if i_A>0:
+            return 100*max(0.0,min(1.0,i_A/self.gains['iMax_pos']))
+        else:
+            return 100*min(0.0, max(-1.0, i_A/ abs(self.gains['iMax_neg'])))
+
+    def effort_pct_to_current(self,e_pct):
+        if e_pct>0:
+            return min(1.0,e_pct/100.0)*self.gains['iMax_pos']
+        else:
+            return max(-1.0, e_pct/100.0) * abs(self.gains['iMax_neg'])
+
     def current_to_torque(self,i):
-        k_t = self.params['holding_torque']/self.params['rated_current'] #N-m/A
-        return i*k_t
+        raise DeprecationWarning('Method current_to_torque has been deprecated since v0.3.5')
 
     def torque_to_current(self, tq):
-        k_t = self.params['holding_torque'] / self.params['rated_current']  # N-m/A
-        return tq/k_t
+        raise DeprecationWarning('Method torque_to_current has been deprecated since v0.3.5')
+
 
         # ####################### Encoder Calibration ######################
 
@@ -566,33 +606,33 @@ class StepperBase(Device):
     def unpack_gains(self,s):
         with self.lock:
             sidx=0
-            self.gains['pKp_d'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.gains['pKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['pKd_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['pLPF'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['pKi_limit'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vKp_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vKd_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vLPF'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vKi_limit'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vTe_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['iMax_pos'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['iMax_neg'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['phase_advance_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['pos_near_setpoint_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vel_near_setpoint_d'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['vel_status_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['effort_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['safety_stiffness'] = unpack_float_t(s[sidx:]);sidx += 4
-            self.gains['i_safety_feedforward'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pKp_d'] = unpack_float_t(s[sidx:]);sidx+=4
+            self.gains_flash['pKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pKd_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pLPF'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pKi_limit'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vKp_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vKd_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vLPF'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vKi_limit'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vTe_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['iMax_pos'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['iMax_neg'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['phase_advance_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['pos_near_setpoint_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vel_near_setpoint_d'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['vel_status_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['effort_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['safety_stiffness'] = unpack_float_t(s[sidx:]);sidx += 4
+            self.gains_flash['i_safety_feedforward'] = unpack_float_t(s[sidx:]);sidx += 4
             config = unpack_uint8_t(s[sidx:]);sidx += 1
-            self.gains['safety_hold']= int(config & self.CONFIG_SAFETY_HOLD>0)
-            self.gains['enable_runstop'] = int(config & self.CONFIG_ENABLE_RUNSTOP>0)
-            self.gains['enable_sync_mode'] = int(config & self.CONFIG_ENABLE_SYNC_MODE>0)
-            self.gains['enable_guarded_mode'] = int(config & self.CONFIG_ENABLE_GUARDED_MODE > 0)
-            self.gains['flip_encoder_polarity'] = int(config & self.CONFIG_FLIP_ENCODER_POLARITY > 0)
-            self.gains['flip_effort_polarity'] = int(config & self.CONFIG_FLIP_EFFORT_POLARITY > 0)
+            self.gains_flash['safety_hold']= int(config & self.CONFIG_SAFETY_HOLD>0)
+            self.gains_flash['enable_runstop'] = int(config & self.CONFIG_ENABLE_RUNSTOP>0)
+            self.gains_flash['enable_sync_mode'] = int(config & self.CONFIG_ENABLE_SYNC_MODE>0)
+            self.gains_flash['enable_guarded_mode'] = int(config & self.CONFIG_ENABLE_GUARDED_MODE > 0)
+            self.gains_flash['flip_encoder_polarity'] = int(config & self.CONFIG_FLIP_ENCODER_POLARITY > 0)
+            self.gains_flash['flip_effort_polarity'] = int(config & self.CONFIG_FLIP_EFFORT_POLARITY > 0)
             return sidx
 
     def pack_motion_limits(self,s,sidx):
@@ -660,7 +700,6 @@ class StepperBase(Device):
                 config = config | self.CONFIG_FLIP_ENCODER_POLARITY
             if self.gains['flip_effort_polarity']:
                 config = config | self.CONFIG_FLIP_EFFORT_POLARITY
-
             pack_uint8_t(s, sidx, config); sidx += 1
             return sidx
 
@@ -743,8 +782,9 @@ class Stepper_Protocol_P0(StepperBase):
         with self.lock:
             sidx=0
             self.status['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
-            self.status['effort'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.status['current']=self.effort_to_current(self.status['effort'])
+            self.status['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
+            self.status['current']=self.effort_ticks_to_current(self.status['effort_ticks'])
+            self.status['effort_pct']=self.current_to_effort_pct(self.status['current'])
             self.status['pos'] = unpack_double_t(s[sidx:]);sidx+=8
             self.status['vel'] = unpack_float_t(s[sidx:]);sidx+=4
             self.status['err'] = unpack_float_t(s[sidx:]);sidx += 4
@@ -777,7 +817,8 @@ class Stepper_Protocol_P0(StepperBase):
         print('Feedforward', self._command['i_feedforward'])
         print('Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos']))
         print('Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel']))
-        print('Effort', self.status['effort'])
+        print('Effort (Ticks)', self.status['effort_ticks'])
+        print('Effort (Pct)',self.status['effort_pct'])
         print('Current (A)', self.status['current'])
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
@@ -807,8 +848,9 @@ class Stepper_Protocol_P1(StepperBase):
         with self.lock:
             sidx=0
             self.status['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
-            self.status['effort'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.status['current']=self.effort_to_current(self.status['effort'])
+            self.status['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
+            self.status['current']=self.effort_ticks_to_current(self.status['effort_ticks'])
+            self.status['effort_pct'] = self.current_to_effort_pct(self.status['current'])
             self.status['pos'] = unpack_double_t(s[sidx:]);sidx+=8
             self.status['vel'] = unpack_float_t(s[sidx:]);sidx+=4
             self.status['err'] = unpack_float_t(s[sidx:]);sidx += 4
@@ -851,7 +893,8 @@ class Stepper_Protocol_P1(StepperBase):
         print('Feedforward', self._command['i_feedforward'])
         print('Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos']))
         print('Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel']))
-        print('Effort', self.status['effort'])
+        print('Effort (Ticks)', self.status['effort_ticks'])
+        print('Effort (Pct)', self.status['effort_pct'])
         print('Current (A)', self.status['current'])
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
@@ -902,6 +945,7 @@ class Stepper_Protocol_P1(StepperBase):
             self.logger.warning('start_waypoint_trajectory: Invalid segment arr length (must be 8)')
             return False
         self._waypoint_traj_segment = first_segment
+        self._waypoint_ts = time.time()
         with self.lock:
             if self._waypoint_traj_segment is not None:
                 self.transport.payload_out[0] = self.RPC_START_NEW_TRAJECTORY
@@ -910,8 +954,8 @@ class Stepper_Protocol_P1(StepperBase):
             self.transport.step2()
             if not self._waypoint_traj_start_success:
                 self.logger.warning('start_waypoint_trajectory: %s' % self._waypoint_traj_start_error_msg.capitalize())
-            return self._waypoint_traj_start_success
-
+            #return self._waypoint_traj_start_success
+        return self._waypoint_traj_start_success
     def set_next_trajectory_segment(self, next_segment):
         """Sets the next segment for the hardware to execute
 
@@ -951,6 +995,7 @@ class Stepper_Protocol_P1(StepperBase):
     def stop_waypoint_trajectory(self):
         """Stops execution of the waypoint trajectory running in hardware
         """
+        self._waypoint_ts = None
         with self.lock:
             self.transport.payload_out[0] = self.RPC_RESET_TRAJECTORY
             self.transport.queue_rpc2(1, self.rpc_reset_traj_reply)
@@ -989,7 +1034,7 @@ class Stepper_Protocol_P1(StepperBase):
 # ######################## STEPPER #################################
 class Stepper(StepperBase):
     """
-    API to the Stretch RE1 Power and IMU board (Pimu)
+    API to the Stretch Stepper Board
     """
     def __init__(self,usb):
         StepperBase.__init__(self,usb)

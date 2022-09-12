@@ -4,12 +4,13 @@ from stretch_body.stepper import *
 from stretch_body.device import Device
 from stretch_body.trajectories import DiffDriveTrajectory
 from stretch_body.hello_utils import *
+import time
 import logging
 import numpy
 
 class Base(Device):
     """
-    API to the Stretch RE1 Mobile Base
+    API to the Stretch Mobile Base
     """
     def __init__(self):
         Device.__init__(self, 'base')
@@ -29,7 +30,6 @@ class Base(Device):
         self.stiffness=1.0
         self.vel_mr=self.translate_to_motor_rad(self.params['motion']['default']['vel_m'])
         self.accel_mr=self.translate_to_motor_rad(self.params['motion']['default']['accel_m'])
-        self.i_contact_l, self.i_contact_r=self.translation_force_to_motor_current(self.params['contact_thresh_N'])
         self.fast_motion_allowed = True
     # ###########  Device Methods #############
 
@@ -63,8 +63,6 @@ class Base(Device):
         print('Y_vel (m/s)', self.status['y_vel'])
         print('Theta_vel (rad/s)', self.status['theta_vel'])
         print('Pose time (s)', self.status['pose_time_s'])
-        print('Translation Force (N)',self.status['translation_force'])
-        print('Rotation Torque (Nm)', self.status['rotation_torque'])
         print('Timestamp PC (s):', self.status['timestamp_pc'])
         print('-----Left-Wheel-----')
         self.left_wheel.pretty_print()
@@ -88,15 +86,46 @@ class Base(Device):
 
     # ###################################################
 
-    def translate_by(self, x_m, v_m=None, a_m=None, stiffness=None, contact_thresh_N=None):
+    def wait_for_contact(self, timeout=5.0):
+        ts = time.time()
+        while (time.time() - ts < timeout):
+            self.pull_status()
+            if self.left_wheel.status['in_guarded_event'] or self.right_wheel.status['in_guarded_event']:
+                return True
+            time.sleep(0.01)
+        return False
+
+    def wait_until_at_setpoint(self, timeout=15.0):
+        #Assume both are in motion. This will exit once both are at setpoints
+        self.left_wheel.wait_until_at_setpoint(timeout)
+        self.right_wheel.wait_until_at_setpoint(timeout)
+
+    def contact_thresh_to_motor_current(self,is_translate,contact_thresh):
+        """
+        This model converts from a specified percentage effort (-100 to 100) of translate/rotational effort to motor currents
+        """
+        if is_translate:
+            e_c = self.params['contact_models']['effort_pct']['contact_thresh_translate_default'] if contact_thresh is None else contact_thresh
+            m=self.params['contact_models']['effort_pct']['contact_thresh_translate_max']
+            i_l, i_r = self.translation_effort_pct_to_motor_current(min(m,max(e_c,-1*m)))
+        else:
+            e_c = self.params['contact_models']['effort_pct']['contact_thresh_rotate_default'] if contact_thresh is None else contact_thresh
+            m = self.params['contact_models']['effort_pct']['contact_thresh_rotate_max']
+            i_l, i_r = self.rotation_effort_pct_to_motor_current(min(m, max(e_c, -1 * m)))
+        return i_l,i_r
+
+    def translate_by(self, x_m, v_m=None, a_m=None, stiffness=None, contact_thresh_N=None,contact_thresh=None):
         """
         Incremental translation of the base
         x_m: desired motion (m)
         v_m: velocity for trapezoidal motion profile (m/s)
         a_m: acceleration for trapezoidal motion profile (m/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N: force threshold to stop motion (TODO: Not yet implemented)
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
         """
+        check_deprecated_contact_model_base(self,'translate_by', contact_thresh_N, contact_thresh)
+
         x_mr = self.translate_to_motor_rad(x_m)
 
         if v_m is not None:
@@ -115,15 +144,9 @@ class Base(Device):
             v_mr=min(self.translate_to_motor_rad(self.params['sentry_max_velocity']['limit_vel_m']),v_mr)
             a_mr=min(self.translate_to_motor_rad(self.params['sentry_max_velocity']['limit_accel_m']),a_mr)
 
-        if contact_thresh_N is None:
-            i_contact_l=self.i_contact_l
-            i_contact_r=self.i_contact_r
-        else:
-            i_contact_l, i_contact_r = self.translation_force_to_motor_current(min(self.params['contact_thresh_max_N'],contact_thresh_N))
+        i_contact_l, i_contact_r = self.contact_thresh_to_motor_current(is_translate=True, contact_thresh=contact_thresh)
 
-        if stiffness is None:
-            stiffness=self.stiffness
-
+        stiffness = max(0.0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
 
 
         self.left_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_INCR, x_des=x_mr,
@@ -142,15 +165,19 @@ class Base(Device):
                                     i_contact_neg=-1*i_contact_r)
 
 
-    def rotate_by(self, x_r, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None):
+    def rotate_by(self, x_r, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None, contact_thresh=None):
         """
         Incremental rotation of the base
         x_r: desired motion (radians)
         v_r: velocity for trapezoidal motion profile (rad/s)
         a_r: acceleration for trapezoidal motion profile (rad/s^2)
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N: force threshold to stop motion (Not yet implemented)
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
         """
+
+        check_deprecated_contact_model_base(self,'rotate_by', contact_thresh_N, contact_thresh)
+
         x_mr = self.rotate_to_motor_rad(x_r)
 
         if v_r is not None:
@@ -172,15 +199,9 @@ class Base(Device):
             a_mr=min(self.translate_to_motor_rad(self.params['sentry_max_velocity']['limit_accel_m']),a_mr)
 
 
+        i_contact_l, i_contact_r = self.contact_thresh_to_motor_current(is_translate=False, contact_thresh=contact_thresh)
 
-        if contact_thresh_N is None:
-            i_contact_l = self.i_contact_l
-            i_contact_r = self.i_contact_r
-        else:
-            i_contact_l, i_contact_r = self.rotation_torque_to_motor_current(min(self.params['contact_thresh_max_N'],contact_thresh_N))
-
-        if stiffness is None:
-            stiffness = self.stiffness
+        stiffness = max(0.0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
         self.left_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=-1*x_mr,
                                     v_des=v_mr,
                                     a_des=a_mr,
@@ -198,13 +219,18 @@ class Base(Device):
 
 
 
-    def set_translate_velocity(self, v_m, a_m=None):
+    def set_translate_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_N=None,contact_thresh=None):
         """
         Command the bases translational velocity.
         Use care to prevent collisions / avoid runaways
         v_m: desired velocity (m/s)
         a_m: acceleration of motion profile (m/s^2)
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
         """
+
+        check_deprecated_contact_model_base(self,'set_translate_velocity', contact_thresh_N, contact_thresh)
+
         if a_m is not None:
             a_m = min(abs(a_m), self.params['motion']['max']['accel_m'])
             a_mr = self.translate_to_motor_rad(a_m)
@@ -213,16 +239,31 @@ class Base(Device):
         v_sign = numpy.sign(v_m)
         v_m = v_sign * min(abs(v_m), self.params['motion']['max']['vel_m'])
         v_mr = self.translate_to_motor_rad(v_m)
-        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
-        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
+        stiffness = max(0.0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
+        i_contact_l, i_contact_r = self.contact_thresh_to_motor_current(is_translate=True,contact_thresh=contact_thresh)
 
-    def set_rotational_velocity(self, v_r, a_r=None):
+        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr,stiffness=stiffness,
+                                    i_feedforward=0,
+                                    i_contact_pos=i_contact_l,
+                                    i_contact_neg=-1 * i_contact_l)
+        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr,
+                                     stiffness=stiffness,
+                                     i_feedforward=0,
+                                     i_contact_pos=i_contact_r,
+                                     i_contact_neg=-1 * i_contact_r)
+
+    def set_rotational_velocity(self, v_r, a_r=None,stiffness=None, contact_thresh_N=None,contact_thresh=None):
         """
         Command the bases rotational velocity.
         Use care to prevent collisions / avoid runaways
         v_r: desired rotational velocity (rad/s)
         a_r: acceleration of motion profile (rad/s^2)
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
         """
+
+        check_deprecated_contact_model_base(self,'set_rotational_velocity', contact_thresh_N, contact_thresh)
+
         if a_r is not None:
             a_mr_max=self.translate_to_motor_rad(self.params['motion']['max']['accel_m'])
             a_mr = self.rotate_to_motor_rad(a_r)
@@ -234,10 +275,20 @@ class Base(Device):
         v_mr_max = self.translate_to_motor_rad(self.params['motion']['max']['vel_m'])
         v_mr = self.rotate_to_motor_rad(v_r)
         v_mr = w_sign * min(abs(v_mr), v_mr_max)
-        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=-1*v_mr, a_des=a_mr)
-        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr)
+        stiffness = max(0.0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
+        i_contact_l, i_contact_r = self.contact_thresh_to_motor_current(is_translate=False,
+                                                                        contact_thresh=contact_thresh)
+        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=-1*v_mr, a_des=a_mr,
+                                    i_feedforward=0,
+                                    i_contact_pos=i_contact_l,
+                                    i_contact_neg=-1 * i_contact_l)
+        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=v_mr, a_des=a_mr,
+                                     stiffness=stiffness,
+                                     i_feedforward=0,
+                                     i_contact_pos=i_contact_r,
+                                     i_contact_neg=-1 * i_contact_r)
 
-    def set_velocity(self, v_m, w_r, a=None):
+    def set_velocity(self, v_m, w_r, a=None,stiffness=None, contact_thresh_N=None,contact_thresh=None):
         """
         Command the bases translational and rotational
         velocities simultaneously.
@@ -245,7 +296,13 @@ class Base(Device):
         v_m: desired velocity (m/s)
         w_r: desired rotational velocity (rad/s)
         a:   acceleration of motion profile (m/s^2 and rad/s^2)
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
         """
+
+        check_deprecated_contact_model_base(self,'set_velocity', contact_thresh_N, contact_thresh)
+
+
         if a is not None:
             a = min(abs(a), self.params['motion']['max']['accel_m'])
             a_mr = self.translate_to_motor_rad(a)
@@ -265,12 +322,23 @@ class Base(Device):
         wr_m = wr_sign * min(abs(wr_m), self.params['motion']['max']['vel_m'])
         wr_r = self.translate_to_motor_rad(wr_m)
 
-        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr)
-        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr)
+        stiffness = max(0.0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
+
+        i_contact_l, i_contact_r = self.contact_thresh_to_motor_current(is_translate=True,
+                                                                        contact_thresh=contact_thresh)
+
+        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr,
+                                    i_feedforward=0,
+                                    i_contact_pos=i_contact_l,
+                                    i_contact_neg=-1 * i_contact_l)
+        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr,
+                                     stiffness=stiffness,
+                                     i_feedforward=0,
+                                     i_contact_pos=i_contact_r,
+                                     i_contact_neg=-1 * i_contact_r)
 
     # ######### Waypoint Trajectory Interface ##############################
-
-    def follow_trajectory(self, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None):
+    def follow_trajectory(self, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None, contact_thresh=None):
         """Starts executing a waypoint trajectory
 
         `self.trajectory` must be populated with a valid trajectory before calling
@@ -284,9 +352,12 @@ class Base(Device):
             acceleration limit for trajectory in motor space in meters per second squared
         stiffness : float
             stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N : float
-            force threshold to stop motion (~Newtons)
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
         """
+
+        check_deprecated_contact_model_base(self,'follow_trajectory', contact_thresh_N, contact_thresh)
+
         # check if joint valid, traj active, and right protocol
         if not self.left_wheel.hw_valid or not self.right_wheel.hw_valid:
             self.logger.warning('Base connection to hardware not valid')
@@ -308,18 +379,19 @@ class Base(Device):
         if not valid:
             self.logger.warning('Base trajectory not valid: {0}'.format(reason))
             return False
-        if valid and reason == "must have atleast two waypoints":
+        if valid and reason == "must have at least two waypoints":
             # skip this device
             return True
 
         # set defaults
-        stiffness = max(0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
+        stiffness = max(0.0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
+
         v = self.translate_to_motor_rad(min(abs(v_r), self.params['motion']['trajectory_max']['vel_r'])) \
             if v_r is not None else self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_r'])
-        a = self.translate_to_motor_rad(min(abs(a), self.params['motion']['trajectory_max']['accel_r'])) \
+        a = self.translate_to_motor_rad(min(abs(a_r), self.params['motion']['trajectory_max']['accel_r'])) \
             if a_r is not None else self.translate_to_motor_rad(self.params['motion']['trajectory_max']['accel_r'])
-        i_contact_l, i_contact_r = self.translation_force_to_motor_current(min(contact_thresh_N, self.params['contact_thresh_max_N'])) \
-            if contact_thresh_N is not None else self.translation_force_to_motor_current(self.params['contact_thresh_N'])
+
+        i_contact_l, i_contact_r = self.contact_thresh_to_motor_current(is_translate=True,contact_thresh=contact_thresh)
 
         # start trajectory
         self.left_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
@@ -327,13 +399,13 @@ class Base(Device):
                                     a_des=a,
                                     stiffness=stiffness,
                                     i_contact_pos=i_contact_l,
-                                    i_contact_neg=-i_contact_l)
+                                    i_contact_neg=-i_contact_l*-1)
         self.right_wheel.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
                                      v_des=v,
                                      a_des=a,
                                      stiffness=stiffness,
                                      i_contact_pos=i_contact_r,
-                                     i_contact_neg=-i_contact_r)
+                                     i_contact_neg=-i_contact_r*-1)
         self.left_wheel.push_command()
         self.right_wheel.push_command()
         self.left_wheel.pull_status()
@@ -344,6 +416,24 @@ class Base(Device):
             self._waypoint_lwpos, self._waypoint_rwpos)
         return self.left_wheel.start_waypoint_trajectory(ls0.to_array()) and \
             self.right_wheel.start_waypoint_trajectory(rs0.to_array())
+
+    def is_trajectory_active(self):
+        return (self.left_wheel.status['waypoint_traj']['state'] == 'active' or self.right_wheel.status['waypoint_traj']['state'] == 'active')
+
+    def get_trajectory_ts(self):
+        # Return trajectory execution time
+        if self.is_trajectory_active() and self.left_wheel._waypoint_ts is not None and self.right_wheel._waypoint_ts:
+            return max(time.time()-self.left_wheel._waypoint_ts,time.time()-self.right_wheel._waypoint_ts)
+        elif len(self.trajectory.waypoints):
+            return self.trajectory.waypoints[-1].time
+        else:
+            return 0
+
+    def get_trajectory_time_remaining(self):
+        if not self.is_trajectory_active():
+            return 0
+        else:
+            return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
 
     def update_trajectory(self):
         """Updates hardware with the next segment of `self.trajectory`
@@ -433,14 +523,10 @@ class Base(Device):
 
         p0 = self.status['left_wheel']['pos']
         p1 = self.status['right_wheel']['pos']
-        v0 = self.status['left_wheel']['vel']
-        v1 = self.status['right_wheel']['vel']
-        e0 = self.status['left_wheel']['effort']
-        e1 = self.status['right_wheel']['effort']
         t0 = self.status['left_wheel']['timestamp']
         t1 = self.status['right_wheel']['timestamp']
-        self.status['translation_force'] = self.motor_current_to_translation_force(self.left_wheel.status['current'],self.right_wheel.status['current'])
-        self.status['rotation_torque'] = self.motor_current_to_rotation_torque(self.left_wheel.status['current'],self.right_wheel.status['current'])
+        self.status['translation_force'] = 0 #Deprecated
+        self.status['rotation_torque'] = 0 #Deprecated
 
         if self.first_step:
             # Upon the first step, simply set the initial pose, since
@@ -560,27 +646,46 @@ class Base(Device):
                 self.status['y'] = prev_y + delta_y
                 self.status['theta'] = (prev_theta + delta_theta) % (2.0 * pi)
 
+    # ############## Deprecated Contact API ##################
 
-    # ################################
+    def motor_current_to_translation_force(self, il, ir):
+        raise DeprecationWarning('Method motor_current_to_translate_force has been deprecated since v0.3.5')
 
-    def motor_current_to_translation_force(self,il,ir):
-        return self.params['force_N_per_A']*il+self.params['force_N_per_A']*ir
+    def motor_current_to_rotation_torque(self, il, ir):
+        raise DeprecationWarning('Method motor_current_to_rotation_torque has been deprecated since v0.3.5')
 
-    def motor_current_to_rotation_torque(self,il,ir):
-        r = self.params['wheel_separation_m'] / 2.0
-        return (self.params['force_N_per_A']*il*r)-(self.params['force_N_per_A']*ir*r)
+    def translation_force_to_motor_current(self, f_N):  # Assume evenly balanced
+        raise DeprecationWarning('Method translation_force_to_motor_current has been deprecated since v0.3.5')
+
+    def rotation_torque_to_motor_current(self, tq_Nm):
+        raise DeprecationWarning('Method translation_force_to_motor_current has been deprecated since v0.3.5')
 
 
-    def translation_force_to_motor_current(self,f_N): #Assume evenly balanced
-        il=(f_N/2)/self.params['force_N_per_A']
-        ir = (f_N / 2) / self.params['force_N_per_A']
+    # ########### Effort Contact Conversions ####################
+    # Rotation effort is -100 to 100 (where 100 =  L/R motors at +iMax / +iMax)
+    # Translation effort is -100 to 100 (where 100 =  L/R motors at +iMax / -iMax)
+
+    def rotation_effort_pct_to_motor_current(self,e_pct):
+        il=self.left_wheel.effort_pct_to_current(e_pct)
+        ir= -1*self.right_wheel.effort_pct_to_current(e_pct)
         return il, ir
 
-    def rotation_torque_to_motor_current(self,tq_Nm):
-        r = self.params['wheel_separation_m'] / 2.0
-        fl= tq_Nm/r/2
-        fr= -1*tq_Nm/r/2
-        return fl/self.params['force_N_per_A'], fr/self.params['force_N_per_A']
+    def translation_effort_pct_to_motor_current(self,e_pct):
+        il = self.left_wheel.effort_pct_to_current(e_pct)
+        ir = self.right_wheel.effort_pct_to_current(e_pct)
+        return il, ir
+
+    def motor_current_to_translate_effort_pct(self,il,ir):
+        el=self.left_wheel.current_to_effort_pct(il)
+        er = self.right_wheel.current_to_effort_pct(ir)
+        return (el+er)/2
+
+    def motor_current_to_rotation_effort_pct(self,il,ir):
+        el = self.left_wheel.current_to_effort_pct(il)
+        er = self.right_wheel.current_to_effort_pct(ir)
+        return (el-er)/2
+
+    # ########### Kinematic Conversions ####################
 
     def translate_to_motor_rad(self,x_m):
         circ=self.params['wheel_diameter_m']*math.pi

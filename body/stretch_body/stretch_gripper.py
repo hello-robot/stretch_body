@@ -4,7 +4,7 @@ from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 
 class StretchGripper(DynamixelHelloXL430):
     """
-    API to the Stretch RE1 Gripper
+    API to the Stretch Gripper
     The StretchGripper motion is non-linear w.r.t to motor motion due to its design
     As such, the position of the gripper is represented at as unit-less value, 'pct'
     The Pct ranges from approximately -100 (fully closed) to approximately +50 (fully open)

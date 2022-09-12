@@ -87,7 +87,7 @@ class Device:
     def pull_status(self):
         pass
 
-    def home(self):
+    def home(self,end_pos,to_positive_stop, measuring=False):
         pass
 
     def step_sentry(self,robot):
@@ -103,10 +103,22 @@ class Device:
     def write_configuration_param_to_YAML(self,param_name,value,fleet_dir=None):
         """
         Update the robot configuration YAML with a new value
+        """
+        self._write_param_to_YAML(param_name,value,filename='stretch_configuration_params.yaml',fleet_dir=fleet_dir)
+
+    def write_user_param_to_YAML(self, param_name, value, fleet_dir=None):
+        """
+        Update the robot configuration YAML with a new value
+        """
+        self._write_param_to_YAML(param_name, value, filename='stretch_user_params.yaml', fleet_dir=fleet_dir)
+
+    def _write_param_to_YAML(self,param_name,value,filename,fleet_dir=None):
+        """
+        Update the YAML with a new value
         The param_name has the form device.key, or for a nested dictionary, device.key1.key2...
         For example, write_configuration_param_to_YAML('pimu.config.cliff_zero',100) will set this value to 100 in the YAML
         """
-        cp = hello_utils.read_fleet_yaml('stretch_configuration_params.yaml', fleet_dir=fleet_dir)
+        cp = hello_utils.read_fleet_yaml(filename, fleet_dir=fleet_dir)
         param_keys=param_name.split('.')
         d=cp
         for param_key in param_keys:
@@ -116,8 +128,8 @@ class Device:
                 else:
                     d = d[param_key]
             else:
-                print('Improper param_name in write_configuration_param. Not able to update %s' % param_name)
-        hello_utils.write_fleet_yaml('stretch_configuration_params.yaml', cp, fleet_dir=fleet_dir)
+                print('Improper param_name in _write_param_to_YAML. Not able to update %s' % param_name)
+        hello_utils.write_fleet_yaml(filename, cp, fleet_dir=fleet_dir)
 
     # ########### Thread interface #############
 
