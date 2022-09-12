@@ -9,7 +9,7 @@ setuptools.setup(
     version=__version__,
     author="Hello Robot Inc.",
     author_email="support@hello-robot.com",
-    description="Stretch RE1 low level Python API",
+    description="Stretch Body low level Python API",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hello-robot/stretch_body",
@@ -29,6 +29,6 @@ setuptools.setup(
                       'dynamixel-sdk>=3.1; python_version >= "3.0.0"', # py2 gets dynamixel-sdk through ROS
                       'pyyaml>=5.1', # required for yaml.FullLoader
                       'hello-robot-stretch-tool-share>=0.2.5', # defines other Stretch end effectors
-                      'hello-robot-stretch-factory>=0.3.3','hello-robot-stretch-body-tools>=0.4.0.dev0'
+                      'hello-robot-stretch-factory>=0.3.5','hello-robot-stretch-body-tools>=0.4.2'
                       ]
 )
