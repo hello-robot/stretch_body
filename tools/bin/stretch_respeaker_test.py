@@ -129,7 +129,8 @@ class Tuning:
             usb.util.CTRL_IN | usb.util.CTRL_TYPE_VENDOR | usb.util.CTRL_RECIPIENT_DEVICE,
             0, cmd, id, length, self.TIMEOUT)
 
-        response = struct.unpack(b'ii', response.tostring())
+        #response = struct.unpack(b'ii', response.tostring())
+        response = struct.unpack(b'ii', response.tobytes())
 
         if data[2] == 'int':
             result = response[0]
@@ -194,8 +195,10 @@ def record_audio(seconds=3):
     frames = []
     for i in range(0, int(RESPEAKER_RATE / CHUNK * seconds)):
         data = stream.read(CHUNK)
-        a = np.fromstring(data,dtype=np.int16)[0::6] # extracts fused channel 0
-        frames.append(a.tostring())
+        #a = np.fromstring(data,dtype=np.int16)[0::6] # extracts fused channel 0
+        #frames.append(a.tostring())
+        a = np.frombuffer(data, dtype=np.int16)[0::6]  # extracts fused channel 0
+        frames.append(a.tobytes())
 
     stream.stop_stream()
     stream.close()
