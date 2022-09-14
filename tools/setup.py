@@ -6,7 +6,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 script_path='./bin'
-stretch_scripts=[f for f in glob.glob(script_path+'/*.py') if isfile(f)]
+ex_scripts = glob.glob(script_path+'/*.py') + glob.glob(script_path+'/*.sh')
+stretch_scripts=[f for f in ex_scripts if isfile(f)]
 
 setuptools.setup(
     name="hello_robot_stretch_body_tools",
