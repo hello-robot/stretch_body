@@ -16,7 +16,7 @@ This is the initial production release that supports the Stretch RE2 (Mitski bat
 
 It introduces several new features and fixes several bugs, notably:
 
-* [Adds `wait_until_setpoint` to the Arm and Lift classes](https://github.com/hello-robot/stretch_body/commit/d15e3fb4416a5b296a184148df7b2045cf16027d)
+* [Adds `wait_until_at_setpoint()` to the Arm and Lift classes](https://github.com/hello-robot/stretch_body/commit/d15e3fb4416a5b296a184148df7b2045cf16027d)
 * [Adds use of argparse with all tools](https://github.com/hello-robot/stretch_body/commit/c9c79d6fa08d0aec7d217e2e1d9a9d36b15145b1)
 * [Moves Robot thread rates to YAML](https://github.com/hello-robot/stretch_body/commit/0fa82e852f98031064a4dbfba722af6da43bc992)
 * [Cleans up the splined trajectory interface, enables velocity controlled splined trajectories for the Dynamixels](https://github.com/hello-robot/stretch_body/commit/13549e3662a3168c2a6f460f52c6577d0dbf5b5d)
