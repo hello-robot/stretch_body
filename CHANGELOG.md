@@ -2,15 +2,17 @@
 
 The changes between releases of Stretch Body are documented here.
 
-## [0.4.7](https://github.com/hello-robot/stretch_body/pull/148) - Sept 14, 2022
+## [0.4.8](https://github.com/hello-robot/stretch_body/pull/148) - Sept 14, 2022
 
-This is the initial production release that supports the Stretch RE2 (Mitski batch).  This includes the `robot_params_RE2V0.py` which are the initial robot settings for the RE2 version of the product.
+This is the initial production release that supports the Stretch RE2 (Mitski batch).
 
-* It introduces the [PrismaticJoint](https://github.com/hello-robot/stretch_body/blob/master/stretch_body/prismatic_joint.py) class which consolidates the common Arm and Lift functionality. 
+* This includes the [`robot_params_RE2V0.py`](https://github.com/hello-robot/stretch_body/blob/79be4b6441a1c451436aa65c23b1920282e3fed7/body/stretch_body/robot_params_RE2V0.py) which are the initial robot settings for the RE2 version of the product.
 
-* It changes the units for guarded contact motion from approximate Newtons (suffix _N) to `effort_pct` - the pecentage [-100,100] of maximum current (A) that a joint should stop at. This change requires RE1 users to migrate their code and robot parameters. [See the forum post](https://forum.hello-robot.com/t/stretch-body-release-0-4-and-new-contact-model-units/476/2) for more details.
+* It introduces the [PrismaticJoint](https://github.com/hello-robot/stretch_body/blob/79be4b6441a1c451436aa65c23b1920282e3fed7/body/stretch_body/prismatic_joint.py#L10) class which consolidates the common Arm and Lift functionality.
 
-* It introduces `mkdocs.yaml` to support serving the repository documenation via MKDocs.
+* It changes the units for guarded contact motion from approximate Newtons (suffix _N) to `effort_pct` - the pecentage [-100,100] of maximum current (A) that a joint should stop at. This change requires RE1 users to migrate their code and robot parameters. [See the forum post](https://forum.hello-robot.com/t/stretch-body-release-0-4-and-new-contact-model-units/476/1) for more details.
+
+* It introduces [`mkdocs.yaml`](https://github.com/hello-robot/stretch_body/blob/79be4b6441a1c451436aa65c23b1920282e3fed7/mkdocs.yml) to support serving the repository documenation via MKDocs.
 
 It introduces several new features and fixes several bugs, notably:
 
