@@ -326,7 +326,7 @@ nominal_params={
             'pKp_d': 10.0,
             'pLPF': 60,
             'phase_advance_d': 1.8,
-            'pos_near_setpoint_d': 4.0,
+            'pos_near_setpoint_d': 6.0,
             'safety_hold': 1,
             'safety_stiffness': 0.0,
             'vKd_d': 0,
