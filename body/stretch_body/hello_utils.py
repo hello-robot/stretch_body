@@ -490,7 +490,7 @@ def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,cont
         msg=msg+'For more details, see https://forum.hello-robot.com/t/476 \n'
         msg = msg + 'In method %s.%s' % (joint.name, method_name)
         print(msg)
-        joint.logger.warning(msg)
+        joint.logger.error(msg)
         sys.exit(1)
 
     #Check if code is passing in old values
@@ -500,7 +500,7 @@ def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,cont
         msg = msg +  'For more details, see https://forum.hello-robot.com/t/476\n'
         msg=msg+'In method %s.%s'%(joint.name,method_name)
         print(msg)
-        joint.logger.warning(msg)
+        joint.logger.error(msg)
         sys.exit(1)
 
 def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_thresh_pos_N,contact_thresh_neg_N,contact_thresh_pos,contact_thresh_neg ):
@@ -521,7 +521,7 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
         msg=msg+'For more details, see https://forum.hello-robot.com/t/476 \n'
         msg = msg + 'In method %s.%s' % (joint.name, method_name)
         print(msg)
-        joint.logger.warning(msg)
+        joint.logger.error(msg)
         sys.exit(1)
 
     #Check if code is passing in old values
@@ -531,7 +531,7 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
         msg = msg +  'For more details, see https://forum.hello-robot.com/t/476\n'
         msg=msg+'In method %s.%s'%(joint.name,method_name)
         print(msg)
-        joint.logger.warning(msg)
+        joint.logger.error(msg)
         sys.exit(1)
 
     #Check if code is passing in new values but not yet migrated
@@ -545,5 +545,5 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
             msg = msg + 'For more details, see https://forum.hello-robot.com/t/476 \n'
             msg=msg+'In method %s.%s'%(joint.name,method_name)
             print(msg)
-            joint.logger.warning(msg)
+            joint.logger.error(msg)
             sys.exit(1)
