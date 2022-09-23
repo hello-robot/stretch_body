@@ -60,28 +60,28 @@ class RobotMonitor(Device):
     def monitor_base_cliff_event(self):
         if self.robot.pimu is not None:
             if self.robot.pimu.status['cliff_event'] and  self.monitor_history['monitor_base_cliff_event']==0:
-                self.logger.info("Base cliff event")
+                self.logger.debug("Base cliff event")
             self.monitor_history['monitor_base_cliff_event'] = self.robot.pimu.status['cliff_event']
 
     # ##################################
     def monitor_base_bump_event(self):
         if self.robot.pimu is not None:
             if self.robot.pimu.status['bump_event_cnt'] != self.monitor_history['monitor_base_bump_event']:
-                self.logger.info("Base bump event")
+                self.logger.debug("Base bump event")
             self.monitor_history['monitor_base_bump_event'] = self.robot.pimu.status['bump_event_cnt']
 
     # ##################################
     def monitor_over_tilt_alert(self):
         if self.robot.pimu is not None:
             if self.robot.pimu.status['over_tilt_alert'] and self.monitor_history['monitor_over_tilt_alert'] == 0:
-                self.logger.info("Over Tilt Alert")
+                self.logger.debug("Over Tilt Alert")
             self.monitor_history['monitor_over_tilt_alert'] = self.robot.pimu.status['over_tilt_alert']
 
     # ##################################
     def monitor_wrist_single_tap(self):
         if self.robot.wacc is not None:
             if self.robot.wacc.status['single_tap_count']!=self.monitor_history['monitor_wrist_single_tap']:
-                self.logger.info("Wrist single tap: %d" % self.robot.wacc.status['single_tap_count'])
+                self.logger.debug("Wrist single tap: %d" % self.robot.wacc.status['single_tap_count'])
             self.monitor_history['monitor_wrist_single_tap']=self.robot.wacc.status['single_tap_count']
 
     # ##################################
@@ -94,7 +94,7 @@ class RobotMonitor(Device):
                     self.monitor_history[mn][j.name] = 0
                 if j is not None:
                     if self.monitor_history[mn][j.name]==0 and j.motor.status['in_guarded_event']:
-                        self.logger.info("Guarded contact %s"%j.name)
+                        self.logger.debug("Guarded contact %s"%j.name)
                 self.monitor_history[mn][j.name] =j.motor.status['in_guarded_event']
 
     # ##################################
@@ -115,16 +115,16 @@ class RobotMonitor(Device):
                 for k in c.motors.keys():
                     for e in errs:
                         if c.motors[k].status[e] and not self.monitor_history[mn][c.name][k][e]:
-                            self.logger.info("Dynamixel %s on %s:%s"%(e,c.name,k))
+                            self.logger.debug("Dynamixel %s on %s:%s"%(e,c.name,k))
                         self.monitor_history[mn][c.name][k][e] = c.motors[k].status[e]
 
     # ##################################
     def monitor_runstop(self):
         if self.robot.status['pimu']['runstop_event'] != self.monitor_history['monitor_runstop']:
             if self.robot.status['pimu']['runstop_event']:
-                self.logger.info("Runstop activated")
+                self.logger.debug("Runstop activated")
             else:
-                self.logger.info("Runstop deactivated")
+                self.logger.debug("Runstop deactivated")
         self.monitor_history['monitor_runstop']=self.robot.status['pimu']['runstop_event']
 
     # ##################################
@@ -132,7 +132,7 @@ class RobotMonitor(Device):
         v=self.robot.pimu.status['voltage']
         if v < self.robot.pimu.config['low_voltage_alert']:
             if v-self.monitor_history['monitor_voltage']<-0.5:#every 0.5V of drop allow to report
-                self.logger.info('Low voltage of: %.2f'%v)
+                self.logger.debug('Low voltage of: %.2f'%v)
                 self.monitor_history['monitor_voltage']=v
         else:
             self.monitor_history['monitor_voltage'] =v
@@ -142,7 +142,7 @@ class RobotMonitor(Device):
         i=self.robot.pimu.status['current']
         if i > self.robot.pimu.config['high_current_alert']:
             if i-self.monitor_history['monitor_current']>0.25:#every 0.25A of rise allow to report
-                self.logger.info('High current of: %.2f'%i)
+                self.logger.debug('High current of: %.2f'%i)
                 self.monitor_history['monitor_current']=i
         else:
             self.monitor_history['monitor_current'] =i
