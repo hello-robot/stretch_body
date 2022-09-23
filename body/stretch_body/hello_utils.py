@@ -111,17 +111,21 @@ def write_fleet_yaml(fn,rp,fleet_dir=None,header=None):
 
 
 def overwrite_dict(overwritee_dict, overwriter_dict):
+    no_mismatches = True
     for k in overwriter_dict.keys():
         if k in overwritee_dict:
             if (isinstance(overwritee_dict[k], dict) and isinstance(overwriter_dict[k], dict)):
-                overwrite_dict(overwritee_dict[k], overwriter_dict[k])
+                sub_no_mismatches = overwrite_dict(overwritee_dict[k], overwriter_dict[k])
+                no_mismatches = no_mismatches and sub_no_mismatches
             else:
                 if (type(overwritee_dict[k]) == type(overwriter_dict[k])) or (isinstance(overwritee_dict[k], numbers.Real) and isinstance(overwriter_dict[k], numbers.Real)):
                     overwritee_dict[k] = overwriter_dict[k]
                 else:
+                    no_mismatches = False
                     print('stretch_body.hello_utils.overwrite_dict ERROR: Type mismatch for key={0}, between overwritee={1} and overwriter={2}'.format(k, overwritee_dict[k], overwriter_dict[k]), file=sys.stderr)
         else: #If key not present, add anyhow (useful for overlaying params)
             overwritee_dict[k] = overwriter_dict[k]
+    return no_mismatches
 
 def pretty_print_dict(title, d):
     """Print human readable representation of dictionary to terminal

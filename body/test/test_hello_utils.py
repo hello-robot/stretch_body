@@ -30,54 +30,63 @@ class TestHelloUtils(unittest.TestCase):
         """
         dee1 = {'param1': 1}
         der1 = {'param2': 2}
-        stretch_body.hello_utils.overwrite_dict(dee1, der1)
+        no_mismatches1 = stretch_body.hello_utils.overwrite_dict(dee1, der1)
         self.assertEqual(dee1, {'param1': 1, 'param2': 2})
+        self.assertTrue(no_mismatches1)
 
         dee2 = {'param1': 'to_override'}
         der2 = {'param1': 'over'}
-        stretch_body.hello_utils.overwrite_dict(dee2, der2)
+        no_mismatches2 = stretch_body.hello_utils.overwrite_dict(dee2, der2)
         self.assertEqual(dee2, {'param1': 'over'})
+        self.assertTrue(no_mismatches2)
 
         dee3 = {'param1': {'motion': 'to_override', 'no_change': 1}}
         der3 = {'param1': {'motion': 'over'}}
-        stretch_body.hello_utils.overwrite_dict(dee3, der3)
+        no_mismatches3 = stretch_body.hello_utils.overwrite_dict(dee3, der3)
         self.assertEqual(dee3, {'param1': {'motion': 'over', 'no_change': 1}})
+        self.assertTrue(no_mismatches3)
 
         dee4 = {'param1': {'motion': 'same', 'no_change': 1}}
         der4 = {'param1': {'motion': {}}}
-        stretch_body.hello_utils.overwrite_dict(dee4, der4)
+        no_mismatches4 = stretch_body.hello_utils.overwrite_dict(dee4, der4)
         self.assertEqual(dee4, {'param1': {'motion': 'same', 'no_change': 1}})
+        self.assertFalse(no_mismatches4)
 
         dee5 = {'param1': {'motion': {}, 'no_change': 1}}
         der5 = {'param1': {'motion': 2}}
-        stretch_body.hello_utils.overwrite_dict(dee5, der5)
+        no_mismatches5 = stretch_body.hello_utils.overwrite_dict(dee5, der5)
         self.assertEqual(dee5, {'param1': {'motion': {}, 'no_change': 1}})
+        self.assertFalse(no_mismatches5)
 
         dee6 = {'param1': {'motion': 1}}
         der6 = {'param1': {'motion': 'stringtype'}}
-        stretch_body.hello_utils.overwrite_dict(dee6, der6)
+        no_mismatches6 = stretch_body.hello_utils.overwrite_dict(dee6, der6)
         self.assertEqual(dee6, {'param1': {'motion': 1}})
+        self.assertFalse(no_mismatches6)
 
         # int and float and overwrite each other
         dee7 = {'param1': {'motion': 1}}
         der7 = {'param1': {'motion': 2.0}}
-        stretch_body.hello_utils.overwrite_dict(dee7, der7)
+        no_mismatches7 = stretch_body.hello_utils.overwrite_dict(dee7, der7)
         self.assertEqual(dee7, {'param1': {'motion': 2.0}})
+        self.assertTrue(no_mismatches7)
 
         dee8 = {'param1': {'param2': 0}}
         param2dict = defaultdict()
         param2dict['param2'] = 2
         der8 = {'param1': param2dict}
-        stretch_body.hello_utils.overwrite_dict(dee8, der8)
+        no_mismatches8 = stretch_body.hello_utils.overwrite_dict(dee8, der8)
         self.assertEqual(dee8, {'param1': {'param2': 2}})
+        self.assertTrue(no_mismatches8)
 
     def test_overwriting_vs_updating_params(self):
         """Verify the difference between overwrite_dict and updating a dict.
         """
         overider1 = {"robot": {"motion": {"max": 100}}}
         overidee1 = {"robot": {"motion": {"min": -100}}}
-        stretch_body.hello_utils.overwrite_dict(overidee1, overider1)
+        no_mismatches1 = stretch_body.hello_utils.overwrite_dict(overidee1, overider1)
         self.assertEqual(overidee1, {"robot": {"motion": {"max": 100, "min": -100}}})
+        self.assertTrue(no_mismatches1)
 
         overider2 = {"robot": {"motion": {"max": 100}}}
         overidee2 = {"robot": {"motion": {"min": -100}}}
