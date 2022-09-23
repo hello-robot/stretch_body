@@ -33,7 +33,8 @@ class TestUSBDevices(unittest.TestCase):
     def test_usb_aliases_present(self):
         """All USB aliases present
         """
-        listOfDevices = os.listdir('/dev')
+        dummy_device = stretch_body.device.Device('dummy', req_params=False)
+
         usb_aliases = {'hello-wacc': False,
                        'hello-pimu': False,
                        'hello-dynamixel-head': False,
@@ -44,32 +45,20 @@ class TestUSBDevices(unittest.TestCase):
                        'hello-motor-lift': False,
                        'hello-lrf': False,
                        'hello-respeaker': False}
+        usb_links = {}
+        listOfDevices = os.listdir('/dev')
         for entry in listOfDevices:
             if fnmatch.fnmatch(entry, "hello*"):
                 if entry in usb_aliases.keys():
                     usb_aliases[entry] = True
+                    usb_links[entry] = os.readlink('/dev/{0}'.format(entry))
+        dummy_device.logger.debug(pformat(usb_links))
         self.assertTrue(all(list(usb_aliases.values())), msg='missing usb aliases={0}'.format([k for k, v in usb_aliases.items() if not v]))
 
     def test_num_acm_devices_present(self):
         """Six ACM devices present
         """
-        dummy_device = stretch_body.device.Device('dummy', req_params=False)
         listOfDevices = os.listdir('/dev')
-
-        # debug log ACM aliases and their linked devices
-        acm_aliases = {'hello-wacc': None,
-                       'hello-pimu': None,
-                       'hello-motor-arm': None,
-                       'hello-motor-left-wheel': None,
-                       'hello-motor-right-wheel': None,
-                       'hello-motor-lift': None}
-        for entry in listOfDevices:
-            if fnmatch.fnmatch(entry, "hello*"):
-                if entry in acm_aliases.keys():
-                    acm_aliases[entry] = os.readlink('/dev/{0}'.format(entry))
-        dummy_device.logger.debug(pformat(acm_aliases))
-
-        # expect 6 ACM devices present
         acm_devices = [entry for entry in listOfDevices if fnmatch.fnmatch(entry, "ttyACM*")]
         num_acm_devices = len(acm_devices)
         self.assertEqual(num_acm_devices, 6, msg="found={0}".format(acm_devices))
