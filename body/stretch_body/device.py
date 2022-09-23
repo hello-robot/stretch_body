@@ -37,8 +37,8 @@ class Device:
         self.logger = logging.getLogger(self.name)
 
         if self.params == {} and req_params:
-                self.logger.error('Parameters for device %s not found. Check parameter YAML and device name. Exiting...' % self.name)
-                sys.exit(1)
+            self.logger.error('Parameters for device %s not found. Check parameter YAML and device name. Exiting...' % self.name)
+            sys.exit(1)
 
         self.timestamp = DeviceTimestamp()
         self.thread_active = False
