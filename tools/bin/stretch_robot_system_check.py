@@ -25,6 +25,7 @@ if args.nocolor:
     Fore.GREEN = ''
     Fore.RED = ''
     Fore.YELLOW = ''
+    Fore.CYAN = ''
     Style.RESET_ALL = ''
 
 
@@ -71,7 +72,7 @@ class SystemCheckTestResult(unittest.result.TestResult):
 
     def addSkip(self, test, reason):
         super(SystemCheckTestResult, self).addSkip(test, reason)
-        self.stream.writeln(Fore.YELLOW + "SKIP" + Style.RESET_ALL)
+        self.stream.writeln(Fore.CYAN + "SKIP" + Style.RESET_ALL)
         self.stream.flush()
 
     def addExpectedFailure(self, test, err):

@@ -53,7 +53,7 @@ class TestUSBDevices(unittest.TestCase):
     def test_num_acm_devices_present(self):
         """Six ACM devices present
         """
-        dummy_device = stretch_body.device.Device('dummy')
+        dummy_device = stretch_body.device.Device('dummy', req_params=False)
         listOfDevices = os.listdir('/dev')
 
         # debug log ACM aliases and their linked devices
@@ -83,7 +83,7 @@ class TestPIMU(unittest.TestCase):
     def setUpClass(self):
         self.p = stretch_body.pimu.Pimu()
         self.p.startup()
-        self.dummy = stretch_body.device.Device('dummy')
+        self.dummy = stretch_body.device.Device('dummy', req_params=False)
 
     @classmethod
     def tearDownClass(self):
@@ -180,7 +180,7 @@ class TestEndOfArm(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        dummy = stretch_body.device.Device('dummy')
+        dummy = stretch_body.device.Device('dummy', req_params=False)
         tool_name = dummy.robot_params['robot']['tool']
         module_name = dummy.robot_params[tool_name]['py_module_name']
         class_name = dummy.robot_params[tool_name]['py_class_name']
@@ -380,7 +380,7 @@ class TestSoftware(unittest.TestCase):
     def test_latest_hello_pip_packages(self):
         """Latest Stretch Python libraries
         """
-        dummy_device = stretch_body.device.Device('dummy')
+        dummy_device = stretch_body.device.Device('dummy', req_params=False)
 
         dist = JohnnyDist("hello-robot-stretch-body")
         dummy_device.logger.debug("hello-robot-stretch-body installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
