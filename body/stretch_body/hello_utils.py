@@ -111,6 +111,22 @@ def write_fleet_yaml(fn,rp,fleet_dir=None,header=None):
 
 
 def overwrite_dict(overwritee_dict, overwriter_dict):
+    """Merge two dictionaries while overwriting common keys and
+    report errors when values of the same key differ in Python
+    type. The result gets stored in `overwritee_dict`.
+
+    Parameters
+    ----------
+    overwritee_dict : dict
+        The dictionary which will be overwritten. Use this as the merged result.
+    overwriter_dict : dict
+        The dictionary which will overwrite.
+
+    Returns
+    -------
+    bool
+        True if no mismatches were found during the overwrite, False otherwise.
+    """
     no_mismatches = True
     for k in overwriter_dict.keys():
         if k in overwritee_dict:
