@@ -1,12 +1,14 @@
 import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
+import distro
 import unittest
+import requests
+import xmltodict
 import importlib
 import subprocess
 import os, fnmatch
 from pprint import pformat
-from johnnydep.lib import JohnnyDist
 import stretch_body.device
 import stretch_body.pimu
 import stretch_body.hello_utils
@@ -370,24 +372,55 @@ class TestSoftware(unittest.TestCase):
         """Latest Stretch Python libraries
         """
         dummy_device = stretch_body.device.Device('dummy', req_params=False)
+        ubuntu_to_pip_mapping = {'18.04': 'pip2', '20.04': 'pip3'}
+        pip_str = ubuntu_to_pip_mapping[distro.version()]
 
-        dist = JohnnyDist("hello-robot-stretch-body")
-        dummy_device.logger.debug("hello-robot-stretch-body installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
-        self.assertEqual(dist.version_installed, dist.version_latest, msg="run pip2 install -U hello-robot-stretch-body")
+        def get_latest_version(url):
+            resp = requests.get(url)
+            if resp.status_code == 200:
+                releases = xmltodict.parse(resp.text)['rss']['channel']['item']
+                for i in range(len(releases)):
+                    if 'dev' not in releases[i]['title']:
+                        return releases[i]['title']
+            return None
 
-        dist = JohnnyDist("hello-robot-stretch-body-tools")
-        dummy_device.logger.debug("hello-robot-stretch-body-tools installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
-        self.assertEqual(dist.version_installed, dist.version_latest, msg="run pip2 install -U hello-robot-stretch-body-tools")
+        # Stretch Body
+        try:
+            from stretch_body.version import __version__ as installed_stretch_body_version
+        except:
+            installed_stretch_body_version = None
+        latest_stretch_body_version = get_latest_version("https://pypi.org/rss/project/hello-robot-stretch-body/releases.xml")
+        dummy_device.logger.debug("hello-robot-stretch-body installed={0}, latest available={1}".format(installed_stretch_body_version, latest_stretch_body_version))
+        self.assertEqual(installed_stretch_body_version, latest_stretch_body_version, msg="run {} install -U hello-robot-stretch-body".format(pip_str))
 
-        dist = JohnnyDist("hello-robot-stretch-factory")
-        dummy_device.logger.debug("hello-robot-stretch-factory installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
-        self.assertEqual(dist.version_installed, dist.version_latest, msg="run pip2 install -U hello-robot-stretch-factory")
+        # Stretch Body Tools
+        try:
+            from stretch_body_tools.version import __version__ as installed_stretch_body_tools_version
+        except:
+            installed_stretch_body_tools_version = None
+        latest_stretch_body_tools_version = get_latest_version("https://pypi.org/rss/project/hello-robot-stretch-body-tools/releases.xml")
+        dummy_device.logger.debug("hello-robot-stretch-body-tools installed={0}, latest available={1}".format(installed_stretch_body_tools_version, latest_stretch_body_tools_version))
+        self.assertEqual(installed_stretch_body_tools_version, latest_stretch_body_tools_version, msg="run {} install -U hello-robot-stretch-body-tools".format(pip_str))
 
-        dist = JohnnyDist("hello-robot-stretch-tool-share")
-        dummy_device.logger.debug("hello-robot-stretch-tool-share installed={0}, latest available={1}".format(dist.version_installed, dist.version_latest))
-        self.assertEqual(dist.version_installed, dist.version_latest, msg="run pip2 install -U hello-robot-stretch-tool-share")
+        # Stretch Factory
+        try:
+            from stretch_factory.version import __version__ as installed_stretch_factory_version
+        except:
+            installed_stretch_factory_version = None
+        latest_stretch_factory_version = get_latest_version("https://pypi.org/rss/project/hello-robot-stretch-factory/releases.xml")
+        dummy_device.logger.debug("hello-robot-stretch-factory installed={0}, latest available={1}".format(installed_stretch_factory_version, latest_stretch_factory_version))
+        self.assertEqual(installed_stretch_factory_version, latest_stretch_factory_version, msg="run {} install -U hello-robot-stretch-factory".format(pip_str))
 
-    @system_check_warn(warning="run RE1_firmware_updater.py --recommended")
+        # Stretch Tool Share
+        try:
+            from stretch_tool_share.version import __version__ as installed_stretch_tool_share_version
+        except:
+            installed_stretch_tool_share_version = None
+        latest_stretch_tool_share_version = get_latest_version("https://pypi.org/rss/project/hello-robot-stretch-tool-share/releases.xml")
+        dummy_device.logger.debug("hello-robot-stretch-tool-share installed={0}, latest available={1}".format(installed_stretch_tool_share_version, latest_stretch_tool_share_version))
+        self.assertEqual(installed_stretch_tool_share_version, latest_stretch_tool_share_version, msg="run {} install -U hello-robot-stretch-tool-share".format(pip_str))
+
+    @system_check_warn(warning="run REx_firmware_updater.py --recommended")
     def test_latest_firmware(self):
         """Latest Stretch firmware
         """

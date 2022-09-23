@@ -6,8 +6,6 @@ parser.add_argument('-v', "--verbose", help="verbose logging", action="store_tru
 parser.add_argument('-n', "--nocolor", help="no color", action="store_true")
 args = parser.parse_args()
 
-from johnnydep.logs import configure_logging
-configure_logging(verbosity=0)
 import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG" if args.verbose else "CRITICAL")
 import stretch_body.device # must be imported directly after using RobotParams.set_logging_level
