@@ -63,6 +63,8 @@ class RobotParams:
         param_module_name = 'stretch_body.robot_params_'+_config_params['robot']['model_name']
         _nominal_params = getattr(importlib.import_module(param_module_name), 'nominal_params')
         hello_utils.overwrite_dict(_robot_params, _nominal_params)
+        for external_params_module in _config_params.get('params', []):
+            hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
         for external_params_module in _user_params.get('params', []):
             hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
         hello_utils.overwrite_dict(_robot_params, _config_params)
