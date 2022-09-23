@@ -6,6 +6,8 @@ import time
 import logging
 import numpy as np
 import sys
+import numbers
+
 
 def print_stretch_re_use():
     print("For use with S T R E T C H (R) RESEARCH EDITION from Hello Robot Inc.")
@@ -111,16 +113,14 @@ def write_fleet_yaml(fn,rp,fleet_dir=None,header=None):
 def overwrite_dict(overwritee_dict, overwriter_dict):
     for k in overwriter_dict.keys():
         if k in overwritee_dict:
-            if (type(overwritee_dict[k])==type(overwriter_dict[k])) or (type(overwritee_dict[k])==int and type(overwriter_dict[k])==float) or (type(overwritee_dict[k])==float and type(overwriter_dict[k])==int):
-                if type(overwritee_dict[k])==dict:
-                    overwrite_dict(overwritee_dict[k],overwriter_dict[k])
-                else:
-                    overwritee_dict[k]=overwriter_dict[k]
+            if (isinstance(overwritee_dict[k], dict) and isinstance(overwriter_dict[k], dict)):
+                overwrite_dict(overwritee_dict[k], overwriter_dict[k])
             else:
-                print('Overwritting Robot Params. Type mismatch for key:',k)
-                print('Overwriter',overwriter_dict[k])
-                print('Overwritee', overwritee_dict[k])
-        else: #If key not present, add anyhow (useful for adding new params)
+                if (type(overwritee_dict[k]) == type(overwriter_dict[k])) or (isinstance(overwritee_dict[k], numbers.Real) and isinstance(overwriter_dict[k], numbers.Real)):
+                    overwritee_dict[k] = overwriter_dict[k]
+                else:
+                    print('stretch_body.hello_utils.overwrite_dict ERROR: Type mismatch for key={0}, between overwritee={1} and overwriter={2}'.format(k, overwritee_dict[k], overwriter_dict[k]), file=sys.stderr)
+        else: #If key not present, add anyhow (useful for overlaying params)
             overwritee_dict[k] = overwriter_dict[k]
 
 def pretty_print_dict(title, d):

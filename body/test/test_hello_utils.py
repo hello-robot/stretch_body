@@ -5,6 +5,7 @@ import time
 import math
 import random
 import warnings
+from collections import defaultdict
 
 
 class TestHelloUtils(unittest.TestCase):
@@ -51,6 +52,24 @@ class TestHelloUtils(unittest.TestCase):
         der5 = {'param1': {'motion': 2}}
         stretch_body.hello_utils.overwrite_dict(dee5, der5)
         self.assertEqual(dee5, {'param1': {'motion': {}, 'no_change': 1}})
+
+        dee6 = {'param1': {'motion': 1}}
+        der6 = {'param1': {'motion': 'stringtype'}}
+        stretch_body.hello_utils.overwrite_dict(dee6, der6)
+        self.assertEqual(dee6, {'param1': {'motion': 1}})
+
+        # int and float and overwrite each other
+        dee7 = {'param1': {'motion': 1}}
+        der7 = {'param1': {'motion': 2.0}}
+        stretch_body.hello_utils.overwrite_dict(dee7, der7)
+        self.assertEqual(dee7, {'param1': {'motion': 2.0}})
+
+        dee8 = {'param1': {'param2': 0}}
+        param2dict = defaultdict()
+        param2dict['param2'] = 2
+        der8 = {'param1': param2dict}
+        stretch_body.hello_utils.overwrite_dict(dee8, der8)
+        self.assertEqual(dee8, {'param1': {'param2': 2}})
 
     def test_overwriting_vs_updating_params(self):
         """Verify the difference between overwrite_dict and updating a dict.
