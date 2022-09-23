@@ -82,16 +82,16 @@ class TestHelloUtils(unittest.TestCase):
     def test_overwriting_vs_updating_params(self):
         """Verify the difference between overwrite_dict and updating a dict.
         """
-        overider1 = {"robot": {"motion": {"max": 100}}}
         overidee1 = {"robot": {"motion": {"min": -100}}}
+        overider1 = {"robot": {"motion": {"max": 100}}}
         no_mismatches1 = stretch_body.hello_utils.overwrite_dict(overidee1, overider1)
         self.assertEqual(overidee1, {"robot": {"motion": {"max": 100, "min": -100}}})
         self.assertTrue(no_mismatches1)
 
-        overider2 = {"robot": {"motion": {"max": 100}}}
         overidee2 = {"robot": {"motion": {"min": -100}}}
+        overider2 = {"robot": {"motion": {"max": 100}}}
         overidee2.update(overider2)
-        self.assertNotEqual(overidee1, overidee2)
+        self.assertNotEqual(overidee2, {"robot": {"motion": {"max": 100, "min": -100}}})
 
     def test_pretty_print_dict(self):
         dict1 = {"param1": 1, "param2": 2}
