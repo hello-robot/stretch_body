@@ -290,15 +290,15 @@ class TestBase(unittest.TestCase):
     def tearDownClass(self):
         self.b.stop()
 
-    def test_valid_lwheel_pos(self):
-        """Left wheel odometry valid
+    def test_valid_lwheel_status(self):
+        """Left wheel status valid
         """
         pos = self.b.left_wheel.status['pos']
         self.b.logger.debug('left wheel pos={0}'.format(pos))
         self.assertNotEqual(pos, 0, msg='odometry not initialized')
 
-    def test_valid_rwheel_pos(self):
-        """Right wheel odometry valid
+    def test_valid_rwheel_status(self):
+        """Right wheel status valid
         """
         pos = self.b.right_wheel.status['pos']
         self.b.logger.debug('right wheel pos={0}'.format(pos))
@@ -318,8 +318,8 @@ class TestLift(unittest.TestCase):
     def tearDownClass(self):
         self.l.stop()
 
-    def test_valid_motor_pos(self):
-        """Lift feedback valid
+    def test_valid_status(self):
+        """Status valid
         """
         pos = self.l.motor.status['pos']
         self.l.logger.debug('lift pos={0}'.format(pos))
@@ -346,8 +346,8 @@ class TestArm(unittest.TestCase):
     def tearDownClass(self):
         self.a.stop()
 
-    def test_valid_motor_pos(self):
-        """Arm feedback valid
+    def test_valid_status(self):
+        """Status valid
         """
         pos = self.a.motor.status['pos']
         self.a.logger.debug('arm pos={0}'.format(pos))

@@ -128,20 +128,20 @@ endofarm_suite.addTests([
 
 arm_suite = unittest.TestSuite()
 arm_suite.addTests([
-    test.test_system.TestArm('test_valid_motor_pos'),
+    test.test_system.TestArm('test_valid_status'),
     test.test_system.TestArm('test_arm_homed'),
 ])
 
 lift_suite = unittest.TestSuite()
 lift_suite.addTests([
-    test.test_system.TestLift('test_valid_motor_pos'),
+    test.test_system.TestLift('test_valid_status'),
     test.test_system.TestLift('test_lift_homed'),
 ])
 
 base_suite = unittest.TestSuite()
 base_suite.addTests([
-    test.test_system.TestBase('test_valid_lwheel_pos'),
-    test.test_system.TestBase('test_valid_rwheel_pos'),
+    test.test_system.TestBase('test_valid_lwheel_status'),
+    test.test_system.TestBase('test_valid_rwheel_status'),
 ])
 
 wacc_suite = unittest.TestSuite()
