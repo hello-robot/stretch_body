@@ -1,6 +1,7 @@
 import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 
+import apt
 import distro
 import unittest
 import requests
@@ -369,7 +370,7 @@ class TestSoftware(unittest.TestCase):
 
     @system_check_warn()
     def test_latest_hello_pip_packages(self):
-        """Latest Stretch Python libraries
+        """Stretch Python libraries up-to-date
         """
         dummy_device = stretch_body.device.Device('dummy', req_params=False)
         ubuntu_to_pip_mapping = {'18.04': 'pip2', '20.04': 'pip3'}
@@ -422,7 +423,7 @@ class TestSoftware(unittest.TestCase):
 
     @system_check_warn(warning="run REx_firmware_updater.py --recommended")
     def test_latest_firmware(self):
-        """Latest Stretch firmware
+        """Stretch firmware up-to-date
         """
         hello_devices = {'hello-motor-lift': True, 'hello-motor-arm': True, 'hello-motor-right-wheel': True, 'hello-motor-left-wheel': True, 'hello-pimu': True, 'hello-wacc': True}
         r = stretch_factory.firmware_updater.RecommendedFirmware(hello_devices)
@@ -433,3 +434,17 @@ class TestSoftware(unittest.TestCase):
                 if r.recommended[device_name] == installed_version:
                     is_latest[device_name] = True
         self.assertTrue(all(list(is_latest.values())), msg='updateable devices={0}'.format([k for k, v in is_latest.items() if not v]))
+
+    @system_check_warn()
+    def test_realsense_sw_configuration(self):
+        """Realsense setup correctly
+        """
+        apt_list = apt.Cache()
+        if distro.version() == '18.04':
+            self.assertTrue('ros-melodic-librealsense2' in apt_list)
+            self.assertFalse(apt_list['ros-melodic-librealsense2'].is_installed)
+        if distro.version() == '20.04':
+            self.assertTrue('ros-noetic-librealsense2' in apt_list)
+            self.assertFalse(apt_list['ros-noetic-librealsense2'].is_installed)
+            self.assertTrue('ros-galactic-librealsense2' in apt_list)
+            self.assertFalse(apt_list['ros-galactic-librealsense2'].is_installed)

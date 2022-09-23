@@ -166,6 +166,7 @@ software_suite = unittest.TestSuite()
 software_suite.addTests([
     test.test_system.TestSoftware('test_latest_hello_pip_packages'),
     test.test_system.TestSoftware('test_latest_firmware'),
+    test.test_system.TestSoftware('test_realsense_sw_configuration'),
 ])
 
 runner = SystemCheckTestRunner(stream=sys.stdout)
