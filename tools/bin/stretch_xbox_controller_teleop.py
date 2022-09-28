@@ -382,17 +382,37 @@ def manage_calibration(robot, controller_state):
             first_home_warn = False
 
 
-########################### Check USB Devices ###########################
+########################### Check and wait for USB Devices ###########################
 
 def check_usb_devices(wait_timeout=5):
-    robot_devices = {'hello-wacc': False,
-                     'hello-motor-left-wheel': False,
-                     'hello-pimu': False,
-                     'hello-dynamixel-head': False,
-                     'hello-dynamixel-wrist': False,
-                     'hello-motor-arm': False,
-                     'hello-motor-right-wheel': False,
-                     'hello-motor-lift': False}
+    hello_devices = ['hello-wacc',
+                     'hello-motor-left-wheel',
+                     'hello-pimu',
+                     'hello-dynamixel-head',
+                     'hello-dynamixel-wrist',
+                     'hello-motor-arm',
+                     'hello-motor-right-wheel',
+                     'hello-motor-lift']
+
+    print('Waiting for all the hello* devices ...')
+    all_found = True
+    for dev in hello_devices:
+        if not wait_till_usb(dev, wait_timeout):
+            all_found = False
+    if all_found:
+        print('Found all hello* devices.')
+
+
+def wait_till_usb(usb, wait_timeout):
+    s_ts = time.time()
+    while time.time() - s_ts <= wait_timeout:
+        devices = os.listdir('/dev')
+        hello_devs = [dev for dev in devices if 'hello' in dev]
+        if usb in hello_devs:
+            return True
+    print('{} device not found.'.format(usb))
+    return False
+
 
 # ######################### MAIN ########################################
 use_head_mapping = True
@@ -404,6 +424,7 @@ def main():
     global use_head_mapping, use_dex_wrist_mapping, use_stretch_gripper_mapping
     xbox_controller = xc.XboxController()
     xbox_controller.start()
+    check_usb_devices(wait_timeout=5)
     robot = rb.Robot()
     try:
         robot.startup()
