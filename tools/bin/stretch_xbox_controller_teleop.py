@@ -401,6 +401,7 @@ def check_usb_devices(wait_timeout=5):
             all_found = False
     if all_found:
         print('Found all hello* devices.')
+    return all_found
 
 
 def wait_till_usb(usb, wait_timeout):
