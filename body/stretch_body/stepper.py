@@ -98,8 +98,10 @@ class StepperBase(Device):
     TRIGGER_POS_CALIBRATED = 32
     TRIGGER_MARK_POS_ON_CONTACT=64
 
-    def __init__(self, usb):
-        Device.__init__(self, name=usb[5:])
+    def __init__(self, usb,name=None):
+        if name is None:
+            name=usb[5:] #Pull from usb device name
+        Device.__init__(self, name=name)
         self.usb=usb
         self.lock=threading.RLock()
         self.transport = Transport(usb=self.usb, logger=self.logger)

@@ -32,7 +32,7 @@ class WaccBase(Device):
 
     TRIGGER_BOARD_RESET = 1
 
-    def __init__(self, ext_status_cb=None, ext_command_cb=None):
+    def __init__(self, ext_status_cb=None, ext_command_cb=None, usb=None):
         Device.__init__(self, 'wacc')
         self.ext_status_cb=ext_status_cb
         self.ext_command_cb=ext_command_cb
@@ -40,7 +40,9 @@ class WaccBase(Device):
         self._dirty_config = True #Force push down
         self._dirty_command = False
         self._command = {'d2':0,'d3':0, 'trigger':0}
-        self.transport = Transport(usb='/dev/hello-wacc', logger=self.logger)
+        if usb is None:
+            usb='/dev/hello-wacc'
+        self.transport = Transport(usb=usb, logger=self.logger)
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
                        'timestamp': 0,
                        'transport': self.transport.status}
@@ -264,8 +266,8 @@ class Wacc(WaccBase):
     """
     API to the Stretch Wrist Accelerometer (Wacc) Board
     """
-    def __init__(self):
-        WaccBase.__init__(self)
+    def __init__(self, usb=None):
+        WaccBase.__init__(self, usb)
         #Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Wacc_Protocol_P0,), 'p1': (Wacc_Protocol_P1,Wacc_Protocol_P0,)}
 

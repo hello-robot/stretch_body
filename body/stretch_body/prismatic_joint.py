@@ -11,9 +11,11 @@ class PrismaticJoint(Device):
     """
     API to the Stretch Prismatic Joints
     """
-    def __init__(self,name):
+    def __init__(self,name,usb=None):
         Device.__init__(self,name )
-        self.motor = Stepper(usb='/dev/hello-motor-'+name)
+        if usb is None:
+            usb='/dev/hello-motor-'+name
+        self.motor = Stepper(usb=usb)
         self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
         self.trajectory = PrismaticTrajectory()
         self.thread_rate_hz = 5.0

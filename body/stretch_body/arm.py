@@ -11,8 +11,8 @@ class Arm(PrismaticJoint):
     """
     API to the Stretch Arm
     """
-    def __init__(self):
-        PrismaticJoint.__init__(self, 'arm')
+    def __init__(self,usb=None):
+        PrismaticJoint.__init__(self, name='arm',usb=usb)
 
     # ######### Utilties ##############################
 

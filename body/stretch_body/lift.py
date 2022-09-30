@@ -11,8 +11,8 @@ class Lift(PrismaticJoint):
     """
     API to the Stretch Lift
     """
-    def __init__(self):
-        PrismaticJoint.__init__(self, 'lift')
+    def __init__(self,usb=None):
+        PrismaticJoint.__init__(self, name='lift',usb=usb)
 
     # ######### Utilties ##############################
 
