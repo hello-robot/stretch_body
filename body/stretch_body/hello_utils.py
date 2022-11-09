@@ -6,6 +6,8 @@ import time
 import logging
 import numpy as np
 import sys
+import numbers
+
 
 def print_stretch_re_use():
     print("For use with S T R E T C H (R) RESEARCH EDITION from Hello Robot Inc.")
@@ -109,19 +111,37 @@ def write_fleet_yaml(fn,rp,fleet_dir=None,header=None):
 
 
 def overwrite_dict(overwritee_dict, overwriter_dict):
+    """Merge two dictionaries while overwriting common keys and
+    report errors when values of the same key differ in Python
+    type. The result gets stored in `overwritee_dict`.
+
+    Parameters
+    ----------
+    overwritee_dict : dict
+        The dictionary which will be overwritten. Use this as the merged result.
+    overwriter_dict : dict
+        The dictionary which will overwrite.
+
+    Returns
+    -------
+    bool
+        True if no mismatches were found during the overwrite, False otherwise.
+    """
+    no_mismatches = True
     for k in overwriter_dict.keys():
         if k in overwritee_dict:
-            if (type(overwritee_dict[k])==type(overwriter_dict[k])) or (type(overwritee_dict[k])==int and type(overwriter_dict[k])==float) or (type(overwritee_dict[k])==float and type(overwriter_dict[k])==int):
-                if type(overwritee_dict[k])==dict:
-                    overwrite_dict(overwritee_dict[k],overwriter_dict[k])
-                else:
-                    overwritee_dict[k]=overwriter_dict[k]
+            if (isinstance(overwritee_dict[k], dict) and isinstance(overwriter_dict[k], dict)):
+                sub_no_mismatches = overwrite_dict(overwritee_dict[k], overwriter_dict[k])
+                no_mismatches = no_mismatches and sub_no_mismatches
             else:
-                print('Overwritting Robot Params. Type mismatch for key:',k)
-                print('Overwriter',overwriter_dict[k])
-                print('Overwritee', overwritee_dict[k])
-        else: #If key not present, add anyhow (useful for adding new params)
+                if (type(overwritee_dict[k]) == type(overwriter_dict[k])) or (isinstance(overwritee_dict[k], numbers.Real) and isinstance(overwriter_dict[k], numbers.Real)):
+                    overwritee_dict[k] = overwriter_dict[k]
+                else:
+                    no_mismatches = False
+                    print('stretch_body.hello_utils.overwrite_dict ERROR: Type mismatch for key={0}, between overwritee={1} and overwriter={2}'.format(k, overwritee_dict[k], overwriter_dict[k]), file=sys.stderr)
+        else: #If key not present, add anyhow (useful for overlaying params)
             overwritee_dict[k] = overwriter_dict[k]
+    return no_mismatches
 
 def pretty_print_dict(title, d):
     """Print human readable representation of dictionary to terminal
@@ -470,7 +490,7 @@ def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,cont
         msg=msg+'For more details, see https://forum.hello-robot.com/t/476 \n'
         msg = msg + 'In method %s.%s' % (joint.name, method_name)
         print(msg)
-        joint.logger.warning(msg)
+        joint.logger.error(msg)
         sys.exit(1)
 
     #Check if code is passing in old values
@@ -480,7 +500,7 @@ def check_deprecated_contact_model_base(joint,method_name, contact_thresh_N,cont
         msg = msg +  'For more details, see https://forum.hello-robot.com/t/476\n'
         msg=msg+'In method %s.%s'%(joint.name,method_name)
         print(msg)
-        joint.logger.warning(msg)
+        joint.logger.error(msg)
         sys.exit(1)
 
 def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_thresh_pos_N,contact_thresh_neg_N,contact_thresh_pos,contact_thresh_neg ):
@@ -501,7 +521,7 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
         msg=msg+'For more details, see https://forum.hello-robot.com/t/476 \n'
         msg = msg + 'In method %s.%s' % (joint.name, method_name)
         print(msg)
-        joint.logger.warning(msg)
+        joint.logger.error(msg)
         sys.exit(1)
 
     #Check if code is passing in old values
@@ -511,7 +531,7 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
         msg = msg +  'For more details, see https://forum.hello-robot.com/t/476\n'
         msg=msg+'In method %s.%s'%(joint.name,method_name)
         print(msg)
-        joint.logger.warning(msg)
+        joint.logger.error(msg)
         sys.exit(1)
 
     #Check if code is passing in new values but not yet migrated
@@ -525,5 +545,5 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
             msg = msg + 'For more details, see https://forum.hello-robot.com/t/476 \n'
             msg=msg+'In method %s.%s'%(joint.name,method_name)
             print(msg)
-            joint.logger.warning(msg)
+            joint.logger.error(msg)
             sys.exit(1)
