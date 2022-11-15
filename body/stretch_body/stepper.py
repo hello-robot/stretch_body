@@ -480,12 +480,13 @@ class StepperBase(Device):
         enc_data=read_fleet_yaml(fn)
         return enc_data
 
-    def write_encoder_calibration_to_YAML(self,data):
+    def write_encoder_calibration_to_YAML(self,data,filename=None, fleet_dir=None):
         device_name = self.usb[5:]
-        sn = self.robot_params[device_name]['serial_no']
-        fn = 'calibration_steppers/'+device_name + '_' + sn + '.yaml'
-        print('Writing encoder calibration: %s'%fn)
-        write_fleet_yaml(fn,data)
+        if filename is None:
+            sn = self.robot_params[device_name]['serial_no']
+            fn = 'calibration_steppers/'+device_name + '_' + sn + '.yaml'
+        print('Writing encoder calibration: %s'%filename)
+        write_fleet_yaml(filename,data,fleet_dir=fleet_dir)
 
     def read_encoder_calibration_from_flash(self):
         self.turn_menu_interface_on()
@@ -570,7 +571,10 @@ class StepperBase(Device):
             while self.transport.ser.inWaiting():
                 r=self.transport.ser.readline()
                 if do_print:
-                    print(r, end=' ')
+                    if type(r)==bytes:
+                        print(r.decode('UTF-8'), end=' ')
+                    else:
+                        print(r, end=' ')
                 reply.append(r)
             return reply
 
@@ -1038,8 +1042,8 @@ class Stepper(StepperBase):
     """
     API to the Stretch Stepper Board
     """
-    def __init__(self,usb):
-        StepperBase.__init__(self,usb)
+    def __init__(self,usb, name=None):
+        StepperBase.__init__(self,usb,name)
         # Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Stepper_Protocol_P0,), 'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,)}
 

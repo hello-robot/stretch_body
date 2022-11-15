@@ -267,7 +267,7 @@ class Wacc(WaccBase):
     API to the Stretch Wrist Accelerometer (Wacc) Board
     """
     def __init__(self, usb=None):
-        WaccBase.__init__(self, usb)
+        WaccBase.__init__(self, usb=usb)
         #Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Wacc_Protocol_P0,), 'p1': (Wacc_Protocol_P1,Wacc_Protocol_P0,)}
 
