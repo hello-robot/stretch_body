@@ -111,8 +111,8 @@ class RobotCollision(Device):
         self.robot.head.motors['head_pan'].set_soft_motion_limit_min(x=target_limits['head_pan'][0],limit_type='collision')
         self.robot.head.motors['head_pan'].set_soft_motion_limit_max(x=target_limits['head_pan'][1],limit_type='collision')
         for j in self.robot.end_of_arm.joints:
-            self.robot.end_of_arm.motors[j].set_soft_motion_limit_min(x=target_limits['head_pan'][0],limit_type='collision')
-            self.robot.end_of_arm.motors[j].set_soft_motion_limit_max(x=target_limits['head_pan'][1],limit_type='collision')
+            self.robot.end_of_arm.motors[j].set_soft_motion_limit_min(x=target_limits[j][0],limit_type='collision')
+            self.robot.end_of_arm.motors[j].set_soft_motion_limit_max(x=target_limits[j][1],limit_type='collision')
 
 
 # #######################################################################
