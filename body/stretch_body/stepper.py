@@ -430,7 +430,7 @@ class StepperBase(Device):
     def current_to_effort_ticks(self,i_A):
         if self.board_info['hardware_id']==0: # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
-        if self.board_info['hardware_id']==1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+        if self.board_info['hardware_id']>=1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
         effort_ticks = (i_A * 1000.0) / mA_per_tick
         return min(255,max(-255,int(effort_ticks)))
@@ -438,7 +438,7 @@ class StepperBase(Device):
     def effort_ticks_to_current(self,e):
         if self.board_info['hardware_id'] == 0:  # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
-        if self.board_info['hardware_id'] == 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+        if self.board_info['hardware_id'] >= 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
         return e * mA_per_tick / 1000.0
 
