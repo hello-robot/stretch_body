@@ -428,7 +428,7 @@ nominal_params={
             'NonDXLStatusThread_sentry_downrate_int': 2,
             'NonDXLStatusThread_trajectory_downrate_int': 2},
         'tool': 'tool_stretch_gripper',
-        'use_collision_manager': 0,
+        'use_collision_manager': 1,
         'stow':{
         'arm': 0.0,
         'head_pan': 0.0,
