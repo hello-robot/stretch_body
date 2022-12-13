@@ -484,7 +484,7 @@ class StepperBase(Device):
         device_name = self.usb[5:]
         if filename is None:
             sn = self.robot_params[device_name]['serial_no']
-            fn = 'calibration_steppers/'+device_name + '_' + sn + '.yaml'
+            filename = 'calibration_steppers/'+device_name + '_' + sn + '.yaml'
         print('Writing encoder calibration: %s'%filename)
         write_fleet_yaml(filename,data,fleet_dir=fleet_dir)
 
