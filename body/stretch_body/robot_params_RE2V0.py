@@ -139,6 +139,7 @@ nominal_params={
         'warn_above_rate': 0.1,
         'verbose': 0},
     'end_of_arm':{
+        'usb_name': '/dev/hello-dynamixel-wrist',
         'devices':{
             'wrist_yaw':{
               'py_class_name': 'WristYaw',
@@ -149,6 +150,7 @@ nominal_params={
         'dxl_latency_timer': 64,
         'stow': {'wrist_yaw': 3.4}},
     'head':{
+        'usb_name': '/dev/hello-dynamixel-head',
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'dxl_latency_timer':64,

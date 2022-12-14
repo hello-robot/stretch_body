@@ -1,6 +1,7 @@
 from __future__ import print_function
 from stretch_body.dynamixel_X_chain import DynamixelXChain
 import importlib
+from stretch_body.robot_params import RobotParams
 
 class EndOfArm(DynamixelXChain):
     """
@@ -10,8 +11,10 @@ class EndOfArm(DynamixelXChain):
     simply deriving it from DynamixelHelloXL430 and declaring the class name / Python module name
     in the User YAML file
     """
-    def __init__(self, name='end_of_arm'):
-        DynamixelXChain.__init__(self, usb='/dev/hello-dynamixel-wrist', name=name)
+    def __init__(self, name='end_of_arm', usb=None):
+        if usb is None:
+            usb = RobotParams.get_params()[1]['end_of_arm']['usb_name']
+        DynamixelXChain.__init__(self, usb=usb, name=name)
         self.joints = self.params.get('devices', {}).keys()
         for j in self.joints:
             module_name = self.params['devices'][j]['py_module_name']

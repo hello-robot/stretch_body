@@ -2,13 +2,16 @@ from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.hello_utils import *
 from stretch_body.dynamixel_X_chain import DynamixelXChain
+from stretch_body.robot_params import RobotParams
 
 class Head(DynamixelXChain):
     """
     API to the Stretch RE1 Head
     """
-    def __init__(self):
-        DynamixelXChain.__init__(self, usb='/dev/hello-dynamixel-head', name='head')
+    def __init__(self, usb=None):
+        if usb is None:
+            usb = RobotParams.get_params()[1]['head']['usb_name']
+        DynamixelXChain.__init__(self, usb=usb, name='head')
         self.joints = ['head_pan', 'head_tilt']
         for j in self.joints:
             self.add_motor(DynamixelHelloXL430(name=j, chain=self))
