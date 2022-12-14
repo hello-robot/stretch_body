@@ -583,7 +583,9 @@ nominal_params={
         'use_multiturn': 1,
         'retry_on_comm_failure': 1,
         'enable_runstop': 1,
-        'disable_torque_on_stop': 1}
+        'disable_torque_on_stop': 1},
+    'respeaker': {'usb_name': '/dev/hello-respeaker'},
+    'lidar': {'usb_name': '/dev/hello-lrf'}
 }
 # ###################### OLDER: FACTORY PARAMS #####################################################
 #The deprecated factory params dictionary for RE1.0 (5.1.2022)

@@ -584,5 +584,7 @@ nominal_params={
         'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
-        'range_pad_t': [50.0, -50.0]}
+        'range_pad_t': [50.0, -50.0]},
+    'respeaker': {'usb_name': '/dev/hello-respeaker'},
+    'lidar': {'usb_name': '/dev/hello-lrf'}
 }
