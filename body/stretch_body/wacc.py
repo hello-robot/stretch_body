@@ -41,7 +41,7 @@ class WaccBase(Device):
         self._dirty_command = False
         self._command = {'d2':0,'d3':0, 'trigger':0}
         if usb is None:
-            usb='/dev/hello-wacc'
+            usb = self.params['usb_name']
         self.transport = Transport(usb=usb, logger=self.logger)
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
                        'timestamp': 0,

@@ -171,7 +171,7 @@ class PimuBase(Device):
         self.frame_id_last = None
         self.frame_id_base = 0
         if usb is None:
-            usb='/dev/hello-pimu'
+            usb = self.params['usb_name']
         self.transport = Transport(usb=usb, logger=self.logger)
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
