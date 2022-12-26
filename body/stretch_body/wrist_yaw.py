@@ -8,8 +8,8 @@ class WristYaw(DynamixelHelloXL430):
     """
     API to the Stretch wrist yaw joint
     """
-    def __init__(self, chain=None):
-        DynamixelHelloXL430.__init__(self, 'wrist_yaw', chain)
+    def __init__(self, chain=None, usb=None):
+        DynamixelHelloXL430.__init__(self, 'wrist_yaw', chain, usb)
         self.poses = {'side': deg_to_rad(90.0),
                       'forward': deg_to_rad(0.0),
                       'stow': deg_to_rad(180.0)}
