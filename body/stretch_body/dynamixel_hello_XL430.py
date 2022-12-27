@@ -53,7 +53,7 @@ class DynamixelHelloXL430(Device):
     """
     Abstract the Dynamixel X-Series to handle calibration, radians, etc
     """
-    def __init__(self, name, chain=None):
+    def __init__(self, name, chain=None, usb=None):
         Device.__init__(self, name)
         try:
             self.chain = chain
@@ -66,10 +66,13 @@ class DynamixelHelloXL430(Device):
             self._waypoint_ts = None
             self._waypoint_vel = self.params['motion']['trajectory_max']['vel_r']
             self._waypoint_accel = self.params['motion']['trajectory_max']['accel_r']
+            self.usb = usb
+            if self.usb is None:
+                self.usb = self.params['usb_name']
 
             #Share bus resource amongst many XL430s
             self.motor = DynamixelXL430(dxl_id=self.params['id'],
-                                        usb=self.params['usb_name'],
+                                        usb=self.usb,
                                         port_handler=None if chain is None else chain.port_handler,
                                         pt_lock=None if chain is None else chain.pt_lock,
                                         baud=self.params['baud'],

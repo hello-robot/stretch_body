@@ -3,6 +3,7 @@ from __future__ import print_function
 from rplidar import *
 import argparse
 import stretch_body.hello_utils as hu
+from stretch_body.device import Device
 hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Tool to control the RP-Lidar')
@@ -15,7 +16,9 @@ parser.add_argument("--range", help="Print range reading",action="store_true")
 args=parser.parse_args()
 
 try:
-    lidar = RPLidar('/dev/hello-lrf')
+    lidar_dev = Device('lidar')
+    lidar_usb = lidar_dev.params['usb_name']
+    lidar = RPLidar(lidar_usb)
 except RPLidarException:
     print ('RPLidar not present')
     exit()

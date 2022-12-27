@@ -12,10 +12,14 @@ class Base(Device):
     """
     API to the Stretch Mobile Base
     """
-    def __init__(self):
+    def __init__(self, usb_left=None, usb_right=None):
         Device.__init__(self, 'base')
-        self.left_wheel = Stepper(usb='/dev/hello-motor-left-wheel')
-        self.right_wheel = Stepper(usb='/dev/hello-motor-right-wheel')
+        if usb_left is None:
+            usb_left = self.params['usb_name_left_wheel']
+        if usb_right is None:
+            usb_right = self.params['usb_name_right_wheel']
+        self.left_wheel = Stepper(usb=usb_left, name='hello-motor-left-wheel')
+        self.right_wheel = Stepper(usb=usb_right, name='hello-motor-right-wheel')
         self.status = {'timestamp_pc':0,'x':0,'y':0,'theta':0,'x_vel':0,'y_vel':0,'theta_vel':0, 'pose_time_s':0,'effort': [0, 0], 'left_wheel': self.left_wheel.status, 'right_wheel': self.right_wheel.status, 'translation_force': 0, 'rotation_torque': 0}
         self.trajectory = DiffDriveTrajectory()
         self._waypoint_lwpos = None

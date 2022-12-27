@@ -98,8 +98,10 @@ class StepperBase(Device):
     TRIGGER_POS_CALIBRATED = 32
     TRIGGER_MARK_POS_ON_CONTACT=64
 
-    def __init__(self, usb):
-        Device.__init__(self, name=usb[5:])
+    def __init__(self, usb,name=None):
+        if name is None:
+            name=usb[5:] #Pull from usb device name
+        Device.__init__(self, name=name)
         self.usb=usb
         self.lock=threading.RLock()
         self.transport = Transport(usb=self.usb, logger=self.logger)
@@ -428,7 +430,7 @@ class StepperBase(Device):
     def current_to_effort_ticks(self,i_A):
         if self.board_info['hardware_id']==0: # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
-        if self.board_info['hardware_id']==1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+        if self.board_info['hardware_id']>=1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
         effort_ticks = (i_A * 1000.0) / mA_per_tick
         return min(255,max(-255,int(effort_ticks)))
@@ -436,7 +438,7 @@ class StepperBase(Device):
     def effort_ticks_to_current(self,e):
         if self.board_info['hardware_id'] == 0:  # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
-        if self.board_info['hardware_id'] == 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+        if self.board_info['hardware_id'] >= 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
         return e * mA_per_tick / 1000.0
 
@@ -478,12 +480,13 @@ class StepperBase(Device):
         enc_data=read_fleet_yaml(fn)
         return enc_data
 
-    def write_encoder_calibration_to_YAML(self,data):
+    def write_encoder_calibration_to_YAML(self,data,filename=None, fleet_dir=None):
         device_name = self.usb[5:]
-        sn = self.robot_params[device_name]['serial_no']
-        fn = 'calibration_steppers/'+device_name + '_' + sn + '.yaml'
-        print('Writing encoder calibration: %s'%fn)
-        write_fleet_yaml(fn,data)
+        if filename is None:
+            sn = self.robot_params[device_name]['serial_no']
+            filename = 'calibration_steppers/'+device_name + '_' + sn + '.yaml'
+        print('Writing encoder calibration: %s'%filename)
+        write_fleet_yaml(filename,data,fleet_dir=fleet_dir)
 
     def read_encoder_calibration_from_flash(self):
         self.turn_menu_interface_on()
@@ -568,7 +571,10 @@ class StepperBase(Device):
             while self.transport.ser.inWaiting():
                 r=self.transport.ser.readline()
                 if do_print:
-                    print(r, end=' ')
+                    if type(r)==bytes:
+                        print(r.decode('UTF-8'), end=' ')
+                    else:
+                        print(r, end=' ')
                 reply.append(r)
             return reply
 
@@ -1036,8 +1042,8 @@ class Stepper(StepperBase):
     """
     API to the Stretch Stepper Board
     """
-    def __init__(self,usb):
-        StepperBase.__init__(self,usb)
+    def __init__(self,usb, name=None):
+        StepperBase.__init__(self,usb,name)
         # Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Stepper_Protocol_P0,), 'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,)}
 

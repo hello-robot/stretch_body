@@ -75,6 +75,7 @@ configuration_params_template={
 #Parameters that are common across the RE1.0 fleet
 nominal_params={
     'arm':{
+        'usb_name': '/dev/hello-motor-arm',
         'chain_pitch': 0.0167,
         'chain_sprocket_teeth': 10,
         'gr_spur': 3.875,
@@ -100,6 +101,8 @@ nominal_params={
                 'vel_m': 0.3,
                 'accel_m': 0.5}}},
     'base':{
+        'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
+        'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
         'force_N_per_A': 21.18, #Legacy
         'gr': 3.4,
         'motion':{
@@ -144,6 +147,7 @@ nominal_params={
         'warn_above_rate': 0.1,
         'verbose': 0},
     'end_of_arm':{
+        'usb_name': '/dev/hello-dynamixel-wrist',
         'devices':{
             'wrist_yaw':{
               'py_class_name': 'WristYaw',
@@ -153,6 +157,7 @@ nominal_params={
         'dxl_latency_timer': 64,
         'stow': {'wrist_yaw': 3.4}},
     'head':{
+        'usb_name': '/dev/hello-dynamixel-head',
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'dxl_latency_timer':64},
@@ -378,6 +383,7 @@ nominal_params={
             'vel': 25},
         'rated_current': 2.8},
     'lift':{
+        'usb_name': '/dev/hello-motor-lift',
         'belt_pitch_m': 0.005,
         'contact_models': {
             'effort_pct': {
@@ -403,6 +409,7 @@ nominal_params={
                 'accel_m': 0.3}},
         'pinion_t': 12},
     'pimu':{
+      'usb_name': '/dev/hello-pimu',
       'base_fan_off': 70,
       'base_fan_on': 82,
       'max_sync_rate_hz':20.0,
@@ -532,6 +539,7 @@ nominal_params={
         },
         'collision_models': ['collision_stretch_gripper']},
     'wacc':{
+        'usb_name': '/dev/hello-wacc',
         'config': {
         'accel_LPF': 10.0,
         'accel_range_g': 4,
@@ -577,7 +585,9 @@ nominal_params={
         'use_multiturn': 1,
         'retry_on_comm_failure': 1,
         'enable_runstop': 1,
-        'disable_torque_on_stop': 1}
+        'disable_torque_on_stop': 1},
+    'respeaker': {'usb_name': '/dev/hello-respeaker'},
+    'lidar': {'usb_name': '/dev/hello-lrf'}
 }
 # ###################### OLDER: FACTORY PARAMS #####################################################
 #The deprecated factory params dictionary for RE1.0 (5.1.2022)
