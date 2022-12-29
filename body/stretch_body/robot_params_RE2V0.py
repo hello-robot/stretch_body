@@ -7,7 +7,7 @@ user_params_header='#User parameters\n' \
                    '#USE WITH CAUTION. IT IS POSSIBLE TO CAUSE UNSAFE BEHAVIOR OF THE ROBOT \n'
 
 user_params_template={
-    'robot': {'use_collision_manager': 1}} #Include this just as an example
+    'robot': {'use_collision_manager': 0}} #Include this just as an example
 
 # ###################### CONFIGURATION PARAMS #####################################################
 #Template for the generated file: stretch_configuration_params.yaml
@@ -435,7 +435,7 @@ nominal_params={
             'NonDXLStatusThread_sentry_downrate_int': 2,
             'NonDXLStatusThread_trajectory_downrate_int': 2},
         'tool': 'tool_stretch_gripper',
-        'use_collision_manager': 1,
+        'use_collision_manager': 0,
         'stow':{
         'arm': 0.0,
         'head_pan': 0.0,
