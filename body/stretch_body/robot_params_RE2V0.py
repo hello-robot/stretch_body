@@ -38,7 +38,7 @@ configuration_params_template={
         'range_t': [1775,3150],
         'zero_t': 2048},
     'hello-motor-arm':{'serial_no': 'NA'},
-    'hello-motor-lift':{'serial_no': 'NA'},
+    'hello-motor-lift':{'serial_no': 'NA','gains':{'i_safety_feedforward':1.2}},
     'hello-motor-left-wheel':{'serial_no': 'NA'},
     'hello-motor-right-wheel':{'serial_no': 'NA'},
     'pimu':{
