@@ -100,19 +100,19 @@ class Device:
     def write_device_params(self,device_name, params,fleet_dir=None):
         raise DeprecationWarning('This method has been deprecated since v0.3.0')
 
-    def write_configuration_param_to_YAML(self,param_name,value,fleet_dir=None):
+    def write_configuration_param_to_YAML(self,param_name,value,fleet_dir=None,force_creation=False):
         """
         Update the robot configuration YAML with a new value
         """
-        self._write_param_to_YAML(param_name,value,filename='stretch_configuration_params.yaml',fleet_dir=fleet_dir)
+        self._write_param_to_YAML(param_name,value,filename='stretch_configuration_params.yaml',fleet_dir=fleet_dir,force_creation=force_creation)
 
-    def write_user_param_to_YAML(self, param_name, value, fleet_dir=None):
+    def write_user_param_to_YAML(self, param_name, value, fleet_dir=None,force_creation=False):
         """
         Update the robot configuration YAML with a new value
         """
-        self._write_param_to_YAML(param_name, value, filename='stretch_user_params.yaml', fleet_dir=fleet_dir)
+        self._write_param_to_YAML(param_name, value, filename='stretch_user_params.yaml', fleet_dir=fleet_dir,force_creation=force_creation)
 
-    def _write_param_to_YAML(self,param_name,value,filename,fleet_dir=None):
+    def _write_param_to_YAML(self,param_name,value,filename,fleet_dir=None,force_creation=False):
         """
         Update the YAML with a new value
         The param_name has the form device.key, or for a nested dictionary, device.key1.key2...
@@ -128,7 +128,14 @@ class Device:
                 else:
                     d = d[param_key]
             else:
-                print('Improper param_name in _write_param_to_YAML. Not able to update %s' % param_name)
+                if force_creation:
+                    if param_key == param_keys[-1]:
+                        d[param_key] = value
+                    else:
+                        d[param_key] = {}
+                        d=d[param_key]
+                else:
+                    print('Improper param_name in _write_param_to_YAML. Not able to update %s' % param_name)
         hello_utils.write_fleet_yaml(filename, cp, fleet_dir=fleet_dir)
 
     # ########### Thread interface #############
