@@ -9,11 +9,6 @@ The stretch_body repository includes Python packages that allow a developer to i
 | hello-robot-stretch-body       | Python library to interface with Stretch   |
 | hello-robot-stretch-body-tools | Useful commandline tools for using Stretch |
 
-Python2 version of packages can be installed by:
-```
-pip2 install -U hello-robot-stretch-body
-pip2 install -U hello-robot-stretch-body-tools
-```
 Python3 version of packages can be installed by:
 
 ```
