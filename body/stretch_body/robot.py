@@ -223,7 +223,16 @@ class Robot(Device):
             self.lift.push_command()
             self.pimu.push_command()
             self.wacc.push_command()
-            self.pimu.trigger_motor_sync()
+
+            #Check if need to do a motor sync by looking at if there's been a pimu sync signal sent
+            #since the last stepper.set_command for each joint
+            do_sync=(self.pimu.ts_last_motor_sync is not None) and (
+                    self.arm.motor.ts_last_syncd_motion>self.pimu.ts_last_motor_sync
+                    or self.lift.motor.ts_last_syncd_motion>self.pimu.ts_last_motor_sync
+                    or self.base.right_wheel.ts_last_syncd_motion>self.pimu.ts_last_motor_sync
+                    or self.base.left_wheel.ts_last_syncd_motion>self.pimu.ts_last_motor_sync)
+            if  self.pimu.ts_last_motor_sync is None or do_sync:
+                self.pimu.trigger_motor_sync()
 
     # ######### Waypoint Trajectory Interface ##############################
 

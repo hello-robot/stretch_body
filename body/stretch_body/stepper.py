@@ -123,6 +123,8 @@ class StepperBase(Device):
         self._waypoint_traj_set_next_error_msg = ""
         self._waypoint_ts = None
 
+        self.ts_last_syncd_motion=0
+
         self._dirty_command = False
         self._dirty_gains = False
         self._dirty_trigger = False
@@ -188,6 +190,10 @@ class StepperBase(Device):
                 self._dirty_gains=False
 
             if self._dirty_command:
+                if self.status['in_sync_mode']: #Mark the time of latest new motion command sent
+                    self.ts_last_syncd_motion=time.time()
+                else:
+                    self.ts_last_syncd_motion = 0
                 self.transport.payload_out[0] = self.RPC_SET_COMMAND
                 sidx = self.pack_command(self.transport.payload_out, 1)
                 self.transport.queue_rpc2(sidx, self.rpc_command_reply)
