@@ -590,6 +590,14 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_MOVING_STATUS', dxl_comm_result, dxl_error)
         return p
 
+    def get_moving(self):
+        if not self.hw_valid:
+            return
+        with self.pt_lock:
+            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING)
+        self.handle_comm_result('XL430_ADDR_MOVING', dxl_comm_result, dxl_error)
+        return p
+
     def get_load(self):
         if not self.hw_valid:
             return 0
