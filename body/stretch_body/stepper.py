@@ -110,8 +110,9 @@ class StepperBase(Device):
         self.status = {'mode': 0, 'effort_ticks': 0, 'effort_pct':0,'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
-                       'in_safety_event':0,'waiting_on_sync':0,
+                       'in_safety_event':0,'waiting_on_sync':0,'in_sync_mode':0,
                        'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,}}
+
         self.board_info={'board_variant':None, 'firmware_version':None,'protocol_version':None,'hardware_id':0}
         self.motion_limits=[0,0]
         self.is_moving_history = [False] * 10
@@ -496,6 +497,7 @@ class StepperBase(Device):
 
     def read_encoder_calibration_from_flash(self):
         self.turn_menu_interface_on()
+        time.sleep(0.5)
         time.sleep(0.5)
         self.logger.debug('Reading encoder calibration...')
         e = self.menu_transaction(b'q',do_print=False)[19]

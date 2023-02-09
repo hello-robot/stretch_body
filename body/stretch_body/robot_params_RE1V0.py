@@ -81,7 +81,7 @@ nominal_params={
         'gr_spur': 3.875,
         'i_feedforward': 0,
         'force_N_per_A': 55.9, #Legacy
-        'calibration_range_bounds': [0.515, 0.525],
+        'calibration_range_bounds': [0.514, 0.525],
         'contact_models':{
             'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{

@@ -25,7 +25,7 @@ nominal_system_params={
                     "class": "logging.FileHandler",
                     "level": "DEBUG",
                     "formatter": "default_file_formatter",
-                    "filename": hello_utils.get_stretch_directory('log/') + 'stretchbody_{0}.log'.format(
+                    "filename": hello_utils.get_stretch_directory('log/stretch_body_logger/') + 'stretchbody_{0}.log'.format(
                         hello_utils.create_time_string())
                 }
             },
