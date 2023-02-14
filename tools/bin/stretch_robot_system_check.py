@@ -22,6 +22,13 @@ def val_in_range(val_name, val,vmin, vmax):
     else:
         print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val)+ ' out of range ' +str(vmin) + ' to ' + str(vmax))
 
+def val_in_range_warn(val_name, val,vmin, vmax, hint=""):
+    p=val <=vmax and val>=vmin
+    if p:
+        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
+    else:
+        print(Fore.YELLOW +'[Warn] ' + val_name + ' = ' +str(val)+ ' out of range ' +str(vmin) + ' to ' + str(vmax) + hint)
+
 def val_is_not(val_name, val,vnot):
     if val is not vnot:
         print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
@@ -59,10 +66,10 @@ if robot_devices['hello-pimu']:
     val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
     val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert'])
     val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40)
-    val_in_range('Cliff-0',p.status['cliff_range'][0], vmin=p.config['cliff_thresh'], vmax=60)
-    val_in_range('Cliff-1',p.status['cliff_range'][1], vmin=p.config['cliff_thresh'], vmax=60)
-    val_in_range('Cliff-2',p.status['cliff_range'][2], vmin=p.config['cliff_thresh'], vmax=60)
-    val_in_range('Cliff-3',p.status['cliff_range'][3], vmin=p.config['cliff_thresh'], vmax=60)
+    val_in_range_warn('Cliff-0',p.status['cliff_range'][0], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
+    val_in_range_warn('Cliff-1',p.status['cliff_range'][1], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
+    val_in_range_warn('Cliff-2',p.status['cliff_range'][2], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
+    val_in_range_warn('Cliff-3',p.status['cliff_range'][3], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
     val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5)
     val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12)
     val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12)
