@@ -61,13 +61,13 @@ if args.speed:
     data = []
     try:
         print('Press Ctrl+C to stop')
-        for _ in lidar.iter_scans():
+        for i, scan in enumerate(lidar.iter_scans()):
             now = time.time()
             if old_t is None:
                 old_t = now
                 continue
             delta = now - old_t
-            print('%.2f Hz, %.2f RPM' % (1/delta, 60/delta))
+            print('%.2f Hz, Scan len %d' % (1/delta, len(scan)))
             data.append(delta)
             old_t = now
     except KeyboardInterrupt:
