@@ -19,7 +19,6 @@ parser.add_argument("--speed", help="Measure the sampling speed",action="store_t
 args=parser.parse_args()
 
 
-
 try:
     lidar_dev = Device('lidar')
     lidar_usb = lidar_dev.params['usb_name']
@@ -61,13 +60,13 @@ if args.speed:
     data = []
     try:
         print('Press Ctrl+C to stop')
-        for i, scan in enumerate(lidar.iter_scans()):
+        for i, scan in enumerate(lidar.iter_scans(scan_type='express')):
             now = time.time()
             if old_t is None:
                 old_t = now
                 continue
             delta = now - old_t
-            print('%.2f Hz, Scan len %d' % (1/delta, len(scan)))
+            print('Points-per-sec: %.2f Rate: %.2f Hz, Scan len %d' % (len(scan)/delta, 1/delta, len(scan)))
             data.append(delta)
             old_t = now
     except KeyboardInterrupt:
