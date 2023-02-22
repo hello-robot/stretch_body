@@ -23,7 +23,6 @@ class RobotTrace(Device):
         self.time_string=hu.create_time_string()
         self.file_cnt=0
         self.n_samples=0
-        self.ts_last=time.time()
         samples_per_minute=60*self.robot.params['rates']['NonDXLStatusThread_Hz']/self.robot.params['rates']['NonDXLStatusThread_trace_downrate_int']
         files_per_minute= samples_per_minute/self.params['n_samples_per_file']
         self.trace_files_max = self.params['duration_limit_minutes']*files_per_minute
@@ -77,23 +76,28 @@ class RobotTrace(Device):
 
     def step(self):
         """Write trace of sensor values to YAML file"""
-        self.ts_last=time.time()
+        ts = time.time()
         if self.fh is None:
             fn = self.path + '/trace_' + hu.get_fleet_id() + '_' +self.time_string+'_'+'%05d'%self.file_cnt+'.yaml'
             self.logger.debug('Creating trace: %s'%fn)
             self.fh = open(fn, 'w+')
-        ts=time.time()
+
         self.fh.write('###\n')
         data={'trace_%04d'%self.n_samples:self.get_trace()}
         yaml.dump(data, self.fh, encoding='utf-8', default_flow_style=False, Dumper=Dumper) #Use C YAML dumper for 5x speed increase over Python
         self.n_samples=self.n_samples+1
-        self.write_time.append(time.time()-ts)
+
+
         if self.n_samples==self.params['n_samples_per_file']:
+            #avg=sum(self.write_time)/len(self.write_time)
+            #print('Average write time (ms): %f'%(avg*1000))
             self.fh.close()
             self.file_cnt = self.file_cnt+1
             self.fh=None
             self.n_samples=0
             self.cleanup()
+
+        self.write_time.append(time.time() - ts)
 
     def cleanup(self):
         """
