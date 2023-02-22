@@ -431,7 +431,7 @@ nominal_params={
             'DXLStatusThread_Hz': 15.0,
             'NonDXLStatusThread_Hz': 25.0,
             'NonDXLStatusThread_monitor_downrate_int': 5,
-            'NonDXLStatusThread_trace_downrate_int': 5,
+            'NonDXLStatusThread_trace_downrate_int': 2,
             'NonDXLStatusThread_collision_downrate_int': 5,
             'NonDXLStatusThread_sentry_downrate_int': 2,
             'NonDXLStatusThread_trajectory_downrate_int': 2},
@@ -468,7 +468,8 @@ nominal_params={
         'wrist_yaw_overload': 1,
         'stepper_is_moving_filter': 1},
     'robot_trace':{
-        'n_samples_per_file':1000
+        'n_samples_per_file':100,
+        'duration_limit_minutes':120.0
     },
     'stretch_gripper':{
         'range_pad_t': [100.0, -100.0],

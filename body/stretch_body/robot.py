@@ -97,6 +97,7 @@ class NonDXLStatusThread(threading.Thread):
             self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
                 time.sleep(self.stats.get_loop_sleep_time())
+            self.titr=self.titr+1
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
 
 
