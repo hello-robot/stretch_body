@@ -338,7 +338,7 @@ class DynamixelHelloXL430(Device):
         """
         ts = time.time()
         while time.time() - ts < timeout:
-            if  self.motor.get_moving_status()& 2 == 2:
+            if  self.motor.get_moving_status()& 1 == 1:
                 return True
             time.sleep(0.1)
         return False
