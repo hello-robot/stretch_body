@@ -718,7 +718,7 @@ class DiffDriveTrajectory(Spline):
             dtheta = self.waypoints[i].pose[2] - self.waypoints[i-1].pose[2]
             if not np.isclose(dy, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
                 return False, 'DiffDriveTrajectory does not support motion in Y direction: \n%s'%str(self.waypoints[i])
-            if not np.isclose(dx, 0.0, atol=WAYPOINT_ISCLOSE_ATOL) or not np.isclose(dtheta, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
+            if (not np.isclose(dx, 0.0, atol=WAYPOINT_ISCLOSE_ATOL)) and (not np.isclose(dtheta, 0.0, atol=WAYPOINT_ISCLOSE_ATOL)):
                 return False, 'DiffDriveTrajectory waypoint cannot both translate and rotate: \n%s'%str(self.waypoints[i])
 
         return True, ""
