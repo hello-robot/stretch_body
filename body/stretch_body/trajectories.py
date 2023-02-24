@@ -674,6 +674,7 @@ class DiffDriveTrajectory(Spline):
             whether the segment is valid, and error message if not
         """
         # only check if valid if there are enough waypoints
+
         if len(self.waypoints) < 2:
             return True, "must have at least two waypoints"
 
@@ -709,5 +710,15 @@ class DiffDriveTrajectory(Spline):
             success, v_max, a_max =hu.is_segment_feasible(rs.to_array(), v_des, a_des)
             if not success:
                 return False, "right wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
+
+        # verify that either x or theta is zero (translate or rotate only at a time)
+        for i in range(1,len(self.waypoints)):
+            dx=self.waypoints[i].pose[0]-self.waypoints[i-1].pose[0]
+            dy = self.waypoints[i].pose[1] - self.waypoints[i-1].pose[1]
+            dtheta = self.waypoints[i].pose[2] - self.waypoints[i-1].pose[2]
+            if not np.isclose(dy, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
+                return False, 'DiffDriveTrajectory does not support motion in Y direction: \n%s'%str(self.waypoints[i])
+            if not np.isclose(dx, 0.0, atol=WAYPOINT_ISCLOSE_ATOL) or not np.isclose(dtheta, 0.0, atol=WAYPOINT_ISCLOSE_ATOL):
+                return False, 'DiffDriveTrajectory waypoint cannot both translate and rotate: \n%s'%str(self.waypoints[i])
 
         return True, ""

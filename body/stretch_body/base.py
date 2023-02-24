@@ -38,9 +38,11 @@ class Base(Device):
     # ###########  Device Methods #############
 
     def startup(self, threaded=True):
-        Device.startup(self, threaded=threaded)
-        success=self.left_wheel.startup(threaded=False) and self.right_wheel.startup(threaded=False)
-        self.__update_status()
+        #Startup steppers first so that status is populated before this Device thread begins (if threaded==true)
+        success = self.left_wheel.startup(threaded=False) and self.right_wheel.startup(threaded=False)
+        if success:
+            Device.startup(self, threaded=threaded)
+            self.__update_status()
         return success
 
     def _thread_loop(self):
@@ -421,6 +423,12 @@ class Base(Device):
         return self.left_wheel.start_waypoint_trajectory(ls0.to_array()) and \
             self.right_wheel.start_waypoint_trajectory(rs0.to_array())
 
+    def reset_odometry(self):
+        """
+        Reset X/Y/Theta to report 0
+        """
+        self.first_step = True
+
     def is_trajectory_active(self):
         return (self.left_wheel.status['waypoint_traj']['state'] == 'active' or self.right_wheel.status['waypoint_traj']['state'] == 'active')
 
@@ -523,8 +531,8 @@ class Base(Device):
         self.__update_status()
 
     def __update_status(self):
-        self.status['timestamp_pc'] = time.time()
 
+        self.status['timestamp_pc'] = time.time()
         p0 = self.status['left_wheel']['pos']
         p1 = self.status['right_wheel']['pos']
         t0 = self.status['left_wheel']['timestamp']
