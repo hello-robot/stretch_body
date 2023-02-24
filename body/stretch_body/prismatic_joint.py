@@ -38,9 +38,11 @@ class PrismaticJoint(Device):
 
     # ###########  Device Methods #############
     def startup(self, threaded=True):
-        Device.startup(self, threaded=threaded)
-        success= self.motor.startup(threaded=False)
-        self.__update_status()
+        # Startup stepper first so that status is populated before this Device thread begins (if threaded==true)
+        success = self.motor.startup(threaded=False)
+        if success:
+            Device.startup(self, threaded=threaded)
+            self.__update_status()
         return success
 
     def stop(self):

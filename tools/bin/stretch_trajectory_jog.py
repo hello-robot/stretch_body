@@ -202,9 +202,6 @@ if args.base_translate or args.base_rotate:
     import stretch_body.base
     j = stretch_body.base.Base()
     j.startup(threaded=True)
-    j_req_calibration = False
-    j.first_step = True #Reset odometry
-    j.pull_status()
     j.right_wheel.disable_sync_mode()
     j.left_wheel.disable_sync_mode()
     j.push_command()
