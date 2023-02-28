@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from stretch_body.dynamixel_XL430 import *
 import argparse
 import stretch_body.hello_utils as hu
+import stretch_body.robot
+
 hu.print_stretch_re_use()
+
 
 parser=argparse.ArgumentParser(description='Reboot all Dynamixel servos on robot')
 args=parser.parse_args()
 
-print('---- Rebooting Head ---- ')
-for id in range(25):
-    m = DynamixelXL430(id, '/dev/hello-dynamixel-head')
-    m.startup()
-    if (m.do_ping(verbose=False)):
-        m.do_reboot()
-    else:
-        m.stop()
+r=stretch_body.robot.Robot()
+r.startup()
 
-print('---- Rebooting Wrist ---- ')
-for id in range(25):
-    m = DynamixelXL430(id, '/dev/hello-dynamixel-wrist')
-    m.startup()
-    if (m.do_ping(verbose=False)):
-        m.do_reboot()
-    else:
-        m.stop()
+for j in ['head_pan','head_tilt']:
+    if r.head.motors[j].motor.do_ping(verbose=False):
+        print('Rebooting: %s'%j)
+        r.head.motors[j].motor.do_reboot()
+
+for j in r.end_of_arm.joints:
+    if r.end_of_arm.get_motor(j).motor.do_ping(verbose=False):
+        print('Rebooting: %s' % j)
+        r.end_of_arm.get_motor(j).motor.do_reboot()
+
+print('')
+print('Dynamixel servo reboot complete. You will need to re-home servos now.')

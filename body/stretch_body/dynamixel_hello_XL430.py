@@ -95,6 +95,7 @@ class DynamixelHelloXL430(Device):
             self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
             self.v_des = None #Track the motion profile settings on servo
             self.a_des = None #Track the motion profile settings on servo
+            self.warn_error=False
         except KeyError:
             self.motor=None
 
@@ -261,6 +262,16 @@ class DynamixelHelloXL430(Device):
 
                 self.status_mux_id = (self.status_mux_id + 1) % 3
 
+                if self.status['overload_error'] and not self.warn_error:
+                    msg='WARNING: Servo %s in error state: overload_error. Servo requires reboot'%self.name
+                    print(msg)
+                    self.logger.warning(msg)
+                    self.warn_error=True
+                if self.status['overheating_error'] and not self.warn_error:
+                    msg='WARNING: Servo %s in error state: overheating_error. Servo requires reboot'%self.name
+                    print(msg)
+                    self.logger.warning(msg)
+                    self.warn_error = True
 
                 if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
                     raise DynamixelCommError
