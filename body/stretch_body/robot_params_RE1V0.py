@@ -81,7 +81,7 @@ nominal_params={
         'gr_spur': 3.875,
         'i_feedforward': 0,
         'force_N_per_A': 55.9, #Legacy
-        'calibration_range_bounds': [0.515, 0.525],
+        'calibration_range_bounds': [0.514, 0.525],
         'contact_models':{
             'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{
@@ -434,6 +434,7 @@ nominal_params={
             'DXLStatusThread_Hz': 15.0,
             'NonDXLStatusThread_Hz': 25.0,
             'NonDXLStatusThread_monitor_downrate_int': 5,
+            'NonDXLStatusThread_trace_downrate_int': 2,
             'NonDXLStatusThread_collision_downrate_int': 5,
             'NonDXLStatusThread_sentry_downrate_int': 2,
             'NonDXLStatusThread_trajectory_downrate_int': 2},
@@ -447,6 +448,7 @@ nominal_params={
         'stretch_gripper': 0,
         'wrist_yaw': 3.4},
         'use_monitor': 1,
+        'use_trace': 0,
         'use_sentry': 1},
     'robot_collision': {
         'models': ['collision_arm_camera']
@@ -461,6 +463,10 @@ nominal_params={
         'monitor_runstop': 1,
         'monitor_voltage': 1,
         'monitor_wrist_single_tap': 1},
+    'robot_trace':{
+        'n_samples_per_file':100,
+        'duration_limit_minutes':10.0
+    },
     'robot_sentry':{
         'base_fan_control': 1,
         'base_max_velocity': 1,

@@ -5,6 +5,7 @@ import time
 import logging, logging.config
 import threading
 import sys
+import os
 
 class DeviceTimestamp:
     def __init__(self):
@@ -26,6 +27,7 @@ class DeviceTimestamp:
 
 class Device:
     logging_params = RobotParams.get_params()[1]['logging']
+    os.system('mkdir -p '+hello_utils.get_stretch_directory("/log/stretch_body_logger")) #Some robots may not have this directory yet
     logging.config.dictConfig(logging_params)
     """
     Generic base class for all custom Stretch hardware

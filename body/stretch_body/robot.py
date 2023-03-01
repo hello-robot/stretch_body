@@ -16,6 +16,7 @@ import stretch_body.hello_utils as hello_utils
 from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
+from stretch_body.robot_trace import RobotTrace
 from stretch_body.robot_collision import RobotCollision
 
 
@@ -56,6 +57,7 @@ class NonDXLStatusThread(threading.Thread):
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
         self.monitor_downrate_int = int(robot.params['rates']['NonDXLStatusThread_monitor_downrate_int'])  # Step the monitor at every Nth iteration
+        self.trace_downrate_int = int(robot.params['rates']['NonDXLStatusThread_trace_downrate_int'])  # Step the trace at every Nth iteration
         self.collision_downrate_int = int(robot.params['rates']['NonDXLStatusThread_collision_downrate_int']) # Step the monitor at every Nth iteration
         self.sentry_downrate_int = int(robot.params['rates']['NonDXLStatusThread_sentry_downrate_int']) # Step the sentry at every Nth iteration
         self.trajectory_downrate_int = int(robot.params['rates']['NonDXLStatusThread_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
@@ -77,6 +79,10 @@ class NonDXLStatusThread(threading.Thread):
             if self.robot.params['use_monitor']:
                 if (self.titr % self.monitor_downrate_int) == 0:
                     self.robot.monitor.step()
+
+            if self.robot.params['use_trace']:
+                if (self.titr % self.trace_downrate_int) == 0:
+                    self.robot.trace.step()
 
             if self.robot.params['use_collision_manager'] and self.robot.is_calibrated():
                     self.robot.collision.step()
@@ -102,6 +108,7 @@ class Robot(Device):
     def __init__(self):
         Device.__init__(self, 'robot')
         self.monitor = RobotMonitor(self)
+        self.trace = RobotTrace(self)
         self.collision = RobotCollision(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
