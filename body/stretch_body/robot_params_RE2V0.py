@@ -445,7 +445,7 @@ nominal_params={
         'stretch_gripper': 0,
         'wrist_yaw': 3.4},
         'use_monitor': 1,
-        'use_trace': 1,
+        'use_trace': 0,
         'use_sentry': 1},
     'robot_collision': {
         'models': ['collision_arm_camera']
@@ -469,7 +469,7 @@ nominal_params={
         'stepper_is_moving_filter': 1},
     'robot_trace':{
         'n_samples_per_file':100,
-        'duration_limit_minutes':120.0
+        'duration_limit_minutes':10.0
     },
     'stretch_gripper':{
         'range_pad_t': [100.0, -100.0],
