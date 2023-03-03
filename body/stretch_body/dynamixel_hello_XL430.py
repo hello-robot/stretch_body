@@ -189,7 +189,24 @@ class DynamixelHelloXL430(Device):
                 self.is_calibrated=self.motor.is_calibrated()
                 self.check_homing_offset()
                 self.enable_torque()
+                #Pull 3 times given mux / init the status dict
                 self.pull_status()
+                self.pull_status()
+                self.pull_status()
+
+                if self.status['overload_error']:
+                    msg='WARNING: Servo %s in error state: overload_error. Servo requires reboot'%self.name
+                    print(msg)
+                    self.logger.warning(msg)
+                    self.hw_valid = False
+                    return False
+
+                if self.status['overheating_error'] :
+                    msg='WARNING: Servo %s in error state: overheating_error. Servo requires reboot'%self.name
+                    print(msg)
+                    self.logger.warning(msg)
+                    self.hw_valid = False
+                    return False
                 return True
             else:
                 self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
