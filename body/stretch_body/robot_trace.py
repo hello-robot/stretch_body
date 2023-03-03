@@ -18,7 +18,10 @@ class RobotTrace(Device):
         self.robot=robot
         self.write_time=[]
         self.path=hu.get_stretch_directory()+'log/trace'
-        makedirs(self.path, exist_ok=True)
+        try:
+            makedirs(self.path)
+        except OSError:
+            pass #Exists
         self.fh=None
         self.time_string=hu.create_time_string()
         self.file_cnt=0
