@@ -115,7 +115,7 @@ class RobotMonitor(Device):
                 for k in c.motors.keys():
                     for e in errs:
                         if c.motors[k].status[e] and not self.monitor_history[mn][c.name][k][e]:
-                            self.logger.info("Dynamixel %s on %s:%s"%(e,c.name,k))
+                            self.logger.warn("Dynamixel %s on %s:%s"%(e,c.name,k))
                         self.monitor_history[mn][c.name][k][e] = c.motors[k].status[e]
 
     # ##################################

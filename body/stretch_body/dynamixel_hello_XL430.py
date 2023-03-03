@@ -160,6 +160,20 @@ class DynamixelHelloXL430(Device):
     def do_ping(self, verbose=False):
         return self.motor.do_ping(verbose)
 
+    def check_servo_errors(self):
+        if self.status['overload_error']:
+            msg = 'WARNING: Servo %s in error state: overload_error. Reboot servo with stretch_robot_dynamixel_reboot.py' % self.name
+            self.logger.warning(msg)
+            self.warn_error = True
+            return False
+
+        if self.status['overheating_error']:
+            msg = 'WARNING: Servo %s in error state: overheating_error. Reboot servo with stretch_robot_dynamixel_reboot.py' % self.name
+            self.logger.warning(msg)
+            self.warn_error=True
+            return False
+        return True
+
     def startup(self, threaded=False):
         if self.motor is None:
             return False
@@ -194,19 +208,11 @@ class DynamixelHelloXL430(Device):
                 self.pull_status()
                 self.pull_status()
 
-                if self.status['overload_error']:
-                    msg='WARNING: Servo %s in error state: overload_error. Servo requires reboot'%self.name
-                    print(msg)
-                    self.logger.warning(msg)
+                if not self.check_servo_errors():
+
                     self.hw_valid = False
                     return False
 
-                if self.status['overheating_error'] :
-                    msg='WARNING: Servo %s in error state: overheating_error. Servo requires reboot'%self.name
-                    print(msg)
-                    self.logger.warning(msg)
-                    self.hw_valid = False
-                    return False
                 return True
             else:
                 self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
@@ -279,16 +285,7 @@ class DynamixelHelloXL430(Device):
 
                 self.status_mux_id = (self.status_mux_id + 1) % 3
 
-                if self.status['overload_error'] and not self.warn_error:
-                    msg='WARNING: Servo %s in error state: overload_error. Servo requires reboot'%self.name
-                    print(msg)
-                    self.logger.warning(msg)
-                    self.warn_error=True
-                if self.status['overheating_error'] and not self.warn_error:
-                    msg='WARNING: Servo %s in error state: overheating_error. Servo requires reboot'%self.name
-                    print(msg)
-                    self.logger.warning(msg)
-                    self.warn_error = True
+                self.check_servo_errors()
 
                 if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
                     raise DynamixelCommError
@@ -761,7 +758,8 @@ class DynamixelHelloXL430(Device):
             return False, None
 
         self.pull_status()
-        if self.status['overload_error'] or self.status['overheating_error']:
+
+        if not self.check_servo_errors():
             self.logger.warning('Hardware error, unable to home. Exiting')
             return False, None
 
@@ -781,7 +779,8 @@ class DynamixelHelloXL430(Device):
         if timeout:
             self.logger.warning('Timed out moving to first hardstop. Exiting.')
             return False, None
-        if self.status['overload_error'] or self.status['overheating_error']:
+
+        if not self.check_servo_errors():
             self.logger.warning('Hardware error, unable to home. Exiting')
             return False, None
 
@@ -826,7 +825,8 @@ class DynamixelHelloXL430(Device):
             if timeout:
                 self.logger.warning('Timed out moving to second hardstop. Exiting.')
                 return False, None
-            if self.status['overload_error'] or self.status['overheating_error']:
+
+            if not self.check_servo_errors():
                 self.logger.warning('Hardware error, unable to home. Exiting')
                 return False, None
 
