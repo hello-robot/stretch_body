@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 import stretch_body.xbox_controller as xc
 import stretch_body.robot as rb
@@ -6,7 +6,7 @@ from stretch_body.hello_utils import *
 import os
 import time
 import argparse
-
+import stretch_body.scope
 print_stretch_re_use()
 
 parser = argparse.ArgumentParser(description=
@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(description=
                                  formatter_class=argparse.RawTextHelpFormatter)
 
 args = parser.parse_args()
-
+s1=stretch_body.scope.Scope(num_points=100)
 
 class CommandToLinearMotion():
     def __init__(self, command_dead_zone_value, move_duration_s, max_distance_m, accel_m):
@@ -218,6 +218,11 @@ def manage_base(robot, controller_state):
             else:
                 d_m, v_m, a_m = fast_command_to_linear_motion.get_dist_vel_accel(output_sign, forward_command)
             robot.base.translate_by(d_m, v_m, a_m)
+            #print('Pos', rad_to_deg(robot.base.right_wheel.status['pos']),rad_to_deg(robot.base.left_wheel.status['pos']))
+            xl = robot.base.left_wheel.status['debug']
+            xr = robot.base.right_wheel.status['debug']
+            print('Triggered. Left at: %f  Right at %f. Diff of %f (deg)' % (xl, xr, xl - xr))
+            s1.step_display(xl - xr)
     else:
         if abs(turn_command) > dead_zone:
             output_sign = -math.copysign(1, turn_command)
@@ -226,6 +231,7 @@ def manage_base(robot, controller_state):
             else:
                 d_rad, v_rad, a_rad = fast_command_to_rotary_motion.get_dist_vel_accel(output_sign, turn_command)
             robot.base.rotate_by(d_rad, v_rad, a_rad)
+            print('ROTATE!!!')
 
 
 # ######################### LIFT & ARM  ########################################
