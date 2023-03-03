@@ -11,7 +11,7 @@ stretch_scripts=[f for f in ex_scripts if isfile(f)]
 
 setuptools.setup(
     name="hello_robot_stretch_body_tools",
-    version="0.4.13",
+    version="0.4.14",
     author="Hello Robot Inc",
     author_email="support@hello-robot.com",
     description="Stretch Body Tools",
