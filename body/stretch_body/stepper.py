@@ -88,6 +88,7 @@ class StepperBase(Device):
     CONFIG_ENABLE_GUARDED_MODE = 8  # Stops on current threshold
     CONFIG_FLIP_ENCODER_POLARITY = 16
     CONFIG_FLIP_EFFORT_POLARITY = 32
+    CONFIG_ENABLE_VEL_WATCHDOG = 64 #Timeout velocity commands
 
 
     TRIGGER_MARK_POS = 1
@@ -647,6 +648,7 @@ class StepperBase(Device):
             self.gains_flash['enable_guarded_mode'] = int(config & self.CONFIG_ENABLE_GUARDED_MODE > 0)
             self.gains_flash['flip_encoder_polarity'] = int(config & self.CONFIG_FLIP_ENCODER_POLARITY > 0)
             self.gains_flash['flip_effort_polarity'] = int(config & self.CONFIG_FLIP_EFFORT_POLARITY > 0)
+            self.gains_flash['enable_vel_watchdog'] = int(config & self.CONFIG_ENABLE_VEL_WATCHDOG > 0)
             return sidx
 
     def pack_motion_limits(self,s,sidx):
@@ -714,6 +716,8 @@ class StepperBase(Device):
                 config = config | self.CONFIG_FLIP_ENCODER_POLARITY
             if self.gains['flip_effort_polarity']:
                 config = config | self.CONFIG_FLIP_EFFORT_POLARITY
+            if self.gains['enable_vel_watchdog']:
+                config=config | self.CONFIG_ENABLE_VEL_WATCHDOG
             pack_uint8_t(s, sidx, config); sidx += 1
             return sidx
 
