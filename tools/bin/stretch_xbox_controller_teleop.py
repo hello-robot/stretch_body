@@ -7,6 +7,7 @@ import os
 import time
 import argparse
 
+left_trigger_threshold = 0.2
 print_stretch_re_use()
 
 parser = argparse.ArgumentParser(description=
@@ -25,6 +26,7 @@ parser = argparse.ArgumentParser(description=
                                  'Y Button :\t Go to stow position \n ' +
                                  'Start Button:\t Home robot \n ' +
                                  'Back Button (2 sec):\t Shutdown computer \n ' +
+                                 'Left Trigger:\t Switch to camera control \n' +
                                  '-------------------------------------\n',
                                  formatter_class=argparse.RawTextHelpFormatter)
 
@@ -131,10 +133,12 @@ def manage_head(robot, controller_state):
     head_pan_slew_down = 0.15
     head_pan_slew_up = .15
 
-    camera_pan_right = controller_state['right_pad_pressed']
-    camera_pan_left = controller_state['left_pad_pressed']
-    camera_tilt_up = controller_state['top_pad_pressed']
-    camera_tilt_down = controller_state['bottom_pad_pressed']
+    camera_activate_condition = (controller_state['left_trigger_pulled'] > left_trigger_threshold)
+
+    camera_pan_right = controller_state['right_pad_pressed'] and camera_activate_condition
+    camera_pan_left = controller_state['left_pad_pressed'] and camera_activate_condition
+    camera_tilt_up = controller_state['top_pad_pressed'] and camera_activate_condition
+    camera_tilt_down = controller_state['bottom_pad_pressed'] and camera_activate_condition
 
     # Slew target to zero if no buttons pushed
     if not camera_pan_left and not camera_pan_right:
@@ -253,7 +257,7 @@ wrist_pitch_target = 0.0
 
 def manage_end_of_arm(robot, controller_state):
     global wrist_yaw_target, wrist_roll_target, wrist_pitch_target
-    wrist_yaw_left = controller_state['left_shoulder_button_pressed']
+    wrist_yaw_left = controller_state['left_shoulder_button_pressed'] 
     wrist_yaw_right = controller_state['right_shoulder_button_pressed']
 
     close_gripper = controller_state['bottom_button_pressed']
@@ -291,10 +295,12 @@ def manage_end_of_arm(robot, controller_state):
     robot.end_of_arm.move_by('wrist_yaw', wrist_yaw_target, wrist_yaw_vel, wrist_yaw_accel)
 
     if use_dex_wrist_mapping:
-        wrist_roll_cw = controller_state['right_pad_pressed']
-        wrist_roll_ccw = controller_state['left_pad_pressed']
-        wrist_pitch_down = controller_state['top_pad_pressed']
-        wrist_pitch_up = controller_state['bottom_pad_pressed']
+        dex_wrist_activate_condition = (controller_state['left_trigger_pulled'] < left_trigger_threshold/2)
+
+        wrist_roll_cw = controller_state['right_pad_pressed'] and dex_wrist_activate_condition
+        wrist_roll_ccw = controller_state['left_pad_pressed'] and dex_wrist_activate_condition
+        wrist_pitch_down = controller_state['top_pad_pressed'] and dex_wrist_activate_condition
+        wrist_pitch_up = controller_state['bottom_pad_pressed'] and dex_wrist_activate_condition
 
         if not wrist_roll_cw and not wrist_roll_ccw:
             if wrist_roll_target >= 0:
@@ -417,7 +423,7 @@ def wait_till_usb(usb, wait_timeout):
 
 # ######################### MAIN ########################################
 use_head_mapping = True
-use_dex_wrist_mapping = False
+use_dex_wrist_mapping = True
 use_stretch_gripper_mapping = True
 
 
@@ -429,25 +435,26 @@ def main():
     robot = rb.Robot()
     try:
         robot.startup()
-        print('Using key mapping for tool: %s' % robot.end_of_arm.name)
-        if robot.end_of_arm.name == 'tool_none':
-            use_head_mapping = True
-            use_stretch_gripper_mapping = False
-            use_dex_wrist_mapping = False
+        print({
+            'use_head_mapping':use_head_mapping,
+            'use_dex_wrist_mapping':use_dex_wrist_mapping,
+            'use_stretch_gripper_mapping':use_stretch_gripper_mapping,
+        })
+        # print('Using key mapping for tool: %s' % robot.end_of_arm.name)
+        # if robot.end_of_arm.name == 'tool_none':
+        #     use_head_mapping = True
+        #     use_stretch_gripper_mapping = False
+        #     use_dex_wrist_mapping = False
 
-        if robot.end_of_arm.name == 'tool_stretch_gripper':
-            use_head_mapping = True
-            use_stretch_gripper_mapping = True
-            use_dex_wrist_mapping = False
+        # if robot.end_of_arm.name == 'tool_stretch_gripper':
+        #     use_head_mapping = True
+        #     use_stretch_gripper_mapping = True
+        #     use_dex_wrist_mapping = False
 
-        if robot.end_of_arm.name == 'tool_stretch_dex_wrist':
-            use_head_mapping = False
-            use_stretch_gripper_mapping = True
-            use_dex_wrist_mapping = True
-
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
+        # if robot.end_of_arm.name == 'tool_stretch_dex_wrist':
+        #     use_head_mapping = False
+        #     use_stretch_gripper_mapping = True
+        #     use_dex_wrist_mapping = True
 
         robot.pimu.trigger_beep()
         robot.push_command()
