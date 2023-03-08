@@ -222,7 +222,7 @@ def manage_base(robot, controller_state):
             xl = robot.base.left_wheel.status['debug']
             xr = robot.base.right_wheel.status['debug']
             print('Triggered. Left at: %f  Right at %f. Diff of %f (deg)' % (xl, xr, xl - xr))
-            s1.step_display(xl - xr)
+            s1.step_display(xl-xr)
     else:
         if abs(turn_command) > dead_zone:
             output_sign = -math.copysign(1, turn_command)
@@ -471,7 +471,7 @@ def main():
                 manage_stow(robot, controller_state)
             manage_shutdown(robot, controller_state)
             robot.push_command()
-            time.sleep(0.05)
+            time.sleep(0.2)
     except (ThreadServiceExit, KeyboardInterrupt, SystemExit):
         robot.stop()
         xbox_controller.stop()

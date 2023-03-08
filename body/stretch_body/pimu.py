@@ -335,7 +335,7 @@ class PimuBase(Device):
                     print('Warning: Rate of calls to Pimu:trigger_motor_sync rate of %f above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(sync_rate,self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
                     self.ts_last_motor_sync_warn=t
                 return
-
+        print("TRIGGER SYNC")
         with self.lock:
             self.transport.payload_out[0] = self.RPC_SET_MOTOR_SYNC
             self.transport.queue_rpc(1, self.rpc_motor_sync_reply)
