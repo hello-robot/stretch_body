@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import argparse
 import stretch_body.hello_utils as hu
 import click
@@ -33,11 +33,12 @@ class TraceMgmt:
         print('Loading trace data. This will take a minute...')
         print('')
         segs=self.get_segments()
-        active_seg_id=0
-        trace_data=self.get_trace_data(segs[active_seg_id])
         if len(segs)==0:
             click.secho('No trace data found in %s'%self.trace_directory, fg="yellow")
             return
+        active_seg_id=0
+        trace_data=self.get_trace_data(segs[active_seg_id])
+
 
         while True:
             print(Style.BRIGHT + '############### AVAILABLE ################' + Style.RESET_ALL)
