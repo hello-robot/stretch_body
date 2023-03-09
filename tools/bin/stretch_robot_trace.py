@@ -22,7 +22,6 @@ class TraceMgmt:
 
 
     def get_int(self,range,msg='value'):
-        print('R',range)
         while True:
             result = input("Enter %s (range %d to %d):  "%(msg,range[0],range[1]))
             if result.isdigit() and range[0] <= int(result) <= range[1]:

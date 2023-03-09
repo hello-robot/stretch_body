@@ -133,6 +133,8 @@ class PimuBase(Device):
     RPC_REPLY_PIMU_BOARD_INFO = 8
     RPC_SET_MOTOR_SYNC = 9
     RPC_REPLY_MOTOR_SYNC = 10
+    RPC_READ_TRACE =11
+    RPC_REPLY_READ_TRACE =12
 
     STATE_AT_CLIFF_0 = 1
     STATE_AT_CLIFF_1 = 2
@@ -147,6 +149,7 @@ class PimuBase(Device):
     STATE_HIGH_CURRENT_ALERT = 1024
     STATE_CHARGER_CONNECTED = 2048
     STATE_BOOT_DETECTED = 4096
+    STATE_IS_TRACE_ON = 8192
 
     TRIGGER_BOARD_RESET = 1
     TRIGGER_RUNSTOP_RESET = 2
@@ -159,7 +162,8 @@ class PimuBase(Device):
     TRIGGER_RUNSTOP_ON = 256
     TRIGGER_BEEP = 512
     TRIGGER_LIGHTBAR_TEST = 1024
-
+    TRIGGER_ENABLE_TRACE= 2048
+    TRIGGER_DISABLE_TRACE=4096
 
     def __init__(self, event_reset=False, usb=None):
         Device.__init__(self, 'pimu')
@@ -176,8 +180,9 @@ class PimuBase(Device):
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
-                       'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'motor_sync_drop':0,
+                       'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'motor_sync_drop':0,'trace_on':0,
                        'transport': self.transport.status}
+        self.status_zero=self.status.copy()
         self._trigger=0
         self.ts_last_fan_on=None
         self.fan_on_last=False
@@ -271,6 +276,7 @@ class PimuBase(Device):
         print('Low Voltage Alert', self.status['low_voltage_alert'])
         print('High Current Alert', self.status['high_current_alert'])
         print('Over Tilt Alert',self.status['over_tilt_alert'])
+        print('Trace recording:', self.status['trace_on'])
         if self.board_info['hardware_id']>0:
             print('Charger Connected', self.status['charger_connected'])
             print('Boot Detected', self.status['boot_detected'])
@@ -548,43 +554,78 @@ class Pimu_Protocol_P0(PimuBase):
 
 # ######################## PIMU PROTOCOL P1 #################################
 class Pimu_Protocol_P1(PimuBase):
-    def unpack_status(self,s):
+    def unpack_status(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
+
         with self.lock:
             sidx=0
             sidx +=self.imu.unpack_status((s[sidx:]))
-            self.status['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
-            self.status['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
-            self.status['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
+            unpack_to['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+            unpack_to['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
+            unpack_to['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
 
             for i in range(4):
-                self.status['cliff_range'][i]=unpack_float_t(s[sidx:])
+                unpack_to['cliff_range'][i]=unpack_float_t(s[sidx:])
                 sidx+=4
 
-            self.status['state'] = unpack_uint32_t(s[sidx:])
+            unpack_to['state'] = unpack_uint32_t(s[sidx:])
             sidx += 4
 
-            self.status['at_cliff']=[]
-            self.status['at_cliff'].append((self.status['state'] & PimuBase.STATE_AT_CLIFF_0) != 0)
-            self.status['at_cliff'].append((self.status['state'] & self.STATE_AT_CLIFF_1) != 0)
-            self.status['at_cliff'].append((self.status['state'] & self.STATE_AT_CLIFF_2) != 0)
-            self.status['at_cliff'].append((self.status['state'] & self.STATE_AT_CLIFF_3) != 0)
-            self.status['runstop_event'] = (self.status['state'] & self.STATE_RUNSTOP_EVENT) != 0
-            self.status['cliff_event'] = (self.status['state'] & self.STATE_CLIFF_EVENT) != 0
-            self.status['fan_on'] = (self.status['state'] & self.STATE_FAN_ON) != 0
-            self.status['buzzer_on'] = (self.status['state'] & self.STATE_BUZZER_ON) != 0
-            self.status['low_voltage_alert'] = (self.status['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
-            self.status['high_current_alert'] = (self.status['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
-            self.status['over_tilt_alert'] = (self.status['state'] & self.STATE_OVER_TILT_ALERT) != 0
+            unpack_to['at_cliff']=[]
+            unpack_to['at_cliff'].append((unpack_to['state'] & PimuBase.STATE_AT_CLIFF_0) != 0)
+            unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_1) != 0)
+            unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_2) != 0)
+            unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_3) != 0)
+            unpack_to['runstop_event'] = (unpack_to['state'] & self.STATE_RUNSTOP_EVENT) != 0
+            unpack_to['cliff_event'] = (unpack_to['state'] & self.STATE_CLIFF_EVENT) != 0
+            unpack_to['fan_on'] = (unpack_to['state'] & self.STATE_FAN_ON) != 0
+            unpack_to['buzzer_on'] = (unpack_to['state'] & self.STATE_BUZZER_ON) != 0
+            unpack_to['low_voltage_alert'] = (unpack_to['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
+            unpack_to['high_current_alert'] = (unpack_to['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
+            unpack_to['over_tilt_alert'] = (unpack_to['state'] & self.STATE_OVER_TILT_ALERT) != 0
             if self.board_info['hardware_id']>0:
-                self.status['charger_connected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
-                self.status['boot_detected'] = (self.status['state'] & self.STATE_BOOT_DETECTED) != 0
-            self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
-            self.imu.status['timestamp'] = self.status['timestamp']
-            self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
-            self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
-            self.status['cpu_temp']=self.get_cpu_temp()
+                unpack_to['charger_connected'] = (unpack_to['state'] & self.STATE_CHARGER_CONNECTED) != 0
+                unpack_to['boot_detected'] = (unpack_to['state'] & self.STATE_BOOT_DETECTED) != 0
+            unpack_to['trace_on'] = (unpack_to['state'] & self.STATE_IS_TRACE_ON) != 0
+            unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
+            self.imu.status['timestamp'] = unpack_to['timestamp']
+            unpack_to['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
+            unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
+            unpack_to['cpu_temp']=self.get_cpu_temp()
             return sidx
 
+    def read_firmware_trace(self):
+        self.trace_buf=[]
+        self.n_trace_read=1
+        ts=time.time()
+        while ( self.n_trace_read) and time.time()-ts<60.0:
+            with self.lock:
+                    self.transport.payload_out[0] = self.RPC_READ_TRACE
+                    self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
+                    self.transport.step()
+            time.sleep(.001)
+        return self.trace_buf
+
+    def rpc_read_firmware_trace_reply(self, reply):
+        if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
+            self.n_trace_read=reply[1]
+            self.trace_buf.append({'id':len(self.trace_buf),'status':self.status_zero.copy()})
+            self.unpack_status(reply[2:],unpack_to=self.trace_buf[-1]['status'])
+        else:
+            print('Error RPC_REPLY_READ_TRACE')
+            self.n_trace_read=0
+            self.trace_buf = []
+
+    def enable_firmware_trace(self):
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_ENABLE_TRACE
+            self._dirty_trigger = True
+
+    def disable_firmware_trace(self):
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_DISABLE_TRACE
+            self._dirty_trigger = True
 # ######################## PIMU #################################
 class Pimu(PimuBase):
     """

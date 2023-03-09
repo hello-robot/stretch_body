@@ -29,8 +29,14 @@ class WaccBase(Device):
     RPC_REPLY_WACC_COMMAND = 6
     RPC_GET_WACC_BOARD_INFO = 7
     RPC_REPLY_WACC_BOARD_INFO = 8
+    RPC_READ_TRACE =9
+    RPC_REPLY_READ_TRACE =10
 
     TRIGGER_BOARD_RESET = 1
+    TRIGGER_ENABLE_TRACE = 2
+    TRIGGER_DISABLE_TRACE = 4
+
+    STATE_IS_TRACE_ON = 1
 
     def __init__(self, ext_status_cb=None, ext_command_cb=None, usb=None):
         Device.__init__(self, 'wacc')
@@ -44,8 +50,9 @@ class WaccBase(Device):
             usb = self.params['usb_name']
         self.transport = Transport(usb=usb, logger=self.logger)
         self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
-                       'timestamp': 0,
+                       'timestamp': 0,'trace_on':0,
                        'transport': self.transport.status}
+        self.status_zero = self.status.copy()
         self.board_info = {'board_variant': None, 'firmware_version': None, 'protocol_version': None,'hardware_id':0}
         self.hw_valid = False
 
@@ -78,6 +85,8 @@ class WaccBase(Device):
             self.push_command(exiting=True)
             self.transport.stop()
             self.hw_valid = False
+
+
 
     def set_D2(self,on):#0 or 1
         """
@@ -135,6 +144,7 @@ class WaccBase(Device):
         print('D3 (Out)', self.status['d3'])
         print('Single Tap Count', self.status['single_tap_count'])
         print('State ', self.status['state'])
+        print('Trace on',self.status['trace_on'])
         print('Debug',self.status['debug'])
         print('Timestamp (s)', self.status['timestamp'])
         print('Board variant:', self.board_info['board_variant'])
@@ -214,7 +224,6 @@ class WaccBase(Device):
             self.logger.warning('Error RPC_REPLY_WACC_STATUS', reply[0])
 
 
-
 # ######################## Wacc PROTOCOL PO #################################
 
 class Wacc_Protocol_P0(WaccBase):
@@ -240,27 +249,59 @@ class Wacc_Protocol_P0(WaccBase):
 
 # ######################## Wacc PROTOCOL P1 #################################
 class Wacc_Protocol_P1(WaccBase):
-    def unpack_status(self,s):
+    def unpack_status(self,s,unpack_to=None):
+        if unpack_to is None:
+            unpack_to=self.status
         with self.lock:
             sidx=0
             if self.ext_status_cb is not None:
                 sidx+=self.ext_status_cb(s[sidx:])
-            self.status['ax'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.status['ay'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.status['az'] = unpack_float_t(s[sidx:]);sidx+=4
-            self.status['a0'] = unpack_int16_t(s[sidx:]);sidx+=2
-            self.status['d0'] = unpack_uint8_t(s[sidx:]); sidx += 1
-            self.status['d1'] = unpack_uint8_t(s[sidx:]); sidx += 1
-            self.status['d2'] = unpack_uint8_t(s[sidx:]); sidx += 1
-            self.status['d3'] = unpack_uint8_t(s[sidx:]); sidx += 1
-            self.status['single_tap_count'] = unpack_uint32_t(s[sidx:]);sidx += 4
-            self.status['state'] = unpack_uint32_t(s[sidx:]); sidx += 4
-            self.status['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-            self.status['debug'] = unpack_uint32_t(s[sidx:]);sidx += 4
+            unpack_to['ax'] = unpack_float_t(s[sidx:]);sidx+=4
+            unpack_to['ay'] = unpack_float_t(s[sidx:]);sidx+=4
+            unpack_to['az'] = unpack_float_t(s[sidx:]);sidx+=4
+            unpack_to['a0'] = unpack_int16_t(s[sidx:]);sidx+=2
+            unpack_to['d0'] = unpack_uint8_t(s[sidx:]); sidx += 1
+            unpack_to['d1'] = unpack_uint8_t(s[sidx:]); sidx += 1
+            unpack_to['d2'] = unpack_uint8_t(s[sidx:]); sidx += 1
+            unpack_to['d3'] = unpack_uint8_t(s[sidx:]); sidx += 1
+            unpack_to['single_tap_count'] = unpack_uint32_t(s[sidx:]);sidx += 4
+            unpack_to['state'] = unpack_uint32_t(s[sidx:]); sidx += 4
+            unpack_to['trace_on'] = unpack_to['state'] & self.STATE_IS_TRACE_ON > 0
+            unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+            unpack_to['debug'] = unpack_uint32_t(s[sidx:]);sidx += 4
             return sidx
 
+    def read_firmware_trace(self):
+        self.trace_buf=[]
+        self.n_trace_read=1
+        ts=time.time()
+        while ( self.n_trace_read) and time.time()-ts<60.0:
+            with self.lock:
+                    self.transport.payload_out[0] = self.RPC_READ_TRACE
+                    self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
+                    self.transport.step()
+            time.sleep(.001)
+        return self.trace_buf
 
+    def rpc_read_firmware_trace_reply(self, reply):
+        if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
+            self.n_trace_read=reply[1]
+            self.trace_buf.append({'id':len(self.trace_buf),'status':self.status_zero.copy()})
+            self.unpack_status(reply[2:],unpack_to=self.trace_buf[-1]['status'])
+        else:
+            print('Error RPC_REPLY_READ_TRACE')
+            self.n_trace_read=0
+            self.trace_buf = []
 
+    def enable_firmware_trace(self):
+        with self.lock:
+            self._command['trigger']=self._command['trigger']| self.TRIGGER_ENABLE_TRACE
+            self._dirty_command = True
+
+    def disable_firmware_trace(self):
+        with self.lock:
+            self._command['trigger']=self._command['trigger']| self.TRIGGER_DISABLE_TRACE
+            self._dirty_command = True
 # ######################## PIMU #################################
 class Wacc(WaccBase):
     """
