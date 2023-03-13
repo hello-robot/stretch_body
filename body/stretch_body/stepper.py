@@ -92,7 +92,7 @@ class StepperBase(Device):
     CONFIG_FLIP_ENCODER_POLARITY = 16
     CONFIG_FLIP_EFFORT_POLARITY = 32
     CONFIG_ENABLE_VEL_WATCHDOG = 64 #Timeout velocity commands
-
+    CONFIG_USE_DEBUG_TRACE = 128  #Use debug trace instead of status
 
     TRIGGER_MARK_POS = 1
     TRIGGER_RESET_MOTION_GEN = 2
@@ -661,6 +661,7 @@ class StepperBase(Device):
             self.gains_flash['flip_encoder_polarity'] = int(config & self.CONFIG_FLIP_ENCODER_POLARITY > 0)
             self.gains_flash['flip_effort_polarity'] = int(config & self.CONFIG_FLIP_EFFORT_POLARITY > 0)
             self.gains_flash['enable_vel_watchdog'] = int(config & self.CONFIG_ENABLE_VEL_WATCHDOG > 0)
+            self.gains_flash['use_debug_trace'] = int(config & self.CONFIG_USE_DEBUG_TRACE > 0)
             return sidx
 
     def pack_motion_limits(self,s,sidx):
@@ -730,6 +731,8 @@ class StepperBase(Device):
                 config = config | self.CONFIG_FLIP_EFFORT_POLARITY
             if self.gains['enable_vel_watchdog']:
                 config=config | self.CONFIG_ENABLE_VEL_WATCHDOG
+            if self.gains['use_debug_trace']:
+                config=config | self.CONFIG_USE_DEBUG_TRACE
             pack_uint8_t(s, sidx, config); sidx += 1
             return sidx
 
@@ -875,6 +878,17 @@ class Stepper_Protocol_P0(StepperBase):
 
 # ######################## STEPPER PROTOCOL P1 #################################
 class Stepper_Protocol_P1(StepperBase):
+
+    def unpack_debug_trace(self,s,unpack_to):
+        with self.lock:
+            sidx=0
+            unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
+            unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
+            unpack_to['f_1'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['f_2'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['f_3'] = unpack_float_t(s[sidx:]);sidx += 4
+            return sidx
+
     def unpack_status(self,s,unpack_to=None):
         if unpack_to is None:
             unpack_to=self.status
@@ -962,9 +976,9 @@ class Stepper_Protocol_P1(StepperBase):
 
     def read_firmware_trace(self):
         self.trace_buf=[]
-        self.n_trace_read=1
+        self.continue_read=True
         ts=time.time()
-        while ( self.n_trace_read) and time.time()-ts<60.0:
+        while ( self.continue_read) and time.time()-ts<60.0:
             with self.lock:
                     self.transport.payload_out[0] = self.RPC_READ_TRACE
                     self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
@@ -974,9 +988,13 @@ class Stepper_Protocol_P1(StepperBase):
 
     def rpc_read_firmware_trace_reply(self, reply):
         if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
-            self.n_trace_read=reply[1]
-            self.trace_buf.append({'id':len(self.trace_buf),'status':self.status_zero.copy()})
-            self.unpack_status(reply[2:],unpack_to=self.trace_buf[-1]['status'])
+            self.continue_read = (reply[1]!=0)
+            if self.gains['use_debug_trace']:
+                self.trace_buf.append({'id':len(self.trace_buf),'data': {}})
+                self.unpack_debug_trace(reply[2:],unpack_to=self.trace_buf[-1]['data'])
+            else:
+                self.trace_buf.append({'id': len(self.trace_buf), 'status': self.status_zero.copy()})
+                self.unpack_status(reply[2:],unpack_to=self.trace_buf[-1]['status'])
         else:
             print('Error RPC_REPLY_READ_TRACE')
             self.n_trace_read=0
