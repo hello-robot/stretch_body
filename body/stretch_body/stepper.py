@@ -661,7 +661,7 @@ class StepperBase(Device):
             self.gains_flash['flip_encoder_polarity'] = int(config & self.CONFIG_FLIP_ENCODER_POLARITY > 0)
             self.gains_flash['flip_effort_polarity'] = int(config & self.CONFIG_FLIP_EFFORT_POLARITY > 0)
             self.gains_flash['enable_vel_watchdog'] = int(config & self.CONFIG_ENABLE_VEL_WATCHDOG > 0)
-            self.gains_flash['use_debug_trace'] = int(config & self.CONFIG_USE_DEBUG_TRACE > 0)
+            #self.gains_flash['use_debug_trace'] = int(config & self.CONFIG_USE_DEBUG_TRACE > 0)
             return sidx
 
     def pack_motion_limits(self,s,sidx):
@@ -731,8 +731,8 @@ class StepperBase(Device):
                 config = config | self.CONFIG_FLIP_EFFORT_POLARITY
             if self.gains['enable_vel_watchdog']:
                 config=config | self.CONFIG_ENABLE_VEL_WATCHDOG
-            if self.gains['use_debug_trace']:
-                config=config | self.CONFIG_USE_DEBUG_TRACE
+            #if self.gains['use_debug_trace']:
+            #    config=config | self.CONFIG_USE_DEBUG_TRACE
             pack_uint8_t(s, sidx, config); sidx += 1
             return sidx
 

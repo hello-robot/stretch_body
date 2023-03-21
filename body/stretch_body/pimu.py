@@ -116,7 +116,7 @@ class IMU(IMUBase):
     def __init__(self):
         IMUBase.__init__(self)
         # Order in descending order so more recent protocols/methods override less recent
-        self.supported_protocols = {'p0': (IMU_Protocol_P0,), 'p1': (IMU_Protocol_P1,IMU_Protocol_P0,)}
+        self.supported_protocols = {'p0': (IMU_Protocol_P0,), 'p1': (IMU_Protocol_P1,IMU_Protocol_P0,),'p2': (IMU_Protocol_P1,IMU_Protocol_P0,)}
 
 # ##################################################################################
 class PimuBase(Device):
@@ -164,6 +164,11 @@ class PimuBase(Device):
     TRIGGER_LIGHTBAR_TEST = 1024
     TRIGGER_ENABLE_TRACE= 2048
     TRIGGER_DISABLE_TRACE=4096
+
+    TRACE_TYPE_STATUS = 0
+    TRACE_TYPE_DEBUG = 1
+    TRACE_TYPE_PRINT = 2
+
 
     def __init__(self, event_reset=False, usb=None):
         Device.__init__(self, 'pimu')
@@ -276,7 +281,7 @@ class PimuBase(Device):
         print('Low Voltage Alert', self.status['low_voltage_alert'])
         print('High Current Alert', self.status['high_current_alert'])
         print('Over Tilt Alert',self.status['over_tilt_alert'])
-        print('Trace recording:', self.status['trace_on'])
+        print('Trace on:', self.status['trace_on'])
         if self.board_info['hardware_id']>0:
             print('Charger Connected', self.status['charger_connected'])
             print('Boot Detected', self.status['boot_detected'])
@@ -452,6 +457,22 @@ class PimuBase(Device):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))
 
+    def read_firmware_trace(self):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+
+    def rpc_read_firmware_trace_reply(self, reply):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+
+    def enable_firmware_trace(self):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+
+    def disable_firmware_trace(self):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+
     # ################Transport Callbacks #####################
 
     def rpc_motor_sync_reply(self,reply):
@@ -571,6 +592,111 @@ class Pimu_Protocol_P1(PimuBase):
 
             unpack_to['state'] = unpack_uint32_t(s[sidx:])
             sidx += 4
+            unpack_to['at_cliff']=[]
+            unpack_to['at_cliff'].append((unpack_to['state'] & PimuBase.STATE_AT_CLIFF_0) != 0)
+            unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_1) != 0)
+            unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_2) != 0)
+            unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_3) != 0)
+            unpack_to['runstop_event'] = (unpack_to['state'] & self.STATE_RUNSTOP_EVENT) != 0
+            unpack_to['cliff_event'] = (unpack_to['state'] & self.STATE_CLIFF_EVENT) != 0
+            unpack_to['fan_on'] = (unpack_to['state'] & self.STATE_FAN_ON) != 0
+            unpack_to['buzzer_on'] = (unpack_to['state'] & self.STATE_BUZZER_ON) != 0
+            unpack_to['low_voltage_alert'] = (unpack_to['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
+            unpack_to['high_current_alert'] = (unpack_to['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
+            unpack_to['over_tilt_alert'] = (unpack_to['state'] & self.STATE_OVER_TILT_ALERT) != 0
+            if self.board_info['hardware_id']>0:
+                unpack_to['charger_connected'] = (unpack_to['state'] & self.STATE_CHARGER_CONNECTED) != 0
+                unpack_to['boot_detected'] = (unpack_to['state'] & self.STATE_BOOT_DETECTED) != 0
+            unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
+            self.imu.status['timestamp'] = unpack_to['timestamp']
+            unpack_to['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
+            unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
+            unpack_to['cpu_temp']=self.get_cpu_temp()
+            return sidx
+
+
+
+
+
+# ######################## PIMU PROTOCOL P2 #################################
+class Pimu_Protocol_P2(PimuBase):
+
+    def read_firmware_trace(self):
+        self.trace_buf = []
+        with self.lock:
+            self.timestamp.reset() #Timestamp holds state, reset within lock to avoid threading issues
+            self.n_trace_read=1
+            ts=time.time()
+            while ( self.n_trace_read) and time.time()-ts<60.0:
+                self.transport.payload_out[0] = self.RPC_READ_TRACE
+                self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
+                self.transport.step()
+                time.sleep(.001)
+        return self.trace_buf
+
+    def unpack_debug_trace(self,s,unpack_to):
+        with self.lock:
+            sidx=0
+            unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
+            unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
+            unpack_to['f_1'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['f_2'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['f_3'] = unpack_float_t(s[sidx:]);sidx += 4
+            return sidx
+
+    def unpack_print_trace(self,s,unpack_to):
+        with self.lock:
+            sidx=0
+            line_len=32
+            unpack_to['timestamp']=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+            unpack_to['line'] = unpack_string_t(s[sidx:], line_len); sidx += line_len
+            unpack_to['x'] = unpack_float_t(s[sidx:]);sidx += 4
+            return sidx
+
+    def rpc_read_firmware_trace_reply(self, reply):
+        if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
+            self.n_trace_read=reply[1]
+            self.trace_buf.append({'id': len(self.trace_buf), 'status': {},'debug':{},'print':{}})
+            if reply[2]==self.TRACE_TYPE_STATUS:
+                self.trace_buf[-1]['status']= self.status_zero.copy()
+                self.unpack_status(reply[3:],unpack_to=self.trace_buf[-1]['status'])
+            elif reply[2]==self.TRACE_TYPE_DEBUG:
+                self.unpack_debug_trace(reply[3:],unpack_to=self.trace_buf[-1]['debug'])
+            elif reply[2]==self.TRACE_TYPE_PRINT:
+                self.unpack_print_trace(reply[3:],unpack_to=self.trace_buf[-1]['print'])
+            else:
+                print('Unrecognized trace type %d'%reply[2])
+        else:
+            print('Error RPC_REPLY_READ_TRACE')
+            self.n_trace_read=0
+            self.trace_buf = []
+    def enable_firmware_trace(self):
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_ENABLE_TRACE
+            self._dirty_trigger = True
+
+    def disable_firmware_trace(self):
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_DISABLE_TRACE
+            self._dirty_trigger = True
+
+    def unpack_status(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
+
+        with self.lock:
+            sidx=0
+            sidx +=self.imu.unpack_status((s[sidx:]))
+            unpack_to['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+            unpack_to['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
+            unpack_to['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
+
+            for i in range(4):
+                unpack_to['cliff_range'][i]=unpack_float_t(s[sidx:])
+                sidx+=4
+
+            unpack_to['state'] = unpack_uint32_t(s[sidx:])
+            sidx += 4
 
             unpack_to['at_cliff']=[]
             unpack_to['at_cliff'].append((unpack_to['state'] & PimuBase.STATE_AT_CLIFF_0) != 0)
@@ -595,37 +721,6 @@ class Pimu_Protocol_P1(PimuBase):
             unpack_to['cpu_temp']=self.get_cpu_temp()
             return sidx
 
-    def read_firmware_trace(self):
-        self.trace_buf=[]
-        self.n_trace_read=1
-        ts=time.time()
-        while ( self.n_trace_read) and time.time()-ts<60.0:
-            with self.lock:
-                    self.transport.payload_out[0] = self.RPC_READ_TRACE
-                    self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
-                    self.transport.step()
-            time.sleep(.001)
-        return self.trace_buf
-
-    def rpc_read_firmware_trace_reply(self, reply):
-        if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
-            self.n_trace_read=reply[1]
-            self.trace_buf.append({'id':len(self.trace_buf),'status':self.status_zero.copy()})
-            self.unpack_status(reply[2:],unpack_to=self.trace_buf[-1]['status'])
-        else:
-            print('Error RPC_REPLY_READ_TRACE')
-            self.n_trace_read=0
-            self.trace_buf = []
-
-    def enable_firmware_trace(self):
-        with self.lock:
-            self._trigger = self._trigger | self.TRIGGER_ENABLE_TRACE
-            self._dirty_trigger = True
-
-    def disable_firmware_trace(self):
-        with self.lock:
-            self._trigger = self._trigger | self.TRIGGER_DISABLE_TRACE
-            self._dirty_trigger = True
 # ######################## PIMU #################################
 class Pimu(PimuBase):
     """
@@ -634,7 +729,7 @@ class Pimu(PimuBase):
     def __init__(self, event_reset=False, usb=None):
         PimuBase.__init__(self, event_reset,usb)
         # Order in descending order so more recent protocols/methods override less recent
-        self.supported_protocols = {'p0': (Pimu_Protocol_P0,), 'p1': (Pimu_Protocol_P1,Pimu_Protocol_P0,)}
+        self.supported_protocols = {'p0': (Pimu_Protocol_P0,), 'p1': (Pimu_Protocol_P1,Pimu_Protocol_P0,),'p2': (Pimu_Protocol_P2,Pimu_Protocol_P1,Pimu_Protocol_P0,)}
 
     def startup(self, threaded=False):
         """

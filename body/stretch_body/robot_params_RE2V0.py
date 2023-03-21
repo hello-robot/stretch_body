@@ -269,8 +269,7 @@ nominal_params={
             'vLPF': 30,
             'vTe_d': 50,
             'vel_near_setpoint_d': 3.5,
-            'vel_status_LPF': 10.0,
-            'use_debug_trace':0},
+            'vel_status_LPF': 10.0},
         'holding_torque': 1.26,
         'motion':{
             'accel': 15,
@@ -306,8 +305,7 @@ nominal_params={
             'vLPF': 30,
             'vTe_d': 50,
             'vel_near_setpoint_d': 3.5,
-            'vel_status_LPF': 10.0,
-            'use_debug_trace':0},
+            'vel_status_LPF': 10.0},
         'holding_torque': 1.26,
         'motion':{
             'accel': 15,
@@ -343,8 +341,7 @@ nominal_params={
             'vLPF': 30,
             'vTe_d': 50,
             'vel_near_setpoint_d': 3.5,
-            'vel_status_LPF': 10.0,
-            'use_debug_trace':0},
+            'vel_status_LPF': 10.0},
         'holding_torque': 1.9,
         'motion':{
             'accel': 15,
@@ -380,8 +377,7 @@ nominal_params={
             'vLPF': 30,
             'vTe_d': 50,
             'vel_near_setpoint_d': 3.5,
-            'vel_status_LPF': 10.0,
-            'use_debug_trace':0},
+            'vel_status_LPF': 10.0},
         'holding_torque': 1.26,
         'motion':{
             'accel': 15,

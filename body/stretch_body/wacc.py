@@ -1,6 +1,6 @@
 from __future__ import print_function
 from stretch_body.transport import *
-from stretch_body.device import Device
+from stretch_body.device import Device, DeviceTimestamp
 import threading
 import textwrap
 
@@ -316,15 +316,16 @@ class Wacc_Protocol_P2(WaccBase):
             return sidx
 
     def read_firmware_trace(self):
-        self.trace_buf=[]
-        self.n_trace_read=1
-        ts=time.time()
-        while ( self.n_trace_read) and time.time()-ts<60.0:
-            with self.lock:
-                    self.transport.payload_out[0] = self.RPC_READ_TRACE
-                    self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
-                    self.transport.step()
-            time.sleep(.001)
+        self.trace_buf = []
+        with self.lock:
+            self.timestamp.reset() #Timestamp holds state, reset within lock to avoid threading issues
+            self.n_trace_read=1
+            ts=time.time()
+            while ( self.n_trace_read) and time.time()-ts<60.0:
+                self.transport.payload_out[0] = self.RPC_READ_TRACE
+                self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
+                self.transport.step()
+                time.sleep(.001)
         return self.trace_buf
 
     def unpack_debug_trace(self,s,unpack_to):

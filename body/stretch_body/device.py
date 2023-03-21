@@ -9,10 +9,13 @@ import os
 
 class DeviceTimestamp:
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.timestamp_last = None
         self.timestamp_base = 0
-        self.timestamp_first= None
-        self.ts_start=time.time()
+        self.timestamp_first = None
+        self.ts_start = time.time()
 
     def set(self, ts): #take a timestamp from a uC in uS and put in terms of system clock
         if self.timestamp_last is None:  # First time
