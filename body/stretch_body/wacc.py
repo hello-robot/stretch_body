@@ -343,6 +343,7 @@ class Wacc_Protocol_P2(WaccBase):
             line_len=32
             unpack_to['timestamp']=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
             unpack_to['line'] = unpack_string_t(s[sidx:], line_len); sidx += line_len
+            unpack_to['x'] = unpack_float_t(s[sidx:]);sidx += 4
             return sidx
 
     def rpc_read_firmware_trace_reply(self, reply):
