@@ -92,7 +92,6 @@ class StepperBase(Device):
     CONFIG_FLIP_ENCODER_POLARITY = 16
     CONFIG_FLIP_EFFORT_POLARITY = 32
     CONFIG_ENABLE_VEL_WATCHDOG = 64 #Timeout velocity commands
-    CONFIG_USE_DEBUG_TRACE = 128  #Use debug trace instead of status
 
     TRIGGER_MARK_POS = 1
     TRIGGER_RESET_MOTION_GEN = 2
@@ -103,6 +102,10 @@ class StepperBase(Device):
     TRIGGER_MARK_POS_ON_CONTACT=64
     TRIGGER_ENABLE_TRACE=128
     TRIGGER_DISABLE_TRACE=256
+
+    TRACE_TYPE_STATUS = 0
+    TRACE_TYPE_DEBUG = 1
+    TRACE_TYPE_PRINT = 2
 
 
     def __init__(self, usb,name=None):
@@ -661,7 +664,6 @@ class StepperBase(Device):
             self.gains_flash['flip_encoder_polarity'] = int(config & self.CONFIG_FLIP_ENCODER_POLARITY > 0)
             self.gains_flash['flip_effort_polarity'] = int(config & self.CONFIG_FLIP_EFFORT_POLARITY > 0)
             self.gains_flash['enable_vel_watchdog'] = int(config & self.CONFIG_ENABLE_VEL_WATCHDOG > 0)
-            #self.gains_flash['use_debug_trace'] = int(config & self.CONFIG_USE_DEBUG_TRACE > 0)
             return sidx
 
     def pack_motion_limits(self,s,sidx):
@@ -731,8 +733,6 @@ class StepperBase(Device):
                 config = config | self.CONFIG_FLIP_EFFORT_POLARITY
             if self.gains['enable_vel_watchdog']:
                 config=config | self.CONFIG_ENABLE_VEL_WATCHDOG
-            #if self.gains['use_debug_trace']:
-            #    config=config | self.CONFIG_USE_DEBUG_TRACE
             pack_uint8_t(s, sidx, config); sidx += 1
             return sidx
 
@@ -809,6 +809,19 @@ class StepperBase(Device):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))
 
+
+    def rpc_read_firmware_trace_reply(self, reply):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+
+    def enable_firmware_trace(self):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+
+    def disable_firmware_trace(self):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+
 # ######################## STEPPER PROTOCOL PO #################################
 
 class Stepper_Protocol_P0(StepperBase):
@@ -879,16 +892,6 @@ class Stepper_Protocol_P0(StepperBase):
 # ######################## STEPPER PROTOCOL P1 #################################
 class Stepper_Protocol_P1(StepperBase):
 
-    def unpack_debug_trace(self,s,unpack_to):
-        with self.lock:
-            sidx=0
-            unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
-            unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
-            unpack_to['f_1'] = unpack_float_t(s[sidx:]);sidx += 4
-            unpack_to['f_2'] = unpack_float_t(s[sidx:]);sidx += 4
-            unpack_to['f_3'] = unpack_float_t(s[sidx:]);sidx += 4
-            return sidx
-
     def unpack_status(self,s,unpack_to=None):
         if unpack_to is None:
             unpack_to=self.status
@@ -921,9 +924,6 @@ class Stepper_Protocol_P1(StepperBase):
             unpack_to['in_safety_event'] = unpack_to['diag'] & self.DIAG_IN_SAFETY_EVENT > 0
             unpack_to['waiting_on_sync'] = unpack_to['diag'] & self.DIAG_WAITING_ON_SYNC > 0
             unpack_to['in_sync_mode'] = unpack_to['diag'] & self.DIAG_IN_SYNC_MODE > 0
-            unpack_to['trace_on'] = unpack_to['diag'] & self.DIAG_IS_TRACE_ON > 0
-
-
             if unpack_to['diag'] & self.DIAG_TRAJ_WAITING_ON_SYNC > 0:
                 unpack_to['waypoint_traj']['state']='waiting_on_sync'
             elif unpack_to['diag'] & self.DIAG_TRAJ_ACTIVE > 0:
@@ -972,43 +972,6 @@ class Stepper_Protocol_P1(StepperBase):
         print('Read error', self.transport.status['read_error'])
         print('Board variant:', self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
-
-
-    def read_firmware_trace(self):
-        self.trace_buf=[]
-        self.continue_read=True
-        ts=time.time()
-        while ( self.continue_read) and time.time()-ts<60.0:
-            with self.lock:
-                    self.transport.payload_out[0] = self.RPC_READ_TRACE
-                    self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
-                    self.transport.step()
-            time.sleep(.001)
-        return self.trace_buf
-
-    def rpc_read_firmware_trace_reply(self, reply):
-        if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
-            self.continue_read = (reply[1]!=0)
-            if self.gains['use_debug_trace']:
-                self.trace_buf.append({'id':len(self.trace_buf),'data': {}})
-                self.unpack_debug_trace(reply[2:],unpack_to=self.trace_buf[-1]['data'])
-            else:
-                self.trace_buf.append({'id': len(self.trace_buf), 'status': self.status_zero.copy()})
-                self.unpack_status(reply[2:],unpack_to=self.trace_buf[-1]['status'])
-        else:
-            print('Error RPC_REPLY_READ_TRACE')
-            self.n_trace_read=0
-            self.trace_buf = []
-
-    def enable_firmware_trace(self):
-        with self.lock:
-            self._trigger = self._trigger | self.TRIGGER_ENABLE_TRACE
-            self._dirty_trigger = True
-
-    def disable_firmware_trace(self):
-        with self.lock:
-            self._trigger = self._trigger | self.TRIGGER_DISABLE_TRACE
-            self._dirty_trigger = True
 
     def enable_pos_traj_waypoint(self):
         self.set_command(mode=self.MODE_POS_TRAJ_WAYPOINT)
@@ -1118,7 +1081,109 @@ class Stepper_Protocol_P1(StepperBase):
         if reply[0] != self.RPC_REPLY_RESET_TRAJECTORY:
             self.logger.error('RPC_REPLY_RESET_TRAJECTORY replied {0}'.format(reply[0]))
 
+# ######################## STEPPER PROTOCOL P2 #################################
+class Stepper_Protocol_P2(StepperBase):
 
+    def read_firmware_trace(self):
+        self.trace_buf = []
+        with self.lock:
+            self.timestamp.reset() #Timestamp holds state, reset within lock to avoid threading issues
+            self.n_trace_read=1
+            ts=time.time()
+            while ( self.n_trace_read) and time.time()-ts<60.0:
+                self.transport.payload_out[0] = self.RPC_READ_TRACE
+                self.transport.queue_rpc(1, self.rpc_read_firmware_trace_reply)
+                self.transport.step()
+                time.sleep(.001)
+        return self.trace_buf
+    def unpack_debug_trace(self,s,unpack_to):
+        with self.lock:
+            sidx=0
+            unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
+            unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
+            unpack_to['f_1'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['f_2'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['f_3'] = unpack_float_t(s[sidx:]);sidx += 4
+            return sidx
+
+    def unpack_print_trace(self,s,unpack_to):
+        with self.lock:
+            sidx=0
+            line_len=32
+            unpack_to['timestamp']=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+            unpack_to['line'] = unpack_string_t(s[sidx:], line_len); sidx += line_len
+            unpack_to['x'] = unpack_float_t(s[sidx:]);sidx += 4
+            return sidx
+    def rpc_read_firmware_trace_reply(self, reply):
+        if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
+            self.n_trace_read=reply[1]
+            self.trace_buf.append({'id': len(self.trace_buf), 'status': {},'debug':{},'print':{}})
+            if reply[2]==self.TRACE_TYPE_STATUS:
+                self.trace_buf[-1]['status']= self.status_zero.copy()
+                self.unpack_status(reply[3:],unpack_to=self.trace_buf[-1]['status'])
+            elif reply[2]==self.TRACE_TYPE_DEBUG:
+                self.unpack_debug_trace(reply[3:],unpack_to=self.trace_buf[-1]['debug'])
+            elif reply[2]==self.TRACE_TYPE_PRINT:
+                self.unpack_print_trace(reply[3:],unpack_to=self.trace_buf[-1]['print'])
+            else:
+                print('Unrecognized trace type %d'%reply[2])
+        else:
+            print('Error RPC_REPLY_READ_TRACE')
+            self.n_trace_read=0
+            self.trace_buf = []
+    def enable_firmware_trace(self):
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_ENABLE_TRACE
+            self._dirty_trigger = True
+
+    def disable_firmware_trace(self):
+        with self.lock:
+            self._trigger = self._trigger | self.TRIGGER_DISABLE_TRACE
+            self._dirty_trigger = True
+
+
+    def unpack_status(self,s,unpack_to=None):
+        if unpack_to is None:
+            unpack_to=self.status
+        with self.lock:
+            sidx=0
+            unpack_to['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
+            unpack_to['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
+            unpack_to['current']=self.effort_ticks_to_current(unpack_to['effort_ticks'])
+            unpack_to['effort_pct'] = self.current_to_effort_pct(unpack_to['current'])
+            unpack_to['pos'] = unpack_double_t(s[sidx:]);sidx+=8
+            unpack_to['vel'] = unpack_float_t(s[sidx:]);sidx+=4
+            unpack_to['err'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
+            unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+            unpack_to['debug'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
+            unpack_to['waypoint_traj']['setpoint'] = unpack_float_t(s[sidx:]);sidx += 4
+            unpack_to['waypoint_traj']['segment_id'] = unpack_uint16_t(s[sidx:]);sidx += 2
+
+            unpack_to['pos_calibrated'] =unpack_to['diag'] & self.DIAG_POS_CALIBRATED > 0
+            unpack_to['runstop_on'] =unpack_to['diag'] & self.DIAG_RUNSTOP_ON > 0
+            unpack_to['near_pos_setpoint'] =unpack_to['diag'] & self.DIAG_NEAR_POS_SETPOINT > 0
+            unpack_to['near_vel_setpoint'] = unpack_to['diag'] & self.DIAG_NEAR_VEL_SETPOINT > 0
+            unpack_to['is_moving'] =unpack_to['diag'] & self.DIAG_IS_MOVING > 0
+            unpack_to['at_current_limit'] =unpack_to['diag'] & self.DIAG_AT_CURRENT_LIMIT > 0
+            unpack_to['is_mg_accelerating'] = unpack_to['diag'] & self.DIAG_IS_MG_ACCELERATING > 0
+            unpack_to['is_mg_moving'] =unpack_to['diag'] & self.DIAG_IS_MG_MOVING > 0
+            unpack_to['calibration_rcvd'] = unpack_to['diag'] & self.DIAG_CALIBRATION_RCVD > 0
+            unpack_to['in_guarded_event'] = unpack_to['diag'] & self.DIAG_IN_GUARDED_EVENT > 0
+            unpack_to['in_safety_event'] = unpack_to['diag'] & self.DIAG_IN_SAFETY_EVENT > 0
+            unpack_to['waiting_on_sync'] = unpack_to['diag'] & self.DIAG_WAITING_ON_SYNC > 0
+            unpack_to['in_sync_mode'] = unpack_to['diag'] & self.DIAG_IN_SYNC_MODE > 0
+            unpack_to['trace_on'] = unpack_to['diag'] & self.DIAG_IS_TRACE_ON > 0
+
+            if unpack_to['diag'] & self.DIAG_TRAJ_WAITING_ON_SYNC > 0:
+                unpack_to['waypoint_traj']['state']='waiting_on_sync'
+            elif unpack_to['diag'] & self.DIAG_TRAJ_ACTIVE > 0:
+                unpack_to['waypoint_traj']['state']='active'
+            else:
+                unpack_to['waypoint_traj']['state']='idle'
+
+            return sidx
 # ######################## STEPPER #################################
 class Stepper(StepperBase):
     """
@@ -1127,7 +1192,7 @@ class Stepper(StepperBase):
     def __init__(self,usb, name=None):
         StepperBase.__init__(self,usb,name)
         # Order in descending order so more recent protocols/methods override less recent
-        self.supported_protocols = {'p0': (Stepper_Protocol_P0,), 'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,)}
+        self.supported_protocols = {'p0': (Stepper_Protocol_P0,), 'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,),'p2': (Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
 
     def startup(self, threaded=False):
         """
