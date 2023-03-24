@@ -220,6 +220,7 @@ class DynamixelHelloXL430(Device):
                 return False
         except DynamixelCommError:
             self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
+            self.comm_errors.add_error(rx=False, gsr=False)
             print('DynamixelHelloXL430 Ping failed...', self.name)
             return False
 
@@ -251,20 +252,17 @@ class DynamixelHelloXL430(Device):
             try:
                 x = self.motor.get_pos()
                 if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
-                    print('RETRY POS')
                     x = self.motor.get_pos()
                 pos_valid = self.motor.last_comm_success
 
                 v = self.motor.get_vel()
                 if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
-                    print('RETRY VEL')
                     v = self.motor.get_vel()
                 vel_valid = self.motor.last_comm_success
 
                 if self.status_mux_id == 0:
                     eff = self.motor.get_load()
                     if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
-                        print('RETRY EFF')
                         eff = self.motor.get_load()
                     eff_valid = self.motor.last_comm_success
                 else:
@@ -274,7 +272,6 @@ class DynamixelHelloXL430(Device):
                     temp = self.motor.get_temp()
                     if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
                         temp = self.motor.get_temp()
-                        print('RETRY TEMP')
                     temp_valid = self.motor.last_comm_success
                 else:
                     temp = self.status['temp']
@@ -283,7 +280,6 @@ class DynamixelHelloXL430(Device):
                     err = self.motor.get_hardware_error()
                     if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
                         err = self.motor.get_hardware_error()
-                        print('RETRY ERR')
                     err_valid = self.motor.last_comm_success
                 else:
                     err = self.status['hardware_error']
@@ -293,15 +289,14 @@ class DynamixelHelloXL430(Device):
                 self.check_servo_errors()
 
                 if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
-                    print('RETRY FAILED')
-                    raise DynamixelCommError
+                    self.logger.warning('Dynamixel communication error during pull_status on %s: ' % self.name)
+                    self.comm_errors.add_error(rx=True, gsr=False)
+                    return
                 ts = time.time()
             except(termios.error, DynamixelCommError, IndexError):
-                print('COMMERRRR')
-                self.logger.warning('Dynamixel communication error on %s: '%self.name)
-
-                self.motor.port_handler.ser.reset_output_buffer()
-                self.motor.port_handler.ser.reset_input_buffer()
+                self.logger.warning('Dynamixel communication error during pull_status  on %s: '%self.name)
+                # self.motor.port_handler.ser.reset_output_buffer()
+                # self.motor.port_handler.ser.reset_input_buffer()
                 self.comm_errors.add_error(rx=True,gsr=False)
                 return
         else:
@@ -436,40 +431,50 @@ class DynamixelHelloXL430(Device):
         self.motor.disable_torque()
 
     def move_to_vel(self,v_des,a_des=None):
+        nretry = 2
         if not self.hw_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
             self.logger.warning('Dynamixel not calibrated: %s' % self.name)
             print('Dynamixel not calibrated:', self.name)
             return
-        try:
-            self.motor.set_vel(v_des)
-        except(termios.error, DynamixelCommError, IndexError):
-            self.logger.warning('Dynamixel communication error on %s: ' % self.name)
-            self.comm_errors.add_error(rx=True, gsr=False)
+        success = False
+        for i in range(nretry):
+            try:
+                self.motor.set_vel(v_des)
+                success = True
+                break
+            except(termios.error, DynamixelCommError, IndexError):
+                self.logger.warning('Dynamixel communication error during move_to_vel on %s: ' % self.name)
+                self.comm_errors.add_error(rx=True, gsr=False)
+
 
     def move_to(self,x_des, v_des=None, a_des=None):
+        nretry = 2
         if not self.hw_valid:
             return
         if self.params['req_calibration'] and not self.is_calibrated:
             self.logger.warning('Dynamixel not calibrated: %s' % self.name)
             print('Dynamixel not calibrated:', self.name)
             return
-        try:
-            #print('Motion Params',v_des,a_des)
-            self.set_motion_params(v_des,a_des)
-            old_x_des = x_des
-            x_des = min(max(self.get_soft_motion_limits()[0], x_des), self.get_soft_motion_limits()[1])
-            if x_des != old_x_des:
-                self.logger.debug('Clipping move_to({0}) with soft limits {1}'.format(old_x_des, self.soft_motion_limits['current']))
-            t_des = self.world_rad_to_ticks(x_des)
-            t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
-            self.motor.go_to_pos(t_des)
-        except (termios.error, DynamixelCommError, IndexError):
-            print('ERR MOVE TO')
-            self.logger.warning('Dynamixel communication error on: %s' % self.name)
-            self.comm_errors.add_error(rx=False, gsr=False)
 
+        #print('Motion Params',v_des,a_des)
+        self.set_motion_params(v_des,a_des)
+        old_x_des = x_des
+        x_des = min(max(self.get_soft_motion_limits()[0], x_des), self.get_soft_motion_limits()[1])
+        if x_des != old_x_des:
+            self.logger.debug('Clipping move_to({0}) with soft limits {1}'.format(old_x_des, self.soft_motion_limits['current']))
+        t_des = self.world_rad_to_ticks(x_des)
+        t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
+        success=False
+        for i in range(nretry):
+            try:
+                self.motor.go_to_pos(t_des)
+                success=True
+                break
+            except (termios.error, DynamixelCommError, IndexError):
+                self.logger.warning('Dynamixel communication error during move_to on %s: ' % self.name)
+                self.comm_errors.add_error(rx=False, gsr=False)
 
     def set_motion_params(self,v_des=None,a_des=None, force=False):
         try:
@@ -487,7 +492,7 @@ class DynamixelHelloXL430(Device):
                 self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(a_des)))
                 self.a_des = a_des
         except (termios.error, DynamixelCommError):
-            #self.logger.warning('Dynamixel communication error on: %s' % self.name)
+            self.logger.warning('Dynamixel communication error during set_motion_params on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
 
@@ -506,7 +511,7 @@ class DynamixelHelloXL430(Device):
                 else:
                     self.logger.debug('Move_By comm failure on %s' % self.name)
         except (termios.error, DynamixelCommError):
-            #self.logger.warning('Dynamixel communication error on: %s' % self.name)
+            self.logger.warning('Dynamixel communication error during move_by on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
     def quick_stop(self):
@@ -516,6 +521,7 @@ class DynamixelHelloXL430(Device):
             self.motor.disable_torque()
             self.motor.enable_torque()
         except (termios.error, DynamixelCommError):
+            self.logger.warning('Dynamixel communication error during quick_stop on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
     def enable_pos(self):
@@ -530,6 +536,7 @@ class DynamixelHelloXL430(Device):
             self.motor.enable_torque()
             self.set_motion_params(force=True)
         except (termios.error, DynamixelCommError):
+            self.logger.warning('Dynamixel communication error during enable_pos on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
     def enable_pwm(self):
@@ -540,6 +547,7 @@ class DynamixelHelloXL430(Device):
             self.motor.enable_pwm()
             self.motor.enable_torque()
         except (termios.error, DynamixelCommError):
+            self.logger.warning('Dynamixel communication error during enable_pwm on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
 
@@ -549,6 +557,7 @@ class DynamixelHelloXL430(Device):
         try:
             self.motor.set_pwm(x)
         except (termios.error, DynamixelCommError):
+            self.logger.warning('Dynamixel communication error during set_pwm on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
     # ######### Waypoint Trajectory Interface ##############################

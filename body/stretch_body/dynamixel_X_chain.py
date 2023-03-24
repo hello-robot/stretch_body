@@ -167,10 +167,10 @@ class DynamixelXChain(Device):
                 self.status_mux_id = (self.status_mux_id + 1) % 3
 
                 if error:
-                    print('ERRRRRRRRR')
                     self.comm_errors.add_error(rx=True, gsr=True)
-                    self.port_handler.ser.reset_output_buffer()
-                    self.port_handler.ser.reset_input_buffer()
+                    self.logger.warning('Dynamixel communication error during pull_status on %s: ' % self.name)
+                    #self.port_handler.ser.reset_output_buffer()
+                    #self.port_handler.ser.reset_input_buffer()
 
                 idx = 0
                 # Build dictionary of status data and push to each motor status
@@ -204,10 +204,8 @@ class DynamixelXChain(Device):
                     with self.pt_lock:
                         self.motors[m].pull_status()
         except(DynamixelCommError, IOError):
-            print('CHAIN COMMERR')
             self.comm_errors.add_error(rx=True, gsr=True)
-            self.port_handler.ser.reset_output_buffer()
-            self.port_handler.ser.reset_input_buffer()
+            self.logger.warning('Dynamixel communication error during pull_status on %s: ' % self.name)
 
     def pretty_print(self):
         print('--- Dynamixel X Chain ---')
@@ -231,7 +229,7 @@ class DynamixelXChain(Device):
                     b = reader.getData(id_num, reader.start_address, reader.data_length)
             except IndexError:
                 #Bad data struct size possible to raise Index Error
-                raise DynamixelCommError
+                return None #raise DynamixelCommError
             # The error code seems to be 0, yet there are also
             # circumstances where b will be 0 without an error, such
             # as being at position = 0. For now, I am commenting out
