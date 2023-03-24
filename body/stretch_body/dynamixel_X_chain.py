@@ -128,19 +128,23 @@ class DynamixelXChain(Device):
             return
         try:
             ts = time.time()
+            error=False
             if self.params['use_group_sync_read']:
                 pos = self.sync_read(self.readers['pos'])
                 if pos==None and self.params['retry_on_comm_failure']:
                     pos = self.sync_read(self.readers['pos'])
+                error= error or (pos==None)
 
                 vel = self.sync_read(self.readers['vel'])
                 if vel == None and self.params['retry_on_comm_failure']:
                     vel = self.sync_read(self.readers['vel'])
+                error = error or (vel == None)
 
                 if self.status_mux_id == 0:
                     effort = self.sync_read(self.readers['effort'])
                     if effort == None and self.params['retry_on_comm_failure']:
                         effort = self.sync_read(self.readers['effort'])
+                    error = error or (effort == None)
                 else:
                     effort = None
 
@@ -148,6 +152,7 @@ class DynamixelXChain(Device):
                     temp = self.sync_read(self.readers['temp'])
                     if temp == None and self.params['retry_on_comm_failure']:
                         temp = self.sync_read(self.readers['temp'])
+                    error = error or (temp == None)
                 else:
                     temp = None
 
@@ -155,10 +160,17 @@ class DynamixelXChain(Device):
                     hardware_error = self.sync_read(self.readers['hardware_error'])
                     if hardware_error == None and self.params['retry_on_comm_failure']:
                         hardware_error = self.sync_read(self.readers['hardware_error'])
+                    error = error or (hardware_error == None)
                 else:
                     hardware_error = None
 
                 self.status_mux_id = (self.status_mux_id + 1) % 3
+
+                if error:
+                    self.comm_errors.add_error(rx=True, gsr=True)
+                    self.logger.warning('Dynamixel communication error during pull_status on %s: ' % self.name)
+                    #self.port_handler.ser.reset_output_buffer()
+                    #self.port_handler.ser.reset_input_buffer()
 
                 idx = 0
                 # Build dictionary of status data and push to each motor status
@@ -193,8 +205,7 @@ class DynamixelXChain(Device):
                         self.motors[m].pull_status()
         except(DynamixelCommError, IOError):
             self.comm_errors.add_error(rx=True, gsr=True)
-            self.port_handler.ser.reset_output_buffer()
-            self.port_handler.ser.reset_input_buffer()
+            self.logger.warning('Dynamixel communication error during pull_status on %s: ' % self.name)
 
     def pretty_print(self):
         print('--- Dynamixel X Chain ---')
@@ -209,14 +220,16 @@ class DynamixelXChain(Device):
             result = reader.txRxPacket()
         if result != COMM_SUCCESS:
             self.logger.debug('Dynamixel X sync read txRxPacket failed with error code = ' + str(result))
-            raise DynamixelCommError
+            return None
+            #raise DynamixelCommError
 
         def get_val(id_num):
             try:
-                b = reader.getData(id_num, reader.start_address, reader.data_length)
+                with self.pt_lock:
+                    b = reader.getData(id_num, reader.start_address, reader.data_length)
             except IndexError:
                 #Bad data struct size possible to raise Index Error
-                raise DynamixelCommError
+                return None #raise DynamixelCommError
             # The error code seems to be 0, yet there are also
             # circumstances where b will be 0 without an error, such
             # as being at position = 0. For now, I am commenting out
