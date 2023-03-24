@@ -251,17 +251,20 @@ class DynamixelHelloXL430(Device):
             try:
                 x = self.motor.get_pos()
                 if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    print('RETRY POS')
                     x = self.motor.get_pos()
                 pos_valid = self.motor.last_comm_success
 
                 v = self.motor.get_vel()
                 if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                    print('RETRY VEL')
                     v = self.motor.get_vel()
                 vel_valid = self.motor.last_comm_success
 
                 if self.status_mux_id == 0:
                     eff = self.motor.get_load()
                     if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
+                        print('RETRY EFF')
                         eff = self.motor.get_load()
                     eff_valid = self.motor.last_comm_success
                 else:
@@ -271,6 +274,7 @@ class DynamixelHelloXL430(Device):
                     temp = self.motor.get_temp()
                     if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
                         temp = self.motor.get_temp()
+                        print('RETRY TEMP')
                     temp_valid = self.motor.last_comm_success
                 else:
                     temp = self.status['temp']
@@ -279,6 +283,7 @@ class DynamixelHelloXL430(Device):
                     err = self.motor.get_hardware_error()
                     if not self.motor.last_comm_success and self.params['retry_on_comm_failure']:
                         err = self.motor.get_hardware_error()
+                        print('RETRY ERR')
                     err_valid = self.motor.last_comm_success
                 else:
                     err = self.status['hardware_error']
@@ -288,10 +293,13 @@ class DynamixelHelloXL430(Device):
                 self.check_servo_errors()
 
                 if not pos_valid or not vel_valid or not eff_valid or not temp_valid or not err_valid:
+                    print('RETRY FAILED')
                     raise DynamixelCommError
                 ts = time.time()
             except(termios.error, DynamixelCommError, IndexError):
+                print('COMMERRRR')
                 self.logger.warning('Dynamixel communication error on %s: '%self.name)
+
                 self.motor.port_handler.ser.reset_output_buffer()
                 self.motor.port_handler.ser.reset_input_buffer()
                 self.comm_errors.add_error(rx=True,gsr=False)
@@ -458,6 +466,7 @@ class DynamixelHelloXL430(Device):
             t_des = max(self.params['range_t'][0], min(self.params['range_t'][1], t_des))
             self.motor.go_to_pos(t_des)
         except (termios.error, DynamixelCommError, IndexError):
+            print('ERR MOVE TO')
             self.logger.warning('Dynamixel communication error on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
 
