@@ -58,6 +58,7 @@ def set_fleet_directory(fleet_path,fleet_id):
     os.environ['HELLO_FLEET_ID'] = fleet_id
     os.environ['HELLO_FLEET_PATH'] = fleet_path
 
+
 def get_stretch_directory(sub_directory=''):
     """Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists
 

@@ -225,6 +225,7 @@ class Robot(Device):
         """
         Cause all queued up RPC commands to be sent down to Devices
         """
+        ready = self.pimu.is_ready_for_sync()
         with self.lock:
             self.base.push_command()
             self.arm.push_command()
@@ -232,14 +233,15 @@ class Robot(Device):
             self.pimu.push_command()
             self.wacc.push_command()
 
-            #Check if need to do a motor sync by looking at if there's been a pimu sync signal sent
-            #since the last stepper.set_command for each joint
-            do_sync=(self.pimu.ts_last_motor_sync is not None) and (
-                    self.arm.motor.ts_last_syncd_motion>self.pimu.ts_last_motor_sync
-                    or self.lift.motor.ts_last_syncd_motion>self.pimu.ts_last_motor_sync
-                    or self.base.right_wheel.ts_last_syncd_motion>self.pimu.ts_last_motor_sync
-                    or self.base.left_wheel.ts_last_syncd_motion>self.pimu.ts_last_motor_sync)
-            if  self.pimu.ts_last_motor_sync is None or do_sync:
+            # Check if need to do a motor sync by looking at if there's been a pimu sync signal sent
+            # since the last stepper.set_command for each joint
+            sync_required = (self.pimu.ts_last_motor_sync is not None) and (
+                    self.arm.motor.is_sync_required(self.pimu.ts_last_motor_sync)
+                    or self.lift.motor.is_sync_required(self.pimu.ts_last_motor_sync)
+                    or self.base.right_wheel.is_sync_required(self.pimu.ts_last_motor_sync)
+                        or self.base.left_wheel.is_sync_required(self.pimu.ts_last_motor_sync))
+
+            if (self.pimu.ts_last_motor_sync is None or ( ready and sync_required)):
                 self.pimu.trigger_motor_sync()
 
     # ######### Waypoint Trajectory Interface ##############################
@@ -256,7 +258,17 @@ class Robot(Device):
         success = success and self.arm.follow_trajectory(move_to_start_point=False)
         success = success and self.lift.follow_trajectory(move_to_start_point=False)
         success = success and self.base.follow_trajectory()
-        self.pimu.trigger_motor_sync()
+
+        # Check if need to do a motor sync by looking at if there's been a pimu sync signal sent
+        # since the last stepper.set_command for each joint
+        do_sync = (self.pimu.ts_last_motor_sync is not None) and (
+                self.arm.motor.ts_last_syncd_motion > self.pimu.ts_last_motor_sync
+                or self.lift.motor.ts_last_syncd_motion > self.pimu.ts_last_motor_sync
+                or self.base.right_wheel.ts_last_syncd_motion > self.pimu.ts_last_motor_sync
+                or self.base.left_wheel.ts_last_syncd_motion > self.pimu.ts_last_motor_sync)
+        if self.pimu.ts_last_motor_sync is None or do_sync:
+            self.pimu.trigger_motor_sync()
+
         success = success and self.end_of_arm.follow_trajectory(move_to_start_point=False)
         success = success and self.head.follow_trajectory(move_to_start_point=False)
         return success

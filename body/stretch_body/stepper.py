@@ -179,6 +179,9 @@ class StepperBase(Device):
             self.transport.stop()
             self.hw_valid = False
 
+    def is_sync_required(self,ts_last_sync):
+        return self.status['in_sync_mode'] and self.ts_last_syncd_motion>ts_last_sync
+
     def push_command(self,exiting=False):
         if not self.hw_valid:
             return
