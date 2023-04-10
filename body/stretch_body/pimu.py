@@ -186,7 +186,7 @@ class PimuBase(Device):
         self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
-                       'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'motor_sync_drop':0,'trace_on':0,
+                       'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'motor_sync_drop':0,'trace_on':0,'motor_sync_rate':0,
                        'transport': self.transport.status}
         self.status_zero=self.status.copy()
         self._trigger=0
@@ -290,6 +290,7 @@ class PimuBase(Device):
         print('Timestamp (s)', self.status['timestamp'])
         print('Read error', self.transport.status['read_error'])
         print('Dropped motor sync',self.status['motor_sync_drop'])
+        print('Motor sync rate', self.status['motor_sync_rate'])
         print('Board variant:',self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
         self.imu.pretty_print()
@@ -331,28 +332,36 @@ class PimuBase(Device):
             self._trigger=self._trigger | self.TRIGGER_IMU_RESET
             self._dirty_trigger=True
 
+    def is_ready_for_sync(self):
+        # For RE1.0 robots (hardware_id==0) the runstop and sync line are shared
+        # This limits the maximum rate that the motor sync can be triggered
+        # For RE2.0 robots the sync rate is limited by the min pulse width (~10ms)
+        #Track the rate that the sync is triggered
+        # This is called once prior to issuing stepper push_commands
+        # If it is True then trigger_motor_sync is safe to call after the push_commands
+        # By calling it first, it ensures that the sync rate is accurate (eg, not measuring timing of RPC, etc)
+        t = time.time()
+        if self.ts_last_motor_sync is not None:
+            rate=1 / (t - self.ts_last_motor_sync)
+            if rate>self.params['max_sync_rate_hz']:
+                self.status['motor_sync_drop'] += 1
+                if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
+                    print('Warning: Rate of calls to Pimu:trigger_motor_sync rate of %f above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(rate,self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
+                    self.ts_last_motor_sync_warn=t
+                return False
+            self.status['motor_sync_rate'] = rate #Only update rate if it is ready
+        return True
+
     def trigger_motor_sync(self):
         #Push out immediately
         if not self.hw_valid:
             return
-        t = time.time()
-        #For RE1.0 robots (hardware_id==0) the runstop and sync line are shared
-        #This limits the maximum rate that the motor sync can be triggered
-        #For RE2.0 robots the sync rate is limited by the min pulse width (~10ms)
-        if self.ts_last_motor_sync is not None:
-            sync_rate = 1 / (t - self.ts_last_motor_sync)
-            if sync_rate>self.params['max_sync_rate_hz']:
-                self.status['motor_sync_drop'] += 1
-                if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
-                    print('Warning: Rate of calls to Pimu:trigger_motor_sync rate of %f above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(sync_rate,self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
-                    self.ts_last_motor_sync_warn=t
-                return
-
         with self.lock:
             self.transport.payload_out[0] = self.RPC_SET_MOTOR_SYNC
             self.transport.queue_rpc(1, self.rpc_motor_sync_reply)
             self.transport.step()
-            self.ts_last_motor_sync = t
+        self.ts_last_motor_sync = time.time()
+
 
     def set_fan_on(self):
         with self.lock:
