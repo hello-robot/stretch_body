@@ -1207,15 +1207,23 @@ class Stepper(StepperBase):
             if self.board_info['protocol_version'] in self.supported_protocols:
                 Stepper.__bases__ = self.supported_protocols[self.board_info['protocol_version']]
             else:
-                protocol_msg = """
-                ----------------
-                Firmware protocol mismatch on {0}.
-                Protocol on board is {1}.
-                Valid protocols are: {2}.
-                Disabling device.
-                Please upgrade the firmware and/or version of Stretch Body.
-                ----------------
-                """.format(self.name, self.board_info['protocol_version'], self.supported_protocols.keys())
+                if self.board_info['protocol_version'] is None:
+                    protocol_msg = """
+                                    ----------------
+                                    Failure in communications for {0} on startup.
+                                    Please power cycle the robot and try again.
+                                    ----------------
+                                    """.format(self.name)
+                else:
+                    protocol_msg = """
+                    ----------------
+                    Firmware protocol mismatch on {0}.
+                    Protocol on board is {1}.
+                    Valid protocols are: {2}.
+                    Disabling device.
+                    Please upgrade the firmware and/or version of Stretch Body.
+                    ----------------
+                    """.format(self.name, self.board_info['protocol_version'], self.supported_protocols.keys())
                 self.logger.warning(textwrap.dedent(protocol_msg))
                 self.hw_valid = False
                 self.transport.stop()
