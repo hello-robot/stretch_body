@@ -96,6 +96,7 @@ class DynamixelHelloXL430(Device):
             self.v_des = None #Track the motion profile settings on servo
             self.a_des = None #Track the motion profile settings on servo
             self.warn_error=False
+            self.bubble_up_comm_exception=False
         except KeyError:
             self.motor=None
 
@@ -298,6 +299,8 @@ class DynamixelHelloXL430(Device):
                 # self.motor.port_handler.ser.reset_output_buffer()
                 # self.motor.port_handler.ser.reset_input_buffer()
                 self.comm_errors.add_error(rx=True,gsr=False)
+                if self.bubble_up_comm_exception:
+                    raise DynamixelCommError
                 return
         else:
             x = data['x']
@@ -447,6 +450,8 @@ class DynamixelHelloXL430(Device):
             except(termios.error, DynamixelCommError, IndexError):
                 self.logger.warning('Dynamixel communication error during move_to_vel on %s: ' % self.name)
                 self.comm_errors.add_error(rx=True, gsr=False)
+                if self.bubble_up_comm_exception:
+                    raise DynamixelCommError
 
 
     def move_to(self,x_des, v_des=None, a_des=None):
@@ -475,6 +480,8 @@ class DynamixelHelloXL430(Device):
             except (termios.error, DynamixelCommError, IndexError):
                 self.logger.warning('Dynamixel communication error during move_to on %s: ' % self.name)
                 self.comm_errors.add_error(rx=False, gsr=False)
+                if self.bubble_up_comm_exception:
+                    raise DynamixelCommError
 
     def set_motion_params(self,v_des=None,a_des=None, force=False):
         try:
@@ -494,6 +501,8 @@ class DynamixelHelloXL430(Device):
         except (termios.error, DynamixelCommError):
             self.logger.warning('Dynamixel communication error during set_motion_params on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
+            if self.bubble_up_comm_exception:
+                raise DynamixelCommError
 
 
     def move_by(self,x_des, v_des=None, a_des=None):
@@ -513,6 +522,8 @@ class DynamixelHelloXL430(Device):
         except (termios.error, DynamixelCommError):
             self.logger.warning('Dynamixel communication error during move_by on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
+            if self.bubble_up_comm_exception:
+                raise DynamixelCommError
 
     def quick_stop(self):
         if not self.hw_valid:
@@ -523,6 +534,8 @@ class DynamixelHelloXL430(Device):
         except (termios.error, DynamixelCommError):
             self.logger.warning('Dynamixel communication error during quick_stop on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
+            if self.bubble_up_comm_exception:
+                raise DynamixelCommError
 
     def enable_pos(self):
         if not self.hw_valid:
@@ -538,6 +551,8 @@ class DynamixelHelloXL430(Device):
         except (termios.error, DynamixelCommError):
             self.logger.warning('Dynamixel communication error during enable_pos on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
+            if self.bubble_up_comm_exception:
+                raise DynamixelCommError
 
     def enable_pwm(self):
         if not self.hw_valid:
@@ -549,6 +564,8 @@ class DynamixelHelloXL430(Device):
         except (termios.error, DynamixelCommError):
             self.logger.warning('Dynamixel communication error during enable_pwm on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
+            if self.bubble_up_comm_exception:
+                raise DynamixelCommError
 
 
     def set_pwm(self,x):
@@ -559,6 +576,8 @@ class DynamixelHelloXL430(Device):
         except (termios.error, DynamixelCommError):
             self.logger.warning('Dynamixel communication error during set_pwm on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
+            if self.bubble_up_comm_exception:
+                raise DynamixelCommError
 
     # ######### Waypoint Trajectory Interface ##############################
 
@@ -767,113 +786,118 @@ class DynamixelHelloXL430(Device):
         # Mark the first hardstop as zero ticks on the Dynammixel
         # Second hardstop is optional
         # Return success, measured range
+        self.bubble_up_comm_exception=True
+        try:
+            if not self.hw_valid:
+                self.logger.warning('Not able to home %s. Hardware not present'%self.name)
+                return False, None
+            if not self.params['req_calibration']:
+                print('Homing not required for: '+self.name)
+                return False, None
 
-        if not self.hw_valid:
-            self.logger.warning('Not able to home %s. Hardware not present'%self.name)
-            return False, None
-        if not self.params['req_calibration']:
-            print('Homing not required for: '+self.name)
-            return False, None
+            self.pull_status()
 
-        self.pull_status()
+            if not self.check_servo_errors():
+                self.logger.warning('Hardware error, unable to home. Exiting')
+                return False, None
 
-        if not self.check_servo_errors():
-            self.logger.warning('Hardware error, unable to home. Exiting')
-            return False, None
-
-        self.is_homing=True
-        self.enable_pwm()
-        print('Moving to first hardstop...')
-        self.set_pwm(self.params['pwm_homing'][0])
-        ts=time.time()
-        time.sleep(1.0)
-        timeout=False
-        while self.motor.is_moving() and not timeout:
-            timeout=time.time()-ts>15.0
-            time.sleep(0.5)
-        time.sleep(delay_at_stop)
-        self.set_pwm(0)
-
-        if timeout:
-            self.logger.warning('Timed out moving to first hardstop. Exiting.')
-            return False, None
-
-        if not self.check_servo_errors():
-            self.logger.warning('Hardware error, unable to home. Exiting')
-            return False, None
-
-        #Need to move back to pos mode to get the position (ticks) w/o the homing offset (single turn mode)
-        if not self.params['use_multiturn']:
-            self.enable_pos()
-        contact_0 = self.motor.get_pos()
-        print('First hardstop contact at position (ticks): %d' % contact_0)
-
-        if set_homing_offset:
-            print('-----')
-            self.motor.disable_torque()
-            print('Homing offset was %d'%self.motor.get_homing_offset())
-            print('Marking current position to zero ticks')
-            self.motor.zero_position()
-            print("Homing offset is now  %d (ticks)"%self.motor.get_homing_offset())
-            print('-----')
-            contact_0=0
-
-        self.motor.disable_torque()
-        self.motor.set_calibrated(1)
-        self.is_calibrated=1
-        self.motor.enable_torque()
-
-        self.enable_pwm()
-
-        print('Current position (ticks):',self.motor.get_pos())
-
-        if not single_stop:
-            #Measure the range and write to YAML
-            print('Moving to second hardstop...')
-            self.set_pwm(self.params['pwm_homing'][1])
-            ts = time.time()
+            self.is_homing=True
+            self.enable_pwm()
+            print('Moving to first hardstop...')
+            self.set_pwm(self.params['pwm_homing'][0])
+            ts=time.time()
             time.sleep(1.0)
-            timeout = False
+            timeout=False
             while self.motor.is_moving() and not timeout:
-                timeout = time.time() - ts > 15.0
+                timeout=time.time()-ts>15.0
                 time.sleep(0.5)
             time.sleep(delay_at_stop)
             self.set_pwm(0)
 
             if timeout:
-                self.logger.warning('Timed out moving to second hardstop. Exiting.')
+                self.logger.warning('Timed out moving to first hardstop. Exiting.')
                 return False, None
 
             if not self.check_servo_errors():
                 self.logger.warning('Hardware error, unable to home. Exiting')
                 return False, None
 
-            # Need to move back to pos mode to get the position (ticks) w/o the homing offset (single turn mode)
+            #Need to move back to pos mode to get the position (ticks) w/o the homing offset (single turn mode)
             if not self.params['use_multiturn']:
                 self.enable_pos()
-            contact_1 = self.motor.get_pos()
-            print('Hit second hardstop at: (ticks)', contact_1)
+            contact_0 = self.motor.get_pos()
+            print('First hardstop contact at position (ticks): %d' % contact_0)
 
-            print('Homed to range of motion to (ticks):',[contact_0,contact_1])
-            self.params['range_t'] = [contact_0 + self.params['range_pad_t'][0], contact_1 + self.params['range_pad_t'][1]]
-            print('Padded range of motion is (ticks):',self.params['range_t'])
-            r1=self.ticks_to_world_rad(self.params['range_t'][0])
-            r2=self.ticks_to_world_rad(self.params['range_t'][1])
-            print('   Radians:',[r1,r2])
-            print('   Degrees:',[rad_to_deg(r1),rad_to_deg(r2)])
+            if set_homing_offset:
+                print('-----')
+                self.motor.disable_torque()
+                print('Homing offset was %d'%self.motor.get_homing_offset())
+                print('Marking current position to zero ticks')
+                self.motor.zero_position()
+                print("Homing offset is now  %d (ticks)"%self.motor.get_homing_offset())
+                print('-----')
+                contact_0=0
 
-            if save_calibration:
-                self.write_configuration_param_to_YAML(self.name+'.range_t', self.params['range_t'])
+            self.motor.disable_torque()
+            self.motor.set_calibrated(1)
+            self.is_calibrated=1
+            self.motor.enable_torque()
 
-        self.enable_pos()
-        if move_to_zero:
-            print('Moving to calibrated zero: (rad)')
-            self.move_to(0)
-            self.wait_until_at_setpoint(timeout=6.0)
-        self.is_homing=False
-        if not single_stop:
-            return  True, self.params['range_t']
-        return True, None
+            self.enable_pwm()
+
+            print('Current position (ticks):',self.motor.get_pos())
+
+            if not single_stop:
+                #Measure the range and write to YAML
+                print('Moving to second hardstop...')
+                self.set_pwm(self.params['pwm_homing'][1])
+                ts = time.time()
+                time.sleep(1.0)
+                timeout = False
+                while self.motor.is_moving() and not timeout:
+                    timeout = time.time() - ts > 15.0
+                    time.sleep(0.5)
+                time.sleep(delay_at_stop)
+                self.set_pwm(0)
+
+                if timeout:
+                    self.logger.warning('Timed out moving to second hardstop. Exiting.')
+                    return False, None
+
+                if not self.check_servo_errors():
+                    self.logger.warning('Hardware error, unable to home. Exiting')
+                    return False, None
+
+                # Need to move back to pos mode to get the position (ticks) w/o the homing offset (single turn mode)
+                if not self.params['use_multiturn']:
+                    self.enable_pos()
+                contact_1 = self.motor.get_pos()
+                print('Hit second hardstop at: (ticks)', contact_1)
+
+                print('Homed to range of motion to (ticks):',[contact_0,contact_1])
+                self.params['range_t'] = [contact_0 + self.params['range_pad_t'][0], contact_1 + self.params['range_pad_t'][1]]
+                print('Padded range of motion is (ticks):',self.params['range_t'])
+                r1=self.ticks_to_world_rad(self.params['range_t'][0])
+                r2=self.ticks_to_world_rad(self.params['range_t'][1])
+                print('   Radians:',[r1,r2])
+                print('   Degrees:',[rad_to_deg(r1),rad_to_deg(r2)])
+
+                if save_calibration:
+                    self.write_configuration_param_to_YAML(self.name+'.range_t', self.params['range_t'])
+
+            self.enable_pos()
+            if move_to_zero:
+                print('Moving to calibrated zero: (rad)')
+                self.move_to(0)
+                self.wait_until_at_setpoint(timeout=6.0)
+            self.is_homing=False
+            self.bubble_up_comm_exception = False
+            if not single_stop:
+                return  True, self.params['range_t']
+            return True, None
+        except DynamixelCommError:
+            self.logger.warning('Communication error, unable to home. Exiting')
+            return False, None
 
 # ##########################################
 
