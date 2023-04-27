@@ -475,10 +475,10 @@ class StepperBase(Device):
         """
         ts = time.time()
         self.pull_status()
-        while not self.status['near_pos_setpoint'] and time.time() - ts < timeout:
+        while (self.status['is_mg_moving'] or self.status['waiting_on_sync']) and time.time() - ts < timeout:
             time.sleep(0.1)
             self.pull_status()
-        return self.status['near_pos_setpoint']
+        return not (self.status['is_mg_moving'] or self.status['waiting_on_sync'])
 
     ########### Handle current and effort conversions  ###########
 
