@@ -344,6 +344,29 @@ class Robot(Device):
             if (self.pimu.ts_last_motor_sync is None or ( ready and sync_required)):
                 self.pimu.trigger_motor_sync()
 
+    def wait_until_motion_completed(self, timeout=15.0):
+        """Waits until the robot achieves all position commands.
+
+        This method can be used to block your script/code execution
+        until all motion goals (e.g. via the move_to()/move_by() methods)
+        are completed. Note that this method polls the hardware every 100ms.
+
+        Parameters
+        ----------
+        timeout : float
+            how long (seconds) to wait for the motion to complete
+
+        Returns
+        -------
+        bool
+            true if motion completed, false if timed out.
+        """
+        return self.arm.wait_until_motion_completed(timeout=timeout) and \
+               self.lift.wait_until_motion_completed(timeout=timeout) and \
+               self.base.wait_until_motion_completed(timeout=timeout) and \
+               self.end_of_arm.wait_until_motion_completed(timeout=timeout) and \
+               self.head.wait_until_motion_completed(timeout=timeout)
+
     # ######### Waypoint Trajectory Interface ##############################
 
 
