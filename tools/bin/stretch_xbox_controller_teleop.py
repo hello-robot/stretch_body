@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
 from __future__ import print_function
 import stretch_body.xbox_controller as xc
 import stretch_body.robot as rb
@@ -6,31 +7,28 @@ from stretch_body.hello_utils import *
 import os
 import time
 import argparse
-import random
-import math
-
 print_stretch_re_use()
 
-parser = argparse.ArgumentParser(description=
-                                 'Jog the robot from an XBox Controller  \n' +
-                                 '-------------------------------------\n' +
-                                 'Left Stick X:\t Rotate base \n' +
-                                 'Left Stick Y:\t Translate base \n' +
-                                 'Right Trigger:\t Fast base motion \n' +
-                                 'Right Stick X:\t Translate arm \n' +
-                                 'Right Stick Y:\t Translate lift \n' +
-                                 'Left Button:\t Rotate wrist CCW \n' +
-                                 'Right Button:\t Rotate wrist CW \n' +
-                                 'A/B Buttons:\t Close/Open gripper \n' +
-                                 'Left/Right Pad:\t Head Pan \n' +
-                                 'Top/Bottom Pad:\t Head tilt \n' +
-                                 'Y Button :\t Go to stow position \n ' +
-                                 'Start Button:\t Home robot \n ' +
-                                 'Back Button (2 sec):\t Shutdown computer \n ' +
-                                 '-------------------------------------\n',
-                                 formatter_class=argparse.RawTextHelpFormatter)
+parser=argparse.ArgumentParser(description=
+     'Jog the robot from an XBox Controller  \n' +
+     '-------------------------------------\n' +
+    'Left Stick X:\t Rotate base \n' +
+    'Left Stick Y:\t Translate base \n' +
+    'Right Trigger:\t Fast base motion \n' +
+    'Right Stick X:\t Translate arm \n' +
+    'Right Stick Y:\t Translate lift \n' +
+    'Left Button:\t Rotate wrist CCW \n' +
+    'Right Button:\t Rotate wrist CW \n' +
+    'A/B Buttons:\t Close/Open gripper \n' +
+    'Left/Right Pad:\t Head Pan \n' +
+    'Top/Bottom Pad:\t Head tilt \n' +
+    'Y Button :\t Go to stow position \n ' +
+    'Start Button:\t Home robot \n ' +
+    'Back Button (2 sec):\t Shutdown computer \n ' +
+    '-------------------------------------\n',formatter_class=argparse.RawTextHelpFormatter)
 
-args = parser.parse_args()
+
+args=parser.parse_args()
 
 
 class CommandToLinearMotion():
@@ -98,7 +96,7 @@ class CommandToRotaryMotion():
             move_duration_s)
         assert self.max_angle_rad <= 0.7, 'WARNING: CommandToRotaryMotion.__init__ max_angle_rad = abs({0}) > 0.7 , which is a large angle for a single move (~40.0 deg).'.format(
             max_angle_rad)
-        assert self.accel_rad <= 4.0 * 10, 'WARNING: CommandToRotaryMotion.__init__ accel_rad = abs({0}) > 4.0 rad/s^2, which is high.'.format(
+        assert self.accel_rad <= 4.0*10, 'WARNING: CommandToRotaryMotion.__init__ accel_rad = abs({0}) > 4.0 rad/s^2, which is high.'.format(
             accel_rad)
 
     def get_dist_vel_accel(self, output_sign, command_value):
@@ -117,13 +115,13 @@ class CommandToRotaryMotion():
         a_r = self.accel_rad
         return d_r, v_r, a_r
 
-
 # ######################### HEAD ########################################
-head_pan_target = 0.0
-head_tilt_target = 0.0
+head_pan_target=0.0
+head_tilt_target=0.0
 
 
-def manage_head(robot, controller_state):
+
+def manage_head(robot,controller_state):
     global head_pan_target, head_tilt_target
     if not use_head_mapping:
         return
@@ -171,7 +169,9 @@ def manage_head(robot, controller_state):
     robot.head.move_by('head_tilt', head_tilt_target, head_tilt_vel, head_tilt_accel)
 
 
+
 # ######################### BASE ########################################
+############################
 # Regular Motion
 dead_zone = 0.1  # 0.25 #0.1 #0.2 #0.3 #0.4
 move_s = 0.6
@@ -196,8 +196,59 @@ fast_max_dist_rad = 0.6
 fast_accel_rad = 0.8
 fast_command_to_rotary_motion = CommandToRotaryMotion(dead_zone, fast_move_s, fast_max_dist_rad, fast_accel_rad)
 
+############################
+#Velocity based turning
+turn_a_max=0.1
+turn_w_r_max=1.0
+turn_a_max_fast=0.2
+turn_w_r_max_fast=2.0
 
-def manage_base(robot, controller_state):
+#Velocity based forward
+fwd_a_max=0.2
+fwd_v_max=0.2
+fwd_a_max_fast=0.8
+fwd_v_max_fast=0.5
+############################
+def manage_base(robot,controller_state):
+    forward_command = controller_state['left_stick_y']
+    turn_command = controller_state['left_stick_x']
+
+    fast_navigation_mode = False
+    navigation_mode_trigger = controller_state['right_trigger_pulled']
+    if (navigation_mode_trigger > 0.5):
+        fast_navigation_mode = True
+    fast_navigation_mode = True
+    ##################
+    # convert robot commands to robot movement
+    # only allow a pure translation or a pure rotation command
+
+    if abs(forward_command) > abs(turn_command):
+        if (abs(forward_command) < .01):
+            forward_command = 0.0
+        if not fast_navigation_mode:
+            robot.base.set_velocity(v_m=forward_command*fwd_v_max, w_r=0, a=fwd_a_max)
+        else:
+            print('FAST',turn_command * turn_w_r_max_fast)
+            robot.base.set_velocity(v_m=forward_command*fwd_v_max_fast, w_r=0, a=fwd_a_max_fast)
+        # if abs(forward_command) > dead_zone:
+        #     output_sign = math.copysign(1, forward_command)
+        #     if not fast_navigation_mode:
+        #         d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, forward_command)
+        #     else:
+        #         d_m, v_m, a_m = fast_command_to_linear_motion.get_dist_vel_accel(output_sign, forward_command)
+        #     robot.base.translate_by(d_m, v_m, a_m)
+        # else:
+        #     robot.base.translate_by(0, 0, 0)
+    else:
+        if (abs(turn_command) < .01):
+            turn_command = 0.0
+        if not fast_navigation_mode:
+            robot.base.set_velocity(v_m=0, w_r=turn_command*turn_w_r_max, a=turn_a_max)
+        else:
+            print('FAST',turn_command * turn_w_r_max_fast)
+            robot.base.set_velocity(v_m=0, w_r=turn_command * turn_w_r_max_fast, a=turn_a_max_fast)
+
+def manage_base2(robot,controller_state):
     forward_command = controller_state['left_stick_y']
     turn_command = controller_state['left_stick_x']
 
@@ -229,31 +280,35 @@ def manage_base(robot, controller_state):
 
 # ######################### LIFT & ARM  ########################################
 
-def manage_lift_arm(robot, controller_state):
+def manage_lift_arm(robot,controller_state):
     lift_command = controller_state['right_stick_y']
     arm_command = controller_state['right_stick_x']
 
     if abs(lift_command) > dead_zone:
-        output_sign = math.copysign(1, lift_command)
-        d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, lift_command)
-        robot.lift.move_by(d_m, v_m, a_m)
-
+        # output_sign = math.copysign(1, lift_command)
+        # d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, lift_command)
+        # robot.lift.move_by(d_m, v_m, a_m)
+        robot.lift.set_velocity(0.75*lift_command)
+    else:
+        robot.lift.set_velocity(0.0)
     if abs(arm_command) > dead_zone:
-        output_sign = math.copysign(1, arm_command)
-        d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, arm_command)
-        robot.arm.move_by(d_m, v_m, a_m)
-
+        robot.arm.set_velocity(0.25*arm_command)
+    else:
+        robot.arm.set_velocity(0.0)
+        # output_sign = math.copysign(1, arm_command)
+        # d_m, v_m, a_m = command_to_linear_motion.get_dist_vel_accel(output_sign, arm_command)
+        # robot.arm.move_by(d_m, v_m, a_m)
 
 # ######################### END OF ARM  ########################################
-wrist_yaw_target = 0.0
-wrist_roll_target = 0.0
-wrist_pitch_target = 0.0
+wrist_yaw_target=0.0
+wrist_roll_target=0.0
+wrist_pitch_target=0.0
 
-
-def manage_end_of_arm(robot, controller_state):
+def manage_end_of_arm(robot,controller_state):
     global wrist_yaw_target, wrist_roll_target, wrist_pitch_target
     wrist_yaw_left = controller_state['left_shoulder_button_pressed']
     wrist_yaw_right = controller_state['right_shoulder_button_pressed']
+
 
     close_gripper = controller_state['bottom_button_pressed']
     open_gripper = controller_state['right_button_pressed']
@@ -284,10 +339,12 @@ def manage_end_of_arm(robot, controller_state):
             wrist_yaw_target = min(0, wrist_yaw_target + wrist_yaw_slew_down)
     # Or slew up to max
     if wrist_yaw_left:
-        wrist_yaw_target = min(wrist_yaw_target + wrist_yaw_slew_up, wrist_yaw_rotate_rad)
+        wrist_yaw_target = min(wrist_yaw_target +wrist_yaw_slew_up, wrist_yaw_rotate_rad)
     if wrist_yaw_right:
         wrist_yaw_target = max(wrist_yaw_target - wrist_yaw_slew_up, -wrist_yaw_rotate_rad)
     robot.end_of_arm.move_by('wrist_yaw', wrist_yaw_target, wrist_yaw_vel, wrist_yaw_accel)
+
+
 
     if use_dex_wrist_mapping:
         wrist_roll_cw = controller_state['right_pad_pressed']
@@ -316,7 +373,7 @@ def manage_end_of_arm(robot, controller_state):
             wrist_pitch_target = min(wrist_pitch_target + wrist_pitch_slew_up, wrist_pitch_rotate_rad)
 
         robot.end_of_arm.move_by('wrist_roll', wrist_roll_target, wrist_pitch_vel, wrist_pitch_accel)
-        # print('WW',rad_to_deg(wrist_roll_target),robot.end_of_arm.motors['wrist_roll'].status['pos_ticks'])
+        #print('WW',rad_to_deg(wrist_roll_target),robot.end_of_arm.motors['wrist_roll'].status['pos_ticks'])
         robot.end_of_arm.move_by('wrist_pitch', wrist_pitch_target, wrist_pitch_vel, wrist_pitch_accel)
 
     if use_stretch_gripper_mapping:
@@ -328,14 +385,10 @@ def manage_end_of_arm(robot, controller_state):
             robot.end_of_arm.move_by('stretch_gripper', gripper_rotate_pct, gripper_vel, gripper_accel)
         elif close_gripper:
             robot.end_of_arm.move_by('stretch_gripper', -gripper_rotate_pct, gripper_vel, gripper_accel)
-
-
 # ######################### SHUTDOWN  ########################################
-shutdown_pc = False
-ts_shutdown_start = 0
-
-
-def manage_shutdown(robot, controller_state):
+shutdown_pc=False
+ts_shutdown_start=0
+def manage_shutdown(robot,controller_state):
     global shutdown_pc, ts_shutdown_start
     if controller_state['select_button_pressed']:
         if not shutdown_pc:
@@ -352,132 +405,8 @@ def manage_shutdown(robot, controller_state):
     else:
         shutdown_pc = False
 
-
-# ######################### DEMO MODE #########################################
-in_demo_mode=False
-demo_button_last=False
-ts_demo_button_start=time.time()
-def manage_demo_mode(robot,controller_state):
-    global ts_demo_button_start
-    global in_demo_mode
-    if not controller_state['left_button_pressed']:
-        demo_idx=0
-        demo_ts=0
-        ts_demo_button_start = time.time()
-    dt=time.time()-ts_demo_button_start #How long the button has been pressend
-    if not in_demo_mode and dt>3.0:
-        print('Entering demo mode...')
-        in_demo_mode=True
-        do_double_beep(robot)
-    elif in_demo_mode and dt>3.0:
-        print('Exiting demo mode...')
-        in_demo_mode = False
-        do_double_beep(robot)
-
-head_target=None
-head_pause=False
-head_pause_ts=0
-head_timeout=0
-head_poses = {'ahead': [0, 0], 'back': [deg_to_rad(-180), deg_to_rad(0)],
-              'tool': [deg_to_rad(-90), deg_to_rad(-45)],
-              'wheels': [deg_to_rad(0), deg_to_rad(-90)], 'left': [deg_to_rad(90), deg_to_rad(0)]}
-
-def step_head_motion_demo(robot):
-    global head_target,head_pause, head_pause_ts, head_timeout,head_poses
-    if head_target is None:
-        head_pause=random.random()>0.6
-        if head_pause:
-            print('New head pause')
-            head_pause_ts=time.time()
-            head_target=[]
-        else:
-            head_timeout=time.time()
-            keys=list(head_poses.keys())
-            idx=random.randint(0,len(keys)-1)
-            head_target=head_poses[keys[idx]]
-            vel=random.random()*2+0.5
-            print('New target', keys[idx],rad_to_deg(head_target[0]),rad_to_deg(head_target[1]), vel)
-            robot.head.pose(keys[idx], v_r=[vel, vel])
-
-    if head_target is not None:
-        if head_pause:
-            if time.time()-head_pause_ts>10:
-                head_target=None
-        else:
-            err = math.sqrt((robot.status['head']['head_pan']['pos']-head_target[0])**2+(robot.status['head']['head_tilt']['pos']-head_target[1])**2)
-            #print('Err',rad_to_deg(err))
-            if rad_to_deg(err)<5.0 or time.time()-head_timeout>15.0:
-                head_target=None
-
-#Lift, Arm, Wrist Yaw
-body_poses={'floor':[0.3, 0.3, 0], 'high_in':[1.0, 0.0,deg_to_rad(45.0)],'high_out':[0.8, 0.35,deg_to_rad(0.0)],'mid_in':[0.4,0.2,deg_to_rad(35)],'mid_out':[0.4,0.4,deg_to_rad(-45)]}
-body_target=None
-body_pause=False
-body_pause_ts=0
-body_stow=False
-body_stow_ts=0
-body_timeout=0
-
-def step_body_motion_demo(robot):
-    global body_target,body_pause, body_pause_ts,body_stow, body_stow_ts,body_timeout
-    if body_target is None:
-        body_pause=random.random()>0.5
-        if body_pause:
-            print('New body pause')
-            body_pause=time.time()
-            body_target=[]
-        else:
-            body_stow=random.random()>0.65
-            if body_stow:
-                print('New body stow')
-                body_stow = time.time()
-                body_target = []
-            keys=list(body_poses.keys())
-            idx=random.randint(0,len(keys)-1)
-            body_target=body_poses[keys[idx]]
-            #vel=random.random()*3+0.5
-            print('New target', keys[idx],rad_to_deg(body_target[0]),rad_to_deg(body_target[1]),rad_to_deg(body_target[2]))#, vel)
-            robot.lift.move_to(body_target[0],v_m=.05)
-            robot.arm.move_to(body_target[1],v_m=0.06)
-            robot.end_of_arm.move_to('wrist_yaw',body_target[2],v_r=1.0)
-            robot.push_command()
-            body_timeout=time.time()
-            if random.random()>0.8:
-                robot.end_of_arm.pose('stretch_gripper','open',v_r=2.0)
-            elif random.random()>0.8:
-                robot.end_of_arm.pose('stretch_gripper', 'zero',v_r=2.0)
-
-    if body_target is not None:
-        if body_stow:
-            robot.stow()
-            time.sleep(10.0)
-            body_stow=False
-            body_target=None
-        else:
-            if body_pause:
-                if time.time()-body_pause>15.0:
-                    body_target=None
-            else:
-                err = math.sqrt((robot.status['lift']['pos']-body_target[0])**2+(robot.status['arm']['pos']-body_target[1])**2)# + (robot.status['end_of_arm']['wrist_yaw']['pos']-body_target[2])**2)
-                #print('Err',err)
-                if err<0.1 or time.time()-body_timeout>20.0:
-                    body_target=None
-
-def manage_demo(robot):
-    step_head_motion_demo(robot)
-    step_body_motion_demo(robot)
-    # global demo_idx, demo_dt, poses, demo_ts
-    # p=poses[demo_idx]
-    # robot.arm.move_to(p['arm'])
-    # robot.lift.move_to(p['lift'])
-    # robot.head.move_to('head_pan', p['head'][0])
-    # robot.head.move_to('head_tilt', p['head'][1])
-    # robot.end_of_arm.move_to('stretch_gripper', p['stretch_gripper'])
-    # robot.end_of_arm.move_to('wrist_yaw', p['wrist_yaw'])
-    # robot.push_command()
-
 # ######################### STOW and CALIBRATION  ########################################
-def manage_stow(robot, controller_state):
+def manage_stow(robot,controller_state):
     stow_robot = controller_state['top_button_pressed']
     if stow_robot and robot.is_calibrated():
         # Reset motion params as fast for xbox
@@ -486,11 +415,8 @@ def manage_stow(robot, controller_state):
         robot.end_of_arm.motors['wrist_yaw'].set_motion_params(v, a)
         robot.stow()
 
-
-first_home_warn = True
-
-
-def manage_calibration(robot, controller_state):
+first_home_warn=True
+def manage_calibration(robot,controller_state):
     global first_home_warn
     calibrate_the_robot = controller_state['start_button_pressed']
     if calibrate_the_robot:
@@ -502,102 +428,58 @@ def manage_calibration(robot, controller_state):
             print('press the start button to calibrate the robot')
         else:
             first_home_warn = False
-
-
-########################### Check and wait for USB Devices ###########################
-
-def check_usb_devices(wait_timeout=5):
-    hello_devices = ['hello-wacc',
-                     'hello-motor-left-wheel',
-                     'hello-pimu',
-                     'hello-dynamixel-head',
-                     'hello-dynamixel-wrist',
-                     'hello-motor-arm',
-                     'hello-motor-right-wheel',
-                     'hello-motor-lift']
-
-    print('Waiting for all the hello* devices ...')
-    all_found = True
-    for dev in hello_devices:
-        if not wait_till_usb(dev, wait_timeout):
-            all_found = False
-    if all_found:
-        print('Found all hello* devices.')
-    return all_found
-
-
-def wait_till_usb(usb, wait_timeout):
-    s_ts = time.time()
-    while time.time() - s_ts <= wait_timeout:
-        devices = os.listdir('/dev')
-        hello_devs = [dev for dev in devices if 'hello' in dev]
-        if usb in hello_devs:
-            return True
-    print('{} device not found.'.format(usb))
-    return False
-
-
-def do_double_beep(robot):
-    robot.pimu.trigger_beep()
-    robot.push_command()
-    time.sleep(0.5)
-    robot.pimu.trigger_beep()
-    robot.push_command()
-    time.sleep(0.5)
-
 # ######################### MAIN ########################################
-use_head_mapping = True
-use_dex_wrist_mapping = False
-use_stretch_gripper_mapping = True
-
+use_head_mapping=True
+use_dex_wrist_mapping=False
+use_stretch_gripper_mapping=True
 
 def main():
     global use_head_mapping, use_dex_wrist_mapping, use_stretch_gripper_mapping
     xbox_controller = xc.XboxController()
     xbox_controller.start()
-    check_usb_devices(wait_timeout=5)
     robot = rb.Robot()
     try:
         robot.startup()
-        print('Using key mapping for tool: %s' % robot.end_of_arm.name)
-        if robot.end_of_arm.name == 'tool_none':
-            use_head_mapping = True
-            use_stretch_gripper_mapping = False
-            use_dex_wrist_mapping = False
+        print('Using key mapping for tool: %s'%robot.end_of_arm.name)
+        if robot.end_of_arm.name=='tool_none':
+            use_head_mapping=True
+            use_stretch_gripper_mapping=False
+            use_dex_wrist_mapping=False
 
-        if robot.end_of_arm.name == 'tool_stretch_gripper':
-            use_head_mapping = True
-            use_stretch_gripper_mapping = True
-            use_dex_wrist_mapping = False
+        if robot.end_of_arm.name=='tool_stretch_gripper':
+            use_head_mapping=True
+            use_stretch_gripper_mapping=True
+            use_dex_wrist_mapping=False
 
-        if robot.end_of_arm.name == 'tool_stretch_dex_wrist':
-            use_head_mapping = False
-            use_stretch_gripper_mapping = True
-            use_dex_wrist_mapping = True
+        if robot.end_of_arm.name=='tool_stretch_dex_wrist':
+            use_head_mapping=False
+            use_stretch_gripper_mapping=True
+            use_dex_wrist_mapping=True
 
-        do_double_beep(robot)
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
 
         while True:
             controller_state = xbox_controller.get_state()
-            if not robot.is_calibrated():
+            if 0:#not robot.is_calibrated():
                 manage_calibration(robot, controller_state)
             else:
-                manage_demo_mode(robot, controller_state)
-                if not in_demo_mode:
-                    manage_base(robot, controller_state)
-                    manage_lift_arm(robot, controller_state)
-                    manage_end_of_arm(robot, controller_state)
-                    manage_head(robot, controller_state)
-                    manage_stow(robot, controller_state)
-                else:
-                    manage_demo(robot)
+                manage_base(robot, controller_state)
+                #manage_lift_arm(robot, controller_state)
+                manage_end_of_arm(robot, controller_state)
+                manage_head(robot, controller_state)
+                manage_stow(robot, controller_state)
             manage_shutdown(robot, controller_state)
             robot.push_command()
             time.sleep(0.05)
     except (ThreadServiceExit, KeyboardInterrupt, SystemExit):
         robot.stop()
         xbox_controller.stop()
-
 
 if __name__ == "__main__":
     main()
