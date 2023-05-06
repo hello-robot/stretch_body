@@ -6,6 +6,8 @@ from stretch_body.hello_utils import *
 import os
 import time
 import argparse
+import random
+import math
 
 print_stretch_re_use()
 
@@ -170,7 +172,6 @@ def manage_head(robot, controller_state):
 
 
 # ######################### BASE ########################################
-############################
 # Regular Motion
 dead_zone = 0.1  # 0.25 #0.1 #0.2 #0.3 #0.4
 move_s = 0.6
@@ -195,8 +196,6 @@ fast_max_dist_rad = 0.6
 fast_accel_rad = 0.8
 fast_command_to_rotary_motion = CommandToRotaryMotion(dead_zone, fast_move_s, fast_max_dist_rad, fast_accel_rad)
 
-
-############################
 
 def manage_base(robot, controller_state):
     forward_command = controller_state['left_stick_y']
@@ -354,6 +353,129 @@ def manage_shutdown(robot, controller_state):
         shutdown_pc = False
 
 
+# ######################### DEMO MODE #########################################
+in_demo_mode=False
+demo_button_last=False
+ts_demo_button_start=time.time()
+def manage_demo_mode(robot,controller_state):
+    global ts_demo_button_start
+    global in_demo_mode
+    if not controller_state['left_button_pressed']:
+        demo_idx=0
+        demo_ts=0
+        ts_demo_button_start = time.time()
+    dt=time.time()-ts_demo_button_start #How long the button has been pressend
+    if not in_demo_mode and dt>3.0:
+        print('Entering demo mode...')
+        in_demo_mode=True
+        do_double_beep(robot)
+    elif in_demo_mode and dt>3.0:
+        print('Exiting demo mode...')
+        in_demo_mode = False
+        do_double_beep(robot)
+
+head_target=None
+head_pause=False
+head_pause_ts=0
+head_timeout=0
+head_poses = {'ahead': [0, 0], 'back': [deg_to_rad(-180), deg_to_rad(0)],
+              'tool': [deg_to_rad(-90), deg_to_rad(-45)],
+              'wheels': [deg_to_rad(0), deg_to_rad(-90)], 'left': [deg_to_rad(90), deg_to_rad(0)]}
+
+def step_head_motion_demo(robot):
+    global head_target,head_pause, head_pause_ts, head_timeout,head_poses
+    if head_target is None:
+        head_pause=random.random()>0.6
+        if head_pause:
+            print('New head pause')
+            head_pause_ts=time.time()
+            head_target=[]
+        else:
+            head_timeout=time.time()
+            keys=list(head_poses.keys())
+            idx=random.randint(0,len(keys)-1)
+            head_target=head_poses[keys[idx]]
+            vel=random.random()*2+0.5
+            print('New target', keys[idx],rad_to_deg(head_target[0]),rad_to_deg(head_target[1]), vel)
+            robot.head.pose(keys[idx], v_r=[vel, vel])
+
+    if head_target is not None:
+        if head_pause:
+            if time.time()-head_pause_ts>10:
+                head_target=None
+        else:
+            err = math.sqrt((robot.status['head']['head_pan']['pos']-head_target[0])**2+(robot.status['head']['head_tilt']['pos']-head_target[1])**2)
+            #print('Err',rad_to_deg(err))
+            if rad_to_deg(err)<5.0 or time.time()-head_timeout>15.0:
+                head_target=None
+
+#Lift, Arm, Wrist Yaw
+body_poses={'floor':[0.3, 0.3, 0], 'high_in':[1.0, 0.0,deg_to_rad(45.0)],'high_out':[0.8, 0.35,deg_to_rad(0.0)],'mid_in':[0.4,0.2,deg_to_rad(35)],'mid_out':[0.4,0.4,deg_to_rad(-45)]}
+body_target=None
+body_pause=False
+body_pause_ts=0
+body_stow=False
+body_stow_ts=0
+body_timeout=0
+
+def step_body_motion_demo(robot):
+    global body_target,body_pause, body_pause_ts,body_stow, body_stow_ts,body_timeout
+    if body_target is None:
+        body_pause=random.random()>0.5
+        if body_pause:
+            print('New body pause')
+            body_pause=time.time()
+            body_target=[]
+        else:
+            body_stow=random.random()>0.65
+            if body_stow:
+                print('New body stow')
+                body_stow = time.time()
+                body_target = []
+            keys=list(body_poses.keys())
+            idx=random.randint(0,len(keys)-1)
+            body_target=body_poses[keys[idx]]
+            #vel=random.random()*3+0.5
+            print('New target', keys[idx],rad_to_deg(body_target[0]),rad_to_deg(body_target[1]),rad_to_deg(body_target[2]))#, vel)
+            robot.lift.move_to(body_target[0],v_m=.05)
+            robot.arm.move_to(body_target[1],v_m=0.06)
+            robot.end_of_arm.move_to('wrist_yaw',body_target[2],v_r=1.0)
+            robot.push_command()
+            body_timeout=time.time()
+            if random.random()>0.8:
+                robot.end_of_arm.pose('stretch_gripper','open',v_r=2.0)
+            elif random.random()>0.8:
+                robot.end_of_arm.pose('stretch_gripper', 'zero',v_r=2.0)
+
+    if body_target is not None:
+        if body_stow:
+            robot.stow()
+            time.sleep(10.0)
+            body_stow=False
+            body_target=None
+        else:
+            if body_pause:
+                if time.time()-body_pause>15.0:
+                    body_target=None
+            else:
+                err = math.sqrt((robot.status['lift']['pos']-body_target[0])**2+(robot.status['arm']['pos']-body_target[1])**2)# + (robot.status['end_of_arm']['wrist_yaw']['pos']-body_target[2])**2)
+                #print('Err',err)
+                if err<0.1 or time.time()-body_timeout>20.0:
+                    body_target=None
+
+def manage_demo(robot):
+    step_head_motion_demo(robot)
+    step_body_motion_demo(robot)
+    # global demo_idx, demo_dt, poses, demo_ts
+    # p=poses[demo_idx]
+    # robot.arm.move_to(p['arm'])
+    # robot.lift.move_to(p['lift'])
+    # robot.head.move_to('head_pan', p['head'][0])
+    # robot.head.move_to('head_tilt', p['head'][1])
+    # robot.end_of_arm.move_to('stretch_gripper', p['stretch_gripper'])
+    # robot.end_of_arm.move_to('wrist_yaw', p['wrist_yaw'])
+    # robot.push_command()
+
 # ######################### STOW and CALIBRATION  ########################################
 def manage_stow(robot, controller_state):
     stow_robot = controller_state['top_button_pressed']
@@ -415,6 +537,14 @@ def wait_till_usb(usb, wait_timeout):
     return False
 
 
+def do_double_beep(robot):
+    robot.pimu.trigger_beep()
+    robot.push_command()
+    time.sleep(0.5)
+    robot.pimu.trigger_beep()
+    robot.push_command()
+    time.sleep(0.5)
+
 # ######################### MAIN ########################################
 use_head_mapping = True
 use_dex_wrist_mapping = False
@@ -445,24 +575,22 @@ def main():
             use_stretch_gripper_mapping = True
             use_dex_wrist_mapping = True
 
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
-
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
+        do_double_beep(robot)
 
         while True:
             controller_state = xbox_controller.get_state()
             if not robot.is_calibrated():
                 manage_calibration(robot, controller_state)
             else:
-                manage_base(robot, controller_state)
-                manage_lift_arm(robot, controller_state)
-                manage_end_of_arm(robot, controller_state)
-                manage_head(robot, controller_state)
-                manage_stow(robot, controller_state)
+                manage_demo_mode(robot, controller_state)
+                if not in_demo_mode:
+                    manage_base(robot, controller_state)
+                    manage_lift_arm(robot, controller_state)
+                    manage_end_of_arm(robot, controller_state)
+                    manage_head(robot, controller_state)
+                    manage_stow(robot, controller_state)
+                else:
+                    manage_demo(robot)
             manage_shutdown(robot, controller_state)
             robot.push_command()
             time.sleep(0.05)
