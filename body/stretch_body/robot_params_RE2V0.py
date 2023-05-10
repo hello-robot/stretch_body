@@ -413,7 +413,7 @@ nominal_params={
       'usb_name': '/dev/hello-pimu',
       'base_fan_off': 70,
       'base_fan_on': 82,
-      'max_sync_rate_hz': 80.0,
+      'max_sync_rate_hz': 80.0, #deprecated with P3
       'config':{
         'accel_LPF': 20.0,
         'bump_thresh': 20.0,

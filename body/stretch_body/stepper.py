@@ -6,6 +6,7 @@ import textwrap
 import threading
 import sys
 import time
+import array as arr
 
 
 
@@ -43,6 +44,8 @@ class StepperBase(Device):
     RPC_REPLY_RESET_TRAJECTORY =26
     RPC_READ_TRACE =27
     RPC_REPLY_READ_TRACE =28
+    RPC_GET_STATUS_AUX = 29
+    RPC_REPLY_STATUS_AUX = 30
 
     MODE_SAFETY = 0
     MODE_FREEWHEEL = 1
@@ -122,6 +125,8 @@ class StepperBase(Device):
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0,'in_sync_mode':0,'trace_on':0,
                        'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,}}
+
+        self.status_aux = {'cmd_cnt': 0, 'sync_irq_cnt': 0, 'runstop_trigger_cnt': 0}
         self.status_zero=self.status.copy()
 
         self.board_info={'board_variant':None, 'firmware_version':None,'protocol_version':None,'hardware_id':0}
@@ -825,6 +830,10 @@ class StepperBase(Device):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
+    def pull_status_aux(self):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+            .format(self.board_info['protocol_version']))
+
 # ######################## STEPPER PROTOCOL PO #################################
 
 class Stepper_Protocol_P0(StepperBase):
@@ -1187,6 +1196,36 @@ class Stepper_Protocol_P2(StepperBase):
                 unpack_to['waypoint_traj']['state']='idle'
 
             return sidx
+
+# ######################## STEPPER PROTOCOL P3 #################################
+
+class Stepper_Protocol_P3(StepperBase):
+
+
+    def pull_status_aux(self):
+        if not self.hw_valid:
+            return
+        payload = arr.array('B',[self.RPC_GET_STATUS_AUX])
+        self.transport.do_pull_rpc_sync(payload, self.rpc_status_aux_reply)
+
+    def unpack_status_aux(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to=self.status_aux
+        sidx = 0
+        unpack_to['cmd_cnt'] = unpack_uint16_t(s[sidx:])
+        sidx += 2
+        unpack_to['sync_irq_cnt'] = unpack_uint16_t(s[sidx:])
+        sidx += 2
+        #unpack_to['runstop_trigger_cnt'] = unpack_uint16_t(s[sidx:]);
+        #sidx += 2
+        return sidx
+
+    def rpc_status_aux_reply(self, reply):
+        if reply[0] == self.RPC_REPLY_STATUS_AUX:
+            nr = self.unpack_status_aux(reply[1:])
+        else:
+            print('Error RPC_REPLY_STATUS', reply[0])
+
 # ######################## STEPPER #################################
 class Stepper(StepperBase):
     """
@@ -1195,7 +1234,10 @@ class Stepper(StepperBase):
     def __init__(self,usb, name=None):
         StepperBase.__init__(self,usb,name)
         # Order in descending order so more recent protocols/methods override less recent
-        self.supported_protocols = {'p0': (Stepper_Protocol_P0,), 'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,),'p2': (Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
+        self.supported_protocols = {'p0': (Stepper_Protocol_P0,),
+                                    'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,),
+                                    'p2': (Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,),
+                                    'p3': (Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
 
     def startup(self, threaded=False):
         """
