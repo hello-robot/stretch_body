@@ -192,7 +192,7 @@ nominal_params={
         'return_delay_time': 0,
         'temperature_limit': 72,
         'usb_name': '/dev/hello-dynamixel-head',
-        'use_multiturn': 0,
+        'use_multiturn': 1,
         'retry_on_comm_failure': 1,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
