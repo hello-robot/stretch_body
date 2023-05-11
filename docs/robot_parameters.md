@@ -28,7 +28,7 @@ The Dynamixel joints on the robot have a "multiturn" or "Extended Position Contr
 
 | Parameter                       | Default Value |
 | ------------------------------- | ------------- |
-| head_pan.use_multiturn        | `1`           |
+| head_pan.use_multiturn        | `0`           |
 | head_tilt.use_multiturn       | `0`           |
 | stretch_gripper.use_multiturn | `1`           |
 | wrist_yaw.use_multiturn       | `1`           |
