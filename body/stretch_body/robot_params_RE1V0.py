@@ -33,7 +33,8 @@ configuration_params_template={
     'head_pan':{
         'range_t': [0, 3827],
         'zero_t': 1165,
-        'baud':115200},
+        'baud':115200,
+        'use_multiturn': 0},
     'head_tilt':{
         'range_t': [1775,3150],
         'zero_t': 2048,
@@ -192,7 +193,6 @@ nominal_params={
         'return_delay_time': 0,
         'temperature_limit': 72,
         'usb_name': '/dev/hello-dynamixel-head',
-        'use_multiturn': 0,
         'retry_on_comm_failure': 1,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
