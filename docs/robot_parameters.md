@@ -28,10 +28,11 @@ The Dynamixel joints on the robot have a "multiturn" or "Extended Position Contr
 
 | Parameter                       | Default Value |
 | ------------------------------- | ------------- |
-| head_pan.use_multiturn        | `0`           |
+| head_pan.use_multiturn        | `0` *         |
 | head_tilt.use_multiturn       | `0`           |
 | stretch_gripper.use_multiturn | `1`           |
 | wrist_yaw.use_multiturn       | `1`           |
 | wrist_pitch.use_multiturn     | `0`           |
 | wrist_roll.use_multiturn      | `0`           |
 
+\* `head_pan.use_multiturn` is `0` for most Stretch robots, except for some early RE1s. For those robots, the parameter is set to `1` in "stretch_configuration_params.yaml". 
