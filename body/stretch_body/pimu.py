@@ -140,6 +140,7 @@ class PimuBase(Device):
     RPC_GET_PIMU_STATUS_AUX = 13
     RPC_REPLY_PIMU_STATUS_AUX = 14
 
+
     STATE_AT_CLIFF_0 = 1
     STATE_AT_CLIFF_1 = 2
     STATE_AT_CLIFF_2 = 4
@@ -191,10 +192,12 @@ class PimuBase(Device):
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'trace_on':0,
-                       'motor_sync_rate': 0, 'motor_sync_cnt': 0, 'motor_sync_overruns': 0,
+                       'motor_sync_rate': 0, 'motor_sync_cnt': 0, 'motor_sync_queues': 0,
                        'transport': self.transport.status}
-        self.status_aux = {'motor_sync_cnt': 0}
+
         self.status_zero=self.status.copy()
+        self.status_aux = {'motor_sync_cnt': 0}
+
         self._trigger=0
         self.ts_last_fan_on=None
         self.fan_on_last=False
@@ -295,7 +298,7 @@ class PimuBase(Device):
         print('Debug', self.status['debug'])
         print('Timestamp (s)', self.status['timestamp'])
         print('Read error', self.transport.status['read_error'])
-        print('Dropped motor sync', self.status['motor_sync_overruns'])
+        print('Queued motor sync', self.status['motor_sync_queues'])
         print('Motor sync rate', self.status['motor_sync_rate'])
         print('Motor sync cnt', self.status['motor_sync_cnt'])
         print('Board variant:',self.board_info['board_variant'])
@@ -491,11 +494,12 @@ class PimuBase(Device):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
+
     def pull_status_aux(self):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
-            .format(self.board_info['protocol_version']))
+                                  .format(self.board_info['protocol_version']))
 
-    # ################Transport Callbacks #####################
+        # ################Transport Callbacks #####################
 
     def rpc_motor_sync_reply(self,reply):
         if reply[0] != self.RPC_REPLY_MOTOR_SYNC:
@@ -756,21 +760,25 @@ class Pimu_Protocol_P3(PimuBase):
         # Push out immediately
         if not self.hw_valid:
             return
-        payload = arr.array('B', [self.RPC_SET_MOTOR_SYNC])
+
         old_sync_cnt = self.status['motor_sync_cnt']
-        self.transport.do_push_rpc_sync(payload, self.rpc_motor_sync_reply)
+
+        with self.lock:
+            self.transport.payload_out[0] = self.RPC_SET_MOTOR_SYNC
+            self.transport.queue_rpc(1, self.rpc_motor_sync_reply)
+            self.transport.step()
 
         t=time.time()
-        if self.status['motor_sync_cnt'] == old_sync_cnt: #Should increment with each call
-            self.status['motor_sync_overruns']=self.status['motor_sync_overruns']+1
-            #if self.ts_last_motor_sync_warn is None or t - self.ts_last_motor_sync_warn > 5.0:
-            print('Warning: Dropped motor_sync as trigger_motor_sync calls above maximum rate. Overruns: %d' % (self.status['motor_sync_overruns']))
+        # Should motor_sync_cnt should increment with each call to trigger_motor_sync, if not it is an overrun
+        if self.status['motor_sync_cnt'] == old_sync_cnt:
+            self.status['motor_sync_queues']=self.status['motor_sync_queues']+1
+            print('Warning: Queued motor_sync as trigger_motor_sync calls above maximum rate. Overruns: %d' % (self.status['motor_sync_queues']))
             self.ts_last_motor_sync_warn = t
+
 
         if self.ts_last_motor_sync is not None:
             self.status['motor_sync_rate']=1 / (t - self.ts_last_motor_sync)
         self.ts_last_motor_sync = t
-
 
     def rpc_motor_sync_reply(self,reply):
         if reply[0] != self.RPC_REPLY_MOTOR_SYNC:
@@ -783,7 +791,8 @@ class Pimu_Protocol_P3(PimuBase):
         # take in an array of bytes
         # this needs to exactly match the C struct format
         sidx=0
-        self.status['motor_sync_cnt']=  unpack_int16_t(s[sidx:]);sidx += 2
+        self.status['motor_sync_cnt']=  unpack_int16_t(s[sidx:])
+        sidx += 2
         return sidx
 
     def pull_status_aux(self):
@@ -805,7 +814,6 @@ class Pimu_Protocol_P3(PimuBase):
         sidx=0
         self.status_aux['motor_sync_cnt']=  unpack_int16_t(s[sidx:]);sidx += 2
         return sidx
-
 
 # ######################## PIMU #################################
 class Pimu(PimuBase):

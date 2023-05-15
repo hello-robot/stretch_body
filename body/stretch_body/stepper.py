@@ -123,10 +123,11 @@ class StepperBase(Device):
         self.status = {'mode': 0, 'effort_ticks': 0, 'effort_pct':0,'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
-                       'in_safety_event':0,'waiting_on_sync':0,'in_sync_mode':0,'trace_on':0,
+                       'in_safety_event':0,'waiting_on_sync':0,'in_sync_mode':0,'trace_on':0,'cmd_cnt_rpc':0,'cmd_cnt_exec':0,'sync_irq_cnt':0,
                        'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,}}
 
-        self.status_aux = {'cmd_cnt': 0, 'sync_irq_cnt': 0, 'runstop_trigger_cnt': 0}
+        self.status_aux={'cmd_cnt_rpc':0,'cmd_cnt_exec':0,'cmd_rpc_overflow':0,'sync_irq_cnt':0,'sync_irq_overflow':0}
+
         self.status_zero=self.status.copy()
 
         self.board_info={'board_variant':None, 'firmware_version':None,'protocol_version':None,'hardware_id':0}
@@ -830,9 +831,10 @@ class StepperBase(Device):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
+
     def pull_status_aux(self):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
-            .format(self.board_info['protocol_version']))
+                                  .format(self.board_info['protocol_version']))
 
 # ######################## STEPPER PROTOCOL PO #################################
 
@@ -1201,30 +1203,35 @@ class Stepper_Protocol_P2(StepperBase):
 
 class Stepper_Protocol_P3(StepperBase):
 
-
-    def pull_status_aux(self):
+    def pull_status_aux(self, exiting=False):
         if not self.hw_valid:
             return
-        payload = arr.array('B',[self.RPC_GET_STATUS_AUX])
-        self.transport.do_pull_rpc_sync(payload, self.rpc_status_aux_reply)
-
-    def unpack_status_aux(self, s, unpack_to=None):
-        if unpack_to is None:
-            unpack_to=self.status_aux
-        sidx = 0
-        unpack_to['cmd_cnt'] = unpack_uint16_t(s[sidx:])
-        sidx += 2
-        unpack_to['sync_irq_cnt'] = unpack_uint16_t(s[sidx:])
-        sidx += 2
-        #unpack_to['runstop_trigger_cnt'] = unpack_uint16_t(s[sidx:]);
-        #sidx += 2
-        return sidx
+        with self.lock:
+            # Queue Status RPC
+            self.transport.payload_out[0] = self.RPC_GET_STATUS_AUX
+            sidx = 1
+            self.transport.queue_rpc(sidx, self.rpc_status_aux_reply)
+            self.transport.step(exiting=exiting)
 
     def rpc_status_aux_reply(self, reply):
         if reply[0] == self.RPC_REPLY_STATUS_AUX:
             nr = self.unpack_status_aux(reply[1:])
         else:
-            print('Error RPC_REPLY_STATUS', reply[0])
+            print('Error RPC_REPLY_STATUS_AUX', reply[0])
+
+    def unpack_status_aux(self,s):
+        sidx = 0
+        self.status_aux['cmd_cnt_rpc'] = unpack_uint16_t(s[sidx:])
+        sidx += 2
+        self.status_aux['cmd_cnt_exec'] = unpack_uint16_t(s[sidx:])
+        sidx += 2
+        self.status_aux['cmd_rpc_overflow'] = unpack_uint16_t(s[sidx:])
+        sidx += 2
+        self.status_aux['sync_irq_cnt'] = unpack_uint16_t(s[sidx:])
+        sidx += 2
+        self.status_aux['sync_irq_overflow'] = unpack_uint16_t(s[sidx:])
+        sidx += 2
+        return sidx
 
 # ######################## STEPPER #################################
 class Stepper(StepperBase):

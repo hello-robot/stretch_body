@@ -150,7 +150,7 @@ class Robot(Device):
 
     # ###########  Device Methods #############
 
-    def startup(self):
+    def startup(self,start_non_dxl_thread=True,start_dxl_thread=True):
         """
         To be called once after class instantiation.
         Prepares devices for communications and motion
@@ -170,18 +170,18 @@ class Robot(Device):
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
         signal.signal(signal.SIGINT, hello_utils.thread_service_shutdown)
-
-        self.non_dxl_thread = NonDXLStatusThread(self,target_rate_hz=self.params['rates']['NonDXLStatusThread_Hz'])
-        self.non_dxl_thread.setDaemon(True)
-        self.non_dxl_thread.start()
-
-        self.dxl_thread = DXLStatusThread(self,target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
-        self.dxl_thread.setDaemon(True)
-        self.dxl_thread.start()
+        if start_non_dxl_thread:
+            self.non_dxl_thread = NonDXLStatusThread(self,target_rate_hz=self.params['rates']['NonDXLStatusThread_Hz'])
+            self.non_dxl_thread.setDaemon(True)
+            self.non_dxl_thread.start()
+        if start_dxl_thread:
+            self.dxl_thread = DXLStatusThread(self,target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
+            self.dxl_thread.setDaemon(True)
+            self.dxl_thread.start()
 
         # Wait for status reading threads to start reading data
         ts=time.time()
-        while not self.non_dxl_thread.first_status and not self.dxl_thread.first_status and time.time()-ts<3.0:
+        while ((start_non_dxl_thread and not self.non_dxl_thread.first_status) or (start_dxl_thread and not self.dxl_thread.first_status)) and time.time()-ts<3.0:
            time.sleep(0.1)
 
         return success
