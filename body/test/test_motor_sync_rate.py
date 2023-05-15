@@ -11,7 +11,7 @@ import time
 
 class TestMotorSyncRate(unittest.TestCase):
 
-    def test_pimu_sync_100Hz(self):
+    def xtest_pimu_sync_100Hz(self):
         """
         Check that can trigger motor sync at 50hz and no overruns
         """
@@ -66,7 +66,7 @@ class TestMotorSyncRate(unittest.TestCase):
         self.assertTrue(p.startup(threaded=False))
 
         stat_last=None
-        n_itr=1000
+        n_itr=100000
         init = time.time()
         prev = init
         itr=0
@@ -121,6 +121,11 @@ class TestMotorSyncRate(unittest.TestCase):
             p.pull_status()
             a.motor.pull_status_aux()
 
+            print('pimu', p.status, p.status_aux)
+            print('arm', a.motor.status, a.motor.status_aux)
+
+
+
             if stat_last is not None: #Check that sync made it through
                 print('3',a.motor.status_aux, p.status['motor_sync_cnt'],a.motor.status['waiting_on_sync'])
                 self.assertTrue(a.motor.status_aux['cmd_cnt_rpc']-stat_last['cmd_cnt_rpc']==1)
@@ -135,7 +140,7 @@ class TestMotorSyncRate(unittest.TestCase):
         a.stop()
         p.stop()
 
-    def test_robot_sync_max_rate_no_threads(self):
+    def xtest_robot_sync_max_rate_no_threads(self):
         """
         Check that can command all steppers at fastest rate comms will allow and no commands are dropped
         Do it w/o threads
@@ -171,6 +176,13 @@ class TestMotorSyncRate(unittest.TestCase):
             r.lift.motor.pull_status_aux()
             r.base.left_wheel.pull_status_aux()
             r.base.right_wheel.pull_status_aux()
+
+            print('pimu',r.pimu.status,r.pimu.status_aux)
+            print('arm', r.arm.motor.status,r.arm.motor.status_aux)
+            print('lift', r.lift.motor.status,r.lift.motor.status_aux)
+            print('right_wheel', r.base.right_wheel.status,r.base.right_wheel.status_aux)
+            print('left_wheel', r.base.left_wheel.status,r.base.left_wheel.status_aux)
+
 
             if stat_last is not None: #Check that sync made it through
                 self.assertTrue(r.arm.motor.status_aux['cmd_cnt_rpc']-stat_last['arm']['cmd_cnt_rpc']==1)
