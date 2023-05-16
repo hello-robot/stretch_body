@@ -124,8 +124,6 @@ class TestMotorSyncRate(unittest.TestCase):
             print('pimu', p.status, p.status_aux)
             print('arm', a.motor.status, a.motor.status_aux)
 
-
-
             if stat_last is not None: #Check that sync made it through
                 print('3',a.motor.status_aux, p.status['motor_sync_cnt'],a.motor.status['waiting_on_sync'])
                 self.assertTrue(a.motor.status_aux['cmd_cnt_rpc']-stat_last['cmd_cnt_rpc']==1)

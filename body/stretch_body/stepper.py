@@ -763,6 +763,7 @@ class StepperBase(Device):
             for i in range(1024):
                 if d[i] != self.load_test_payload[(i + 1) % 1024]:
                     print('Load test bad data', d[i], self.load_test_payload[(i + 1) % 1024])
+                    raise  TransportError
             self.load_test_payload = d
         else:
             print('Error RPC_REPLY_LOAD_TEST', reply[0])
