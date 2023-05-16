@@ -33,8 +33,7 @@ class PrismaticJoint(Device):
         self.soft_motion_limits = {'collision': [None, None], 'user': [None, None],
                                    'hard': [self.params['range_m'][0], self.params['range_m'][1]],
                                    'current': [self.params['range_m'][0], self.params['range_m'][1]]}
-        self.motor.set_motion_limits(self.translate_m_to_motor_rad(self.soft_motion_limits['current'][0]),
-                                     self.translate_m_to_motor_rad(self.soft_motion_limits['current'][1]))
+
 
     # ###########  Device Methods #############
     def startup(self, threaded=True):
@@ -43,6 +42,8 @@ class PrismaticJoint(Device):
         if success:
             Device.startup(self, threaded=threaded)
             self.__update_status()
+            self.motor.set_motion_limits(self.translate_m_to_motor_rad(self.soft_motion_limits['current'][0]),
+                                         self.translate_m_to_motor_rad(self.soft_motion_limits['current'][1]))
         return success
 
     def stop(self):

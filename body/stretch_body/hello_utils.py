@@ -274,8 +274,10 @@ class LoopStats():
         float : Time to sleep for to hit target loop rate
         """
         return max(0.0, self.sleep_time_s)
+    def is_ready_to_run_again(self):
+        return time.time()-self.ts_loop_start>(1/self.target_loop_rate)
 
-    
+
 class ThreadServiceExit(Exception):
     """
     Custom exception which is used to trigger the clean exit

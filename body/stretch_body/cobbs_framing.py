@@ -45,6 +45,8 @@ class CobbsFraming():
                         return crc1==crc2, nr
                     else:
                         rx_buffer.append(byte_in)
+            else:
+                time.sleep(0.00001) #Prevent this polling loop from starving other threads / hogging CPU
             #if (time.time() - t_start)>warning_time and time.time()-self.warned_last>1.0:
             #    self.warned_last=time.time()
             #    print('Warning: receiveFramedData packet time exceeds normal limits (%f ms). Cause may be heavy CPU load.'%warning_time*1000)
@@ -61,8 +63,6 @@ class CobbsFraming():
                 else:
                     crc >>= 1
         return crc
-
-
 
     def encode(self,data,size):
         read_index = 0
@@ -88,6 +88,10 @@ class CobbsFraming():
                     code_index = write_index
                     write_index=write_index+1
         encode_buffer[code_index] = code
+
+        e=encode_buffer[:write_index]
+        decode_buffer = [0] * 2 * size
+        crc,nr=self.decode(decode_buffer,e,len(e))
         return encode_buffer[:write_index]
 
     def decode(self,decode_buffer, data, size):
