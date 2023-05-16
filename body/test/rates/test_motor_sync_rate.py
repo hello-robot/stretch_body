@@ -55,6 +55,13 @@ class TestMotorSyncRate(unittest.TestCase):
         p.stop()
 
 
+    def is_incremented_uint16_t(self,old_val,new_val):
+        """
+        Check that new value is old_val+1 (modulo 16 bit rollover)
+        """
+        if old_val == 65535:
+            return new_val==0
+        return old_val+1==new_val
     def test_arm_sync_max_rate(self):
         """
         Check that can command arm stepper at fastest rate comms will allow and no commands are dropped
@@ -101,11 +108,13 @@ class TestMotorSyncRate(unittest.TestCase):
             a.pull_status()
             p.pull_status()
             a.motor.pull_status_aux()
-
+            print('%%%%%%%%%%%%%%%%')
+            print('pimu', p.status, p.status_aux)
+            print('arm', a.motor.status, a.motor.status_aux)
             if stat_last is not None:  # Check that RPC made it through
                 #print('2',a.motor.status_aux, a.motor.status['cmd_cnt_rpc'],a.motor.status['cmd_cnt_exec'],
                 #      p.status['motor_sync_cnt'],a.motor.status['waiting_on_sync'])
-                self.assertTrue(a.motor.status_aux['cmd_cnt_rpc'] - stat_last['cmd_cnt_rpc'] == 1)
+                self.assertTrue(self.is_incremented_uint16_t(stat_last['cmd_cnt_rpc'],a.motor.status_aux['cmd_cnt_rpc']))
                 self.assertTrue(a.motor.status_aux['cmd_cnt_exec'] - stat_last['cmd_cnt_exec'] == 0)
                 self.assertTrue(a.motor.status_aux['cmd_rpc_overflow'] - stat_last['cmd_rpc_overflow'] == 0)
                 #self.assertTrue(a.motor.status_aux['sync_irq_overflow'] - stat_last['sync_irq_overflow'] == 0)
@@ -120,18 +129,20 @@ class TestMotorSyncRate(unittest.TestCase):
             a.pull_status()
             p.pull_status()
             a.motor.pull_status_aux()
-
+            print('%%%%%%%%%%%%%%%%')
             print('pimu', p.status, p.status_aux)
             print('arm', a.motor.status, a.motor.status_aux)
 
+
+
             if stat_last is not None: #Check that sync made it through
                 print('3',a.motor.status_aux, p.status['motor_sync_cnt'],a.motor.status['waiting_on_sync'])
-                self.assertTrue(a.motor.status_aux['cmd_cnt_rpc']-stat_last['cmd_cnt_rpc']==1)
-                self.assertTrue(a.motor.status_aux['cmd_cnt_exec'] - stat_last['cmd_cnt_exec'] == 1)
+                self.assertTrue(self.is_incremented_uint16_t(stat_last['cmd_cnt_rpc'], a.motor.status_aux['cmd_cnt_rpc']))
+                self.assertTrue(self.is_incremented_uint16_t(stat_last['cmd_cnt_exec'], a.motor.status_aux['cmd_cnt_exec']))
                 self.assertTrue(a.motor.status_aux['cmd_rpc_overflow'] - stat_last['cmd_rpc_overflow'] == 0)
                 #self.assertTrue(a.motor.status_aux['sync_irq_overflow'] - stat_last['sync_irq_overflow'] == 0)
                 #self.assertTrue(a.motor.status_aux['sync_irq_cnt'] - stat_last['sync_irq_cnt'] == 1)
-                self.assertTrue(p.status['motor_sync_cnt']- stat_last['motor_sync_cnt'] == 1)
+                self.assertTrue(self.is_incremented_uint16_t(stat_last['motor_sync_cnt'], p.status['motor_sync_cnt']))
                 self.assertFalse(a.motor.status['waiting_on_sync'])
             stat_last = a.motor.status_aux.copy()
             stat_last['motor_sync_cnt'] = p.status['motor_sync_cnt']
