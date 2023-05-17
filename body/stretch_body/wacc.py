@@ -120,15 +120,19 @@ class WaccBase(Device):
             return
         payload = self.transport.get_empty_payload()
         if self._dirty_config:
+            print('AA')
             payload[0] = self.RPC_SET_WACC_CONFIG
             sidx = self.pack_config(payload, 1)
             self.transport.do_push_rpc(payload[:sidx], self.rpc_config_reply,exiting=exiting)
+            print('A')
             self._dirty_config=False
 
         if self._dirty_command:
+            print('BB')
             payload[0] = self.RPC_SET_WACC_COMMAND
             sidx = self.pack_command( payload, 1)
             self.transport.do_push_rpc(payload[:sidx], self.rpc_command_reply,exiting=exiting)
+            print('B')
             self._command['trigger'] =0
             self._dirty_command=False
 
@@ -448,8 +452,10 @@ class Wacc(WaccBase):
                 self.logger.warning(textwrap.dedent(protocol_msg))
                 self.hw_valid = False
                 self.transport.stop()
-
+        print(self.board_info)
         if self.hw_valid:
+            print('Push!')
             self.push_command()
+            print('Pull')
             self.pull_status()
         return self.hw_valid

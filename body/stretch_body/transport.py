@@ -116,7 +116,7 @@ class Transport():
 
     def configure_version(self,firmware_version):
         """
-        Starting with Stepper/Wacc/Pimu firmware v0.4.0 a faster version (V1) of the transport layer is supported
+        Starting with Stepper/Wacc/Pimu firmware v0.5.0 a faster version (V1) of the transport layer is supported
         Check here if can run the Transport in V1 mode
         """
         xl = firmware_version.split('.')
@@ -127,11 +127,16 @@ class Transport():
             raise Exception('Invalid device name ')
         major = int(xl[1][1:])
         minor = int(xl[2])
-        if major==0 and minor<=3:
+        if major==0 and minor<=4:
             self.version=RPC_TRANSPORT_VERSION_0
         else:
             self.version=RPC_TRANSPORT_VERSION_1
 
+    def set_version(self,v):
+        if v==0:
+            self.version = RPC_TRANSPORT_VERSION_0
+        if v==1:
+            self.version=RPC_TRANSPORT_VERSION_1
 
     def do_pull_rpc(self,payload,reply_callback,exiting=False):
         """
@@ -239,7 +244,7 @@ class Transport():
         frame_buf_in = self.get_empty_frame()
         frame_buf_out = self.get_empty_frame()
         framer = cobbs_framing.CobbsFraming()
-
+        print('NF',n_frames)
         try:
             for fid in range(n_frames):
                 # Build the Nth frame and transmit
@@ -254,10 +259,12 @@ class Transport():
                 nb_frame = min(RPC_V1_FRAME_DATA_MAX_BYTES, len(rpc_data) - widx)
                 frame_buf_out[1:nb_frame + 1] = rpc_data[widx:widx + nb_frame]
                 widx = widx + nb_frame
+                print('SEND',nb_frame + 1)
                 framer.sendFramedData(frame_buf_out, nb_frame + 1, self.ser)
                 # Get Ack back
                 frame_buf_in[0]=0 #Remove stale data
                 crc, nr = framer.receiveFramedData(frame_buf_in, self.ser)
+                print('Oy',crc,nr,frame_buf_in)
                 self.__handle_push_ack_v1(crc,nr,dbg_buf,frame_buf_in[0])
                 if frame_buf_in[0]!=RPC_V1_PUSH_ACK:
                     raise TransportError("Byte 0 not RPC_V1_PUSH_ACK")
