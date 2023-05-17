@@ -26,7 +26,7 @@ class RobotTrace(Device):
         self.time_string=hu.create_time_string()
         self.file_cnt=0
         self.n_samples=0
-        samples_per_minute=60*self.robot.params['rates']['NonDXLStatusThread_Hz']/self.robot.params['rates']['NonDXLStatusThread_trace_downrate_int']
+        samples_per_minute=60*self.robot.params['rates']['SystemMonitorThread_Hz']/self.robot.params['rates']['SystemMonitorThread_trace_downrate_int']
         files_per_minute= samples_per_minute/self.params['n_samples_per_file']
         self.trace_files_max = self.params['duration_limit_minutes']*files_per_minute
         self.trace_cbs=[]

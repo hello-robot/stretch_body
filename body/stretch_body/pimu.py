@@ -196,7 +196,7 @@ class PimuBase(Device):
                        'transport': self.transport.status}
 
         self.status_zero=self.status.copy()
-        self.status_aux = {'motor_sync_cnt': 0}
+        self.status_aux = {'foo': 0}
 
         self._trigger=0
         self.ts_last_fan_on=None
@@ -825,10 +825,9 @@ class Pimu_Protocol_P3(PimuBase):
 
         old_sync_cnt = self.status['motor_sync_cnt']
 
-        with self.lock:
-            self.transport.payload_out[0] = self.RPC_SET_MOTOR_SYNC
-            self.transport.queue_rpc(1, self.rpc_motor_sync_reply)
-            self.transport.step()
+        payload = arr.array('B', [self.RPC_SET_MOTOR_SYNC])
+        old_sync_cnt = self.status['motor_sync_cnt']
+        self.transport.do_push_rpc(payload, self.rpc_motor_sync_reply)
 
         t=time.time()
         # Should motor_sync_cnt should increment with each call to trigger_motor_sync, if not it is an overrun
@@ -874,7 +873,7 @@ class Pimu_Protocol_P3(PimuBase):
         # take in an array of bytes
         # this needs to exactly match the C struct format
         sidx=0
-        self.status_aux['motor_sync_cnt']=  unpack_int16_t(s[sidx:]);sidx += 2
+        self.status_aux['foo']=  unpack_int16_t(s[sidx:]);sidx += 2
         return sidx
 
     def push_load_test(self):

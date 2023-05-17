@@ -19,9 +19,7 @@ from stretch_body.robot_monitor import RobotMonitor
 from stretch_body.robot_trace import RobotTrace
 from stretch_body.robot_collision import RobotCollision
 
-
-# #############################################################
-class DXLStatusThread(threading.Thread):
+class DXLHeadStatusThread(threading.Thread):
     """
     This thread polls the status data of the Dynamixel devices
     at 15Hz
@@ -30,20 +28,40 @@ class DXLStatusThread(threading.Thread):
         threading.Thread.__init__(self)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
-        self.stats = hello_utils.LoopStats(loop_name='DXLStatusThread',target_loop_rate=self.robot_update_rate_hz)
+        self.stats = hello_utils.LoopStats(loop_name='DXLHeadStatusThread',target_loop_rate=self.robot_update_rate_hz)
         self.shutdown_flag = threading.Event()
-        self.first_status=False
 
     def run(self):
         while not self.shutdown_flag.is_set():
-            self.stats.mark_loop_start()
-            self.robot._pull_status_dynamixel()
-            self.robot._update_trajectory_dynamixel()
-            self.first_status=True
-            self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
-                time.sleep(self.stats.get_loop_sleep_time())
-        self.robot.logger.debug('Shutting down DXLStatusThread')
+                self.stats.wait_until_ready_to_run()
+                self.stats.mark_loop_start()
+                self.robot._pull_status_head_dynamixel()
+                self.robot._update_trajectory_head_dynamixel()
+                self.stats.mark_loop_end()
+        self.robot.logger.debug('Shutting down DXLHeadStatusThread')
+
+class DXLEndOfArmStatusThread(threading.Thread):
+    """
+    This thread polls the status data of the Dynamixel devices
+    at 15Hz
+    """
+    def __init__(self, robot, target_rate_hz=15.0):
+        threading.Thread.__init__(self)
+        self.robot=robot
+        self.robot_update_rate_hz = target_rate_hz
+        self.stats = hello_utils.LoopStats(loop_name='DXLEndOfArmStatusThread',target_loop_rate=self.robot_update_rate_hz)
+        self.shutdown_flag = threading.Event()
+
+    def run(self):
+        while not self.shutdown_flag.is_set():
+            if not self.shutdown_flag.is_set():
+                self.stats.wait_until_ready_to_run()
+                self.stats.mark_loop_start()
+                self.robot._pull_status_end_of_arm_dynamixel()
+                self.robot._update_trajectory_end_of_arm_dynamixel()
+                self.stats.mark_loop_end()
+        self.robot.logger.debug('Shutting down DXLEndOfArmStatusThread')
 
 class NonDXLStatusThread(threading.Thread):
     """
@@ -55,10 +73,6 @@ class NonDXLStatusThread(threading.Thread):
         threading.Thread.__init__(self)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
-        self.collision_downrate_int = int(robot.params['rates']['NonDXLStatusThread_collision_downrate_int']) # Step the monitor at every Nth iteration
-        self.trajectory_downrate_int = int(robot.params['rates']['NonDXLStatusThread_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
-        if self.robot.params['use_collision_manager']:
-            self.robot.collision.startup()
         self.shutdown_flag = threading.Event()
         self.stats = hello_utils.LoopStats(loop_name='NonDXLStatusThread',target_loop_rate=self.robot_update_rate_hz)
         self.titr=0
@@ -66,24 +80,13 @@ class NonDXLStatusThread(threading.Thread):
 
     def run(self):
         while not self.shutdown_flag.is_set():
-            self.stats.mark_loop_start()
-            self.robot._pull_status_non_dynamixel()
-            self.first_status = True
-
-            if self.robot.params['use_collision_manager'] and self.robot.is_calibrated():
-                    self.robot.collision.step()
-
-            if (self.titr % self.trajectory_downrate_int) == 0:
-                self.robot._update_trajectory_non_dynamixel()
-
-            self.stats.mark_loop_end()
             if not self.shutdown_flag.is_set():
-                while not self.stats.is_ready_to_run_again(): #Poll until is ready to run
-                    time.sleep(.005)
-                #time.sleep(self.stats.get_loop_sleep_time())
-            self.titr=self.titr+1
+                self.stats.wait_until_ready_to_run()
+                self.stats.mark_loop_start()
+                self.robot._pull_status_non_dynamixel()
+                self.stats.mark_loop_end()
+            self.first_status = True
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
-
 
 class SystemMonitorThread(threading.Thread):
     """
@@ -98,6 +101,11 @@ class SystemMonitorThread(threading.Thread):
         self.monitor_downrate_int = int(robot.params['rates']['SystemMonitorThread_monitor_downrate_int'])  # Step the monitor at every Nth iteration
         self.trace_downrate_int = int(robot.params['rates']['SystemMonitorThread_trace_downrate_int'])  # Step the trace at every Nth iteration
         self.sentry_downrate_int = int(robot.params['rates']['SystemMonitorThread_sentry_downrate_int']) # Step the sentry at every Nth iteration
+        self.collision_downrate_int = int(robot.params['rates']['SystemMonitorThread_collision_downrate_int'])  # Step the monitor at every Nth iteration
+        self.trajectory_downrate_int = int(robot.params['rates']['SystemMonitorThread_nondxl_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
+
+        if self.robot.params['use_collision_manager']:
+            self.robot.collision.startup()
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         self.shutdown_flag = threading.Event()
@@ -105,8 +113,8 @@ class SystemMonitorThread(threading.Thread):
         self.titr=0
     def run(self):
         while not self.shutdown_flag.is_set():
+            self.stats.wait_until_ready_to_run()
             self.stats.mark_loop_start()
-
             if self.robot.params['use_monitor']:
                 if (self.titr % self.monitor_downrate_int) == 0:
                     self.robot.monitor.step()
@@ -119,9 +127,13 @@ class SystemMonitorThread(threading.Thread):
                 if (self.titr % self.sentry_downrate_int) == 0:
                     self.robot._step_sentry()
 
+            if self.robot.params['use_collision_manager'] and self.robot.is_calibrated():
+                    self.robot.collision.step()
+
+            if (self.titr % self.trajectory_downrate_int) == 0:
+                self.robot._update_trajectory_non_dynamixel()
+
             self.stats.mark_loop_end()
-            if not self.shutdown_flag.is_set():
-                time.sleep(self.stats.get_loop_sleep_time())
             self.titr=self.titr+1
         self.robot.logger.debug('Shutting down SystemMonitorThread')
 
@@ -170,7 +182,8 @@ class Robot(Device):
 
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
         self.non_dxl_thread=None
-        self.dxl_thread=None
+        self.dxl_head_thread=None
+        self.dxl_end_of_arm_thread = None
         self.sys_thread=None
 
 
@@ -201,20 +214,23 @@ class Robot(Device):
             self.non_dxl_thread = NonDXLStatusThread(self,target_rate_hz=self.params['rates']['NonDXLStatusThread_Hz'])
             self.non_dxl_thread.setDaemon(True)
             self.non_dxl_thread.start()
+            ts = time.time()
+            while not self.non_dxl_thread.first_status and time.time() - ts < 3.0:
+                time.sleep(0.01)
 
         if start_dxl_thread:
-            self.dxl_thread = DXLStatusThread(self,target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
-            self.dxl_thread.setDaemon(True)
-            self.dxl_thread.start()
+            self.dxl_head_thread = DXLHeadStatusThread(self,target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
+            self.dxl_head_thread.setDaemon(True)
+            self.dxl_head_thread.start()
+            self.dxl_end_of_arm_thread = DXLEndOfArmStatusThread(self, target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
+            self.dxl_end_of_arm_thread.setDaemon(True)
+            self.dxl_end_of_arm_thread.start()
 
         if start_sys_mon_thread:
             self.sys_thread = SystemMonitorThread(self, target_rate_hz=self.params['rates']['SystemMonitorThread_Hz'])
             self.sys_thread.setDaemon(True)
             self.sys_thread.start()
 
-            ts = time.time()  # Wait until start reading data
-            while not self.non_dxl_thread.first_status and time.time() - ts < 3.0:  # Wait for non_dxl_thread data to be present
-                time.sleep(0.1)
 
         return success
 
@@ -227,9 +243,15 @@ class Robot(Device):
         if self.non_dxl_thread is not None:
             self.non_dxl_thread.shutdown_flag.set()
             self.non_dxl_thread.join(1)
-        if self.dxl_thread is not None:
-            self.dxl_thread.shutdown_flag.set()
-            self.dxl_thread.join(1)
+        if self.dxl_head_thread is not None:
+            self.dxl_head_thread.shutdown_flag.set()
+            self.dxl_head_thread.join(1)
+        if self.dxl_end_of_arm_thread is not None:
+            self.dxl_end_of_arm_thread.shutdown_flag.set()
+            self.dxl_end_of_arm_thread.join(1)
+        if self.sys_thread is not None:
+            self.sys_thread.shutdown_flag.set()
+            self.sys_thread.join(1)
         for k in self.devices:
             if self.devices[k] is not None:
                 self.logger.debug('Shutting down %s'%k)
@@ -293,12 +315,12 @@ class Robot(Device):
 
         # Check if need to do a motor sync by looking at if there's been a pimu sync signal sent
         # since the last stepper.set_command for each joint
-        do_sync = (self.pimu.ts_last_motor_sync is not None) and (
+        sync_required = (self.pimu.ts_last_motor_sync is not None) and (
                 self.arm.motor.ts_last_syncd_motion > self.pimu.ts_last_motor_sync
                 or self.lift.motor.ts_last_syncd_motion > self.pimu.ts_last_motor_sync
                 or self.base.right_wheel.ts_last_syncd_motion > self.pimu.ts_last_motor_sync
                 or self.base.left_wheel.ts_last_syncd_motion > self.pimu.ts_last_motor_sync)
-        if self.pimu.ts_last_motor_sync is None or do_sync:
+        if self.pimu.ts_last_motor_sync is None or sync_required:
             self.pimu.trigger_motor_sync()
 
         success = success and self.end_of_arm.follow_trajectory(move_to_start_point=False)
@@ -406,19 +428,30 @@ class Robot(Device):
         self.push_command()
     # ################ Helpers #################################
 
-    def _pull_status_dynamixel(self):
+    def _pull_status_head_dynamixel(self):
         try:
-            self.end_of_arm.pull_status()
             self.head.pull_status()
         except SerialException:
-            self.logger.warning('Serial Exception on Robot Step_Dynamixel')
+            self.logger.warning('Serial Exception on Robot._pull_status_head_dynamixel')
 
-    def _update_trajectory_dynamixel(self):
+    def _update_trajectory_head_dynamixel(self):
         try:
-            self.end_of_arm.update_trajectory()
             self.head.update_trajectory()
         except SerialException:
-            self.logger.warning('Serial Exception on Robot._update_trajectory_dynamixel()')
+            self.logger.warning('Serial Exception on Robot._update_trajectory_head_dynamixel()')
+
+
+    def _pull_status_end_of_arm_dynamixel(self):
+        try:
+            self.end_of_arm.pull_status()
+        except SerialException:
+            self.logger.warning('Serial Exception on Robot._pull_status_end_of_arm_dynamixel')
+
+    def _update_trajectory_end_of_arm_dynamixel(self):
+        try:
+            self.end_of_arm.update_trajectory()
+        except SerialException:
+            self.logger.warning('Serial Exception on Robot._update_trajectory_end_of_arm_dynamixel()')
 
     def _pull_status_non_dynamixel(self):
         self.wacc.pull_status()

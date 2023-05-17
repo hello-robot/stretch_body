@@ -16,7 +16,6 @@ class CobbsFraming():
         self.timeout=.2 #Was .05 but on heavy loads can get starved
         self.warned_last=time.time()
     def sendFramedData(self, data, size, serial):
-        print('SEND',data,size)
         crc=self.calc_crc(data,size)
         data[size]=(crc>>8)&0xFF
         data[size+1] = crc & 0xFF
@@ -32,7 +31,6 @@ class CobbsFraming():
         while ((time.time() - t_start) < self.timeout):
             nn=serial.inWaiting()
             if (nn > 0):
-                print('Read',nn)
                 rbuf=serial.read(nn)
                 nu=0
                 for byte_in in rbuf:
@@ -44,7 +42,6 @@ class CobbsFraming():
                         crc2=self.calc_crc(buf, nr)
                         if nu<nn:
                             print('Dropped %d bytes during receiveFramedData'%(nn-nu))
-                        print('Return',crc1,crc2,nr)
                         return crc1==crc2, nr
                     else:
                         rx_buffer.append(byte_in)
