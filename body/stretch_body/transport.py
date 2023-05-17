@@ -82,7 +82,7 @@ class Transport():
         self.empty_frame = arr.array('B',[0]*RPC_MAX_FRAME_SIZE)
         self.status={'read_error':0,'write_error':0,'transactions':0}
         self.version = RPC_TRANSPORT_VERSION_0
-        self.lock = threading.RLock()
+        self.lock = threading.Lock()
 
     def startup(self):
         try:

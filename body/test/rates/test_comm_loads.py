@@ -26,15 +26,22 @@ class TestCommLoads(unittest.TestCase):
         r.lift.motor.transport.set_version(0)
         try:
             ts = time.time()
-            for i in range(100):
+            for i in range(10):
                 print(i)
-                r.pimu.set_load_test()
-                r.wacc.set_load_test()
-                r.arm.motor.set_load_test()
-                r.lift.motor.set_load_test()
-                r.base.right_wheel.set_load_test()
-                r.base.left_wheel.set_load_test()
-                r.push_command()
+                r.pimu.push_load_test()
+                r.wacc.push_load_test()
+                r.arm.motor.push_load_test()
+                r.lift.motor.push_load_test()
+                r.base.right_wheel.push_load_test()
+                r.base.left_wheel.push_load_test()
+
+                r.pimu.pull_load_test()
+                r.wacc.pull_load_test()
+                r.arm.motor.pull_load_test()
+                r.lift.motor.pull_load_test()
+                r.base.right_wheel.pull_load_test()
+                r.base.left_wheel.pull_load_test()
+
                 time.sleep(0.1)
             dt = time.time() - ts
             print('RATE for Transport V0', 100 / dt)

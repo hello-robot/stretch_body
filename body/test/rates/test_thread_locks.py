@@ -45,10 +45,17 @@ class Stepperthread(threading.Thread):
         self.done=False
 
     def run(self):
-        for i in range(1000):
+        for i in range(100):
             self.stepper.pull_status()
             time.sleep(random.random()/100.0)
         self.done=True
+
+s = stretch_body.stepper.Stepper('/dev/hello-motor-arm')
+s.startup(threaded=False)
+w = stretch_body.wacc.Wacc()
+w.startup(threaded=False)
+p = stretch_body.pimu.Pimu()
+p.startup(threaded=False)
 
 class TestThreadLocks(unittest.TestCase):
     """
@@ -57,131 +64,113 @@ class TestThreadLocks(unittest.TestCase):
     preventing two threads from trouncing eachother
     """
     def test_stepper_thread_locks_v1(self):
-        w = stretch_body.stepper.Stepper('/dev/hello-motor-arm')
-        w.startup()
-        w.transport.set_version(1)
-
-        t0 = Stepperthread('T0', w)
+        s.transport.set_version(1)
+        t0 = Stepperthread('T0', s)
         t0.setDaemon(True)
         t0.start()
-
-        t1 = Stepperthread('T1', w)
+        t1 = Stepperthread('T1', s)
         t1.setDaemon(True)
         t1.start()
-
         ts = time.time()
         while not t0.done and not t1.done:
             time.sleep(.001)
         dt = time.time() - ts
-        print('Two Stepper thread rate of %f Hz' % (1000 / dt))
+        rate = 100 / dt
+        print('Two Stepper V1 thread rate of %f Hz' % (100 / dt))
+        self.assertTrue(rate > 100.0)
 
     def test_stepper_thread_locks_v0(self):
-        w = stretch_body.stepper.Stepper('/dev/hello-motor-arm')
-        w.startup()
-        w.transport.set_version(0)
-
-        t0 = Stepperthread('T0', w)
+        s.transport.set_version(0)
+        t0 = Stepperthread('T0', s)
         t0.setDaemon(True)
         t0.start()
-
-        t1 = Stepperthread('T1', w)
+        t1 = Stepperthread('T1', s)
         t1.setDaemon(True)
         t1.start()
-
         ts = time.time()
         while not t0.done and not t1.done:
             time.sleep(.001)
         dt = time.time() - ts
-        print('Two Stepper thread rate of %f Hz' % (1000 / dt))
+        rate = 100 / dt
+        print('Two Stepper V0 thread rate of %f Hz' % (100 / dt))
+        self.assertTrue(rate > 85.0)
+
 
     def test_wacc_thread_locks_v0(self):
         """
         Check that two wacc threads can't trounce each other'
-        Should test with both V0 and V1 transport
         """
-        w = stretch_body.wacc.Wacc()
-        w.startup()
         w.transport.set_version(0)
-
         t0 = Waccthread('T0', w)
         t0.setDaemon(True)
         t0.start()
-
         t1 = Waccthread('T1', w)
         t1.setDaemon(True)
         t1.start()
-
         ts = time.time()
         while not t0.done and not t1.done:
             time.sleep(.001)
         dt = time.time() - ts
-        print('Two Wacc thread rate of %f Hz' % (100 / dt))
+        rate = 100 / dt
+        print('Two Wacc V0 thread rate of %f Hz' % (100 / dt))
+        self.assertTrue(rate > 75.0)
+
 
     def test_wacc_thread_locks_v1(self):
         """
         Check that two wacc threads can't trounce each other'
-        Should test with both V0 and V1 transport
         """
-        w = stretch_body.wacc.Wacc()
-        w.startup()
         w.transport.set_version(1)
-
         t0 = Waccthread('T0', w)
         t0.setDaemon(True)
         t0.start()
-
         t1 = Waccthread('T1', w)
         t1.setDaemon(True)
         t1.start()
-
         ts = time.time()
         while not t0.done and not t1.done:
             time.sleep(.001)
         dt = time.time() - ts
-        print('Two Wacc thread rate of %f Hz' % (100 / dt))
+        rate = 100 / dt
+        print('Two Wacc V1 thread rate of %f Hz' % (100 / dt))
+        self.assertTrue(rate > 100.0)
+
 
     def test_pimu_thread_locks_v0(self):
         """
         Check that two pimu threads can't trounce each other'
-        Should test with both V0 and V1 transport
         """
-        w = stretch_body.pimu.Pimu()
-        w.startup()
-        w.transport.set_version(0)
-
-        t0 = Pimuthread('T0', w)
+        p.transport.set_version(0)
+        t0 = Pimuthread('T0', p)
         t0.setDaemon(True)
         t0.start()
-
-        t1 = Pimuthread('T1', w)
+        t1 = Pimuthread('T1', p)
         t1.setDaemon(True)
         t1.start()
-
         ts = time.time()
         while not t0.done and not t1.done:
             time.sleep(.001)
         dt = time.time() - ts
-        print('Two Pimu thread rate of %f Hz' % (100 / dt))
+        rate = 100 / dt
+        print('Two Pimu V0 thread rate of %f Hz' % (100 / dt))
+        self.assertTrue(rate > 45.0)
+
 
     def test_pimu_thread_locks_v1(self):
         """
         Check that two pimu threads can't trounce each other'
-        Should test with both V0 and V1 transport
         """
-        w = stretch_body.pimu.Pimu()
-        w.startup()
-        w.transport.set_version(1)
-
-        t0 = Pimuthread('T0', w)
+        p.transport.set_version(1)
+        t0 = Pimuthread('T0', p)
         t0.setDaemon(True)
         t0.start()
-
-        t1 = Pimuthread('T1', w)
+        t1 = Pimuthread('T1', p)
         t1.setDaemon(True)
         t1.start()
-
         ts = time.time()
         while not t0.done and not t1.done:
             time.sleep(.001)
         dt = time.time() - ts
-        print('Two Pimu thread rate of %f Hz' % (100 / dt))
+        rate = 100 / dt
+        print('Two Pimu V1 thread rate of %f Hz' % (100 / dt))
+        self.assertTrue(rate > 75.0)
