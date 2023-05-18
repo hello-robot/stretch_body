@@ -146,7 +146,7 @@ class SyncTransactionHandler():
                     else:
                         rx_buffer.append(byte_in)
             else:
-                time.sleep(.001)
+                time.sleep(.00001)
         return 0, 0, arr.array('B', [])
 
     def receiveFramedData2(self):
