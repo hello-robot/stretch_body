@@ -56,6 +56,10 @@ class PrismaticJoint(Device):
         self.motor.pull_status()
         self.__update_status()
 
+    async def pull_status_async(self):
+        await self.motor.pull_status_async()
+        self.__update_status()
+
     def __update_status(self):
         self.status['timestamp_pc'] = time.time()
         self.status['pos'] = self.motor_rad_to_translate_m(self.status['motor']['pos'])
@@ -64,6 +68,10 @@ class PrismaticJoint(Device):
 
     def push_command(self):
         self.motor.push_command()
+
+
+    async def push_command_async(self):
+        await self.motor.push_command_async()
 
     def _thread_loop(self):
         self.pull_status()

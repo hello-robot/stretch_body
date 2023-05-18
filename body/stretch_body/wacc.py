@@ -73,7 +73,7 @@ class WaccBase(Device):
             if self.hw_valid:
                 # Pull board info
                 payload=arr.array('B',[self.RPC_GET_WACC_BOARD_INFO])
-                self.transport.do_pull_rpc(payload,self.rpc_board_info_reply)
+                self.transport.do_pull_rpc_sync(payload,self.rpc_board_info_reply)
                 self.transport.configure_version(self.board_info['firmware_version'])
                 return True
             return False
@@ -113,7 +113,30 @@ class WaccBase(Device):
             return
         # Queue Status RPC
         payload = arr.array('B',[self.RPC_GET_WACC_STATUS])
-        self.transport.do_pull_rpc(payload, self.rpc_status_reply,exiting=exiting )
+        self.transport.do_pull_rpc_sync(payload, self.rpc_status_reply,exiting=exiting )
+
+    async def pull_status_async(self,exiting=False):
+        if not self.hw_valid:
+            return
+        payload = arr.array('B', [self.RPC_GET_WACC_STATUS])
+        await self.transport.do_pull_rpc_async(payload, self.rpc_status_reply, exiting=exiting)
+
+    async def push_command_async(self,exiting=False):
+        if not self.hw_valid:
+            return
+        payload = self.transport.get_empty_payload()
+        if self._dirty_config:
+            payload[0] = self.RPC_SET_WACC_CONFIG
+            sidx = self.pack_config(payload, 1)
+            await self.transport.do_push_rpc_async(payload[:sidx], self.rpc_config_reply,exiting=exiting)
+            self._dirty_config=False
+
+        if self._dirty_command:
+            payload[0] = self.RPC_SET_WACC_COMMAND
+            sidx = self.pack_command( payload, 1)
+            await self.transport.do_push_rpc_async(payload[:sidx], self.rpc_command_reply,exiting=exiting)
+            self._command['trigger'] =0
+            self._dirty_command=False
 
     def push_command(self,exiting=False):
         if not self.hw_valid:
@@ -122,13 +145,13 @@ class WaccBase(Device):
         if self._dirty_config:
             payload[0] = self.RPC_SET_WACC_CONFIG
             sidx = self.pack_config(payload, 1)
-            self.transport.do_push_rpc(payload[:sidx], self.rpc_config_reply,exiting=exiting)
+            self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_config_reply,exiting=exiting)
             self._dirty_config=False
 
         if self._dirty_command:
             payload[0] = self.RPC_SET_WACC_COMMAND
             sidx = self.pack_command( payload, 1)
-            self.transport.do_push_rpc(payload[:sidx], self.rpc_command_reply,exiting=exiting)
+            self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_command_reply,exiting=exiting)
             self._command['trigger'] =0
             self._dirty_command=False
 
@@ -384,13 +407,13 @@ class Wacc_Protocol_P3(WaccBase):
         payload=self.transport.get_empty_payload()
         payload[0] = self.RPC_LOAD_TEST_PUSH
         payload[1:] = self.load_test_payload
-        self.transport.do_push_rpc(payload, self.rpc_load_test_push_reply)
+        self.transport.do_push_rpc_sync(payload, self.rpc_load_test_push_reply)
 
     def pull_load_test(self):
         if not self.hw_valid:
             return
         payload = arr.array('B',[self.RPC_LOAD_TEST_PULL])
-        self.transport.do_pull_rpc(payload, self.rpc_load_test_pull_reply)
+        self.transport.do_pull_rpc_sync(payload, self.rpc_load_test_pull_reply)
 
 
     def rpc_load_test_push_reply(self, reply):

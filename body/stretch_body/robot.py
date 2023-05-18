@@ -3,6 +3,7 @@ import threading
 import time
 import signal
 import importlib
+import asyncio
 
 from stretch_body.device import Device
 import stretch_body.base as base
@@ -19,6 +20,7 @@ from stretch_body.robot_monitor import RobotMonitor
 from stretch_body.robot_trace import RobotTrace
 from stretch_body.robot_collision import RobotCollision
 
+# #############################################################
 class DXLHeadStatusThread(threading.Thread):
     """
     This thread polls the status data of the Dynamixel devices
@@ -79,11 +81,21 @@ class NonDXLStatusThread(threading.Thread):
         self.first_status = False
 
     def run(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         while not self.shutdown_flag.is_set():
             if not self.shutdown_flag.is_set():
                 self.stats.wait_until_ready_to_run()
                 self.stats.mark_loop_start()
-                self.robot._pull_status_non_dynamixel()
+                if self.robot.params['use_asyncio']:
+                    loop.run_until_complete(asyncio.gather(
+                        self.robot.wacc.pull_status_async(),
+                        self.robot.base.pull_status_async(),
+                        self.robot.lift.pull_status_async(),
+                        self.robot.arm.pull_status_async(),
+                        self.robot.pimu.pull_status_async()))
+                else:
+                    self.robot._pull_status_non_dynamixel()
                 self.stats.mark_loop_end()
             self.first_status = True
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
@@ -206,6 +218,15 @@ class Robot(Device):
                 if not self.devices[k].startup(threaded=False):
                     success = False
 
+        if (self.arm.motor.transport.version==0 \
+                or self.lift.motor.transport.version==0 \
+                or self.base.right_wheel.transport.version == 0 \
+                or self.base.left_wheel.transport.version == 0 \
+                or self.wacc.transport.version==0 \
+                or self.pimu.transport.version==0) and self.params['use_asyncio'] :
+            self.logger.warning('Not able to use asyncio for transport communications. Defaulting to sync.')
+            self.params['use_asyncio']=0
+
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
         signal.signal(signal.SIGINT, hello_utils.thread_service_shutdown)
@@ -279,13 +300,22 @@ class Robot(Device):
         """
         Cause all queued up RPC commands to be sent down to Devices
         """
-        ready = self.pimu.is_ready_for_sync()
         with self.lock:
-            self.base.push_command()
-            self.arm.push_command()
-            self.lift.push_command()
-            self.pimu.push_command()
-            self.wacc.push_command()
+            ready = self.pimu.is_ready_for_sync()
+            if self.params['use_asyncio']:
+                asyncio.get_event_loop().run_until_complete(asyncio.gather(
+                    self.base.left_wheel.push_command_async(),
+                    self.base.right_wheel.push_command_async(),
+                    self.arm.push_command_async(),
+                    self.lift.push_command_async(),
+                    self.pimu.push_command_async(),
+                    self.wacc.push_command_async()))
+            else:
+                self.base.push_command()
+                self.arm.push_command()
+                self.lift.push_command()
+                self.pimu.push_command()
+                self.wacc.push_command()
 
             # Check if need to do a motor sync by looking at if there's been a pimu sync signal sent
             # since the last stepper.set_command for each joint

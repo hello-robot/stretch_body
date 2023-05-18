@@ -164,6 +164,7 @@ def pretty_print_dict(title, d):
             pretty_print_dict(k, d[k])
 
 
+
 class LoopStats():
     """Track timing statistics for control loops
     """
@@ -278,6 +279,8 @@ class LoopStats():
             return True
         while time.time()-self.ts_loop_start<(1/self.target_loop_rate):
             time.sleep(.0005)
+
+
 class ThreadServiceExit(Exception):
     """
     Custom exception which is used to trigger the clean exit

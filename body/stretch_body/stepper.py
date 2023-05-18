@@ -164,7 +164,7 @@ class StepperBase(Device):
             if self.hw_valid:
                 # Pull board info
                 payload = arr.array('B', [self.RPC_GET_STEPPER_BOARD_INFO])
-                self.transport.do_pull_rpc(payload, self.rpc_board_info_reply)
+                self.transport.do_pull_rpc_sync(payload, self.rpc_board_info_reply)
                 self.transport.configure_version(self.board_info['firmware_version'])
                 return True
             return False
@@ -194,13 +194,13 @@ class StepperBase(Device):
         if self._dirty_trigger:
             payload[0] = self.RPC_SET_TRIGGER
             sidx = self.pack_trigger(payload, 1)
-            self.transport.do_push_rpc(payload[:sidx], self.rpc_trigger_reply, exiting=exiting)
+            self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_trigger_reply, exiting=exiting)
             self._dirty_trigger = False
 
         if self._dirty_gains:
             payload[0] = self.RPC_SET_GAINS
             sidx = self.pack_gains(payload, 1)
-            self.transport.do_push_rpc(payload[:sidx], self.rpc_gains_reply, exiting=exiting)
+            self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_gains_reply, exiting=exiting)
             self._dirty_gains = False
 
         if self._dirty_command:
@@ -211,7 +211,35 @@ class StepperBase(Device):
 
             payload[0] = self.RPC_SET_COMMAND
             sidx = self.pack_command(payload, 1)
-            self.transport.do_push_rpc(payload[:sidx], self.rpc_command_reply, exiting=exiting)
+            self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_command_reply, exiting=exiting)
+            self._dirty_command = False
+
+    async def push_command_async(self,exiting=False):
+        if not self.hw_valid:
+            return
+        payload = self.transport.get_empty_payload()
+
+        if self._dirty_trigger:
+            payload[0] = self.RPC_SET_TRIGGER
+            sidx = self.pack_trigger(payload, 1)
+            await self.transport.do_push_rpc_async(payload[:sidx], self.rpc_trigger_reply, exiting=exiting)
+            self._dirty_trigger = False
+
+        if self._dirty_gains:
+            payload[0] = self.RPC_SET_GAINS
+            sidx = self.pack_gains(payload, 1)
+            await self.transport.do_push_rpc_async(payload[:sidx], self.rpc_gains_reply, exiting=exiting)
+            self._dirty_gains = False
+
+        if self._dirty_command:
+            if self.status['in_sync_mode']: #Mark the time of latest new motion command sent
+                self.ts_last_syncd_motion=time.time()
+            else:
+                self.ts_last_syncd_motion = 0
+
+            payload[0] = self.RPC_SET_COMMAND
+            sidx = self.pack_command(payload, 1)
+            await self.transport.do_push_rpc_async(payload[:sidx], self.rpc_command_reply, exiting=exiting)
             self._dirty_command = False
 
     def pull_status(self, exiting=False):
@@ -219,10 +247,22 @@ class StepperBase(Device):
             return
         if self._dirty_read_gains_from_flash:
             payload = arr.array('B', [self.RPC_READ_GAINS_FROM_FLASH])
-            self.transport.do_pull_rpc(payload, self.rpc_read_gains_from_flash_reply)
+            self.transport.do_pull_rpc_sync(payload, self.rpc_read_gains_from_flash_reply)
             self._dirty_read_gains_from_flash = False
         payload = arr.array('B', [self.RPC_GET_STATUS])
-        self.transport.do_pull_rpc(payload, self.rpc_status_reply, exiting=exiting)
+        self.transport.do_pull_rpc_sync(payload, self.rpc_status_reply, exiting=exiting)
+
+    async def pull_status_async(self, exiting=False):
+        if not self.hw_valid:
+            return
+
+        if self._dirty_read_gains_from_flash:
+            payload = arr.array('B', [self.RPC_READ_GAINS_FROM_FLASH])
+            await self.transport.do_pull_rpc_async(payload, self.rpc_read_gains_from_flash_reply, exiting=exiting)
+            self._dirty_read_gains_from_flash = False
+
+        payload = arr.array('B', [self.RPC_GET_STATUS])
+        await self.transport.do_pull_rpc_async(payload, self.rpc_status_reply, exiting=exiting)
 
     def push_load_test(self):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
@@ -253,7 +293,7 @@ class StepperBase(Device):
             payload=self.transport.get_empty_payload()
             payload[0] = self.RPC_SET_MOTION_LIMITS
             sidx = self.pack_motion_limits(payload, 1)
-            self.transport.do_push_rpc(payload[:sidx], self.rpc_motion_limits_reply)
+            self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_motion_limits_reply)
 
     def set_gains(self,g):
         self.gains=g.copy()
@@ -550,7 +590,7 @@ class StepperBase(Device):
                     pack_float_t(payload, sidx, data[p*64+i])
                     sidx += 4
                 # self.logger.debug('Sending encoder calibration rpc of size',sidx)
-                self.transport.do_push_rpc(payload[:sidx], self.rpc_enc_calib_reply)
+                self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_enc_calib_reply)
 
     def rpc_enc_calib_reply(self,reply):
         if reply[0] != self.RPC_REPLY_ENC_CALIB:
@@ -567,7 +607,7 @@ class StepperBase(Device):
         if not self.hw_valid:
             return
         payload = arr.array('B',[self.RPC_SET_MENU_ON])
-        self.transport.do_push_rpc(payload, self.rpc_menu_on_reply)
+        self.transport.do_push_rpc_sync(payload, self.rpc_menu_on_reply)
 
 
     def print_menu(self):
@@ -859,7 +899,7 @@ class Stepper_Protocol_P0(StepperBase):
         print('       In Safety Event:', self.status['in_safety_event'])
         print('       Waiting on Sync:', self.status['waiting_on_sync'])
         print('Timestamp (s)', self.status['timestamp'])
-        print('Read error', self.transport.status['read_error'])
+        #print('Read error', self.transport.status['read_error'])
         print('Board variant:', self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
 
@@ -942,7 +982,7 @@ class Stepper_Protocol_P1(StepperBase):
         print('       Setpoint: (rad) %s | (deg) %s'%(self.status['waypoint_traj']['setpoint'],  rad_to_deg(self.status['waypoint_traj']['setpoint'])))
         print('       Segment ID:', self.status['waypoint_traj']['segment_id'])
         print('Timestamp (s)', self.status['timestamp'])
-        print('Read error', self.transport.status['read_error'])
+        #print('Read error', self.transport.status['read_error'])
         print('Board variant:', self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
 
@@ -974,7 +1014,7 @@ class Stepper_Protocol_P1(StepperBase):
             payload = self.transport.get_empty_payload()
             payload[0] = self.RPC_START_NEW_TRAJECTORY
             sidx = self.pack_trajectory_segment(payload, 1)
-            self.transport.do_push_rpc(payload[:sidx], self.rpc_start_new_traj_reply)
+            self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_start_new_traj_reply)
         if not self._waypoint_traj_start_success:
             self.logger.warning('start_waypoint_trajectory: %s' % self._waypoint_traj_start_error_msg.capitalize())
         # return self._waypoint_traj_start_success
@@ -1010,7 +1050,7 @@ class Stepper_Protocol_P1(StepperBase):
             payload = self.transport.get_empty_payload()
             payload[0] = self.RPC_SET_NEXT_TRAJECTORY_SEG
             sidx = self.pack_trajectory_segment(payload, 1)
-            self.transport.do_push_rpc(payload[:sidx], self.rpc_set_next_traj_seg_reply)
+            self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_set_next_traj_seg_reply)
         if not self._waypoint_traj_set_next_traj_success:
             self.logger.warning('set_next_trajectory_segment: %s' % self._waypoint_traj_set_next_error_msg.capitalize())
         return self._waypoint_traj_set_next_traj_success
@@ -1020,7 +1060,7 @@ class Stepper_Protocol_P1(StepperBase):
         """
         self._waypoint_ts = None
         payload = arr.array('B', [self.RPC_RESET_TRAJECTORY])
-        self.transport.do_push_rpc(payload, self.rpc_reset_traj_reply)
+        self.transport.do_push_rpc_sync(payload, self.rpc_reset_traj_reply)
 
     def pack_trajectory_segment(self, s, sidx):
         for i in range(7):
@@ -1065,7 +1105,7 @@ class Stepper_Protocol_P2(StepperBase):
         ts=time.time()
         while ( self.n_trace_read) and time.time()-ts<60.0:
             payload = arr.array('B', [self.RPC_READ_TRACE])
-            self.transport.do_pull_rpc(payload, self.rpc_read_firmware_trace_reply)
+            self.transport.do_pull_rpc_sync(payload, self.rpc_read_firmware_trace_reply)
             time.sleep(.001)
         return self.trace_buf
     def unpack_debug_trace(self,s,unpack_to):
@@ -1176,13 +1216,13 @@ class Stepper_Protocol_P3(StepperBase):
         payload = self.transport.get_empty_payload()
         payload[0] = self.RPC_LOAD_TEST_PUSH
         payload[1:] = self.load_test_payload
-        self.transport.do_push_rpc(payload, self.rpc_load_test_push_reply)
+        self.transport.do_push_rpc_sync(payload, self.rpc_load_test_push_reply)
 
     def pull_load_test(self):
         if not self.hw_valid:
             return
         payload = arr.array('B',[self.RPC_LOAD_TEST_PULL])
-        self.transport.do_pull_rpc(payload, self.rpc_load_test_pull_reply)
+        self.transport.do_pull_rpc_sync(payload, self.rpc_load_test_pull_reply)
 
     def rpc_load_test_push_reply(self, reply):
         if reply[0] != self.RPC_REPLY_LOAD_TEST_PUSH:
@@ -1203,7 +1243,7 @@ class Stepper_Protocol_P3(StepperBase):
         if not self.hw_valid:
             return
         payload = arr.array('B',[self.RPC_GET_STATUS_AUX])
-        self.transport.do_pull_rpc(payload, self.rpc_status_aux_reply)
+        self.transport.do_pull_rpc_sync(payload, self.rpc_status_aux_reply)
 
     def unpack_status_aux(self,s):
         sidx = 0

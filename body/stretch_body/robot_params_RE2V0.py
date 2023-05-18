@@ -451,7 +451,8 @@ nominal_params={
         'wrist_yaw': 3.4},
         'use_monitor': 1,
         'use_trace': 0,
-        'use_sentry': 1},
+        'use_sentry': 1,
+        'use_asyncio':1},
     'robot_collision': {
         'models': ['collision_arm_camera']
     },
