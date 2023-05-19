@@ -23,7 +23,7 @@ class TestRobotNonDxlRates(unittest.TestCase):
         r.wacc.transport.set_version(0)
         ts=time.time()
         for i in range(100):
-            print('test_robot_v0_sync Itr',i)
+            #print('test_robot_v0_sync Itr',i)
             r.arm.move_by(0)
             r.lift.move_by(0)
             r.base.translate_by(0)
@@ -32,7 +32,8 @@ class TestRobotNonDxlRates(unittest.TestCase):
             r.push_command()
         dt=time.time()-ts
         rate=100/dt
-        print('Robot NonDxl V0 push rate of %f Hz' % rate)
+        print('Sync Robot NonDxl V0 push rate of %f Hz' % rate)
+        print('Sync Robot status thread at rate',r.non_dxl_thread.stats.status['avg_rate_hz'],'\n')
         #self.assertTrue(rate>25.0)
 
     def test_robot_v1_sync(self):
@@ -45,7 +46,7 @@ class TestRobotNonDxlRates(unittest.TestCase):
         r.wacc.transport.set_version(1)
         ts=time.time()
         for i in range(100):
-            print('test_robot_v1_sync Itr', i)
+            #print('test_robot_v1_sync Itr', i)
             r.arm.move_by(0)
             r.lift.move_by(0)
             r.base.translate_by(0)
@@ -54,7 +55,8 @@ class TestRobotNonDxlRates(unittest.TestCase):
             r.push_command()
         dt=time.time()-ts
         rate = 100 / dt
-        print('Robot NonDxl V1 push rate of %f Hz' % rate)
+        print('Sync Robot NonDxl V1 push rate of %f Hz' % rate)
+        print('Sync Robot status thread at rate', r.non_dxl_thread.stats.status['avg_rate_hz'], '\n')
         #self.assertTrue(rate > 45.0)
     def test_robot_v0_async(self):
         r.params['use_asyncio'] = 1
@@ -66,7 +68,7 @@ class TestRobotNonDxlRates(unittest.TestCase):
         r.wacc.transport.set_version(0)
         ts=time.time()
         for i in range(100):
-            print('test_robot_v0_async Itr',i)
+            #print('test_robot_v0_async Itr',i)
             r.arm.move_by(0)
             r.lift.move_by(0)
             r.base.translate_by(0)
@@ -75,7 +77,8 @@ class TestRobotNonDxlRates(unittest.TestCase):
             r.push_command()
         dt=time.time()-ts
         rate=100/dt
-        print('Robot NonDxl V0 push rate of %f Hz' % rate)
+        print('aSync Robot NonDxl V0 push rate of %f Hz' % rate)
+        print('aSync Robot status thread at rate', r.non_dxl_thread.stats.status['avg_rate_hz'], '\n')
         #self.assertTrue(rate>25.0)
 
     def test_robot_v1_async(self):
@@ -88,7 +91,7 @@ class TestRobotNonDxlRates(unittest.TestCase):
         r.wacc.transport.set_version(1)
         ts=time.time()
         for i in range(100):
-            print('test_robot_v1_async Itr', i)
+            #print('test_robot_v1_async Itr', i)
             r.arm.move_by(0)
             r.lift.move_by(0)
             r.base.translate_by(0)
@@ -97,5 +100,6 @@ class TestRobotNonDxlRates(unittest.TestCase):
             r.push_command()
         dt=time.time()-ts
         rate = 100 / dt
-        print('Robot NonDxl V1 push rate of %f Hz' % rate)
+        print('aSync Robot NonDxl V1 push rate of %f Hz' % rate)
+        print('aSync Robot status thread at rate', r.non_dxl_thread.stats.status['avg_rate_hz'], '\n')
         #self.assertTrue(rate > 45.0)
