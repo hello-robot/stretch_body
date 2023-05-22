@@ -195,6 +195,7 @@ class StepperBase(Device):
             payload[0] = self.RPC_SET_TRIGGER
             sidx = self.pack_trigger(payload, 1)
             self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_trigger_reply, exiting=exiting)
+            self._trigger=0
             self._dirty_trigger = False
 
         if self._dirty_gains:
@@ -223,6 +224,7 @@ class StepperBase(Device):
             payload[0] = self.RPC_SET_TRIGGER
             sidx = self.pack_trigger(payload, 1)
             await self.transport.do_push_rpc_async(payload[:sidx], self.rpc_trigger_reply, exiting=exiting)
+            self._trigger=0
             self._dirty_trigger = False
 
         if self._dirty_gains:
