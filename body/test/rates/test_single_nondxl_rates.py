@@ -50,8 +50,8 @@ class TestSingleNonDxlRates(unittest.TestCase):
         w.transport.set_version(0)
         ts=time.time()
         for i in range(100):
-            w.set_command(mode=0)
-            s.push_command()
-            s.pull_status()
+            w.set_D3(0)
+            w.push_command()
+            w.pull_status()
         dt=time.time()-ts
-        print('Stepper V0 push-pull rate of %f Hz' % (100 / dt))
+        print('Wacc V0 push-pull rate of %f Hz' % (100 / dt))
