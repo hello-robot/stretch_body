@@ -312,16 +312,20 @@ class DynamixelHelloXL430(Device):
 
         #Now update status dictionary
         if pos_valid:
-            self.status['pos_ticks'] = x
-            self.status['pos'] = self.ticks_to_world_rad(float(x))
+            if x is not None:
+                self.status['pos_ticks'] = x
+                self.status['pos'] = self.ticks_to_world_rad(float(x))
         if vel_valid:
-            self.status['vel_ticks'] = v
-            self.status['vel'] = self.ticks_to_world_rad_per_sec(float(v))
+            if v is not None:
+                self.status['vel_ticks'] = v
+                self.status['vel'] = self.ticks_to_world_rad_per_sec(float(v))
         if eff_valid:
-            self.status['effort_ticks'] = eff
-            self.status['effort'] = self.ticks_to_pct_load(float(eff))
+            if eff is not None:
+                self.status['effort_ticks'] = eff
+                self.status['effort'] = self.ticks_to_pct_load(float(eff))
         if temp_valid:
-            self.status['temp'] = float(temp)
+            if temp is not None:
+                self.status['temp'] = float(temp)
         if err_valid:
             self.status['hardware_error'] = err
 
