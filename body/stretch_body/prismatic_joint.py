@@ -26,6 +26,7 @@ class PrismaticJoint(Device):
         self.thread_rate_hz = 5.0
 
         # Default controller params
+        self.thresh_param_set = self.params['contact_models']['effort_pct']['thresh_param_set']
         self.stiffness = 1.0
         self.i_feedforward=self.params['i_feedforward']
         self.vel_r = self.translate_m_to_motor_rad(self.params['motion']['default']['vel_m'])
@@ -130,8 +131,8 @@ class PrismaticJoint(Device):
         """
         This model converts from a specified percentage effort (-100 to 100) in the motor frame to motor currents
         """
-        e_cn = self.params['contact_models']['effort_pct']['contact_thresh_default'][0] if contact_thresh_neg is None else contact_thresh_neg
-        e_cp = self.params['contact_models']['effort_pct']['contact_thresh_default'][1] if contact_thresh_neg is None else contact_thresh_pos
+        e_cn = self.params['contact_models']['effort_pct'][self.thresh_param_set][0] if contact_thresh_neg is None else contact_thresh_neg
+        e_cp = self.params['contact_models']['effort_pct'][self.thresh_param_set][1] if contact_thresh_neg is None else contact_thresh_pos
         i_contact_neg = self.motor.effort_pct_to_current(max(e_cn, self.params['contact_models']['effort_pct']['contact_thresh_max'][0]))
         i_contact_pos = self.motor.effort_pct_to_current(min(e_cp, self.params['contact_models']['effort_pct']['contact_thresh_max'][1]))
         return i_contact_pos, i_contact_neg

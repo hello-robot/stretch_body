@@ -83,7 +83,11 @@ nominal_params={
         'force_N_per_A': 55.9, #Legacy
         'calibration_range_bounds': [0.514, 0.525],
         'contact_models':{
-            'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
+            'effort_pct': {
+                'thresh_param_set': 'contact_thresh_low_sensitivity',
+                'contact_thresh_calibration_margin':10.0,
+                'contact_thresh_low_sensitivity': [-45.0, 65.0],
+                'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{
             'default':{
                 'accel_m': 0.14,
@@ -391,7 +395,9 @@ nominal_params={
         'belt_pitch_m': 0.005,
         'contact_models': {
             'effort_pct': {
+                'thresh_param_set': 'contact_thresh_low_sensitivity',
                 'contact_thresh_calibration_margin': 10.0,
+                'contact_thresh_low_sensitivity': [-45.0, 65.0],
                 'contact_thresh_max': [-100, 100]}},
         'calibration_range_bounds': [1.094, 1.106],
         'force_N_per_A': 75.0, #Legacy

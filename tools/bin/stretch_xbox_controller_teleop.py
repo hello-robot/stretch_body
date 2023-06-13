@@ -557,6 +557,8 @@ def main():
     xbox_controller.start()
     check_usb_devices(wait_timeout=5)
     robot = rb.Robot()
+    robot.arm.thresh_param_set = 'contact_thresh_default'
+    robot.lift.thresh_param_set = 'contact_thresh_default'
     try:
         robot.startup()
         print('Using key mapping for tool: %s' % robot.end_of_arm.name)
