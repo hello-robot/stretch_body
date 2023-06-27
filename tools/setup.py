@@ -25,7 +25,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: Apache Software License"
     ],
-    install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose',
+    install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose', 'sh', 'packaging',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'scikit-image', 'open3d', 'pyrealsense2',
                       'pyglet == 1.4.10; python_version < "3.0"', 'trimesh==3.6.38', 'urdfpy', # required for urdfpy viz in py2
