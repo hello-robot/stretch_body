@@ -19,7 +19,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
     ],
-    install_requires=['numpy', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose',
+    install_requires=['numpy==1.23.2', 'scipy', 'matplotlib==3.5.0', 'ipython', 'pandas', 'sympy', 'nose',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'colorama',
                       'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'psutil', 'gitpython', 'urdfpy',
