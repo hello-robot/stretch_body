@@ -273,12 +273,12 @@ class LoopStats():
         """
         return max(0.0, self.sleep_time_s)
 
-    def wait_until_ready_to_run(self,sleep=.005):
+    def wait_until_ready_to_run(self,sleep=.0005):
         if self.ts_loop_start is None:
             time.sleep(.01)
             return True
         while time.time()-self.ts_loop_start<(1/self.target_loop_rate):
-            time.sleep(.0005)
+            time.sleep(sleep)
 
 
 class ThreadServiceExit(Exception):
