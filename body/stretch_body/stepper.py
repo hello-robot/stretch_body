@@ -1286,7 +1286,6 @@ class Stepper(StepperBase):
     API to the Stretch Stepper Board
     """
     def __init__(self,usb, name=None):
-        print(f"Initiated {name}......")
         StepperBase.__init__(self,usb,name)
         # Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Stepper_Protocol_P0,),
@@ -1302,9 +1301,8 @@ class Stepper(StepperBase):
     def startup(self, threaded=False):
         """
         First determine which protocol version the uC firmware is running.
-        Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol
+        Based on that version, populates Stepper class with the supported specific Stepper_protocol_P* class methods.
         """
-        print(f"Starting [{self.name}]")
         StepperBase.startup(self, threaded=threaded)
         if self.hw_valid:
             if self.board_info['protocol_version'] in self.supported_protocols:
