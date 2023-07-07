@@ -1286,22 +1286,31 @@ class Stepper(StepperBase):
     API to the Stretch Stepper Board
     """
     def __init__(self,usb, name=None):
+        print(f"Initiated {name}......")
         StepperBase.__init__(self,usb,name)
         # Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Stepper_Protocol_P0,),
                                     'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,),
                                     'p2': (Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,),
                                     'p3': (Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
-
+    
+    def expand_exclusive_methods(self, exclusive_class):
+        for attr_name, attr_value in exclusive_class.__dict__.items():
+            if callable(attr_value) and not attr_name.startswith("__"):
+                setattr(self, attr_name, attr_value.__get__(self, Stepper))
+                
     def startup(self, threaded=False):
         """
         First determine which protocol version the uC firmware is running.
         Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol
         """
+        print(f"Starting [{self.name}]")
         StepperBase.startup(self, threaded=threaded)
         if self.hw_valid:
             if self.board_info['protocol_version'] in self.supported_protocols:
-                Stepper.__bases__ = self.supported_protocols[self.board_info['protocol_version']]
+                protocol_classes = self.supported_protocols[self.board_info['protocol_version']]
+                for p in protocol_classes[::-1]:
+                    self.expand_exclusive_methods(p)
             else:
                 if self.board_info['protocol_version'] is None:
                     protocol_msg = """
