@@ -1292,16 +1292,23 @@ class Stepper(StepperBase):
                                     'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,),
                                     'p2': (Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,),
                                     'p3': (Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
-
+    
+    def expand_protocol_methods(self, protocol_class):
+        for attr_name, attr_value in protocol_class.__dict__.items():
+            if callable(attr_value) and not attr_name.startswith("__"):
+                setattr(self, attr_name, attr_value.__get__(self, Stepper))
+                
     def startup(self, threaded=False):
         """
         First determine which protocol version the uC firmware is running.
-        Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol
+        Based on that version, populates Stepper class with the supported specific Stepper_protocol_P* class methods.
         """
         StepperBase.startup(self, threaded=threaded)
         if self.hw_valid:
             if self.board_info['protocol_version'] in self.supported_protocols:
-                Stepper.__bases__ = self.supported_protocols[self.board_info['protocol_version']]
+                protocol_classes = self.supported_protocols[self.board_info['protocol_version']]
+                for p in protocol_classes[::-1]:
+                    self.expand_protocol_methods(p)
             else:
                 if self.board_info['protocol_version'] is None:
                     protocol_msg = """
