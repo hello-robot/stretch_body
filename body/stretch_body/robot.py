@@ -175,7 +175,7 @@ class Robot(Device):
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
-
+        self.async_event_loop = asyncio.get_event_loop()
         self.pimu=pimu.Pimu()
         self.status['pimu']=self.pimu.status
 
@@ -304,22 +304,25 @@ class Robot(Device):
         print('Serial No',self.params['serial_no'])
         print('Batch', self.params['batch_name'])
         hello_utils.pretty_print_dict('Status',s)
-
-
+    
+    async def push_command_coro(self):
+        await asyncio.gather(
+                            self.base.left_wheel.push_command_async(),
+                            self.base.right_wheel.push_command_async(),
+                            self.arm.push_command_async(),
+                            self.lift.push_command_async(),
+                            self.pimu.push_command_async(),
+                            self.wacc.push_command_async())
+        
     def push_command(self):
         """
         Cause all queued up RPC commands to be sent down to Devices
         """
+        
         with self.lock:
             ready = self.pimu.is_ready_for_sync()
             if self.params['use_asyncio']:
-                asyncio.get_event_loop().run_until_complete(asyncio.gather(
-                    self.base.left_wheel.push_command_async(),
-                    self.base.right_wheel.push_command_async(),
-                    self.arm.push_command_async(),
-                    self.lift.push_command_async(),
-                    self.pimu.push_command_async(),
-                    self.wacc.push_command_async()))
+                self.async_event_loop.run_until_complete(self.push_command_coro())
             else:
                 self.base.push_command()
                 self.arm.push_command()
