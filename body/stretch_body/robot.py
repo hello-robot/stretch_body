@@ -176,6 +176,7 @@ class Robot(Device):
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
         self.async_event_loop = asyncio.get_event_loop()
+
         self.pimu=pimu.Pimu()
         self.status['pimu']=self.pimu.status
 
@@ -233,6 +234,8 @@ class Robot(Device):
                 or self.pimu.transport.version==0) and self.params['use_asyncio'] :
             self.logger.warning('Not able to use asyncio for transport communications. Defaulting to sync.')
             self.params['use_asyncio']=0
+        else:
+            self.start_event_loop()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
@@ -260,9 +263,6 @@ class Robot(Device):
             self.sys_thread.setDaemon(True)
             self.sys_thread.start()
 
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
-
         return success
 
     def stop(self):
@@ -287,6 +287,7 @@ class Robot(Device):
             if self.devices[k] is not None:
                 self.logger.debug('Shutting down %s'%k)
                 self.devices[k].stop()
+        self.stop_event_loop()
         self.logger.debug('---- Shutdown complete ----')
 
     def get_status(self):
@@ -306,13 +307,14 @@ class Robot(Device):
         hello_utils.pretty_print_dict('Status',s)
     
     async def push_command_coro(self):
-        await asyncio.gather(
-                            self.base.left_wheel.push_command_async(),
-                            self.base.right_wheel.push_command_async(),
-                            self.arm.push_command_async(),
-                            self.lift.push_command_async(),
-                            self.pimu.push_command_async(),
-                            self.wacc.push_command_async())
+        tasks = [self.base.left_wheel.push_command_async(),
+                 self.base.right_wheel.push_command_async(),
+                 self.arm.push_command_async(),
+                 self.lift.push_command_async(),
+                 self.pimu.push_command_async(),
+                 self.wacc.push_command_async()]
+        results = await asyncio.gather(*tasks)
+        return results
         
     def push_command(self):
         """
@@ -322,7 +324,8 @@ class Robot(Device):
         with self.lock:
             ready = self.pimu.is_ready_for_sync()
             if self.params['use_asyncio']:
-                self.async_event_loop.run_until_complete(self.push_command_coro())
+                future = asyncio.run_coroutine_threadsafe(self.push_command_coro(),self.async_event_loop)
+                future.result()
             else:
                 self.base.push_command()
                 self.arm.push_command()
@@ -514,3 +517,17 @@ class Robot(Device):
         self.arm.step_sentry(self)
         self.lift.step_sentry(self)
         self.end_of_arm.step_sentry(self)
+    
+    def start_event_loop(self):
+        def start_loop(loop):
+            loop.run_forever()
+        self.event_loop_thread = threading.Thread(target=start_loop, args=(self.async_event_loop,))
+        self.event_loop_thread.start()
+    
+    def stop_event_loop(self):
+        try:
+            if self.event_loop_thread:
+                self.async_event_loop.call_soon_threadsafe(self.async_event_loop.stop())
+                self.event_loop_thread.join()
+        except:
+            pass
