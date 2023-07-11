@@ -175,7 +175,7 @@ class Robot(Device):
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
-        self.async_event_loop = asyncio.get_event_loop()
+        self.async_event_loop = None
 
         self.pimu=pimu.Pimu()
         self.status['pimu']=self.pimu.status
@@ -323,7 +323,7 @@ class Robot(Device):
         
         with self.lock:
             ready = self.pimu.is_ready_for_sync()
-            if self.params['use_asyncio']:
+            if self.params['use_asyncio'] and self.async_event_loop is not None:
                 future = asyncio.run_coroutine_threadsafe(self.push_command_coro(),self.async_event_loop)
                 future.result()
             else:
@@ -519,7 +519,9 @@ class Robot(Device):
         self.end_of_arm.step_sentry(self)
     
     def start_event_loop(self):
+        self.async_event_loop = asyncio.new_event_loop()
         def start_loop(loop):
+            asyncio.set_event_loop(loop)
             loop.run_forever()
         self.event_loop_thread = threading.Thread(target=start_loop, args=(self.async_event_loop,))
         self.event_loop_thread.start()
