@@ -24,14 +24,15 @@ After attaching the hardware to Stretch's wrist, set this parameter to your tool
 
 ### use_multiturn
 
-The Dynamixel joints on the robot have a "multiturn" or "Extended Position Control" mode, which allows the Dynamixel servo to rotate many revolutions. This is in contrast to regular "Position Control" mode, where the servo is limited to 360° rotation. Since the `wrist_yaw` and `stretch_gripper` joints have gear reductions, they operate in multiturn mode to achieve the desired range for those joints. In the other dxl joints, the servo directly controls the position of the joint, so multiple revolutions are not required. More details on the Dynamixel's control modes are [available here](https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/#operating-mode11). 
+The Dynamixel joints on the robot have a "multiturn" or "Extended Position Control" mode, which allows the Dynamixel servo to rotate many revolutions. This is in contrast to regular "Position Control" mode, where the servo is limited to 360° rotation. The joints where the servos have gear reductions operate in multiturn mode to achieve the desired range. In the other joints, the servo directly controls the position of the joint, so multiple revolutions are not required. More details on the Dynamixel's control modes are [available here](https://emanual.robotis.com/docs/en/dxl/x/xl430-w250/#operating-mode11).
 
 | Parameter                       | Default Value |
 | ------------------------------- | ------------- |
-| head_pan.use_multiturn        | `0`           |
+| head_pan.use_multiturn        | `0` *         |
 | head_tilt.use_multiturn       | `0`           |
 | stretch_gripper.use_multiturn | `1`           |
 | wrist_yaw.use_multiturn       | `1`           |
 | wrist_pitch.use_multiturn     | `0`           |
 | wrist_roll.use_multiturn      | `0`           |
 
+\* `head_pan.use_multiturn` is `0` for most Stretch robots, except for some early RE1s. For those robots, the parameter is set to `1` in "stretch_configuration_params.yaml". 
