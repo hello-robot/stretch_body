@@ -413,7 +413,7 @@ nominal_params={
       'usb_name': '/dev/hello-pimu',
       'base_fan_off': 70,
       'base_fan_on': 82,
-      'max_sync_rate_hz': 80.0,
+      'max_sync_rate_hz': 80.0, #deprecated with P3
       'config':{
         'accel_LPF': 20.0,
         'bump_thresh': 20.0,
@@ -434,11 +434,12 @@ nominal_params={
         'rates':{
             'DXLStatusThread_Hz': 15.0,
             'NonDXLStatusThread_Hz': 25.0,
-            'NonDXLStatusThread_monitor_downrate_int': 5,
-            'NonDXLStatusThread_trace_downrate_int': 2,
-            'NonDXLStatusThread_collision_downrate_int': 5,
-            'NonDXLStatusThread_sentry_downrate_int': 2,
-            'NonDXLStatusThread_trajectory_downrate_int': 2},
+            'SystemMonitorThread_Hz': 15.0,
+            'SystemMonitorThread_monitor_downrate_int': 2,
+            'SystemMonitorThread_trace_downrate_int': 1,
+            'SystemMonitorThread_collision_downrate_int': 5,
+            'SystemMonitorThread_sentry_downrate_int': 1,
+            'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
         'tool': 'tool_stretch_gripper',
         'use_collision_manager': 0,
         'stow':{
@@ -450,7 +451,8 @@ nominal_params={
         'wrist_yaw': 3.4},
         'use_monitor': 1,
         'use_trace': 0,
-        'use_sentry': 1},
+        'use_sentry': 1,
+        'use_asyncio':1},
     'robot_collision': {
         'models': ['collision_arm_camera']
     },

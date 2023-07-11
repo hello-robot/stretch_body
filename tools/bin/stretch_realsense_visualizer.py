@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Sample command line usage:
 #   python stretch_realsense_jog.py --save stretch_video_max60minutes.avi

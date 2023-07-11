@@ -530,6 +530,14 @@ class Base(Device):
         self.right_wheel.pull_status()
         self.__update_status()
 
+    async def pull_status_async(self):
+        """
+        Computes base odometery based on stepper positions / velocities
+        """
+        await self.left_wheel.pull_status_async()
+        await self.right_wheel.pull_status_async()
+        self.__update_status()
+
     def __update_status(self):
 
         self.status['timestamp_pc'] = time.time()

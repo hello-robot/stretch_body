@@ -21,7 +21,10 @@ class Scope:
         self.y = None
         self.num_points=num_points
         self.fig = plt.figure()
-        self.fig.canvas.set_window_title(title)
+        # set window title
+        if self.fig.canvas.manager is not None:
+            self.fig.canvas.manager.set_window_title(title)
+        # self.fig.canvas.set_window_title(title)
         self.yrange=yrange
     def step_display(self,new_val):
         if self.y is None:
@@ -98,7 +101,12 @@ class TrajectoryScope:
         widget_loc = lambda x: plt.axes([0.84, 0.8-((x)*0.05), 0.12, 0.02])
         self.fig, self.axes = plt.subplots(1, 1, figsize=(9.0, 8.0), sharex=True)
         self.fig.subplots_adjust(right=0.8)
-        self.fig.canvas.set_window_title(title)
+
+        # set window title
+        if self.fig.canvas.manager is not None:
+            self.fig.canvas.manager.set_window_title(title)
+        #self.fig.canvas.set_window_title(title)
+
         self.axes.set_yscale('linear')
         self.axes.set_ylim(min(self.yrange) - 0.75, max(self.yrange) + 0.75)
         self.axes.axhspan(min(self.yrange) - 2 ** 32, min(self.yrange), facecolor='0.2', alpha=0.5)
@@ -261,7 +269,10 @@ class Scope4:
         self.y4 = None
         self.num_points=num_points
         self.fig = plt.figure()
-        self.fig.canvas.set_window_title(title)
+        # set window title
+        if self.fig.canvas.manager is not None:
+            self.fig.canvas.manager.set_window_title(title)
+        # self.fig.canvas.set_window_title(title)
         self.yrange=yrange
     def savefig(self,filename):
         plt.savefig(filename)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import stretch_body.hello_utils as hello_utils
 import importlib

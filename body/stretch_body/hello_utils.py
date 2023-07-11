@@ -174,7 +174,7 @@ class LoopStats():
         self.target_loop_rate = target_loop_rate
         self.ts_loop_start = None
         self.ts_loop_end = None
-        self.last_ts_loop_end = None
+        self.last_ts_loop_start = None
         self.status = {'execution_time_s': 0,
                        'curr_rate_hz': 0,
                        'avg_rate_hz': 0,
@@ -190,6 +190,7 @@ class LoopStats():
         self.n_history = 100
         self.debug_freq = 50
         self.sleep_time_s = 0.0
+        self.ts_0=time.time()
 
     def pretty_print(self):
         print('--------- TimingStats %s -----------' % self.loop_name)
@@ -203,22 +204,17 @@ class LoopStats():
         print('Warnings: %d out of %d' % (self.status['missed_loops'], self.status['num_loops']))
 
     def mark_loop_start(self):
+        self.status['num_loops'] += 1
         self.ts_loop_start=time.time()
 
-    def mark_loop_end(self):
-        self.status['num_loops'] += 1
-        # First two cycles initialize vars / log
-        if not self.ts_loop_start:
+        if self.last_ts_loop_start is None: #Wait until have sufficient data
+            self.last_ts_loop_start=self.ts_loop_start
             return
-        if self.ts_loop_end is None:
-            self.ts_loop_end = time.time()
-            return
-        if self.last_ts_loop_end is None:
-            self.last_ts_loop_end = self.ts_loop_end
-            self.ts_loop_end = time.time()
-            self.status['execution_time_s'] = self.ts_loop_end - self.ts_loop_start
-            self.status['curr_rate_hz'] = 1.0 / (self.ts_loop_end - self.last_ts_loop_end)
-            return
+
+        self.status['curr_rate_hz'] = 1.0 / (self.ts_loop_start - self.last_ts_loop_start)
+        self.status['min_rate_hz'] = min(self.status['curr_rate_hz'], self.status['min_rate_hz'])
+        self.status['max_rate_hz'] = max(self.status['curr_rate_hz'], self.status['max_rate_hz'])
+
 
         # Calculate average and supportable loop rate **must be done before marking loop end**
         if len(self.curr_rate_history) >= self.n_history:
@@ -245,20 +241,22 @@ class LoopStats():
             self.logger.debug('Warnings: %d out of %d' % (self.status['missed_loops'], self.status['num_loops']))
             self.logger.debug('Sleep time (s): %f' % self.sleep_time_s)
 
-        # Calculate current loop rate & execution time
-        self.last_ts_loop_end = self.ts_loop_end
-        self.ts_loop_end = time.time()
-        self.status['execution_time_s'] = self.ts_loop_end - self.ts_loop_start
-        self.status['curr_rate_hz'] = 1.0 / (self.ts_loop_end - self.last_ts_loop_end)
-        self.status['min_rate_hz'] = min(self.status['curr_rate_hz'], self.status['min_rate_hz'])
-        self.status['max_rate_hz'] = max(self.status['curr_rate_hz'], self.status['max_rate_hz'])
+        self.last_ts_loop_start = self.ts_loop_start
 
         # Calculate sleep time to achieve desired loop rate
         self.sleep_time_s = (1 / self.target_loop_rate) - self.status['execution_time_s']
-        if self.sleep_time_s < 0.0:
+        if self.sleep_time_s < 0.0 and time.time()-self.ts_0>5.0: #Allow 5s for timing to stabilize on startup
             self.status['missed_loops'] += 1
             if self.status['missed_loops'] == 1:
                 self.logger.debug('Missed target loop rate of %.2f Hz for %s. Currently %.2f Hz' % (self.target_loop_rate, self.loop_name, self.status['curr_rate_hz']))
+
+    def mark_loop_end(self):
+        # First two cycles initialize vars / log
+        if self.ts_loop_start is None:
+            return
+        self.ts_loop_end = time.time()
+        self.status['execution_time_s'] = self.ts_loop_end - self.ts_loop_start
+
 
     def generate_rate_histogram(self, save=None):
         import matplotlib.pyplot as plt
@@ -275,7 +273,14 @@ class LoopStats():
         """
         return max(0.0, self.sleep_time_s)
 
-    
+    def wait_until_ready_to_run(self,sleep=.0005):
+        if self.ts_loop_start is None:
+            time.sleep(.01)
+            return True
+        while time.time()-self.ts_loop_start<(1/self.target_loop_rate):
+            time.sleep(sleep)
+
+
 class ThreadServiceExit(Exception):
     """
     Custom exception which is used to trigger the clean exit
