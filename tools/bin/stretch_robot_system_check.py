@@ -290,7 +290,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         rospack_list = rospack.list()
         for pkg, is_install_expected in ros_expectations[os.getenv('ROS_DISTRO')].items():
             if is_install_expected != (pkg in rospack_list):
-                return True, ros_name, False, f'{pkg} not set-up correctly', ''
+                return True, ros_name, False, f'{pkg} missing', ''
         p = rospack.get_path('stretch_core')
         ws_paths = [str(par.parent) for par in pathlib.Path(p).parents if str(par).endswith('src')]
         ws_path = ''
