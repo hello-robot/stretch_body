@@ -2,6 +2,21 @@
 
 The changes between releases of Stretch Body are documented here.
 
+## [0.5.0](https://github.com/hello-robot/stretch_body/pull/188) - July 11, 2023
+- Introduces the **use_asyncio**  mode that will enable using asynchronous IO call methods to perform robot push/pull commands and RPC transactions with the help of [`asyncio`](https://docs.python.org/3/library/asyncio.html) to speed up the USB device communications. This mode can be toggled back to use the regular non-async IO calls by changing the stretch params `use_asyncio`.
+- By default, the asyncio mode is enabled.
+- Adds the P3 protocol support for all the Arduino devices (stepper, pimu, wacc).
+- Also, for the asynchronous [transport layer](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/transport.py#L790) to work, the devices firmware will need to support V1 transport protocol that is supported with firmware only above [v0.5.0p3]() for all hello-* arduino devices. For older firmwares, the `async_io` would be disabled automatically
+- The  DXLStatusThread of robot class is now separated into two separate threads: [DXLHeadStatusThread](https://github.com/hello-robot/stretch_body/blob/feature/transport_v1_asyncio/body/stretch_body/robot.py#L24) and [DXLEndofArmStatusThread](https://github.com/hello-robot/stretch_body/blob/feature/transport_v1_asyncio/body/stretch_body/robot.py#L51) (Both threads run at 15Hz)
+Subsequently, all the DXL methods are divided into head and end_of_arm specific methods
+- Now the robot monitor, trace, sentry, and collision manager handles stepping is moved out of the NonDXLStatusThread. Instead, it is moved to a new separate thread called [SystemMonitorThread](https://github.com/hello-robot/stretch_body/blob/feature/transport_v1_asyncio/body/stretch_body/robot.py#L140) is used to [step these handles](https://github.com/hello-robot/stretch_body/blob/feature/transport_v1_asyncio/body/stretch_body/robot.py#L140), which also runs at 25Hz.
+- The Robot class can be [`startup()`](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/robot.py#L212) with the following optional parameters to turn off some threads to save system resources.
+- Added status_aux pull status RPCs feature for all the devices. [`motor_sync_cnt`](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/pimu.py#L319) and [`motor_sync_queues`](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/pimu.py#L317) status messages are populated with AUX pull status
+- Now the RPC transactions queues is deprecated, instead [`do_pull_transaction_vX()`](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/transport.py#L272) and [`do_push_transaction_vX()`](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/transport.py#L189) methods are introduced from [SyncTransactionHandler](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/transport.py#L75) are used.
+- Asynchournous RPC transactions are handled by [AsyncTransactionHandler](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/transport.py#L458) that create analougus async methods to the one present in [SyncTransactionHandler](https://github.com/hello-robot/stretch_body/blob/master/body/stretch_body/transport.py#L75).
+
+
+
 ## [0.4.8](https://github.com/hello-robot/stretch_body/pull/148) - Sept 14, 2022
 
 This is the initial production release that supports the Stretch RE2 (Mitski batch).
