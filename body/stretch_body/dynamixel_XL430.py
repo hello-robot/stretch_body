@@ -18,6 +18,8 @@ import dynamixel_sdk.group_sync_read as gsr
 # #########################
 # XL430-W250
 # http://emanual.robotis.com/docs/en/dxl/x/xl430-w250/#control-table
+# XM540-W270
+# https://emanual.robotis.com/docs/en/dxl/x/xm540-w270/#control-table
 
 
 # Control table address
@@ -190,23 +192,23 @@ class DynamixelXL430():
         print('-----XL430------')
         print('ID', self.get_id())
         print('Operating Mode',self.get_operating_mode())
-        print('Drive Mode', self.get_drive_mode())
-        print('Temp: ', self.get_temp())
-        print('Position', self.get_pos())
-        print('Velocity',self.get_vel())
-        print('Load ', self.get_load())
-        print('PWM', self.get_pwm())
-        print('Is Moving', self.is_moving())
-        print('Is Calibrated',self.is_calibrated())
-        print('Profile Velocity', self.get_profile_velocity())
-        print('Profile Acceleration', self.get_profile_acceleration())
+        print('Drive Mode', format(self.get_drive_mode(), '#010b'))
+        print('Temp: ', self.get_temp(), '°C')
+        print('Position', self.get_pos(), 'ticks')
+        print('Velocity',self.get_vel() * 0.229, 'rev/min')
+        print('Load ', self.get_load() * 0.1, '%')
+        print('PWM', self.get_pwm() * 0.113, '%')
+        print('Is Moving', self.is_moving() != 0)
+        print('Is Calibrated',self.is_calibrated() != 0)
+        print('Profile Velocity', self.get_profile_velocity() * 0.299, 'rev/min')
+        print('Profile Acceleration', self.get_profile_acceleration() * 214.577, 'rev/min^2')
         h=self.get_hardware_error()
-        print('Hardware Error Status', h)
-        print('Hardware Error: Input Voltage Error: ', h & 1 != 0)
-        print('Hardware Error: Overheating Error: ',h & 4 != 0)
-        print('Hardware Error: Motor Encoder Error: ', h & 8 != 0)
-        print('Hardware Error: Electrical Shock Error: ', h & 16 != 0)
-        print('Hardware Error: Overload Error: ', h & 32 != 0)
+        print('Hardware Error Status', format(h, '#010b'))
+        print('  Input Voltage Error: ', h & 1 != 0)
+        print('  Overheating Error: ',h & 4 != 0)
+        print('  Motor Encoder Error: ', h & 8 != 0)
+        print('  Electrical Shock Error: ', h & 16 != 0)
+        print('  Overload Error: ', h & 32 != 0)
         print('Comm errors', self.comm_errors)
 
     # ##########################################
