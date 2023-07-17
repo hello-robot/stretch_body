@@ -189,27 +189,31 @@ class DynamixelXL430():
             self.port_handler.closePort()
 
     def pretty_print(self):
-        print('-----XL430------')
-        print('ID', self.get_id())
-        print('Operating Mode',self.get_operating_mode())
-        print('Drive Mode', format(self.get_drive_mode(), '#010b'))
-        print('Temp: ', self.get_temp(), '°C')
-        print('Position', self.get_pos(), 'ticks')
-        print('Velocity',self.get_vel() * 0.229, 'rev/min')
-        print('Load ', self.get_load() * 0.1, '%')
-        print('PWM', self.get_pwm() * 0.113, '%')
-        print('Is Moving', self.is_moving() != 0)
-        print('Is Calibrated',self.is_calibrated() != 0)
-        print('Profile Velocity', self.get_profile_velocity() * 0.299, 'rev/min')
-        print('Profile Acceleration', self.get_profile_acceleration() * 214.577, 'rev/min^2')
-        h=self.get_hardware_error()
-        print('Hardware Error Status', format(h, '#010b'))
-        print('  Input Voltage Error: ', h & 1 != 0)
-        print('  Overheating Error: ',h & 4 != 0)
-        print('  Motor Encoder Error: ', h & 8 != 0)
-        print('  Electrical Shock Error: ', h & 16 != 0)
-        print('  Overload Error: ', h & 32 != 0)
-        print('Comm errors', self.comm_errors)
+        h = self.get_hardware_error()
+        status = {
+            'ID:': self.get_id(),
+            'Operating Mode:': self.get_operating_mode(),
+            'Drive Mode:': format(self.get_drive_mode(), '#010b'),
+            'Temperature:': f'{self.get_temp()} °C',
+            'Position:': f'{self.get_pos()} ticks',
+            'Velocity:': f'{self.get_vel() * 0.229:.3f} rev/min',
+            'Load:': f'{self.get_load() * 0.1:.3f} %',
+            'PWM:': f'{self.get_pwm() * 0.113:.3f} %',
+            'Is Moving:': str(self.is_moving() != 0),
+            'Is Calibrated:': str(self.is_calibrated() != 0),
+            'Profile Velocity:': f'{self.get_profile_velocity() * 0.299:.3f} rev/min',
+            'Profile Acceleration:': f'{self.get_profile_acceleration() * 214.577:.3f} rev/min^2',
+            'Hardware Error Status:': format(h, '#010b'),
+            '  Input Voltage Error:': str(h & 1 != 0),
+            '  Overheating Error: ': str(h & 4 != 0),
+            '  Motor Encoder Error:': str(h & 8 != 0),
+            '  Electrical Shock Error:': str(h & 16 != 0),
+            '  Overload Error:': str(h & 32 != 0),
+            '# Communication Errors:': self.comm_errors,
+        }
+        print('------------------- XL430 -------------------')
+        for elem, value in status.items():
+            print(f"{elem: <25}{value: >20}")
 
     # ##########################################
 
