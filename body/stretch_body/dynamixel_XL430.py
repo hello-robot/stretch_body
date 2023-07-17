@@ -239,10 +239,10 @@ class DynamixelXL430():
             return True
 
         self.last_comm_success = False
-        self.comm_errors = self.comm_errors + 1
-        self.logger.debug('DXL Comm Error on %s ID %d. Attempted %s. Result %d. Error %d. Code %s. Total Errors %d.' %
-            (self.usb, self.dxl_id, fx, dxl_comm_result, dxl_error, COMM_CODES[dxl_comm_result], self.comm_errors))
-        raise DynamixelCommError
+        self.comm_errors += 1
+        comm_error_msg = f'DXL Comm Error on {self.usb} ID {self.dxl_id}. Attempted {fx}. Result {COMM_CODES[dxl_comm_result]}. Error {dxl_error}. Total Errors {self.comm_errors}.'
+        self.logger.debug(comm_error_msg)
+        raise DynamixelCommError(comm_error_msg)
 
 
     def get_comm_errors(self):
