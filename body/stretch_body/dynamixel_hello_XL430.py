@@ -453,6 +453,29 @@ class DynamixelHelloXL430(Device):
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
 
+    def set_velocity(self,v_des,a_des=None):
+        nretry = 2
+        if not self.hw_valid:
+            return
+        if self.params['req_calibration'] and not self.is_calibrated:
+            self.logger.warning('Dynamixel not calibrated: %s' % self.name)
+            print('Dynamixel not calibrated:', self.name)
+            return
+        success = False
+        for i in range(nretry):
+            try:
+                self.motor.disable_torque()
+                self.motor.enable_vel()
+                self.motor.enable_torque()
+                t_des = self.world_rad_to_ticks_per_sec(v_des)
+                self.motor.set_vel(t_des)
+                success = True
+                break
+            except(termios.error, DynamixelCommError, IndexError):
+                self.logger.warning('Dynamixel communication error during move_to_vel on %s: ' % self.name)
+                self.comm_errors.add_error(rx=True, gsr=False)
+                if self.bubble_up_comm_exception:
+                    raise DynamixelCommError
 
     def move_to(self,x_des, v_des=None, a_des=None):
         nretry = 2
