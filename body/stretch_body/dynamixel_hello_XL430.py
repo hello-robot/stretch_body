@@ -462,6 +462,8 @@ class DynamixelHelloXL430(Device):
             print('Dynamixel not calibrated:', self.name)
             return
         success = False
+        if self.motor.get_operating_mode()!=1:
+            self.enable_velocity_ctrl()
         for i in range(nretry):
             try:
                 t_des = self.world_rad_to_ticks_per_sec(v_des)

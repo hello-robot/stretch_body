@@ -4,7 +4,7 @@ stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 import unittest
 from stretch_body import dynamixel_hello_XL430
 import time
-
+from math import degrees
 
 class TestDynamixelVelocity(unittest.TestCase):
     """
@@ -30,11 +30,13 @@ class TestDynamixelVelocity(unittest.TestCase):
     def velocity_control_test(self, set_vel_method):
         
         print("\n\nStarting Constant Velocity Control...")
-        print(f"Vel Limit: {self.dynamixel.motor.get_vel_limit()} ticks/s")
+        max_vel = self.dynamixel.motor.get_vel_limit()
+        print(f"Vel Limit: {max_vel} ticks/s | {degrees(self.dynamixel.ticks_to_rad(max_vel))} deg/s")
         
-        # rotate 90deg in 5s i.e. 1.57 rad == vel*total_time
-        vel = 0.314 #rad 
-        total_time = 5 #s
+        # rotate X deg in Ts with constant Vel i.e. X == Vel*total_time
+        X = 1.57 #rad (90 deg)
+        total_time = 3 #s
+        vel = X/total_time #rad/s 
 
         self.dynamixel.pull_status()
         start_pos = self.dynamixel.status['pos']
@@ -47,15 +49,17 @@ class TestDynamixelVelocity(unittest.TestCase):
             if set_vel_method=="DynamixelXL430":
                 self.dynamixel.motor.set_vel(v_Des)
             self.dynamixel.pull_status()
-            print(f"Target Vel: {vel} rad/s | Target V_Des: {v_Des} ticks/s | Monitor Vel_ticks: {self.dynamixel.status['vel_ticks']} rad/s")
-            time.sleep(0.05)
-            
+            print(f"Target Vel: {vel} rad/s | Target V_Des: {v_Des} ticks/s | Monitor Vel_ticks: {self.dynamixel.status['vel_ticks']} ticks/s")
+            time.sleep(0.01) # ~100 Hz
+    
         self.dynamixel.pull_status()
         end_pos = self.dynamixel.status['pos']
+        total_rotation = abs(start_pos-end_pos)
+        avg_vel = abs(end_pos-start_pos)/total_time
 
         print(f"End pos: {end_pos} rad")
-        print(f"\nTotal Rotation: {abs(start_pos-end_pos)} rad | Expected: {vel*total_time} rad")
-        print(f"Avg Velocity: {abs(end_pos-start_pos)/total_time} rad/s | Expected: {vel} rad/s\n")
+        print(f"\nTotal Rotation: {total_rotation} rad | Expected: {vel*total_time} rad | error: {degrees(abs(vel*total_time-abs(start_pos-end_pos)))} deg")
+        print(f"Avg Velocity: {avg_vel} rad/s | Expected: {vel} rad/s | error: {degrees(abs(vel-avg_vel))} deg/s\n")
         
         self.assertAlmostEqual(abs(start_pos-end_pos),vel*total_time, 1)
         self.assertAlmostEqual(abs(end_pos-start_pos)/total_time, vel, 1)
