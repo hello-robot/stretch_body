@@ -8,6 +8,7 @@ import dynamixel_sdk.port_handler as prh
 import dynamixel_sdk.packet_handler as pch
 import threading
 import serial
+import signal
 
 # The code can be found in the following directory:
 # /opt/ros/melodic/lib/python2.7/dist-packages/dynamixel_sdk/
@@ -18,6 +19,8 @@ import dynamixel_sdk.group_sync_read as gsr
 # #########################
 # XL430-W250
 # http://emanual.robotis.com/docs/en/dxl/x/xl430-w250/#control-table
+# XM540-W270
+# https://emanual.robotis.com/docs/en/dxl/x/xm540-w270/#control-table
 
 
 # Control table address
@@ -100,6 +103,26 @@ BAUD_MAP = {
     4000000: 6,
     4500000: 7
 }
+
+class DelayedKeyboardInterrupt:
+
+    def __enter__(self):
+        self.signal_received = False
+        try:
+            self.old_handler = signal.signal(signal.SIGINT, self.handler)
+        except ValueError:
+            pass
+
+    def handler(self, sig, frame):
+        self.signal_received = (sig, frame)
+
+    def __exit__(self, type, value, traceback):
+        try:
+            signal.signal(signal.SIGINT, self.old_handler)
+            if self.signal_received:
+                self.old_handler(*self.signal_received)
+        except (ValueError,AttributeError):
+            pass
 
 class DynamixelCommError(Exception):
     pass
@@ -187,27 +210,31 @@ class DynamixelXL430():
             self.port_handler.closePort()
 
     def pretty_print(self):
-        print('-----XL430------')
-        print('ID', self.get_id())
-        print('Operating Mode',self.get_operating_mode())
-        print('Drive Mode', self.get_drive_mode())
-        print('Temp: ', self.get_temp())
-        print('Position', self.get_pos())
-        print('Velocity',self.get_vel())
-        print('Load ', self.get_load())
-        print('PWM', self.get_pwm())
-        print('Is Moving', self.is_moving())
-        print('Is Calibrated',self.is_calibrated())
-        print('Profile Velocity', self.get_profile_velocity())
-        print('Profile Acceleration', self.get_profile_acceleration())
-        h=self.get_hardware_error()
-        print('Hardware Error Status', h)
-        print('Hardware Error: Input Voltage Error: ', h & 1 != 0)
-        print('Hardware Error: Overheating Error: ',h & 4 != 0)
-        print('Hardware Error: Motor Encoder Error: ', h & 8 != 0)
-        print('Hardware Error: Electrical Shock Error: ', h & 16 != 0)
-        print('Hardware Error: Overload Error: ', h & 32 != 0)
-        print('Comm errors', self.comm_errors)
+        h = self.get_hardware_error()
+        status = {
+            'ID:': self.get_id(),
+            'Operating Mode:': self.get_operating_mode(),
+            'Drive Mode:': format(self.get_drive_mode(), '#010b'),
+            'Temperature:': f'{self.get_temp()} °C',
+            'Position:': f'{self.get_pos()} ticks',
+            'Velocity:': f'{self.get_vel() * 0.229:.3f} rev/min',
+            'Load:': f'{self.get_load() * 0.1:.3f} %',
+            'PWM:': f'{self.get_pwm() * 0.113:.3f} %',
+            'Is Moving:': str(self.is_moving() != 0),
+            'Is Calibrated:': str(self.is_calibrated() != 0),
+            'Profile Velocity:': f'{self.get_profile_velocity() * 0.299:.3f} rev/min',
+            'Profile Acceleration:': f'{self.get_profile_acceleration() * 214.577:.3f} rev/min^2',
+            'Hardware Error Status:': format(h, '#010b'),
+            '  Input Voltage Error:': str(h & 1 != 0),
+            '  Overheating Error: ': str(h & 4 != 0),
+            '  Motor Encoder Error:': str(h & 8 != 0),
+            '  Electrical Shock Error:': str(h & 16 != 0),
+            '  Overload Error:': str(h & 32 != 0),
+            '# Communication Errors:': self.comm_errors,
+        }
+        print('------------------- XL430 -------------------')
+        for elem, value in status.items():
+            print(f"{elem: <25}{value: >20}")
 
     # ##########################################
 
@@ -233,10 +260,10 @@ class DynamixelXL430():
             return True
 
         self.last_comm_success = False
-        self.comm_errors = self.comm_errors + 1
-        self.logger.debug('DXL Comm Error on %s ID %d. Attempted %s. Result %d. Error %d. Code %s. Total Errors %d.' %
-            (self.usb, self.dxl_id, fx, dxl_comm_result, dxl_error, COMM_CODES[dxl_comm_result], self.comm_errors))
-        raise DynamixelCommError
+        self.comm_errors += 1
+        comm_error_msg = f'DXL Comm Error on {self.usb} ID {self.dxl_id}. Attempted {fx}. Result {COMM_CODES[dxl_comm_result]}. Error {dxl_error}. Total Errors {self.comm_errors}.'
+        self.logger.debug(comm_error_msg)
+        raise DynamixelCommError(comm_error_msg)
 
 
     def get_comm_errors(self):
@@ -244,13 +271,15 @@ class DynamixelXL430():
 
     def read_int32_t(self,addr):
         with self.pt_lock:
-            x, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, addr)
+            with DelayedKeyboardInterrupt():
+                x, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, addr)
         xn = struct.unpack('i', arr.array('B',[DXL_LOBYTE(DXL_LOWORD(x)), DXL_HIBYTE(DXL_LOWORD(x)), DXL_LOBYTE(DXL_HIWORD(x)),DXL_HIBYTE(DXL_HIWORD(x))]))[0]
         return xn, dxl_comm_result, dxl_error
 
     def read_int16_t(self,addr):
         with self.pt_lock:
-            x, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, addr)
+            with DelayedKeyboardInterrupt():
+                x, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, addr)
         xn = struct.unpack('h', arr.array('B',[DXL_LOBYTE(x), DXL_HIBYTE(x)]))[0]
         return xn, dxl_comm_result, dxl_error
 
@@ -259,7 +288,8 @@ class DynamixelXL430():
             return False
         try:
             with self.pt_lock:
-                dxl_model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, self.dxl_id)
+                with DelayedKeyboardInterrupt():
+                    dxl_model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, self.dxl_id)
             if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error):
                 self.logger.debug("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d. Baud %d" % (self.dxl_id, dxl_model_number, self.baud))
                 if verbose:
@@ -278,7 +308,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_ID)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_ID)
         self.handle_comm_result('XL430_ADDR_ID', dxl_comm_result, dxl_error)
         return p
 
@@ -286,7 +317,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_ID, int(id))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_ID, int(id))
         self.handle_comm_result('XL430_ADDR_ID', dxl_comm_result, dxl_error)
 
     def get_baud_rate(self):
@@ -300,7 +332,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return -1
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE)
         if not self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error):
             return -1
         return list(BAUD_MAP.keys())[list(BAUD_MAP.values()).index(p)]
@@ -326,7 +359,8 @@ class DynamixelXL430():
 
         self.disable_torque()
         with self.pt_lock:
-            dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE, BAUD_MAP[rate])
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BAUD_RATE, BAUD_MAP[rate])
         return self.handle_comm_result('XL430_ADDR_BAUD_RATE', dxl_comm_result, dxl_error)
 
     #Hello Robot Specific
@@ -334,7 +368,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return False
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HELLO_CALIBRATED)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HELLO_CALIBRATED)
         self.handle_comm_result('XL430_ADDR_HELLO_CALIBRATED', dxl_comm_result, dxl_error)
         return p
 
@@ -343,14 +378,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HELLO_CALIBRATED, int(x!=0))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HELLO_CALIBRATED, int(x!=0))
         self.handle_comm_result('XL430_ADDR_HELLO_CALIBRATED', dxl_comm_result, dxl_error)
 
     def do_reboot(self):
         if not self.hw_valid:
             return False
         with self.pt_lock:
-            dxl_comm_result, dxl_error = self.packet_handler.reboot(self.port_handler, self.dxl_id)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error = self.packet_handler.reboot(self.port_handler, self.dxl_id)
         if self.handle_comm_result('XL430_REBOOT', dxl_comm_result, dxl_error):
             print("[Dynamixel ID:%03d] Reboot Succeeded." % (self.dxl_id))
             return True
@@ -362,7 +399,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_SHUTDOWN)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_SHUTDOWN)
         self.handle_comm_result('XL430_ADDR_SHUTDOWN', dxl_comm_result, dxl_error)
         return p
 
@@ -370,14 +408,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_SHUTDOWN, id)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_SHUTDOWN, id)
         self.handle_comm_result('XL430_ADDR_SHUTDOWN', dxl_comm_result, dxl_error)
 
     def get_hardware_error(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,
                                                                               XL430_ADDR_HARDWARE_ERROR_STATUS)
         self.handle_comm_result('XL430_ADDR_HARDWARE_ERROR_STATUS', dxl_comm_result, dxl_error)
         return p
@@ -387,7 +427,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =  self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TORQUE_ENABLE, 1)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =  self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TORQUE_ENABLE, 1)
         self.handle_comm_result('XL430_ADDR_TORQUE_ENABLE', dxl_comm_result, dxl_error)
 
 
@@ -395,21 +436,24 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TORQUE_ENABLE, 0)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TORQUE_ENABLE, 0)
         self.handle_comm_result('XL430_ADDR_TORQUE_ENABLE', dxl_comm_result, dxl_error)
 
     def set_return_delay_time(self,x):
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_RETURN_DELAY_TIME, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error = self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_RETURN_DELAY_TIME, int(x))
         self.handle_comm_result('XL430_ADDR_RETURN_DELAY_TIME', dxl_comm_result, dxl_error)
 
     def get_return_delay_time(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,
                                                                               XL430_ADDR_RETURN_DELAY_TIME)
         self.handle_comm_result('XL430_ADDR_HARDWARE_ERROR_STATUS', dxl_comm_result, dxl_error)
         return p
@@ -418,19 +462,22 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_GOAL_PWM, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_GOAL_PWM, int(x))
         self.handle_comm_result('XL430_ADDR_GOAL_PWM', dxl_comm_result, dxl_error)
 
     def set_current_limit(self,i):
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_CURRENT_LIMIT, int(i))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_CURRENT_LIMIT, int(i))
         self.handle_comm_result('XM430_ADDR_CURRENT_LIMIT', dxl_comm_result, dxl_error)
 
     def get_current_limit(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id,
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id,
                                                                               XM430_ADDR_CURRENT_LIMIT)
         self.handle_comm_result('XM430_ADDR_CURRENT_LIMIT', dxl_comm_result, dxl_error)
         return p
@@ -439,39 +486,45 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 4)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 4)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
     def enable_pwm(self):
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 16)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 16)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
     def enable_pos(self):
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 3)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 3)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
     def enable_vel(self):
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 1)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 1)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
     # XM Series
     def enable_pos_current(self):
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 5)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 5)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
     #XM Series
     def enable_current(self):
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 0)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 0)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
 
@@ -479,7 +532,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_OPERATING_MODE)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_OPERATING_MODE)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
         return p
 
@@ -487,7 +541,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_DRIVE_MODE)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_DRIVE_MODE)
         self.handle_comm_result('XL430_ADDR_DRIVE_MODE', dxl_comm_result, dxl_error)
         return p
 
@@ -501,20 +556,23 @@ class DynamixelXL430():
         if reverse:
             x=x|0x4
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_DRIVE_MODE, x)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_DRIVE_MODE, x)
         self.handle_comm_result('XL430_ADDR_DRIVE_MODE', dxl_comm_result, dxl_error)
 
     #XM Series
     def set_goal_current(self,i):
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_GOAL_CURRENT, int(i))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_GOAL_CURRENT, int(i))
         self.handle_comm_result('XM430_ADDR_GOAL_CURRENT', dxl_comm_result, dxl_error)
 
     def get_goal_current(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id,
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id,
                                                                               XM430_ADDR_GOAL_CURRENT)
         self.handle_comm_result('XM430_ADDR_GOAL_CURRENT', dxl_comm_result, dxl_error)
         return p
@@ -523,12 +581,14 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_GOAL_POSITION, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_GOAL_POSITION, int(x))
         self.handle_comm_result('XL430_ADDR_GOAL_POSITION', dxl_comm_result, dxl_error)
 
     def set_vel(self, x):
         with self.pt_lock:
-            dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id,
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id,
                                                                             XL430_ADDR_GOAL_VEL, int(x))
         self.handle_comm_result('XL430_ADDR_GOAL_VEL', dxl_comm_result, dxl_error)
 
@@ -548,7 +608,8 @@ class DynamixelXL430():
             value in range [1, 127] calculates timeout as value * 20 milliseconds (default 1s)
         """
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BUS_WATCHDOG, timeout_20msec)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BUS_WATCHDOG, timeout_20msec)
         self.handle_comm_result('XL430_ADDR_BUS_WATCHDOG', dxl_comm_result, dxl_error)
 
     def disable_watchdog(self):
@@ -558,7 +619,8 @@ class DynamixelXL430():
         until watchdog disabled with this function.
         """
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BUS_WATCHDOG, 0)
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BUS_WATCHDOG, 0)
         self.handle_comm_result('XL430_ADDR_BUS_WATCHDOG', dxl_comm_result, dxl_error)
 
     def get_watchdog_error(self):
@@ -570,7 +632,8 @@ class DynamixelXL430():
             True if watchdog detected no communication for longer than watchdog timeout
         """
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error =   self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BUS_WATCHDOG)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error =   self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BUS_WATCHDOG)
         self.handle_comm_result('XL430_ADDR_BUS_WATCHDOG', dxl_comm_result, dxl_error)
         return p == 255
 
@@ -578,7 +641,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            xn, dxl_comm_result, dxl_error= self.read_int32_t(XL430_ADDR_PRESENT_POSITION)
+            with DelayedKeyboardInterrupt():
+                xn, dxl_comm_result, dxl_error= self.read_int32_t(XL430_ADDR_PRESENT_POSITION)
         self.handle_comm_result('XL430_ADDR_PRESENT_POSITION', dxl_comm_result, dxl_error)
         return xn
 
@@ -586,7 +650,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING_STATUS)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING_STATUS)
         self.handle_comm_result('XL430_ADDR_MOVING_STATUS', dxl_comm_result, dxl_error)
         return p
 
@@ -594,7 +659,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            xn, dxl_comm_result, dxl_error=  self.read_int16_t(XL430_ADDR_PRESENT_LOAD)
+            with DelayedKeyboardInterrupt():
+                xn, dxl_comm_result, dxl_error=  self.read_int16_t(XL430_ADDR_PRESENT_LOAD)
         self.handle_comm_result('XL430_ADDR_PRESENT_LOAD', dxl_comm_result, dxl_error)
         return xn
 
@@ -602,7 +668,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            xn, dxl_comm_result, dxl_error=  self.read_int16_t(XL430_ADDR_PRESENT_PWM)
+            with DelayedKeyboardInterrupt():
+                xn, dxl_comm_result, dxl_error=  self.read_int16_t(XL430_ADDR_PRESENT_PWM)
         self.handle_comm_result('XL430_ADDR_PRESENT_PWM', dxl_comm_result, dxl_error)
         return xn
 
@@ -610,14 +677,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_VELOCITY, int(v))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_VELOCITY, int(v))
         self.handle_comm_result('XL430_ADDR_PROFILE_VELOCITY', dxl_comm_result, dxl_error)
 
     def set_profile_acceleration(self, a):
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_PROFILE_ACCELERATION, int(a))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_PROFILE_ACCELERATION, int(a))
         self.handle_comm_result('XL430_ADDR_PROFILE_ACCELERATION', dxl_comm_result, dxl_error)
 
 
@@ -625,7 +694,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_VELOCITY)
+            with DelayedKeyboardInterrupt():
+                v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_VELOCITY)
         self.handle_comm_result('XL430_ADDR_PROFILE_VELOCITY', dxl_comm_result, dxl_error)
         return v
 
@@ -633,7 +703,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            a, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_ACCELERATION)
+            with DelayedKeyboardInterrupt():
+                a, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_ACCELERATION)
         self.handle_comm_result('XL430_ADDR_PROFILE_ACCELERATION', dxl_comm_result, dxl_error)
         return a
 
@@ -641,7 +712,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PRESENT_VELOCITY)
+            with DelayedKeyboardInterrupt():
+                v, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PRESENT_VELOCITY)
         self.handle_comm_result('XL430_ADDR_PRESENT_VELOCITY', dxl_comm_result, dxl_error)
         if v > 2 ** 24:
             v = v - 2 ** 32
@@ -651,7 +723,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_P_GAIN)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_P_GAIN)
         self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
         return p
 
@@ -659,14 +732,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_P_GAIN, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_P_GAIN, int(x))
         self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
 
     def get_D_gain(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_D_GAIN)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_D_GAIN)
         self.handle_comm_result('XL430_ADDR_POS_D_GAIN', dxl_comm_result, dxl_error)
         return p
 
@@ -674,14 +749,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_D_GAIN, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_D_GAIN, int(x))
         self.handle_comm_result('XL430_ADDR_POS_D_GAIN', dxl_comm_result, dxl_error)
 
     def get_I_gain(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_I_GAIN)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_I_GAIN)
         self.handle_comm_result('XL430_ADDR_POS_I_GAIN', dxl_comm_result, dxl_error)
         return p
 
@@ -689,14 +766,50 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_I_GAIN, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_I_GAIN, int(x))
         self.handle_comm_result('XL430_ADDR_POS_I_GAIN', dxl_comm_result, dxl_error)
 
+    def get_vel_I_gain(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_I_GAIN)
+        self.handle_comm_result('XL430_ADDR_VELOCITY_I_GAIN', dxl_comm_result, dxl_error)
+        return p
+
+    def set_vel_I_gain(self,x):
+        if not self.hw_valid:
+            return
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_I_GAIN, int(x))
+        self.handle_comm_result('XL430_ADDR_VELOCITY_I_GAIN', dxl_comm_result, dxl_error)
+
+    def get_vel_P_gain(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_P_GAIN)
+        self.handle_comm_result('XL430_ADDR_VELOCITY_P_GAIN', dxl_comm_result, dxl_error)
+        return p
+
+    def set_vel_P_gain(self,x):
+        if not self.hw_valid:
+            return
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_P_GAIN, int(x))
+        self.handle_comm_result('XL430_ADDR_VELOCITY_P_GAIN', dxl_comm_result, dxl_error)
+                
     def get_temperature_limit(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TEMPERATURE_LIMIT)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TEMPERATURE_LIMIT)
         self.handle_comm_result('XL430_ADDR_TEMPERATURE_LIMIT', dxl_comm_result, dxl_error)
         return p
 
@@ -704,14 +817,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TEMPERATURE_LIMIT, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_TEMPERATURE_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_TEMPERATURE_LIMIT', dxl_comm_result, dxl_error)
 
     def get_max_voltage_limit(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_VOLTAGE_LIMIT)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_VOLTAGE_LIMIT)
         self.handle_comm_result('XL430_ADDR_MAX_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
         return p
 
@@ -719,14 +834,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_VOLTAGE_LIMIT, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_VOLTAGE_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_MAX_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
 
     def get_min_voltage_limit(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_VOLTAGE_LIMIT)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_VOLTAGE_LIMIT)
         self.handle_comm_result('XL430_ADDR_MIN_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
         return p
 
@@ -734,14 +851,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_VOLTAGE_LIMIT, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_VOLTAGE_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_MIN_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
 
     def get_vel_limit(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_LIMIT)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_LIMIT)
         self.handle_comm_result('XL430_ADDR_VELOCITY_LIMIT', dxl_comm_result, dxl_error)
         return p
 
@@ -749,14 +868,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_LIMIT, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_VELOCITY_LIMIT', dxl_comm_result, dxl_error)
 
     def get_max_pos_limit(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_POS_LIMIT)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_POS_LIMIT)
         self.handle_comm_result('XL430_ADDR_MAX_POS_LIMIT', dxl_comm_result, dxl_error)
         return p
 
@@ -764,21 +885,24 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_POS_LIMIT, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MAX_POS_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_MAX_POS_LIMIT', dxl_comm_result, dxl_error)
 
     def set_min_pos_limit(self,x):
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_POS_LIMIT, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_POS_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_MIN_POS_LIMIT', dxl_comm_result, dxl_error)
 
     def get_min_pos_limit(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_POS_LIMIT)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MIN_POS_LIMIT)
         self.handle_comm_result('XL430_ADDR_MIN_POS_LIMIT', dxl_comm_result, dxl_error)
         return p
 
@@ -786,7 +910,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PRESENT_TEMPERATURE)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PRESENT_TEMPERATURE)
         self.handle_comm_result('XL430_ADDR_PRESENT_TEMPERATURE', dxl_comm_result, dxl_error)
         return p
 
@@ -794,14 +919,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING_THRESHOLD, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING_THRESHOLD, int(x))
         self.handle_comm_result('XL430_ADDR_MOVING_THRESHOLD', dxl_comm_result, dxl_error)
 
     def get_moving_threshold(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id,
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id,
                                                                               XL430_ADDR_MOVING_THRESHOLD)
         self.handle_comm_result('XL430_ADDR_MOVING_THRESHOLD', dxl_comm_result, dxl_error)
         return p
@@ -810,14 +937,16 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PWM_LIMIT, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PWM_LIMIT, int(x))
         self.handle_comm_result('XL430_ADDR_PWM_LIMIT', dxl_comm_result, dxl_error)
 
     def get_pwm_limit(self):
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PWM_LIMIT)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PWM_LIMIT)
         self.handle_comm_result('XL430_ADDR_PWM_LIMIT', dxl_comm_result, dxl_error)
         return p
 
@@ -825,7 +954,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING)
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_MOVING)
         self.handle_comm_result('XL430_ADDR_MOVING', dxl_comm_result, dxl_error)
         return p
 
@@ -852,7 +982,8 @@ class DynamixelXL430():
         if not self.hw_valid:
             return 0
         with self.pt_lock:
-            xn, dxl_comm_result, dxl_error = self.read_int32_t(XL430_ADDR_HOMING_OFFSET)
+            with DelayedKeyboardInterrupt():
+                xn, dxl_comm_result, dxl_error = self.read_int32_t(XL430_ADDR_HOMING_OFFSET)
         self.handle_comm_result('XL430_ADDR_HOMING_OFFSET', dxl_comm_result, dxl_error)
         return xn
 
@@ -860,5 +991,6 @@ class DynamixelXL430():
         if not self.hw_valid:
             return
         with self.pt_lock:
-            dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HOMING_OFFSET, int(x))
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_HOMING_OFFSET, int(x))
         self.handle_comm_result('XL430_ADDR_HOMING_OFFSET', dxl_comm_result, dxl_error)
