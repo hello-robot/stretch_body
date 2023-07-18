@@ -1,4 +1,6 @@
+# Logging level must be set before importing any stretch_body class
 import stretch_body.robot_params
+stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 import unittest
 from stretch_body import dynamixel_hello_XL430
 import time
@@ -45,7 +47,7 @@ class TestDynamixelVelocity(unittest.TestCase):
             if set_vel_method=="DynamixelXL430":
                 self.dynamixel.motor.set_vel(v_Des)
             self.dynamixel.pull_status()
-            # print(f"Target Vel: {vel} rad/s | Target V_Des: {v_Des} ticks/s | Monitor Vel_ticks: {self.dynamixel.status['vel_ticks']} rad/s")
+            print(f"Target Vel: {vel} rad/s | Target V_Des: {v_Des} ticks/s | Monitor Vel_ticks: {self.dynamixel.status['vel_ticks']} rad/s")
             time.sleep(0.05)
             
         self.dynamixel.pull_status()
@@ -63,12 +65,14 @@ class TestDynamixelVelocity(unittest.TestCase):
         """
         Test the Higher level DynamixelHelloXL430()->set_velocity()
         """
+        print("Testing the Higher-Level DynamixelHelloXL430.set_velocity() method.")
         self.velocity_control_test(set_vel_method="DynamixelHelloXL430")
     
     def test_DynamixelXL430_set_vel(self):
         """
         Test the Lower level DynamixelXL430()->set_vel()
         """
+        print("Testing the Lower-Level DynamixelXL430.set_vel() method.")
         self.dynamixel.motor.disable_torque()
         self.dynamixel.motor.enable_vel()
         self.dynamixel.motor.enable_torque()
