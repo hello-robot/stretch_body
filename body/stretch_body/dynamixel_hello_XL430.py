@@ -464,9 +464,6 @@ class DynamixelHelloXL430(Device):
         success = False
         for i in range(nretry):
             try:
-                self.motor.disable_torque()
-                self.motor.enable_vel()
-                self.motor.enable_torque()
                 t_des = self.world_rad_to_ticks_per_sec(v_des)
                 self.motor.set_vel(t_des)
                 success = True
@@ -476,6 +473,11 @@ class DynamixelHelloXL430(Device):
                 self.comm_errors.add_error(rx=True, gsr=False)
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
+    
+    def enable_velocity_ctrl(self):
+            self.motor.disable_torque()
+            self.motor.enable_vel()
+            self.motor.enable_torque()
 
     def move_to(self,x_des, v_des=None, a_des=None):
         nretry = 2
