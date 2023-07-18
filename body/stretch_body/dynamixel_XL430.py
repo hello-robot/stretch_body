@@ -108,15 +108,21 @@ class DelayedKeyboardInterrupt:
 
     def __enter__(self):
         self.signal_received = False
-        self.old_handler = signal.signal(signal.SIGINT, self.handler)
+        try:
+            self.old_handler = signal.signal(signal.SIGINT, self.handler)
+        except ValueError:
+            pass
 
     def handler(self, sig, frame):
         self.signal_received = (sig, frame)
 
     def __exit__(self, type, value, traceback):
-        signal.signal(signal.SIGINT, self.old_handler)
-        if self.signal_received:
-            self.old_handler(*self.signal_received)
+        try:
+            signal.signal(signal.SIGINT, self.old_handler)
+            if self.signal_received:
+                self.old_handler(*self.signal_received)
+        except (ValueError,AttributeError):
+            pass
 
 class DynamixelCommError(Exception):
     pass
