@@ -28,10 +28,9 @@ class TestDynamixelVelocity(unittest.TestCase):
         self.dynamixel.stop()
     
     def velocity_control_test(self, set_vel_method):
-        
-        print("\n\nStarting Constant Velocity Control...")
         max_vel = self.dynamixel.motor.get_vel_limit()
         print(f"Vel Limit: {max_vel} ticks/s | {degrees(self.dynamixel.ticks_to_rad(max_vel))} deg/s")
+        print(f"Vel gains P: {self.dynamixel.motor.get_vel_P_gain()} | I: {self.dynamixel.motor.get_vel_I_gain()}")
         
         # rotate X deg in Ts with constant Vel i.e. X == Vel*total_time
         X = 1.57 #rad (90 deg)
@@ -40,6 +39,7 @@ class TestDynamixelVelocity(unittest.TestCase):
 
         self.dynamixel.pull_status()
         start_pos = self.dynamixel.status['pos']
+        print("\n\nStarting Constant Velocity Control...")
         print(f"Start pos: {start_pos} rad")
         start = time.time()
         while time.time()-start < total_time:

@@ -764,6 +764,40 @@ class DynamixelXL430():
                 dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_POS_I_GAIN, int(x))
         self.handle_comm_result('XL430_ADDR_POS_I_GAIN', dxl_comm_result, dxl_error)
 
+    def get_vel_I_gain(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_I_GAIN)
+        self.handle_comm_result('XL430_ADDR_VELOCITY_I_GAIN', dxl_comm_result, dxl_error)
+        return p
+
+    def set_vel_I_gain(self,x):
+        if not self.hw_valid:
+            return
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_I_GAIN, int(x))
+        self.handle_comm_result('XL430_ADDR_VELOCITY_I_GAIN', dxl_comm_result, dxl_error)
+
+    def get_vel_P_gain(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_P_GAIN)
+        self.handle_comm_result('XL430_ADDR_VELOCITY_P_GAIN', dxl_comm_result, dxl_error)
+        return p
+
+    def set_vel_P_gain(self,x):
+        if not self.hw_valid:
+            return
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_VELOCITY_P_GAIN, int(x))
+        self.handle_comm_result('XL430_ADDR_VELOCITY_P_GAIN', dxl_comm_result, dxl_error)
+                
     def get_temperature_limit(self):
         if not self.hw_valid:
             return 0
