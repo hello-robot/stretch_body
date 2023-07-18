@@ -84,7 +84,7 @@ class SyncTransactionHandler():
         self.packet_marker = 0
         self.lock = lock
         self.dbg_buf = ''
-        self.dbg_on = 1
+        self.dbg_on = 0
 
     def get_empty_frame(self):  # Just a fast convience function to create a large array of 'B'
         return self.empty_frame[:]
