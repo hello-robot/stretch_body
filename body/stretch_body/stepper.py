@@ -417,6 +417,7 @@ class StepperBase(Device):
                 self._command['i_contact_neg'] = self.params['gains']['i_contact_neg']
             #print(time.time(), i_des, self._command['i_feedforward'],mode == self.MODE_CURRENT)
             #print(time.time(),self._command['x_des'],self._command['incr_trigger'],self._command['v_des'],self._command['a_des'])
+            print('SETCMD',self.name,self._command['a_des'],self._command['v_des'],self._command['x_des'])
             self._dirty_command=True
 
 
