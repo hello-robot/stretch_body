@@ -44,6 +44,11 @@ class StepperBase(Device):
     RPC_READ_TRACE =27
     RPC_REPLY_READ_TRACE =28
 
+    RPC_STEP_MG2 = 29
+    RPC_REPLY_STEP_MG2 = 30
+    RPC_READ_MG2_STATUS = 31
+    RPC_REPLY_READ_MG2_STATUS = 32
+
     MODE_SAFETY = 0
     MODE_FREEWHEEL = 1
     MODE_HOLD = 2
@@ -1084,6 +1089,100 @@ class Stepper_Protocol_P1(StepperBase):
 
 # ######################## STEPPER PROTOCOL P2 #################################
 class Stepper_Protocol_P2(StepperBase):
+
+    def set_mg2_cmd(self,x_des,v_des,a_des):
+        with self.lock:
+            self.transport.payload_out[0] = self.RPC_STEP_MG2
+            sidx=1
+            pack_float_t(self.transport.payload_out, sidx, x_des)
+            sidx += 4
+            pack_float_t(self.transport.payload_out, sidx, v_des)
+            sidx += 4
+            pack_float_t(self.transport.payload_out, sidx, a_des)
+            sidx += 4
+            self.transport.queue_rpc2(sidx, self.rpc_set_mg2_cmd_reply)
+            self.transport.step2()
+    def rpc_set_mg2_cmd_reply(self,reply):
+        if reply[0] != self.RPC_REPLY_STEP_MG2:
+            print('FAIL')
+        else:
+            print('rpc_set_mg2_cmd_reply')
+
+    def step_mg2_status(self):
+        with self.lock:
+            self.transport.payload_out[0] = self.RPC_READ_MG2_STATUS
+            self.transport.queue_rpc(1, self.rpc_read_mg2_status_reply)
+            self.transport.step()
+
+    def rpc_read_mg2_status_reply(self,reply):
+        self.mg2_reply = {}
+        if reply[0] != self.RPC_REPLY_READ_MG2_STATUS:
+            print('FAIL')
+        else:
+            sidx = 1
+
+            self.mg2_reply['t'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['dt'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['maxVel'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['maxAcc'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['pos'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['vel'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['acc'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['oldPos'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['oldPosRef'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['oldVel'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['dBrk'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['dAcc'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['dVel'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['dDec'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['dTot'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['tBrk'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['tAcc'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['tVel'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['tDec'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['velSt'] = unpack_int64_t(reply[sidx:])
+            sidx += 8
+
+            self.mg2_reply['xdes'] = unpack_float_t(reply[sidx:])
+            sidx += 4
 
     def read_firmware_trace(self):
         self.trace_buf = []
