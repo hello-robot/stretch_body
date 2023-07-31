@@ -192,7 +192,7 @@ class PimuBase(Device):
                        'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'trace_on':0,
-                       'motor_sync_rate': 0, 'motor_sync_cnt': 0, 'motor_sync_queues': 0,
+                       'motor_sync_rate': 0, 'motor_sync_cnt': 0, 'motor_sync_queues': 0, 'motor_sync_drop': 0,
                        'transport': self.transport.status}
 
         self.status_zero=self.status.copy()
