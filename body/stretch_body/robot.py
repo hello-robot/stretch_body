@@ -27,7 +27,7 @@ class DXLHeadStatusThread(threading.Thread):
     at 15Hz
     """
     def __init__(self, robot, target_rate_hz=15.0):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name = self.__class__.__name__)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
         self.stats = hello_utils.LoopStats(loop_name='DXLHeadStatusThread',target_loop_rate=self.robot_update_rate_hz)
@@ -54,7 +54,7 @@ class DXLEndOfArmStatusThread(threading.Thread):
     at 15Hz
     """
     def __init__(self, robot, target_rate_hz=15.0):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name = self.__class__.__name__)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
         self.stats = hello_utils.LoopStats(loop_name='DXLEndOfArmStatusThread',target_loop_rate=self.robot_update_rate_hz)
@@ -80,7 +80,7 @@ class NonDXLStatusThread(threading.Thread):
     It also steps the Sentry, Monitor, and Collision functions
     """
     def __init__(self, robot, target_rate_hz=25.0):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name = self.__class__.__name__)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
         self.shutdown_flag = threading.Event()
@@ -119,7 +119,7 @@ class SystemMonitorThread(threading.Thread):
     It also steps the Sentry, Monitor, and Collision functions
     """
     def __init__(self, robot, target_rate_hz=25.0):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name = self.__class__.__name__)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
         self.monitor_downrate_int = int(robot.params['rates']['SystemMonitorThread_monitor_downrate_int'])  # Step the monitor at every Nth iteration
@@ -523,7 +523,7 @@ class Robot(Device):
         def start_loop(loop):
             asyncio.set_event_loop(loop)
             loop.run_forever()
-        self.event_loop_thread = threading.Thread(target=start_loop, args=(self.async_event_loop,))
+        self.event_loop_thread = threading.Thread(target=start_loop, args=(self.async_event_loop,), name='AsyncEvenLoopThread')
         self.event_loop_thread.start()
     
     def stop_event_loop(self):
