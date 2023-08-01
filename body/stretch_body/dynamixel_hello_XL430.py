@@ -97,6 +97,7 @@ class DynamixelHelloXL430(Device):
             self.a_des = None #Track the motion profile settings on servo
             self.warn_error=False
             self.bubble_up_comm_exception=False
+            self.dirty_vel_ctrl = True
         except KeyError:
             self.motor=None
 
@@ -415,6 +416,26 @@ class DynamixelHelloXL430(Device):
                 else:
                     self.enable_torque()
             self.was_runstopped = is_runstopped
+        
+        if self.is_near_limit(0.1):
+            self.dirty_vel_ctrl = False
+        else:
+            self.dirty_vel_ctrl = True
+        
+    def is_near_limit(self,threshold=0.1):
+        current_position = self.status['pos']
+        min_position = self.get_soft_motion_limits()[0]
+        max_position =self.get_soft_motion_limits()[1]
+
+        lower_limit = min_position + (max_position - min_position) * threshold
+        upper_limit = max_position - (max_position - min_position) * threshold
+
+        if current_position <= lower_limit:
+            return True
+        elif current_position >= upper_limit:
+            return True
+        else:
+            return False
 
     # #####################################
 
@@ -467,7 +488,11 @@ class DynamixelHelloXL430(Device):
         for i in range(nretry):
             try:
                 t_des = self.world_rad_to_ticks_per_sec(v_des)
-                self.motor.set_vel(t_des)
+                if self.dirty_vel_ctrl:
+                    self.motor.set_vel(t_des)
+                else:
+                    self.motor.set_vel(0)
+                    
                 success = True
                 break
             except(termios.error, DynamixelCommError, IndexError):
