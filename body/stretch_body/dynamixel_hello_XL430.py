@@ -474,7 +474,10 @@ class DynamixelHelloXL430(Device):
                 self.comm_errors.add_error(rx=True, gsr=False)
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
-
+    
+    def set_vel_dead_zone(self,x):
+        self.vel_dead_zone = x
+    
     def set_velocity(self,v_des,a_des=None):
         nretry = 2
         if not self.hw_valid:
