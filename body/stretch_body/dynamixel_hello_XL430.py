@@ -97,7 +97,9 @@ class DynamixelHelloXL430(Device):
             self.a_des = None #Track the motion profile settings on servo
             self.warn_error=False
             self.bubble_up_comm_exception=False
-            self.dirty_vel_ctrl = True
+            self.in_vel_dead_zone = False
+            self._prev_set_vel = None
+            self.vel_dead_zone = 0.6 # rad
         except KeyError:
             self.motor=None
 
@@ -417,25 +419,24 @@ class DynamixelHelloXL430(Device):
                     self.enable_torque()
             self.was_runstopped = is_runstopped
         
-        if self.is_near_limit(0.1):
-            self.dirty_vel_ctrl = False
+        near_limit, delta1, delta2 = self.is_near_limit(0.2)
+        if delta1 < self.vel_dead_zone or delta2 < self.vel_dead_zone:
+            self.in_vel_dead_zone = True
+            self.logger.debug('In Vel-Dead Zone.')
         else:
-            self.dirty_vel_ctrl = True
+            self.in_vel_dead_zone = False
         
-    def is_near_limit(self,threshold=0.1):
+    def is_near_limit(self,threshold=0.2):
         current_position = self.status['pos']
         min_position = self.get_soft_motion_limits()[0]
         max_position =self.get_soft_motion_limits()[1]
-
-        lower_limit = min_position + (max_position - min_position) * threshold
-        upper_limit = max_position - (max_position - min_position) * threshold
-
-        if current_position <= lower_limit:
-            return True
-        elif current_position >= upper_limit:
-            return True
+        delta1 = abs(current_position - min_position)
+        delta2 =  abs(current_position - max_position)
+        
+        if delta2<threshold or delta1<threshold:
+            return True, delta1, delta2
         else:
-            return False
+            return False, delta1, delta2
 
     # #####################################
 
@@ -488,10 +489,14 @@ class DynamixelHelloXL430(Device):
         for i in range(nretry):
             try:
                 t_des = self.world_rad_to_ticks_per_sec(v_des)
-                if self.dirty_vel_ctrl:
+                if not self.in_vel_dead_zone:
                     self.motor.set_vel(t_des)
+                    self._prev_set_vel = v_des
                 else:
-                    self.motor.set_vel(0)
+                    if v_des*-1>0 and self._prev_set_vel*-1<0:
+                        self.motor.set_vel(t_des)
+                    else:
+                        self.motor.set_vel(0)
                     
                 success = True
                 break
