@@ -496,7 +496,9 @@ class DynamixelHelloXL430(Device):
                     self.motor.set_vel(t_des)
                     self._prev_set_vel = v_des
                 else:
-                    if v_des*-1>0 and self._prev_set_vel*-1<0:
+                    c1 = v_des*-1>0 and self._prev_set_vel*-1<0
+                    c2 = v_des*-1<0 and self._prev_set_vel*-1>0
+                    if c1 or c2:
                         self.motor.set_vel(t_des)
                     else:
                         self.motor.set_vel(0)
