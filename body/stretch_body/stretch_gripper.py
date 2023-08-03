@@ -84,5 +84,5 @@ class StretchGripper(DynamixelHelloXL430):
                 if self.in_vel_mode:
                     self.enable_pos()
                 if self.status['effort'] < 0: #Only backoff in open direction
-                    self.logger.warning('Backoff at stall overload')
+                    self.logger.debug('Backoff at stall overload')
                     self.move_by(self.params['stall_backoff'])

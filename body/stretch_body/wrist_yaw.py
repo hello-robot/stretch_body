@@ -41,6 +41,8 @@ class WristYaw(DynamixelHelloXL430):
         DynamixelHelloXL430.step_sentry(self, robot)
         if self.hw_valid and self.robot_params['robot_sentry']['wrist_yaw_overload']:
             if self.status['stall_overload']:
+                if self.in_vel_mode:
+                    self.enable_pos()
                 if self.status['effort']>0:
                     self.move_by(self.params['stall_backoff'])
                     self.logger.debug('Backoff at stall overload')

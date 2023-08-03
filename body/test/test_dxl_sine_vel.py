@@ -57,7 +57,7 @@ motor = r.end_of_arm.get_joint(joint_name)
 motor.home()
 total_time = 50
 interval = 1/30 # s
-freaquency = 0.01 #Hz
+freaquency = 0.1 #Hz
 max_vel = -3
 max_vel_ticks = motor.motor.get_vel_limit()
 print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
