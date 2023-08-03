@@ -100,6 +100,7 @@ class DynamixelHelloXL430(Device):
             self.in_vel_dead_zone = False
             self._prev_set_vel = None
             self.vel_dead_zone = 0.6 # rad
+            self.in_vel_mode = False
         except KeyError:
             self.motor=None
 
@@ -515,6 +516,7 @@ class DynamixelHelloXL430(Device):
             self.motor.disable_torque()
             self.motor.enable_vel()
             self.motor.enable_torque()
+            self.in_vel_mode = True
 
     def move_to(self,x_des, v_des=None, a_des=None):
         nretry = 2
@@ -610,6 +612,7 @@ class DynamixelHelloXL430(Device):
                 self.motor.enable_pos()
             self.motor.enable_torque()
             self.set_motion_params(force=True)
+            self.in_vel_mode = False
         except (termios.error, DynamixelCommError):
             self.logger.warning('Dynamixel communication error during enable_pos on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)

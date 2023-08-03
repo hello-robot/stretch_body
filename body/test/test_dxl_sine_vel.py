@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import stretch_body.robot_params
-stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
+# stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 import numpy as np
 import time
 from stretch_body import robot
 import time
 import matplotlib.pyplot as plt
-
+import drawnow
 ####### This is a experimental code and not an official unittest test code ######
 
 class MultiDataMultiFramePlot:
@@ -52,27 +52,33 @@ r = robot.Robot()
 r.startup()
 # r.home()
 
-joint_name = 'wrist_yaw' # wrist_yaw, stretch_gripper, wrist_pitch, wrist_roll
+joint_name = 'stretch_gripper' # wrist_yaw, stretch_gripper, wrist_pitch, wrist_roll
 motor = r.end_of_arm.get_joint(joint_name)
 motor.home()
-total_time = 30
+total_time = 50
 interval = 1/30 # s
-max_vel =  3 # rad/s
-freaquency = 0.2 #Hz
+freaquency = 0.01 #Hz
+max_vel = -3
+max_vel_ticks = motor.motor.get_vel_limit()
+print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
+print(f"Vel gains P: {motor.motor.get_vel_P_gain()} | I: {motor.motor.get_vel_I_gain()}")
 
 min_pos = motor.get_soft_motion_limits()[0]
 max_pos = motor.get_soft_motion_limits()[1]
+# motor.set_vel_dead_zone(0.1)
 deadzone = motor.vel_dead_zone
 
 T, y_values = generate_sine_wave(max_vel,freaquency, total_time, interval)
 vel_track = []
 pos_track = []
+effort_track = []
 
 start = time.time()
 for x in y_values:
     motor.set_velocity(x)
     vel_track.append(motor.status['vel'])
     pos_track.append(motor.status['pos'])
+    effort_track.append(motor.status['effort'])
     time.sleep(interval)
 r.stop()
 elapsed = time.time() - start
@@ -85,5 +91,6 @@ plotter.add_data(pos_track,"position [rad]",[(min_pos,'red'),
                                              (max_pos,'red'), 
                                              (min_pos+deadzone,'blue'), 
                                              (max_pos-deadzone,'blue')])
+plotter.add_data(effort_track, "Effort")
 plotter.plot()
 
