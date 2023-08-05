@@ -98,9 +98,9 @@ class DynamixelHelloXL430(Device):
             self.warn_error=False
             self.bubble_up_comm_exception=False
             self.in_vel_dead_zone = False
-            self._prev_set_vel = None
-            self.vel_dead_zone = 0.6 # rad
-            self.in_vel_mode = False
+            self.vel_dead_zone = 0.6 # rad vel restricting zone towards limits
+            self.in_vel_mode = False 
+            self.dist_to_min_max = None # track dist to min,max limits
         except KeyError:
             self.motor=None
 
@@ -420,12 +420,14 @@ class DynamixelHelloXL430(Device):
                     self.enable_torque()
             self.was_runstopped = is_runstopped
         
-        near_limit, delta1, delta2 = self.is_near_limit(0.2)
+        near_limit, delta1, delta2 = self.is_near_limit(0.2) # calculate dist to min,max limits
+        self.dist_to_min_max = [delta1, delta2]
         if delta1 < self.vel_dead_zone or delta2 < self.vel_dead_zone:
             self.in_vel_dead_zone = True
             self.logger.debug('In Vel-Dead Zone.')
         else:
             self.in_vel_dead_zone = False
+
         
     def is_near_limit(self,threshold=0.2):
         current_position = self.status['pos']
@@ -495,10 +497,12 @@ class DynamixelHelloXL430(Device):
                 t_des = self.world_rad_to_ticks_per_sec(v_des)
                 if not self.in_vel_dead_zone:
                     self.motor.set_vel(t_des)
-                    self._prev_set_vel = v_des
                 else:
-                    c1 = v_des*-1>0 and self._prev_set_vel*-1<0
-                    c2 = v_des*-1<0 and self._prev_set_vel*-1>0
+                    to_min = self.dist_to_min_max[0]
+                    to_max = self.dist_to_min_max[1]
+                    # allow velocity only opposite to nearest limit
+                    c1 = to_min<to_max and v_des*-1<0 # if v_des -ve
+                    c2 = to_min>to_max and v_des*-1>0 # if v_des +ve
                     if c1 or c2:
                         self.motor.set_vel(t_des)
                     else:
