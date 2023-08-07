@@ -4,7 +4,7 @@ import stretch_body.robot_params
 stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 from stretch_body.hello_utils import *
 import sys
-import wrist_pitch as wrist_pitch
+import stretch_body.wrist_pitch as wrist_pitch
 import argparse
 print_stretch_re_use()
 
