@@ -11,7 +11,7 @@ print_stretch_re_use()
 parser=argparse.ArgumentParser(description='Jog the wrist_roll joint from the keyboard')
 args=parser.parse_args()
 
-poses = {'zero':0, 'left':deg_to_rad(90), 'right': deg_to_rad(-45)}
+poses = {'zero':0, 'right':deg_to_rad(90), 'left': deg_to_rad(-45)}
 w=wrist_roll.WristRoll()
 if not w.startup(threaded=False):
     exit()
@@ -26,8 +26,8 @@ def menu_top():
     print('b: decrement 15 deg')
     print('p: position (ticks)')
     print('z: zero')
-    print('l: right')
-    print('r: left')
+    print('l: left')
+    print('r: right')
     print('1: speed slow')
     print('2: speed default')
     print('3: speed fast')
