@@ -97,10 +97,11 @@ class DynamixelHelloXL430(Device):
             self.a_des = None #Track the motion profile settings on servo
             self.warn_error=False
             self.bubble_up_comm_exception=False
-            self.in_vel_dead_zone = False
-            self.vel_dead_zone = 0.6 # rad vel restricting zone towards limits
+            self.in_vel_brake_zone = False
             self.in_vel_mode = False 
             self.dist_to_min_max = None # track dist to min,max limits
+            self.brake_set_vel = None
+            self._prev_set_vel = None
         except KeyError:
             self.motor=None
 
@@ -422,11 +423,21 @@ class DynamixelHelloXL430(Device):
         
         near_limit, delta1, delta2 = self.is_near_limit(0.2) # calculate dist to min,max limits
         self.dist_to_min_max = [delta1, delta2]
-        if delta1 < self.vel_dead_zone or delta2 < self.vel_dead_zone:
-            self.in_vel_dead_zone = True
-            self.logger.debug('In Vel-Dead Zone.')
-        else:
-            self.in_vel_dead_zone = False
+
+        if self.in_vel_mode:
+            d_brake = min(delta1,delta2) # required distance to brake at limits
+            v_curr = self.status['vel']
+            t_brake =  abs(v_curr /self.params['motion']['max']['accel']) # required time to brake/zero vel based on max acc
+            curr_d_brake = t_brake*v_curr # Current distance to brake at limits
+            # Apply dampened brake velocities only if istanstaneous velocity would lead to above required braking time
+            if abs(curr_d_brake)+0.15>=abs(d_brake):
+                self.logger.debug('In Vel-Braking Zone.')
+                self.in_vel_brake_zone = True
+            else:
+                self.in_vel_brake_zone = False
+            # use d_brake value as a propotional value to dampen the current velocity
+            print((abs(curr_d_brake) - abs(d_brake)))
+            self.brake_set_vel = v_curr*d_brake # Calculate the brake velocities for smooth braking
 
         
     def is_near_limit(self,threshold=0.2):
@@ -478,9 +489,6 @@ class DynamixelHelloXL430(Device):
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
     
-    def set_vel_dead_zone(self,x):
-        self.vel_dead_zone = x
-    
     def set_velocity(self,v_des,a_des=None):
         nretry = 2
         if not self.hw_valid:
@@ -495,18 +503,20 @@ class DynamixelHelloXL430(Device):
         for i in range(nretry):
             try:
                 t_des = self.world_rad_to_ticks_per_sec(v_des)
-                if not self.in_vel_dead_zone:
+                if not self.in_vel_brake_zone:
                     self.motor.set_vel(t_des)
                 else:
                     to_min = self.dist_to_min_max[0]
                     to_max = self.dist_to_min_max[1]
-                    # allow velocity only opposite to nearest limit
                     c1 = to_min<to_max and v_des*-1<0 # if v_des -ve
                     c2 = to_min>to_max and v_des*-1>0 # if v_des +ve
-                    if c1 or c2:
+                    c = c1 or c2
+                    # allow input velocity if opposite to nearest limit else apply brake velocities
+                    if c:
                         self.motor.set_vel(t_des)
                     else:
-                        self.motor.set_vel(0)
+                        t_des = self.world_rad_to_ticks_per_sec(self.brake_set_vel)
+                        self.motor.set_vel(t_des)
                     
                 success = True
                 break
