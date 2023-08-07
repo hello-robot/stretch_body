@@ -11,7 +11,7 @@ print_stretch_re_use()
 parser=argparse.ArgumentParser(description='Jog the wrist_pitch joint from the keyboard')
 args=parser.parse_args()
 
-poses = {'zero':0, 'left':deg_to_rad(90), 'right': deg_to_rad(-45)}
+poses = {'zero':0, 'up':deg_to_rad(90), 'down': deg_to_rad(-45)}
 w=wrist_pitch.WristPitch()
 if not w.startup(threaded=False):
     exit()
@@ -68,9 +68,9 @@ def step_interaction():
             a_des = w.params['motion']['max']['accel']
 
         if x[0] == 'l':
-            w.move_to(poses['left'], v_des, a_des)
+            w.move_to(poses['up'], v_des, a_des)
         if x[0] == 'r':
-            w.move_to(poses['right'], v_des, a_des)
+            w.move_to(poses['down'], v_des, a_des)
         if x[0] == 'z':
             w.move_to(poses['zero'], v_des, a_des)
     else:
