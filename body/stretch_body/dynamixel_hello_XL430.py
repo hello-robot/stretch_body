@@ -554,7 +554,8 @@ class DynamixelHelloXL430(Device):
             self.logger.warning('Dynamixel not calibrated: %s' % self.name)
             print('Dynamixel not calibrated:', self.name)
             return
-
+        if self.motor.get_operating_mode()!=3:
+            self.enable_pos()
         #print('Motion Params',v_des,a_des)
         self.set_motion_params(v_des,a_des)
         old_x_des = x_des
