@@ -3,6 +3,7 @@ import stretch_body.robot_params
 # stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 import numpy as np
 import time
+from stretch_body import dynamixel_hello_XL430
 from stretch_body import robot
 import time
 import matplotlib.pyplot as plt
@@ -28,7 +29,7 @@ class MultiDataMultiFramePlot:
             data = self.data_sets[frame_idx]
             ax.plot(self.y_data, data[0], label=data[1])
             lines = data[2]
-            ax.set_xlabel(data[1])
+            # ax.set_xlabel(data[1])
             ax.set_ylabel(self.y_label)
             if lines is not None:
                 for l in lines:
@@ -52,22 +53,28 @@ r = robot.Robot()
 r.startup()
 # r.home()
 
+
+# joint_name = 'head_pan'
+# motor = r.head.get_joint(joint_name)
 joint_name = 'wrist_yaw' # wrist_yaw, stretch_gripper, wrist_pitch, wrist_roll
 motor = r.end_of_arm.get_joint(joint_name)
-# motor.home()
-total_time = 20
+# motor = dynamixel_hello_XL430.DynamixelHelloXL430("wrist_yaw")
+# motor.startup()
+motor.home()
+total_time = 30
 interval = 1/30 # s
 freaquency = 0.1 #Hz
-max_vel = -3
+
 phase = np.pi/2
 max_vel_ticks = motor.motor.get_vel_limit()
 print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
 print(f"Vel gains P: {motor.motor.get_vel_P_gain()} | I: {motor.motor.get_vel_I_gain()}")
-
+max_vel = abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))
+# max_vel = 3
 min_pos = motor.get_soft_motion_limits()[0]
 max_pos = motor.get_soft_motion_limits()[1]
 # motor.set_vel_dead_zone(0.1)
-deadzone = motor.vel_dead_zone
+# deadzone = motor.vel_dead_zone
 
 T, y_values = generate_sine_wave(max_vel,freaquency, total_time, interval, phase)
 vel_track = []
@@ -89,9 +96,9 @@ plotter = MultiDataMultiFramePlot(y_data=T,y_label="Time",title=f"Velocity Contr
 plotter.add_data(y_values,"Target velocity [rad/s]")
 plotter.add_data(vel_track,"velocity [rad/s]")
 plotter.add_data(pos_track,"position [rad]",[(min_pos,'red'),
-                                             (max_pos,'red'), 
-                                             (min_pos+deadzone,'blue'), 
-                                             (max_pos-deadzone,'blue')])
+                                             (max_pos,'red'),
+                                             (min_pos+motor.vel_brake_zone_thresh,'blue'), 
+                                             (max_pos-motor.vel_brake_zone_thresh,'blue')])
 plotter.add_data(effort_track, "Effort")
 plotter.plot()
 
