@@ -60,7 +60,7 @@ class DynamixelHelloXL430(Device):
             self.hw_valid = False
             self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                          'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'watchdog_errors':0, 'd_brake': 0}
+                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'watchdog_errors':0}
             self.thread_rate_hz = 15.0
             self.trajectory = RevoluteTrajectory()
             self._waypoint_ts = None
@@ -101,7 +101,7 @@ class DynamixelHelloXL430(Device):
             self.in_vel_mode = False 
             self.dist_to_min_max = None # track dist to min,max limits
             self.brake_set_vel = False # safety brake set vel overide values
-            self.vel_brake_zone_thresh = 0.15*self.params['motion']['max']['vel'] # thresh set according to max vel
+            self.vel_brake_zone_thresh = 0.15*self.params['motion']['max']['vel'] # set thresh according to max vel
         except KeyError:
             self.motor=None
 
@@ -425,7 +425,7 @@ class DynamixelHelloXL430(Device):
         self.dist_to_min_max = [delta1, delta2]
 
         if self.dist_to_min_max[0] < self.vel_brake_zone_thresh or self.dist_to_min_max[1] < self.vel_brake_zone_thresh:
-            self.logger.warning(f"In Vel-Braking Zone.")
+            self.logger.debug(f"In Vel-Braking Zone.")
             self.in_vel_brake_zone = True
         else:
             self.in_vel_brake_zone = False
@@ -445,16 +445,13 @@ class DynamixelHelloXL430(Device):
             if v_curr<0:
                 v = -1*v
         else:
-            self.logger.warning("Brake vel higher than v_curr")
             v = 0
-        self.status['d_brake'] = v
 
         # Apply dampened brake velocities only if istanstaneous velocity would lead to above required braking time
         if self.in_vel_brake_zone and self.brake_set_vel:
             if curr_d_brake >= dist_to_hardstop or dist_to_hardstop < 0.1:
                 self.motor.set_vel(0)
             else:
-                self.logger.warning(f"v: {v} | dist_to_hardstop: {dist_to_hardstop} | curr_d_brake: {curr_d_brake}")
                 self.motor.set_vel(self.world_rad_to_ticks_per_sec(v))
 
 

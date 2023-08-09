@@ -53,11 +53,11 @@ r.startup()
 # r.home()
 
 
-joint_name = 'head_pan'
-motor = r.head.get_joint(joint_name)
-# joint_name = 'wrist_yaw' # wrist_yaw, stretch_gripper, wrist_pitch, wrist_roll
-# motor = r.end_of_arm.get_joint(joint_name)
-# motor.home()
+# joint_name = 'head_pan'
+# motor = r.head.get_joint(joint_name)
+joint_name = 'wrist_yaw' # wrist_yaw, stretch_gripper, wrist_pitch, wrist_roll
+motor = r.end_of_arm.get_joint(joint_name)
+motor.home()
 total_time = 30
 interval = 1/30 # s
 freaquency = 0.1 #Hz
@@ -67,7 +67,7 @@ max_vel_ticks = motor.motor.get_vel_limit()
 print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
 print(f"Vel gains P: {motor.motor.get_vel_P_gain()} | I: {motor.motor.get_vel_I_gain()}")
 max_vel = abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))
-max_vel = 3
+# max_vel = 3
 min_pos = motor.get_soft_motion_limits()[0]
 max_pos = motor.get_soft_motion_limits()[1]
 # motor.set_vel_dead_zone(0.1)
