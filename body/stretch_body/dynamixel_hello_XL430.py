@@ -440,9 +440,8 @@ class DynamixelHelloXL430(Device):
         
         t_brake =  abs(v_curr /self.params['motion']['max']['accel']) # required time to brake/zero vel based on max acc
         curr_d_brake = t_brake*abs(v_curr)/2 # Current distance to brake at limits
-        # k = self.params['motion']['trajectory_vel_ctrl_kP']+1.5 # use a propotional value to dampen the current velocity
-        k = 3
-        v = v_curr - v_curr*k*dist_to_hardstop # Calculate the brake velocities for smooth braking
+        k = self.params['motion']['trajectory_vel_ctrl_kP'] # use a propotional value to dampen the current velocity
+        v = v_curr - k*dist_to_hardstop # Calculate the brake velocities for smooth braking
         self.status['d_brake'] = v
 
         # Apply dampened brake velocities only if istanstaneous velocity would lead to above required braking time
