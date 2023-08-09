@@ -28,7 +28,7 @@ class MultiDataMultiFramePlot:
             data = self.data_sets[frame_idx]
             ax.plot(self.y_data, data[0], label=data[1])
             lines = data[2]
-            ax.set_xlabel(data[1])
+            # ax.set_xlabel(data[1])
             ax.set_ylabel(self.y_label)
             if lines is not None:
                 for l in lines:
@@ -52,11 +52,11 @@ r = robot.Robot()
 r.startup()
 # r.home()
 
-joint_name = 'wrist_yaw' # wrist_yaw, stretch_gripper, wrist_pitch, wrist_roll
-motor = r.end_of_arm.get_joint(joint_name)
-# joint_name = 'head_pan'
-# motor = r.head.get_joint(joint_name)
-motor.home()
+# joint_name = 'wrist_yaw' # wrist_yaw, stretch_gripper, wrist_pitch, wrist_roll
+# motor = r.end_of_arm.get_joint(joint_name)
+joint_name = 'head_pan'
+motor = r.head.get_joint(joint_name)
+# motor.home()
 total_time = 20
 interval = 1/30 # s
 freaquency = 0.1 #Hz
@@ -76,6 +76,7 @@ T, y_values = generate_sine_wave(max_vel,freaquency, total_time, interval, phase
 vel_track = []
 pos_track = []
 effort_track = []
+d_brake_track = []
 
 start = time.time()
 for x in y_values:
@@ -83,6 +84,7 @@ for x in y_values:
     vel_track.append(motor.status['vel'])
     pos_track.append(motor.status['pos'])
     effort_track.append(motor.status['effort'])
+    d_brake_track.append(motor.status['d_brake'])
     time.sleep(interval)
 r.stop()
 elapsed = time.time() - start
@@ -92,9 +94,10 @@ plotter = MultiDataMultiFramePlot(y_data=T,y_label="Time",title=f"Velocity Contr
 plotter.add_data(y_values,"Target velocity [rad/s]")
 plotter.add_data(vel_track,"velocity [rad/s]")
 plotter.add_data(pos_track,"position [rad]",[(min_pos,'red'),
-                                             (max_pos,'red'),])
-                                            #  (min_pos+deadzone,'blue'), 
-                                            #  (max_pos-deadzone,'blue')])
+                                             (max_pos,'red'),
+                                             (min_pos+motor.brake_zone_thresh,'blue'), 
+                                             (max_pos-motor.brake_zone_thresh,'blue')])
 plotter.add_data(effort_track, "Effort")
+plotter.add_data(d_brake_track, "d_brake")
 plotter.plot()
 

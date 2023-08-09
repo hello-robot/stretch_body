@@ -60,7 +60,7 @@ class DynamixelHelloXL430(Device):
             self.hw_valid = False
             self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
                          'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'watchdog_errors':0}
+                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'watchdog_errors':0, 'd_brake': 0}
             self.thread_rate_hz = 15.0
             self.trajectory = RevoluteTrajectory()
             self._waypoint_ts = None
@@ -100,8 +100,8 @@ class DynamixelHelloXL430(Device):
             self.in_vel_brake_zone = False
             self.in_vel_mode = False 
             self.dist_to_min_max = None # track dist to min,max limits
-            self.brake_set_vel = None
-            self._prev_set_vel = None
+            self.brake_set_vel = 0 # safety brake set vel overide values
+            self.brake_zone_thresh = 0.6
         except KeyError:
             self.motor=None
 
@@ -424,20 +424,34 @@ class DynamixelHelloXL430(Device):
         near_limit, delta1, delta2 = self.is_near_limit(0.2) # calculate dist to min,max limits
         self.dist_to_min_max = [delta1, delta2]
 
+        brake_zone_thresh =  self.brake_zone_thresh
+        if self.dist_to_min_max[0] < brake_zone_thresh or self.dist_to_min_max[1] < brake_zone_thresh:
+            self.logger.warning(f"In Vel-Braking Zone. {self.brake_set_vel} rad/s")
+            self.in_vel_brake_zone = True
+        else:
+            self.in_vel_brake_zone = False
+
         if self.in_vel_mode:
-            d_brake = min(delta1,delta2) # required distance to brake at limits
-            v_curr = self.status['vel']
-            t_brake =  abs(v_curr /self.params['motion']['max']['accel']) # required time to brake/zero vel based on max acc
-            curr_d_brake = t_brake*v_curr # Current distance to brake at limits
-            # Apply dampened brake velocities only if istanstaneous velocity would lead to above required braking time
-            if abs(curr_d_brake)+0.15>=abs(d_brake):
-                self.logger.debug('In Vel-Braking Zone.')
-                self.in_vel_brake_zone = True
-            else:
-                self.in_vel_brake_zone = False
-            # use d_brake value as a propotional value to dampen the current velocity
-            print((abs(curr_d_brake) - abs(d_brake)))
-            self.brake_set_vel = v_curr*d_brake # Calculate the brake velocities for smooth braking
+            self._step_vel_safety_brake()
+    
+    def _step_vel_safety_brake(self):
+        dist_to_hardstop = min(self.dist_to_min_max[0],self.dist_to_min_max[1]) # required distance to brake at limits
+        v_curr = self.status['vel']
+        
+        t_brake =  abs(v_curr /self.params['motion']['max']['accel']) # required time to brake/zero vel based on max acc
+        curr_d_brake = t_brake*abs(v_curr)/2 # Current distance to brake at limits
+        # k = self.params['motion']['trajectory_vel_ctrl_kP']+1.5 # use a propotional value to dampen the current velocity
+        k = 3
+        v = v_curr - v_curr*k*dist_to_hardstop # Calculate the brake velocities for smooth braking
+        self.status['d_brake'] = v
+
+        # Apply dampened brake velocities only if istanstaneous velocity would lead to above required braking time
+        if curr_d_brake >= dist_to_hardstop or dist_to_hardstop < 0.1:
+            self.brake_set_vel = 0
+        else:
+            self.logger.warning(f"v: {v} | dist_to_hardstop: {dist_to_hardstop} | curr_d_brake: {curr_d_brake}")
+            self.brake_set_vel = v
+
 
         
     def is_near_limit(self,threshold=0.2):
