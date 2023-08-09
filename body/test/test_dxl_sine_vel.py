@@ -3,6 +3,7 @@ import stretch_body.robot_params
 # stretch_body.robot_params.RobotParams.set_logging_level("DEBUG")
 import numpy as np
 import time
+from stretch_body import dynamixel_hello_XL430
 from stretch_body import robot
 import time
 import matplotlib.pyplot as plt
@@ -57,6 +58,8 @@ r.startup()
 # motor = r.head.get_joint(joint_name)
 joint_name = 'wrist_yaw' # wrist_yaw, stretch_gripper, wrist_pitch, wrist_roll
 motor = r.end_of_arm.get_joint(joint_name)
+# motor = dynamixel_hello_XL430.DynamixelHelloXL430("wrist_yaw")
+# motor.startup()
 motor.home()
 total_time = 30
 interval = 1/30 # s
@@ -77,7 +80,6 @@ T, y_values = generate_sine_wave(max_vel,freaquency, total_time, interval, phase
 vel_track = []
 pos_track = []
 effort_track = []
-d_brake_track = []
 
 start = time.time()
 for x in y_values:
@@ -85,7 +87,6 @@ for x in y_values:
     vel_track.append(motor.status['vel'])
     pos_track.append(motor.status['pos'])
     effort_track.append(motor.status['effort'])
-    d_brake_track.append(motor.status['d_brake'])
     time.sleep(interval)
 r.stop()
 elapsed = time.time() - start
@@ -99,6 +100,5 @@ plotter.add_data(pos_track,"position [rad]",[(min_pos,'red'),
                                              (min_pos+motor.vel_brake_zone_thresh,'blue'), 
                                              (max_pos-motor.vel_brake_zone_thresh,'blue')])
 plotter.add_data(effort_track, "Effort")
-plotter.add_data(d_brake_track, "d_brake")
 plotter.plot()
 

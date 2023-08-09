@@ -421,7 +421,7 @@ class DynamixelHelloXL430(Device):
                     self.enable_torque()
             self.was_runstopped = is_runstopped
         
-        near_limit, delta1, delta2 = self.is_near_limit(0.2) # calculate dist to min,max limits
+        delta1, delta2 = self.get_dist_to_limits() # calculate dist to min,max limits
         self.dist_to_min_max = [delta1, delta2]
 
         if self.dist_to_min_max[0] < self.vel_brake_zone_thresh or self.dist_to_min_max[1] < self.vel_brake_zone_thresh:
@@ -437,8 +437,7 @@ class DynamixelHelloXL430(Device):
         dist_to_hardstop = min(self.dist_to_min_max[0],self.dist_to_min_max[1]) # required distance to brake at limits
         v_curr = self.status['vel']
         
-        t_brake =  abs(v_curr /self.params['motion']['max']['accel']) # required time to brake/zero vel based on max acc
-        curr_d_brake = t_brake*abs(v_curr)/2 # Current distance to brake at limits
+        curr_d_brake = self._get_braking_dist(v_curr) # Current distance to brake at limits
         k = self.params['motion']['trajectory_vel_ctrl_kP'] # use a propotional value to dampen the current velocity
         if k*dist_to_hardstop <= abs(v_curr):
             v = abs(v_curr) - k*dist_to_hardstop # Calculate the brake velocities for smooth braking
@@ -453,10 +452,14 @@ class DynamixelHelloXL430(Device):
                 self.motor.set_vel(0)
             else:
                 self.motor.set_vel(self.world_rad_to_ticks_per_sec(v))
-
+    
+    def _get_braking_dist(self, v):
+        t_brake =  abs(v /self.params['motion']['max']['accel']) # required time to brake
+        d_brake = t_brake*abs(v)/2
+        return d_brake
 
         
-    def is_near_limit(self,threshold=0.2):
+    def get_dist_to_limits(self,threshold=0.2):
         current_position = self.status['pos']
         min_position = self.get_soft_motion_limits()[0]
         max_position =self.get_soft_motion_limits()[1]
@@ -464,9 +467,9 @@ class DynamixelHelloXL430(Device):
         delta2 =  abs(current_position - max_position)
         
         if delta2<threshold or delta1<threshold:
-            return True, delta1, delta2
+            return delta1, delta2
         else:
-            return False, delta1, delta2
+            return delta1, delta2
 
     # #####################################
 
@@ -519,12 +522,10 @@ class DynamixelHelloXL430(Device):
         for i in range(nretry):
             try:
                 t_des = self.world_rad_to_ticks_per_sec(v_des)
-                to_min = self.dist_to_min_max[0]
-                to_max = self.dist_to_min_max[1]
+                to_min, to_max = self.get_dist_to_limits()
                 c1 = to_min<to_max and v_des*-1<0 # if v_des -ve
                 c2 = to_min>to_max and v_des*-1>0 # if v_des +ve
                 c = c1 or c2 # allow input velocity if opposite to nearest limit else apply brake velocities
-
                 if not self.in_vel_brake_zone or c:
                     self.motor.set_vel(t_des)
                     self.brake_set_vel = False
