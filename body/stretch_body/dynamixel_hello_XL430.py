@@ -102,6 +102,8 @@ class DynamixelHelloXL430(Device):
             self.dist_to_min_max = None # track dist to min,max limits
             self.brake_set_vel = False # safety brake set vel overide values
             self.vel_brake_zone_thresh = 0.15*self.params['motion']['max']['vel'] # set thresh according to max vel
+            self._prev_set_vel_ts = None
+            self.watchdog_enabled = False
         except KeyError:
             self.motor=None
 
@@ -188,6 +190,8 @@ class DynamixelHelloXL430(Device):
             if self.motor.do_ping(verbose=False):
                 self.hw_valid = True
                 self.motor.disable_torque()
+                if self.motor.get_watchdog_error():
+                    self.motor.disable_watchdog()
                 if self.params['use_multiturn']:
                     self.motor.enable_multiturn()
                 else:
@@ -432,6 +436,26 @@ class DynamixelHelloXL430(Device):
 
         if self.in_vel_mode:
             self._step_vel_safety_brake()
+
+            if not self.watchdog_enabled:
+                print("Watchdog Enabled!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                self.disable_torque()
+                self.motor.enable_watchdog()
+                self.watchdog_enabled = True
+                self.enable_torque()
+            
+            # disable watchdog if a set_velocity() command is not passed above 1s
+            if self._prev_set_vel_ts:
+                if time.time() - self._prev_set_vel_ts >=1:
+                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Watchdog Disabled")
+                    wd_error=self.motor.get_watchdog_error()
+                    self.disable_torque()
+                    self.motor.disable_watchdog()
+                    self.watchdog_enabled = True
+                    self.enable_torque()
+                    if wd_error:
+                        self.logger.warning(f'Watchdog error during Velocity control for {self.name}.')
+                        self.status['watchdog_errors']=self.status['watchdog_errors']+1
     
     def _step_vel_safety_brake(self):
         dist_to_hardstop = min(self.dist_to_min_max[0],self.dist_to_min_max[1]) # required distance to brake at limits
@@ -533,6 +557,7 @@ class DynamixelHelloXL430(Device):
                     self.brake_set_vel = True
                     
                 success = True
+                self._prev_set_vel_ts = time.time()
                 break
             except(termios.error, DynamixelCommError, IndexError):
                 self.logger.warning('Dynamixel communication error during move_to_vel on %s: ' % self.name)
@@ -826,6 +851,7 @@ class DynamixelHelloXL430(Device):
     def _enable_trajectory_vel_ctrl(self):
         self.disable_torque()
         self.motor.enable_watchdog()
+        self.watchdog_enabled = True
         self.motor.enable_vel()
         self.motor.set_profile_acceleration(self.world_rad_to_ticks_per_sec_sec(self.params['motion']['trajectory_max']['accel_r']))
         self.motor.set_vel_limit(self.world_rad_to_ticks_per_sec(self.params['motion']['trajectory_max']['vel_r']))
@@ -835,6 +861,7 @@ class DynamixelHelloXL430(Device):
         wd_error=self.motor.get_watchdog_error()
         self.disable_torque()
         self.motor.disable_watchdog()
+        self.watchdog_enabled = False
         self.enable_pos()
         self.enable_torque()
         if wd_error:
