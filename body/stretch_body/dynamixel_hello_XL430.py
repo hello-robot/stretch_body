@@ -438,7 +438,6 @@ class DynamixelHelloXL430(Device):
             self._step_vel_safety_brake()
 
             if not self.watchdog_enabled:
-                print("Watchdog Enabled!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 self.disable_torque()
                 self.motor.enable_watchdog()
                 self.watchdog_enabled = True
@@ -447,11 +446,10 @@ class DynamixelHelloXL430(Device):
             # disable watchdog if a set_velocity() command is not passed above 1s
             if self._prev_set_vel_ts:
                 if time.time() - self._prev_set_vel_ts >=1:
-                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Watchdog Disabled")
                     wd_error=self.motor.get_watchdog_error()
                     self.disable_torque()
                     self.motor.disable_watchdog()
-                    self.watchdog_enabled = True
+                    self.watchdog_enabled = False
                     self.enable_torque()
                     if wd_error:
                         self.logger.warning(f'Watchdog error during Velocity control for {self.name}.')
