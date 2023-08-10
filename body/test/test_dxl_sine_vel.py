@@ -65,7 +65,7 @@ total_time = 30
 interval = 1/30 # s
 freaquency = 0.1 #Hz
 
-phase = np.pi/2
+phase = 0
 max_vel_ticks = motor.motor.get_vel_limit()
 print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
 print(f"Vel gains P: {motor.motor.get_vel_P_gain()} | I: {motor.motor.get_vel_I_gain()}")
