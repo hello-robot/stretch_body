@@ -104,6 +104,7 @@ class DynamixelHelloXL430(Device):
             self.vel_brake_zone_thresh = 0.15*self.params['motion']['max']['vel'] # set thresh according to max vel
             self._prev_set_vel_ts = None
             self.watchdog_enabled = False
+            self._set_vel = None
         except KeyError:
             self.motor=None
 
@@ -458,26 +459,32 @@ class DynamixelHelloXL430(Device):
     def _step_vel_safety_brake(self):
         dist_to_hardstop = min(self.dist_to_min_max[0],self.dist_to_min_max[1]) # required distance to brake at limits
         v_curr = self.status['vel']
-        
         curr_d_brake = self._get_braking_dist(v_curr) # Current distance to brake at limits
-        k = self.params['motion']['trajectory_vel_ctrl_kP'] # use a propotional value to dampen the current velocity
-        if k*dist_to_hardstop <= abs(v_curr):
-            v = abs(v_curr) - k*dist_to_hardstop # Calculate the brake velocities for smooth braking
+
+        k = 1.5 # use a propotional value to dampen the current velocity
+        if self._set_vel is not None:
+            v = abs(self._set_vel) - k*dist_to_hardstop # Calculate the brake velocities for smooth braking
             if v_curr<0:
                 v = -1*v
-        else:
-            v = 0
+        print(f"V | v_curr:{v_curr} - k:{k}*d:{dist_to_hardstop}")
 
         # Apply dampened brake velocities only if istanstaneous velocity would lead to above required braking time
-        if self.in_vel_brake_zone and self.brake_set_vel:
+        if self.in_vel_brake_zone:
             if curr_d_brake >= dist_to_hardstop or dist_to_hardstop < 0.1:
+                self.brake_set_vel = True
                 self.motor.set_vel(0)
+                print(f"V ZERO OF BRAKING DISTANCE | curr_d_brake:{curr_d_brake >= dist_to_hardstop} or dth:{dist_to_hardstop < 0.1}")
             else:
-                self.motor.set_vel(self.world_rad_to_ticks_per_sec(v))
+                if self._set_vel is not None:
+                    self.motor.set_vel(self.world_rad_to_ticks_per_sec(v))
+        else:
+            self.brake_set_vel = False
+            
     
     def _get_braking_dist(self, v):
         t_brake =  abs(v /self.params['motion']['max']['accel']) # required time to brake
-        d_brake = t_brake*abs(v)/2
+        d_brake = t_brake * abs(v) / 2
+        # d_brake = (abs(v)**2)/(2*self.params['motion']['max']['accel'])
         return d_brake
 
         
@@ -543,17 +550,20 @@ class DynamixelHelloXL430(Device):
             self.enable_velocity_ctrl()
         for i in range(nretry):
             try:
+                self._set_vel = v_des
                 t_des = self.world_rad_to_ticks_per_sec(v_des)
-                to_min, to_max = self.get_dist_to_limits()
-                c1 = to_min<to_max and v_des*-1<0 # if v_des -ve
-                c2 = to_min>to_max and v_des*-1>0 # if v_des +ve
-                c = c1 or c2 # allow input velocity if opposite to nearest limit else apply brake velocities
-                if not self.in_vel_brake_zone or c:
-                    self.motor.set_vel(t_des)
-                    self.brake_set_vel = False
+
+                if self.dist_to_min_max is not None: # only when sentry is active
+                    to_min = self.dist_to_min_max[0]
+                    to_max = self.dist_to_min_max[1]
+                    c1 = to_min<to_max and v_des*-1<0 # if v_des -ve
+                    c2 = to_min>to_max and v_des*-1>0 # if v_des +ve
+                    c = c1 or c2 # allow input velocity if opposite to nearest limit else apply brake velocities
                 else:
-                    self.brake_set_vel = True
-                    
+                    c = False
+
+                if not self.brake_set_vel or c:
+                    self.motor.set_vel(t_des)
                 success = True
                 self._prev_set_vel_ts = time.time()
                 break
