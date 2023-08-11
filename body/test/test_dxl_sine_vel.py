@@ -72,15 +72,15 @@ def plot_data(motor, time_values, y_values, vel_track, pos_track, effort_track):
 
 def run_test_on_motor(motor):
     motor.home()
-    total_time = 10
+    total_time = 15
     interval = 1/100 # s
-    freaquency = 0.1 #Hz
-    phase = 0
+    freaquency = 0.01 #Hz
+    phase = np.pi/2
 
     max_vel_ticks = motor.motor.get_vel_limit()
     print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
     print(f"Vel gains P: {motor.motor.get_vel_P_gain()} | I: {motor.motor.get_vel_I_gain()}")
-    max_vel = abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))
+    max_vel = -1*abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))
 
     T, y_values = generate_sine_wave(max_vel,freaquency, total_time, interval, phase)
     vel_track = []

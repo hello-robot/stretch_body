@@ -104,7 +104,6 @@ class DynamixelHelloXL430(Device):
             self.vel_brake_zone_thresh = 0.15*self.params['motion']['max']['vel'] # set thresh according to max vel
             self._prev_set_vel_ts = None
             self.watchdog_enabled = False
-            self._prev_pull_ts = time.time()
         except KeyError:
             self.motor=None
 
@@ -505,12 +504,6 @@ class DynamixelHelloXL430(Device):
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
 
-    def _get_braking_dist(self, v):
-        t_brake =  abs(v /self.params['motion']['max']['accel']) # required time to brake
-        d_brake = t_brake * abs(v) / 2
-        # d_brake = (abs(v)**2)/(2*self.params['motion']['max']['accel'])
-        return d_brake
-
     def set_velocity(self,v_des,a_des=None):
         nretry = 2
         if not self.hw_valid:
@@ -524,54 +517,14 @@ class DynamixelHelloXL430(Device):
             self.enable_velocity_ctrl()
         for i in range(nretry):
             try:
-                self._set_vel = v_des
-                t_des = self.world_rad_to_ticks_per_sec(v_des)
-
                 if self.in_vel_brake_zone: # only when sentry is active
-                    if self.status['timestamp_pc']>self._prev_pull_ts: # Control syncs with the pull status's freaquency
-                        # Honor joint limits in velocity mode
-                        lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
-                                        self.ticks_to_world_rad(self.params['range_t'][1]))
-                        lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
-                                        self.ticks_to_world_rad(self.params['range_t'][1]))
-                        
-                        v_curr = self.status['vel']
-                        x_curr = self.status['pos']
-
-                        to_min = abs(x_curr - lim_lower)
-                        to_max = abs(x_curr - lim_upper)
-
-                        c1 = to_min<to_max and v_des>0 # if v_des -ve
-                        c2 = to_min>to_max and v_des<0 # if v_des +ve
-                        opp_vel = c1 or c2# allow input velocity if opposite to nearest limit else apply brake velocities
-
-                        curr_d_brake = self._get_braking_dist(v_curr) # Current distance to brake at limits
-                        
-
-                        t_brake = abs(v_curr /self.params['motion']['max']['accel'])  # How long to brake from current speed (s)
-                        d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
-                        d_brake = d_brake+deg_to_rad(5.0) #Pad out by 5 degrees to give a bit of safety margin
-                        if opp_vel:
-                            print("#########################")
-                            self.motor.set_vel(t_des)
-                        elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower) or min(to_min,to_max)<0.1:
-                            self.motor.set_vel(0)
-                        else:
-                            k = self.params['motion']['trajectory_vel_ctrl_kP'] # use a propotional value to dampen the current velocity
-                            if to_min>to_max:
-                                v = v_des - k*to_max
-                            else:
-                                v = v_des + k*to_min
-    
-                            print(f"v_Des: {v_des} | v_CURR: {v_curr} | Brake Vel: {v}")
-                            self.motor.set_vel(self.world_rad_to_ticks_per_sec(v))
-                        self._prev_pull_ts = self.status['timestamp_pc']
+                    self._step_vel_braking(v_des)
                 else:
                     print("#########################")
+                    t_des = self.world_rad_to_ticks_per_sec(v_des)
                     self.motor.set_vel(t_des)
-
+                    self._prev_set_vel_ts = time.time()
                 success = True
-                self._prev_set_vel_ts = time.time()
                 break
             except(termios.error, DynamixelCommError, IndexError):
                 self.logger.warning('Dynamixel communication error during move_to_vel on %s: ' % self.name)
@@ -579,6 +532,47 @@ class DynamixelHelloXL430(Device):
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
     
+    def _step_vel_braking(self, v_des):
+        if self.status['timestamp_pc']>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency
+            # Honor joint limits in velocity mode
+            lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
+                            self.ticks_to_world_rad(self.params['range_t'][1]))
+            lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
+                            self.ticks_to_world_rad(self.params['range_t'][1]))
+            
+            v_curr = self.status['vel']
+            x_curr = self.status['pos']
+
+            to_min = abs(x_curr - lim_lower)
+            to_max = abs(x_curr - lim_upper)
+
+            c1 = to_min<to_max and v_des>0 # if v_des -ve
+            c2 = to_min>to_max and v_des<0 # if v_des +ve
+            opp_vel = c1 or c2 # allow input velocity if opposite to nearest limit else apply brake velocities
+
+            t_brake = abs(v_curr /self.params['motion']['max']['accel'])  # How long to brake from current speed (s)
+            d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
+            d_brake = d_brake+deg_to_rad(5.0) #Pad out by 5 degrees to give a bit of safety margin
+            if opp_vel:
+                print("#########################")
+                self.motor.set_vel(self.world_rad_to_ticks_per_sec(v_des))
+            elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower) or min(to_min,to_max)<0.1:
+                self.motor.set_vel(0)
+                print("######### BRAKING DISTANCE LOW #########")
+            else:
+                k = self.params['motion']['trajectory_vel_ctrl_kP'] # use a propotional value to dampen the current velocity
+                
+                if v_des<0:
+                    v = v_des - k*to_max
+                    print("ON MAX")
+                else:
+                    v = v_des - k*to_min
+                    print("ON MIN")
+
+                print(f"v_Des: {v_des} | v_CURR: {v_curr} | Brake Vel: {v}")
+                self.motor.set_vel(self.world_rad_to_ticks_per_sec(v))
+            self._prev_set_vel_ts = time.time()
+
     def enable_velocity_ctrl(self):
             self.motor.disable_torque()
             self.motor.enable_vel()
