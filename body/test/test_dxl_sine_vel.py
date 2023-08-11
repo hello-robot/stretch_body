@@ -80,7 +80,7 @@ def run_test_on_motor(motor):
     max_vel_ticks = motor.motor.get_vel_limit()
     print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
     print(f"Vel gains P: {motor.motor.get_vel_P_gain()} | I: {motor.motor.get_vel_I_gain()}")
-    max_vel = abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks)) * 0.9
+    max_vel = abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))*0.5
 
     T, y_values = generate_sine_wave(max_vel,freaquency, total_time, interval, phase)
     vel_track = []
