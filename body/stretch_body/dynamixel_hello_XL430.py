@@ -101,9 +101,10 @@ class DynamixelHelloXL430(Device):
             self.in_vel_mode = False 
             self.dist_to_min_max = None # track dist to min,max limits
             self.brake_set_vel = False # safety brake set vel overide values
-            self.vel_brake_zone_thresh = 0.15*self.params['motion']['max']['vel'] # set thresh according to max vel
+            self.vel_brake_zone_thresh = 0 
             self._prev_set_vel_ts = None
             self.watchdog_enabled = False
+            self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
         except KeyError:
             self.motor=None
 
@@ -414,6 +415,14 @@ class DynamixelHelloXL430(Device):
         print('Is Calibrated',self.is_calibrated)
         #self.motor.pretty_print()
 
+    def bound_value(self, value, lower_bound, upper_bound):
+        if value < lower_bound:
+            return lower_bound
+        elif value > upper_bound:
+            return upper_bound
+        else:
+            return value
+
     def step_sentry(self, robot):
         if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:
             is_runstopped = robot.pimu.status['runstop_event']
@@ -452,7 +461,23 @@ class DynamixelHelloXL430(Device):
                     if wd_error:
                         self.logger.warning(f'Watchdog error during Velocity control for {self.name}.')
                         self.status['watchdog_errors']=self.status['watchdog_errors']+1
-        
+
+            self._update_safety_vel_brake_zone()
+    
+    def _update_safety_vel_brake_zone(self):
+        # dynamically change the braking zone based on vel and distance to limits
+        delta1,delta2 = self.dist_to_min_max 
+        distance_to_limit = min(delta1,delta2)
+        brake_zone_factor = 1 # Propotional value, for now value 1 seems to work fine with all Dxl joints
+        if distance_to_limit!=0:
+            brake_zone_thresh = brake_zone_factor*abs(self.status['vel'])/distance_to_limit
+            brake_zone_thresh =  self.bound_value(brake_zone_thresh,0,self.total_range/2)
+            brake_zone_thresh = brake_zone_thresh + 0.6 #0.6 rad is minimum brake zone thresh  
+            self._set_vel_brake_thresh(brake_zone_thresh)
+
+    def _set_vel_brake_thresh(self, thresh):
+        self.vel_brake_zone_thresh = thresh
+
     def get_dist_to_limits(self,threshold=0.2):
         current_position = self.status['pos']
         min_position = self.get_soft_motion_limits()[0]
@@ -501,9 +526,6 @@ class DynamixelHelloXL430(Device):
                 self.comm_errors.add_error(rx=True, gsr=False)
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
-    
-    def set_vel_brake_thresh(self, thresh):
-        self.vel_brake_zone_thresh = thresh
 
     def set_velocity(self,v_des,a_des=None):
         nretry = 2
@@ -533,6 +555,11 @@ class DynamixelHelloXL430(Device):
                     raise DynamixelCommError
     
     def _step_vel_braking(self, v_des):
+        """
+        In velocity mode while using set_velocity() command, when the joint is in a braking zone,
+        the input velocities are tapered till the joint limits and smoothly braked at the limits to 
+        avoid hitting the hardstops.
+        """
         if self._prev_set_vel_ts is None:
             self._prev_set_vel_ts = time.time()
         if self.status['timestamp_pc']>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency

@@ -64,25 +64,23 @@ def plot_data(motor, time_values, y_values, vel_track, pos_track, effort_track):
     plotter.add_data(y_values,"Target velocity [rad/s]")
     plotter.add_data(vel_track,"velocity [rad/s]")
     plotter.add_data(pos_track,"position [rad]",[(min_pos,'red'),
-                                                (max_pos,'red'),
-                                                (min_pos+motor.vel_brake_zone_thresh,'blue'), 
-                                                (max_pos-motor.vel_brake_zone_thresh,'blue')])
+                                                (max_pos,'red'),])
+                                                # (min_pos+motor.vel_brake_zone_thresh,'blue'), 
+                                                # (max_pos-motor.vel_brake_zone_thresh,'blue')])
     plotter.add_data(effort_track, "Effort")
     plotter.plot()
 
 def run_test_on_motor(motor):
     motor.home()
-    total_time = 15
+    total_time = 20
     interval = 1/100 # s
-    freaquency = 0.1 #Hz
+    freaquency = .1 #Hz
     phase = np.pi/2
 
     max_vel_ticks = motor.motor.get_vel_limit()
     print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
     print(f"Vel gains P: {motor.motor.get_vel_P_gain()} | I: {motor.motor.get_vel_I_gain()}")
-    max_vel = -1*abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))*0.9
-    range = abs(motor.ticks_to_world_rad(motor.params['range_t'][0]) - motor.ticks_to_world_rad(motor.params['range_t'][1]))
-    motor.set_vel_brake_thresh(0.6)
+    max_vel = abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))
     print(f"Vel Brakezone Thresh: {motor.vel_brake_zone_thresh} rad")
 
     T, y_values = generate_sine_wave(max_vel,freaquency, total_time, interval, phase)
@@ -147,8 +145,8 @@ def test_wrist_roll_joint():
     r.stop()
 
 if __name__=="__main__":
-    # test_wrist_yaw_joint()
+    test_wrist_yaw_joint()
     # test_wrist_pitch_joint()
     # test_wrist_roll_joint()
-    test_head_pan_joint()
+    # test_head_pan_joint()
     # test_head_tilt_joint()
