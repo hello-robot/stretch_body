@@ -64,23 +64,24 @@ def plot_data(motor, time_values, y_values, vel_track, pos_track, effort_track):
     plotter.add_data(y_values,"Target velocity [rad/s]")
     plotter.add_data(vel_track,"velocity [rad/s]")
     plotter.add_data(pos_track,"position [rad]",[(min_pos,'red'),
-                                                (max_pos,'red'),
-                                                (min_pos+motor.vel_brake_zone_thresh,'blue'), 
-                                                (max_pos-motor.vel_brake_zone_thresh,'blue')])
+                                                (max_pos,'red'),])
+                                                # (min_pos+motor.vel_brake_zone_thresh,'blue'), 
+                                                # (max_pos-motor.vel_brake_zone_thresh,'blue')])
     plotter.add_data(effort_track, "Effort")
     plotter.plot()
 
 def run_test_on_motor(motor):
     motor.home()
-    total_time = 30
-    interval = 1/30 # s
-    freaquency = 0.1 #Hz
-    phase = 0
+    total_time = 20
+    interval = 1/100 # s
+    freaquency = .1 #Hz
+    phase = np.pi/2
 
     max_vel_ticks = motor.motor.get_vel_limit()
     print(f"Vel Limit: {max_vel_ticks} ticks/s | {abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))} rad/s")
     print(f"Vel gains P: {motor.motor.get_vel_P_gain()} | I: {motor.motor.get_vel_I_gain()}")
     max_vel = abs(motor.ticks_to_world_rad_per_sec(max_vel_ticks))
+    print(f"Vel Brakezone Thresh: {motor.vel_brake_zone_thresh} rad")
 
     T, y_values = generate_sine_wave(max_vel,freaquency, total_time, interval, phase)
     vel_track = []
@@ -99,8 +100,6 @@ def run_test_on_motor(motor):
     plot_data(motor, T, y_values, vel_track, pos_track, effort_track)
     return T, y_values, vel_track, pos_track, effort_track
 
-
-
 def test_head_pan_joint():
     r = robot.Robot()
     r.startup()
@@ -109,8 +108,6 @@ def test_head_pan_joint():
     motor = r.head.get_joint(joint_name)
     T, input_velocities, vel_track, pos_track, effort_track = run_test_on_motor(motor)
     r.stop()
-
-
 
 def test_head_tilt_joint():
     r = robot.Robot()
@@ -124,13 +121,32 @@ def test_head_tilt_joint():
 def test_wrist_yaw_joint():
     r = robot.Robot()
     r.startup()
-
     joint_name = 'wrist_yaw'
+    motor = r.end_of_arm.get_joint(joint_name)
+    T, input_velocities, vel_track, pos_track, effort_track = run_test_on_motor(motor)
+    r.stop()
+
+def test_wrist_pitch_joint():
+    r = robot.Robot()
+    r.startup()
+
+    joint_name = 'wrist_pitch'
+    motor = r.end_of_arm.get_joint(joint_name)
+    T, input_velocities, vel_track, pos_track, effort_track = run_test_on_motor(motor)
+    r.stop()
+
+def test_wrist_roll_joint():
+    r = robot.Robot()
+    r.startup()
+
+    joint_name = 'wrist_roll'
     motor = r.end_of_arm.get_joint(joint_name)
     T, input_velocities, vel_track, pos_track, effort_track = run_test_on_motor(motor)
     r.stop()
 
 if __name__=="__main__":
     test_wrist_yaw_joint()
-    test_head_pan_joint()
-    test_head_tilt_joint()
+    # test_wrist_pitch_joint()
+    # test_wrist_roll_joint()
+    # test_head_pan_joint()
+    # test_head_tilt_joint()

@@ -178,7 +178,8 @@ nominal_params={
                 'vel': 1.0},
             'trajectory_max': {
                 'vel_r': 8.0,
-                'accel_r': 16.0}},
+                'accel_r': 16.0},
+            'vel_brakezone_factor': 1},
         'pid': [800, 200, 200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -219,7 +220,8 @@ nominal_params={
                 'vel': 1.0},
             'trajectory_max': {
                 'vel_r': 8.0,
-                'accel_r': 16.0}},
+                'accel_r': 16.0},
+            'vel_brakezone_factor': 1},
         'pid': [800,200,200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -502,7 +504,8 @@ nominal_params={
               'vel': 2.0},
             'trajectory_max': {
                 'vel_r': 50.0,
-                'accel_r': 100.0}},
+                'accel_r': 100.0},
+            'vel_brakezone_factor': 1},
         'pid': [640.0,0,0],
         'pwm_homing': [-400, 0],
         'pwm_limit': 885,
@@ -581,7 +584,8 @@ nominal_params={
               'vel': 0.75},
               'trajectory_max': {
                   'vel_r': 3.0,
-                  'accel_r': 3.0}},
+                  'accel_r': 3.0},
+            'vel_brakezone_factor': 1},
         'pid': [640,0,0],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
