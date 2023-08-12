@@ -1,6 +1,5 @@
 from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
-import time
 
 class StretchGripper(DynamixelHelloXL430):
     """
