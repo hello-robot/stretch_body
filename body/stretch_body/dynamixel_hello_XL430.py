@@ -101,7 +101,7 @@ class DynamixelHelloXL430(Device):
             self.in_vel_mode = False 
             self.dist_to_min_max = None # track dist to min,max limits
             self.brake_set_vel = False # safety brake set vel overide values
-            self.vel_brake_zone_thresh = 0 
+            self.vel_brake_zone_thresh = 0.6 # initial brake zone thresh value
             self._prev_set_vel_ts = None
             self.watchdog_enabled = False
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
@@ -465,10 +465,13 @@ class DynamixelHelloXL430(Device):
             self._update_safety_vel_brake_zone()
     
     def _update_safety_vel_brake_zone(self):
-        # dynamically change the braking zone based on vel and distance to limits
+        """
+        dynamically update the braking zone thresh based on it is propotional nature to the 
+        current velocity and the inverse of distance left to reach the nearest hardstop.
+        """
         delta1,delta2 = self.dist_to_min_max 
         distance_to_limit = min(delta1,delta2)
-        brake_zone_factor = 1 # Propotional value, for now value 1 seems to work fine with all Dxl joints
+        brake_zone_factor = self.params['motion']['vel_brakezone_factor'] # Propotional value, for now value 1 seems to work fine with all Dxl joints
         if distance_to_limit!=0:
             brake_zone_thresh = brake_zone_factor*abs(self.status['vel'])/distance_to_limit
             brake_zone_thresh =  self.bound_value(brake_zone_thresh,0,self.total_range/2)
@@ -557,12 +560,12 @@ class DynamixelHelloXL430(Device):
     def _step_vel_braking(self, v_des):
         """
         In velocity mode while using set_velocity() command, when the joint is in a braking zone,
-        the input velocities are tapered till the joint limits and smoothly braked at the limits to 
+        the input velocities are tapered till the joint limits  to zero and smoothly braked at the limits to 
         avoid hitting the hardstops.
         """
         if self._prev_set_vel_ts is None:
             self._prev_set_vel_ts = time.time()
-        if self.status['timestamp_pc']>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency
+        if self.status['timestamp_pc']>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency for accurate motion control
             # Honor joint limits in velocity mode
             lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
                             self.ticks_to_world_rad(self.params['range_t'][1]))
