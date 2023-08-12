@@ -550,20 +550,20 @@ class DynamixelHelloXL430(Device):
 
             c1 = to_min<to_max and v_des>0 # if v_des -ve
             c2 = to_min>to_max and v_des<0 # if v_des +ve
-            opp_vel = c1 or c2 # allow input velocity if opposite to nearest limit else apply brake velocities
+            opp_vel = c1 or c2 
 
             t_brake = abs(v_curr /self.params['motion']['max']['accel'])  # How long to brake from current speed (s)
             d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
             d_brake = d_brake+deg_to_rad(5.0) #Pad out by 5 degrees to give a bit of safety margin
             v = 0
             if opp_vel:
-                v = v_des
-            elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower):
-                v = 0 # apply brakes
+                v = v_des # allow input velocity if direction is opposite to nearest limit
+            elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower) or min(to_max,to_max)<0.1:
+                v = 0  # apply brakes if the braking distance is >= limits
             else:
                 taper = min(to_max,to_min)/self.vel_brake_zone_thresh # normalized (0~1) distance to limits
-                v = v_des*taper # apply tapered velocity 
-
+                v = v_des*taper # apply tapered velocity inside braking zone
+            self.logger.debug(f"Applied safety brakes near limits. reduced set_vel={v} rad/s")
             self.motor.set_vel(self.world_rad_to_ticks_per_sec(v))
             self._prev_set_vel_ts = time.time()
 
