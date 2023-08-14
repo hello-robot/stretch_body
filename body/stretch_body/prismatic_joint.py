@@ -151,16 +151,7 @@ class PrismaticJoint(Device):
         i_contact_neg = self.motor.effort_pct_to_current(max(e_cn, self.params['contact_models']['effort_pct']['contact_thresh_max'][0]))
         i_contact_pos = self.motor.effort_pct_to_current(min(e_cp, self.params['contact_models']['effort_pct']['contact_thresh_max'][1]))
         return i_contact_pos, i_contact_neg
-    
-    def set_safe_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None,req_calibration=True,
-                     contact_thresh_pos=None, contact_thresh_neg=None):
-        if self.in_vel_brake_zone: # only when sentry is active
-            self._step_vel_braking(v_m, a_m,stiffness, contact_thresh_pos_N,contact_thresh_neg_N,req_calibration,
-                     contact_thresh_pos, contact_thresh_neg)
-        else:
-            self.set_velocity(v_m, a_m,stiffness, contact_thresh_pos_N,contact_thresh_neg_N,req_calibration,
-                     contact_thresh_pos, contact_thresh_neg)
-            self._prev_set_vel_ts = time.time()
+
 
     def set_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None,req_calibration=True,
                      contact_thresh_pos=None, contact_thresh_neg=None):
@@ -197,17 +188,24 @@ class PrismaticJoint(Device):
 
         i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos,contact_thresh_neg )
 
+        if self.params['set_safe_velocity']==1 and self.in_vel_brake_zone: # only when sentry is active
+            self._step_vel_braking(v_des=v_m, # vel in m/s
+                                   a_des=a_r,
+                                   stiffness=stiffness,
+                                   i_feedforward=self.i_feedforward,
+                                   i_contact_pos=i_contact_pos,
+                                   i_contact_neg=i_contact_neg)
+        else:
+            self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
+                                v_des=v_r,
+                                a_des=a_r,
+                                stiffness=stiffness,
+                                i_feedforward=self.i_feedforward,
+                                i_contact_pos=i_contact_pos,
+                                i_contact_neg=i_contact_neg)
+            self._prev_set_vel_ts = time.time()
 
-        self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
-                               v_des=v_r,
-                               a_des=a_r,
-                               stiffness=stiffness,
-                               i_feedforward=self.i_feedforward,
-                               i_contact_pos=i_contact_pos,
-                               i_contact_neg=i_contact_neg)
-
-    def _step_vel_braking(self, v_des, a_m,stiffness, contact_thresh_pos_N,contact_thresh_neg_N,req_calibration,
-                     contact_thresh_pos, contact_thresh_ne):
+    def _step_vel_braking(self, v_des, a_des, stiffness, i_feedforward, i_contact_pos, i_contact_neg):
         """
         In velocity mode while using set_velocity() command, when the joint is in a braking zone,
         the input velocities are tapered till the joint limits  to zero and smoothly braked at the limits to 
@@ -241,9 +239,19 @@ class PrismaticJoint(Device):
             else:
                 taper = min(to_max,to_min)/self.vel_brake_zone_thresh # normalized (0~1) distance to limits
                 v = v_des*taper # apply tapered velocity inside braking zone
+            
+            # convert to motor rad
+            v_m=min(self.params['motion']['max']['vel_m'],v) if v>=0 else max(-1*self.params['motion']['max']['vel_m'],v)
+            v_r = self.translate_m_to_motor_rad(v_m)
+
             self.logger.debug(f"Applied safety brakes near limits. reduced set_vel={v} m/s")
-            self.set_velocity(v, a_m,stiffness, contact_thresh_pos_N,contact_thresh_neg_N,req_calibration,
-                     contact_thresh_pos, contact_thresh_ne)
+            self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
+                                v_des=v_r,
+                                a_des=a_des,
+                                stiffness=stiffness,
+                                i_feedforward=i_feedforward,
+                                i_contact_pos=i_contact_pos,
+                                i_contact_neg=i_contact_neg)
             self._prev_set_vel_ts = time.time()
 
     def bound_value(self, value, lower_bound, upper_bound):
