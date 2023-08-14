@@ -25,3 +25,9 @@ class Arm(PrismaticJoint):
 
     def home(self, end_pos=0.1,to_positive_stop=False, measuring=False):
         return PrismaticJoint.home(self,end_pos=end_pos,to_positive_stop=to_positive_stop,measuring=measuring)
+
+    def set_velocity(self, v_m, a_m=None, stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None, req_calibration=True, contact_thresh_pos=None, contact_thresh_neg=None):
+        if self.params['safe_set_velocit']==1:
+            PrismaticJoint.set_safe_velocity(v_m, a_m, stiffness, contact_thresh_pos_N, contact_thresh_neg_N, req_calibration, contact_thresh_pos, contact_thresh_neg)
+        else:
+            PrismaticJoint.set_safe_velocity(v_m, a_m, stiffness, contact_thresh_pos_N, contact_thresh_neg_N, req_calibration, contact_thresh_pos, contact_thresh_neg)
