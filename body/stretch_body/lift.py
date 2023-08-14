@@ -31,6 +31,6 @@ class Lift(PrismaticJoint):
     
     def set_velocity(self, v_m, a_m=None, stiffness=None, contact_thresh_pos_N=None, contact_thresh_neg_N=None, req_calibration=True, contact_thresh_pos=None, contact_thresh_neg=None):
         if self.params['safe_set_velocit']==1:
-            PrismaticJoint.set_safe_velocity(v_m, a_m, stiffness, contact_thresh_pos_N, contact_thresh_neg_N, req_calibration, contact_thresh_pos, contact_thresh_neg)
+            return PrismaticJoint.set_safe_velocity(v_m, a_m, stiffness, contact_thresh_pos_N, contact_thresh_neg_N, req_calibration, contact_thresh_pos, contact_thresh_neg)
         else:
-            PrismaticJoint.set_safe_velocity(v_m, a_m, stiffness, contact_thresh_pos_N, contact_thresh_neg_N, req_calibration, contact_thresh_pos, contact_thresh_neg)
+            return PrismaticJoint.set_velocity(v_m, a_m, stiffness, contact_thresh_pos_N, contact_thresh_neg_N, req_calibration, contact_thresh_pos, contact_thresh_neg)
