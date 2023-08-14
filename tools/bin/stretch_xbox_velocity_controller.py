@@ -101,7 +101,7 @@ class CommandLiftVelocity:
     def command_stick_to_velocity(self, x):
         x = to_parabola_transform(x)
         self._process_stick_to_vel(x)
-        self.motor.set_safe_velocity(self.safety_v_m)
+        self.motor.set_velocity(self.safety_v_m)
         self._prev_set_vel_ts = time.time()
         print(f"[CommandLiftVelocity]  X: {x} || v_m: {self.safety_v_m}")
 
@@ -133,7 +133,7 @@ class CommandArmVelocity:
     def command_stick_to_velocity(self, x):
         x = to_parabola_transform(x)
         self._process_stick_to_vel(x)
-        self.motor.set_safe_velocity(self.safety_v_m)
+        self.motor.set_velocity(self.safety_v_m)
         self._prev_set_vel_ts = time.time()
         print(f"[CommandArmVelocity]  X: {x} || v_m: {self.safety_v_m}")
 
