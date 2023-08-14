@@ -37,7 +37,7 @@ class PrismaticJoint(Device):
         self.in_vel_brake_zone = False
         self.in_vel_mode = False 
         self.dist_to_min_max = None # track dist to min,max limits
-        self.vel_brake_zone_thresh = 0.2 # initial/minimum brake zone thresh value
+        self.vel_brake_zone_thresh = 0.02 # initial/minimum brake zone thresh value
         self._prev_set_vel_ts = None
         self.watchdog_enabled = False
         self.total_range = abs(self.params['range_m'][1] - self.params['range_m'][0])
@@ -230,14 +230,14 @@ class PrismaticJoint(Device):
             c2 = to_min>to_max and v_des<0 # if v_des +ve
             opp_vel = c1 or c2 
 
-            t_brake = abs(v_curr /self.params['motion']['max']['accel_m'])  # How long to brake from current speed (s)
-            d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
-            d_brake = d_brake+0.02 #Pad out by 2 cm to give a bit of safety margin
+            # t_brake = abs(v_curr /self.params['motion']['max']['accel_m'])  # How long to brake from current speed (s)
+            # d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
+            # d_brake = d_brake+0.01 #Pad out by 1 cm to give a bit of safety margin
             v = 0
             if opp_vel:
                 v = v_des # allow input velocity if direction is opposite to nearest limit
-            elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower) or min(to_max,to_max)<0.1:
-                v = 0  # apply brakes if the braking distance is >= limits
+            # elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower) or min(to_max,to_max)<0.1:
+            #     v = 0  # apply brakes if the braking distance is >= limits
             else:
                 taper = min(to_max,to_min)/self.vel_brake_zone_thresh # normalized (0~1) distance to limits
                 v = v_des*taper # apply tapered velocity inside braking zone
@@ -245,6 +245,14 @@ class PrismaticJoint(Device):
             self.set_velocity(v, a_m,stiffness, contact_thresh_pos_N,contact_thresh_neg_N,req_calibration,
                      contact_thresh_pos, contact_thresh_ne)
             self._prev_set_vel_ts = time.time()
+
+    def bound_value(self, value, lower_bound, upper_bound):
+        if value < lower_bound:
+            return lower_bound
+        elif value > upper_bound:
+            return upper_bound
+        else:
+            return value
 
     def move_to(self,x_m,v_m=None, a_m=None, stiffness=None, contact_thresh_pos_N=None,contact_thresh_neg_N=None,
                 req_calibration=True,contact_thresh_pos=None, contact_thresh_neg=None):
