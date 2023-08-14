@@ -28,5 +28,3 @@ class Lift(PrismaticJoint):
 
     def home(self, end_pos=0.6,to_positive_stop=True, measuring=False):
         return PrismaticJoint.home(self,end_pos=end_pos,to_positive_stop=to_positive_stop,measuring=measuring)
-
-

@@ -91,7 +91,9 @@ nominal_params={
                 'vel_m': 0.05},
             'trajectory_max': {
                 'vel_m': 0.4,
-                'accel_m': 0.4}}},
+                'accel_m': 0.4},
+        'vel_brakezone_factor': 0.3},
+        'set_safe_velocity': 1},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
         'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
@@ -409,7 +411,9 @@ nominal_params={
               'vel_m': 0.05},
             'trajectory_max': {
               'accel_m': 0.3,
-              'vel_m': 0.15}},
+              'vel_m': 0.15},
+        'vel_brakezone_factor': 0.0},
+        'set_safe_velocity': 1,
           'pinion_t': 12},
     'pimu':{
       'usb_name': '/dev/hello-pimu',
@@ -603,6 +607,14 @@ nominal_params={
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0]},
+    'wrist_pitch':{
+        'motion':{
+        'vel_brakezone_factor': 1}
+    },
+    'wrist_roll':{
+        'motion':{
+        'vel_brakezone_factor': 1}
+    },
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
     'lidar': {'usb_name': '/dev/hello-lrf'}
 }
