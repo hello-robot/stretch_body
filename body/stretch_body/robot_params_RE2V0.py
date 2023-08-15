@@ -182,6 +182,7 @@ nominal_params={
                 'vel_r': 8.0,
                 'accel_r': 16.0},
             'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [800, 200, 200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -224,6 +225,7 @@ nominal_params={
                 'vel_r': 8.0,
                 'accel_r': 16.0},
             'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [800,200,200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -590,6 +592,7 @@ nominal_params={
                   'vel_r': 3.0,
                   'accel_r': 3.0},
             'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [640,0,0],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -607,14 +610,6 @@ nominal_params={
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0]},
-    'wrist_pitch':{
-        'motion':{
-        'vel_brakezone_factor': 1}
-    },
-    'wrist_roll':{
-        'motion':{
-        'vel_brakezone_factor': 1}
-    },
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
     'lidar': {'usb_name': '/dev/hello-lrf'}
 }
