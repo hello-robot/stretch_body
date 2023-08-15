@@ -542,7 +542,7 @@ class DynamixelHelloXL430(Device):
             self.enable_velocity_ctrl()
         for i in range(nretry):
             try:
-                if self.in_vel_brake_zone: # only when sentry is active
+                if self.params['set_safe_velocity'] and self.in_vel_brake_zone: # only when sentry is active
                     self._step_vel_braking(v_des)
                 else:
                     t_des = self.world_rad_to_ticks_per_sec(v_des)
