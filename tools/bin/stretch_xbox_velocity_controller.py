@@ -42,7 +42,7 @@ class CommandBaseVelocity:
         self.max_rotation_vel = 1.90241 # rad/s
         self.safety_v_m = 0
         self.safety_w_r = 0
-        self.scale_factor = 0.8
+        self.scale_factor = 1
     
     def _step_feedback_check(self,v_m, w_r):
         if self._prev_set_vel_ts is None:
@@ -111,7 +111,7 @@ class CommandArmVelocity:
         self._prev_set_vel_ts = None
         self.max_linear_vel = self.motor.params['motion']['max']['vel_m']
         self.safety_v_m = 0
-        self.scale_factor = 0.8
+        self.scale_factor = 1
     
     def _step_feedback_check(self,v_m):
         if self._prev_set_vel_ts is None:
@@ -142,9 +142,9 @@ class CommandWristYawVelocity:
     def __init__(self, motor):
         self.motor = motor
         self._prev_set_vel_ts = None
-        self.max_linear_vel = 3 # rad/s
+        self.max_linear_vel = self.motor.params['motion']['max']['vel']
         self.safety_v = 0
-        self.scale_factor = 0.5
+        self.scale_factor = 1
     
     def _step_feedback_check(self,v):
         if self._prev_set_vel_ts is None:
@@ -176,10 +176,10 @@ class CommandWristPitchVelocity:
     def __init__(self, motor):
         self.motor = motor
         self._prev_set_vel_ts = None
-        self.max_linear_vel = 3 # rad/s
+        self.max_linear_vel = self.motor.params['motion']['max']['vel']
         self.safety_v = 0
-        self.scale_factor = 0.5
-    
+        self.scale_factor = 1
+
     def _step_feedback_check(self,v):
         if self._prev_set_vel_ts is None:
             return
@@ -205,6 +205,72 @@ class CommandWristPitchVelocity:
         self._prev_set_vel_ts = time.time()
         print(f"[CommandWristPitchVelocity]  X: {x} || v: {self.safety_v}")
 
+class CommandHeadPanVelocity:
+    def __init__(self, motor):
+        self.motor = motor
+        self._prev_set_vel_ts = None
+        self.max_linear_vel = self.motor.params['motion']['max']['vel']
+        self.safety_v = 0
+        self.scale_factor = 1
+    
+    def _step_feedback_check(self,v):
+        if self._prev_set_vel_ts is None:
+            return
+        if self.motor.status['timestamp_pc'] > self._prev_set_vel_ts:
+            # modify vel value based on 
+            # feedback from reading the status
+            pass
+        self.safety_v = v*self.scale_factor
+
+    def _process_stick_to_vel(self, x):
+        # do someting
+        x = -1*x
+        v = map_to_range(abs(x), 0, self.max_linear_vel)
+        if x<0:
+            v = -1*v
+
+        self._step_feedback_check(v)
+    
+    def command_stick_to_velocity(self, x):
+        x = to_parabola_transform(x)
+        self._process_stick_to_vel(x)
+        self.motor.set_velocity(self.safety_v)
+        self._prev_set_vel_ts = time.time()
+        print(f"[CommandHeadPanVelocity]  X: {x} || v: {self.safety_v}")
+
+class CommandHeadTiltVelocity:
+    def __init__(self, motor):
+        self.motor = motor
+        self._prev_set_vel_ts = None
+        self.max_linear_vel = self.motor.params['motion']['max']['vel']
+        self.safety_v = 0
+        self.scale_factor = 1
+    
+    def _step_feedback_check(self,v):
+        if self._prev_set_vel_ts is None:
+            return
+        if self.motor.status['timestamp_pc'] > self._prev_set_vel_ts:
+            # modify vel value based on 
+            # feedback from reading the status
+            pass
+        self.safety_v = v*self.scale_factor
+
+    def _process_stick_to_vel(self, x):
+        # do someting
+        x = -1*x
+        v = map_to_range(abs(x), 0, self.max_linear_vel)
+        if x<0:
+            v = -1*v
+
+        self._step_feedback_check(v)
+    
+    def command_stick_to_velocity(self, x):
+        x = to_parabola_transform(x)
+        self._process_stick_to_vel(x)
+        self.motor.set_velocity(self.safety_v)
+        self._prev_set_vel_ts = time.time()
+        print(f"[CommandHeadTiltVelocity]  X: {x} || v: {self.safety_v}")
+
 
 
 def main():
@@ -217,19 +283,26 @@ def main():
         lift_command = CommandLiftVelocity(robot.lift)
         arm_command = CommandArmVelocity(robot.arm)
         wirst_yaw_command = CommandWristYawVelocity(robot.end_of_arm.get_joint('wrist_yaw'))
+        head_pan = CommandHeadPanVelocity(robot.head.get_joint('head_pan'))
+        head_tilt =  CommandHeadTiltVelocity(robot.head.get_joint('head_tilt'))
         if 'wrist_pitch' in list(robot.end_of_arm.joints):
             wrist_pitch_command = CommandWristPitchVelocity(robot.end_of_arm.get_joint('wrist_pitch'))
         sleep = 1/100
         while True:
             state = xbox_controller.get_state()
-            if state['left_shoulder_button_pressed']:
+            if state['right_shoulder_button_pressed']:
                 wirst_yaw_command.command_stick_to_velocity(state['right_stick_x'])
                 if 'wrist_pitch' in list(robot.end_of_arm.joints):
                     wrist_pitch_command.command_stick_to_velocity(state['right_stick_y'])
             else:
                 arm_command.command_stick_to_velocity(state['right_stick_x'])
                 lift_command.command_stick_to_velocity(state['right_stick_y'])
-            base_command.command_stick_to_velocity(state['left_stick_x'],state['left_stick_y'])
+            if state['left_shoulder_button_pressed']:
+                head_pan.command_stick_to_velocity(state['left_stick_x'])
+                head_tilt.command_stick_to_velocity(state['left_stick_y'])
+                pass
+            else:
+                base_command.command_stick_to_velocity(state['left_stick_x'],state['left_stick_y'])
             robot.push_command()
             time.sleep(sleep)
     except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError):
