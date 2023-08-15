@@ -217,7 +217,7 @@ nominal_params={
                 'vel': 5.0},
             'max': {
                 'accel': 14.0,
-                'vel': 7.0},
+                'vel': 6.0},
             'slow': {
                 'accel': 4.0,
                 'vel': 1.0},
@@ -584,7 +584,7 @@ nominal_params={
               'vel': 2.5},
             'max':{
               'accel': 10,
-              'vel': 6.0},
+              'vel': 3.0},
             'slow':{
               'accel': 1.5,
               'vel': 0.75},

@@ -530,6 +530,8 @@ class DynamixelHelloXL430(Device):
                     raise DynamixelCommError
 
     def set_velocity(self,v_des,a_des=None):
+        v = min(self.params['motion']['max']['vel'],abs(v_des))
+        v_des = -1*v if v_des<0 else v
         nretry = 2
         if not self.hw_valid:
             return
