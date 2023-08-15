@@ -99,7 +99,9 @@ nominal_params={
                 'vel_m': 0.06},
             'trajectory_max': {
                 'vel_m': 0.3,
-                'accel_m': 0.5}}},
+                'accel_m': 0.5},
+                'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
         'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
@@ -185,7 +187,9 @@ nominal_params={
                 'vel': 1.0},
             'trajectory_max': {
                 'vel_r': 8.0,
-                'accel_r': 16.0}},
+                'accel_r': 16.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [800, 200, 200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -218,13 +222,15 @@ nominal_params={
                 'vel': 5.0},
             'max': {
                 'accel': 14.0,
-                'vel': 7.0},
+                'vel': 6.0},
             'slow': {
                 'accel': 4.0,
                 'vel': 1.0},
             'trajectory_max': {
                 'vel_r': 8.0,
-                'accel_r': 16.0}},
+                'accel_r': 16.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [800,200,200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -410,7 +416,9 @@ nominal_params={
                 'vel_m': 0.05},
             'trajectory_max': {
                 'vel_m': 0.2,
-                'accel_m': 0.3}},
+                'accel_m': 0.3},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pinion_t': 12},
     'pimu':{
       'usb_name': '/dev/hello-pimu',
@@ -505,7 +513,9 @@ nominal_params={
               'vel': 2.0},
             'trajectory_max': {
                 'vel_r': 50.0,
-                'accel_r': 100.0}},
+                'accel_r': 100.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [640.0,0,0],
         'pwm_homing': [-400, 0],
         'pwm_limit': 885,
@@ -576,13 +586,15 @@ nominal_params={
                 'vel': 2.5},
             'max': {
                 'accel': 10,
-                'vel': 6.0},
+                'vel': 3.0},
             'slow': {
                 'accel': 1.5,
                 'vel': 0.75},
             'trajectory_max': {
                 'vel_r': 3.0,
-                'accel_r': 3.0}},
+                'accel_r': 3.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [640,0,0],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,

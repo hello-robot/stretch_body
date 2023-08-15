@@ -147,7 +147,7 @@ class PrismaticJoint(Device):
         This model converts from a specified percentage effort (-100 to 100) in the motor frame to motor currents
         """
         e_cn = self.params['contact_models']['effort_pct']['contact_thresh_default'][0] if contact_thresh_neg is None else contact_thresh_neg
-        e_cp = self.params['contact_models']['effort_pct']['contact_thresh_default'][1] if contact_thresh_neg is None else contact_thresh_pos
+        e_cp = self.params['contact_models']['effort_pct']['contact_thresh_default'][1] if contact_thresh_pos is None else contact_thresh_pos
         i_contact_neg = self.motor.effort_pct_to_current(max(e_cn, self.params['contact_models']['effort_pct']['contact_thresh_max'][0]))
         i_contact_pos = self.motor.effort_pct_to_current(min(e_cp, self.params['contact_models']['effort_pct']['contact_thresh_max'][1]))
         return i_contact_pos, i_contact_neg
@@ -227,15 +227,12 @@ class PrismaticJoint(Device):
             c1 = to_min<to_max and v_des>0 # if v_des -ve
             c2 = to_min>to_max and v_des<0 # if v_des +ve
             opp_vel = c1 or c2 
-
-            # t_brake = abs(v_curr /self.params['motion']['max']['accel_m'])  # How long to brake from current speed (s)
-            # d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
-            # d_brake = d_brake+0.01 #Pad out by 1 cm to give a bit of safety margin
+            
             v = 0
             if opp_vel:
                 v = v_des # allow input velocity if direction is opposite to nearest limit
-            # elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower) or min(to_max,to_max)<0.1:
-            #     v = 0  # apply brakes if the braking distance is >= limits
+            elif min(to_max,to_max)<0.001:
+                v = 0  # apply brakes if the braking distance is >= limits
             else:
                 taper = min(to_max,to_min)/self.vel_brake_zone_thresh # normalized (0~1) distance to limits
                 v = v_des*taper # apply tapered velocity inside braking zone
@@ -562,7 +559,7 @@ class PrismaticJoint(Device):
         if distance_to_limit!=0:
             brake_zone_thresh = brake_zone_factor*abs(self.status['vel'])/distance_to_limit
             brake_zone_thresh =  self.bound_value(brake_zone_thresh,0,self.total_range/2)
-            brake_zone_thresh = brake_zone_thresh + 0.2 # 20cm s is minimum brake zone thresh  
+            brake_zone_thresh = brake_zone_thresh + 0.02 # 1cm s is minimum brake zone thresh  
             self._set_vel_brake_thresh(brake_zone_thresh)
 
     def _set_vel_brake_thresh(self, thresh):

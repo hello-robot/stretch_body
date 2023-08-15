@@ -92,7 +92,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_m': 0.4,
                 'accel_m': 0.4},
-        'vel_brakezone_factor': 0.3},
+        'vel_brakezone_factor': 0.2},
         'set_safe_velocity': 1},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
@@ -181,7 +181,8 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 8.0,
                 'accel_r': 16.0},
-            'vel_brakezone_factor': 1},
+            'vel_brakezone_factor': 1.5},
+        'set_safe_velocity': 1,
         'pid': [800, 200, 200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -216,14 +217,15 @@ nominal_params={
                 'vel': 5.0},
             'max': {
                 'accel': 14.0,
-                'vel': 7.0},
+                'vel': 6.0},
             'slow': {
                 'accel': 4.0,
                 'vel': 1.0},
             'trajectory_max': {
                 'vel_r': 8.0,
                 'accel_r': 16.0},
-            'vel_brakezone_factor': 1},
+            'vel_brakezone_factor': 1.2},
+        'set_safe_velocity': 1,
         'pid': [800,200,200],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -412,7 +414,7 @@ nominal_params={
             'trajectory_max': {
               'accel_m': 0.3,
               'vel_m': 0.15},
-        'vel_brakezone_factor': 0.0},
+        'vel_brakezone_factor': 0.03},
         'set_safe_velocity': 1,
           'pinion_t': 12},
     'pimu':{
@@ -582,7 +584,7 @@ nominal_params={
               'vel': 2.5},
             'max':{
               'accel': 10,
-              'vel': 6.0},
+              'vel': 3.0},
             'slow':{
               'accel': 1.5,
               'vel': 0.75},
@@ -590,6 +592,7 @@ nominal_params={
                   'vel_r': 3.0,
                   'accel_r': 3.0},
             'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [640,0,0],
         'pwm_homing': [-300,300],
         'pwm_limit': 885,
@@ -607,14 +610,6 @@ nominal_params={
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0]},
-    'wrist_pitch':{
-        'motion':{
-        'vel_brakezone_factor': 1}
-    },
-    'wrist_roll':{
-        'motion':{
-        'vel_brakezone_factor': 1}
-    },
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
     'lidar': {'usb_name': '/dev/hello-lrf'}
 }
