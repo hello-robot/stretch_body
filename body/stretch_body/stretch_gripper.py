@@ -1,7 +1,6 @@
 from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 
-
 class StretchGripper(DynamixelHelloXL430):
     """
     API to the Stretch Gripper
@@ -81,6 +80,8 @@ class StretchGripper(DynamixelHelloXL430):
         DynamixelHelloXL430.step_sentry(self, robot)
         if self.hw_valid and self.robot_params['robot_sentry']['stretch_gripper_overload'] and not self.is_homing:
             if self.status['stall_overload']:
+                if self.in_vel_mode:
+                    self.enable_pos()
                 if self.status['effort'] < 0: #Only backoff in open direction
                     self.logger.debug('Backoff at stall overload')
                     self.move_by(self.params['stall_backoff'])
