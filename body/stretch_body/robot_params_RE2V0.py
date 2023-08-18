@@ -512,6 +512,7 @@ nominal_params={
                 'vel_r': 50.0,
                 'accel_r': 100.0},
             'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
         'pid': [640.0,0,0],
         'pwm_homing': [-400, 0],
         'pwm_limit': 885,
