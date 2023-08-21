@@ -241,7 +241,7 @@ class PrismaticJoint(Device):
             v_m=min(self.params['motion']['max']['vel_m'],v) if v>=0 else max(-1*self.params['motion']['max']['vel_m'],v)
             v_r = self.translate_m_to_motor_rad(v_m)
 
-            self.logger.debug(f"Applied safety brakes near limits. reduced set_vel={v} m/s")
+            self.logger.debug(f"Applied safety brakes near limits. reduced set_vel={v_m} m/s")
             self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
                                 v_des=v_r,
                                 a_des=a_des,

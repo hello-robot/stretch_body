@@ -612,7 +612,7 @@ class DynamixelHelloXL430(Device):
             self.logger.warning('Dynamixel not calibrated: %s' % self.name)
             print('Dynamixel not calibrated:', self.name)
             return
-        if self.motor.get_operating_mode()!=3:
+        if self.in_vel_mode:
             self.enable_pos()
         #print('Motion Params',v_des,a_des)
         self.set_motion_params(v_des,a_des)
@@ -659,6 +659,8 @@ class DynamixelHelloXL430(Device):
     def move_by(self,x_des, v_des=None, a_des=None):
         if not self.hw_valid:
             return
+        if self.in_vel_mode:
+            self.enable_pos()
         try:
             if abs(x_des) > 0.00002: #Avoid drift
                 x=self.motor.get_pos()
