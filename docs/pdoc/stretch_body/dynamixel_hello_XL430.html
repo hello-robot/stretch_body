@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -238,6 +238,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/dynamixel_hello_XL430.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.dynamixel_hello_XL430    </h1>
 
@@ -298,7 +299,7 @@
 </span><span id="L-50"><a href="#L-50"><span class="linenos">  50</span></a>
 </span><span id="L-51"><a href="#L-51"><span class="linenos">  51</span></a>
 </span><span id="L-52"><a href="#L-52"><span class="linenos">  52</span></a><span class="k">class</span> <span class="nc">DynamixelHelloXL430</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">  53</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">  53</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos">  54</span></a><span class="sd">    Abstract the Dynamixel X-Series to handle calibration, radians, etc</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos">  55</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos">  56</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">chain</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -358,7 +359,7 @@
 </span><span id="L-110"><a href="#L-110"><span class="linenos"> 110</span></a>    <span class="c1"># ###########  Device Methods #############</span>
 </span><span id="L-111"><a href="#L-111"><span class="linenos"> 111</span></a>
 </span><span id="L-112"><a href="#L-112"><span class="linenos"> 112</span></a>    <span class="k">def</span> <span class="nf">check_homing_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos"> 113</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos"> 113</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos"> 114</span></a><span class="sd">        Users may incorrectly set the homing offset on a single-turn servo</span>
 </span><span id="L-115"><a href="#L-115"><span class="linenos"> 115</span></a><span class="sd">        In general on single-turn servos, the homing offset should be zero</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos"> 116</span></a><span class="sd">        In some cases it may be non-zero but between -1024 and 1024 (per DXL spec)</span>
@@ -376,7 +377,7 @@
 </span><span id="L-128"><a href="#L-128"><span class="linenos"> 128</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">enable_torque</span><span class="p">()</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos"> 129</span></a>
 </span><span id="L-130"><a href="#L-130"><span class="linenos"> 130</span></a>    <span class="k">def</span> <span class="nf">get_soft_motion_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-131"><a href="#L-131"><span class="linenos"> 131</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos"> 131</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-132"><a href="#L-132"><span class="linenos"> 132</span></a><span class="sd">            Return the currently applied soft motion limits: [min, max]</span>
 </span><span id="L-133"><a href="#L-133"><span class="linenos"> 133</span></a>
 </span><span id="L-134"><a href="#L-134"><span class="linenos"> 134</span></a><span class="sd">            The soft motion limit restricts joint motion to be &lt;= its physical limits.</span>
@@ -395,7 +396,7 @@
 </span><span id="L-147"><a href="#L-147"><span class="linenos"> 147</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">soft_motion_limits</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">]</span>
 </span><span id="L-148"><a href="#L-148"><span class="linenos"> 148</span></a>
 </span><span id="L-149"><a href="#L-149"><span class="linenos"> 149</span></a>    <span class="k">def</span> <span class="nf">set_soft_motion_limit_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">limit_type</span><span class="o">=</span><span class="s1">&#39;user&#39;</span> <span class="p">):</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos"> 150</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos"> 150</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-151"><a href="#L-151"><span class="linenos"> 151</span></a><span class="sd">        x: value to set a joints limit to</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos"> 152</span></a><span class="sd">        limit_type: &#39;user&#39; or &#39;collision&#39;</span>
 </span><span id="L-153"><a href="#L-153"><span class="linenos"> 153</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -404,7 +405,7 @@
 </span><span id="L-156"><a href="#L-156"><span class="linenos"> 156</span></a>
 </span><span id="L-157"><a href="#L-157"><span class="linenos"> 157</span></a>
 </span><span id="L-158"><a href="#L-158"><span class="linenos"> 158</span></a>    <span class="k">def</span> <span class="nf">set_soft_motion_limit_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">limit_type</span><span class="o">=</span><span class="s1">&#39;user&#39;</span> <span class="p">):</span>
-</span><span id="L-159"><a href="#L-159"><span class="linenos"> 159</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos"> 159</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-160"><a href="#L-160"><span class="linenos"> 160</span></a><span class="sd">        x: value to set a joints limit to</span>
 </span><span id="L-161"><a href="#L-161"><span class="linenos"> 161</span></a><span class="sd">        limit_type: &#39;user&#39; or &#39;collision&#39;</span>
 </span><span id="L-162"><a href="#L-162"><span class="linenos"> 162</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -617,7 +618,7 @@
 </span><span id="L-369"><a href="#L-369"><span class="linenos"> 369</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">write_device_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 </span><span id="L-370"><a href="#L-370"><span class="linenos"> 370</span></a>
 </span><span id="L-371"><a href="#L-371"><span class="linenos"> 371</span></a>    <span class="k">def</span> <span class="nf">wait_until_at_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="L-372"><a href="#L-372"><span class="linenos"> 372</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Polls for moving status to wait until at commanded position goal</span>
+</span><span id="L-372"><a href="#L-372"><span class="linenos"> 372</span></a>        <span class="sd">&quot;&quot;&quot;Polls for moving status to wait until at commanded position goal</span>
 </span><span id="L-373"><a href="#L-373"><span class="linenos"> 373</span></a>
 </span><span id="L-374"><a href="#L-374"><span class="linenos"> 374</span></a><span class="sd">        Returns</span>
 </span><span id="L-375"><a href="#L-375"><span class="linenos"> 375</span></a><span class="sd">        -------</span>
@@ -712,7 +713,7 @@
 </span><span id="L-464"><a href="#L-464"><span class="linenos"> 464</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_update_safety_vel_brake_zone</span><span class="p">()</span>
 </span><span id="L-465"><a href="#L-465"><span class="linenos"> 465</span></a>    
 </span><span id="L-466"><a href="#L-466"><span class="linenos"> 466</span></a>    <span class="k">def</span> <span class="nf">_update_safety_vel_brake_zone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-467"><a href="#L-467"><span class="linenos"> 467</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-467"><a href="#L-467"><span class="linenos"> 467</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-468"><a href="#L-468"><span class="linenos"> 468</span></a><span class="sd">        dynamically update the braking zone thresh based on it is propotional nature to the </span>
 </span><span id="L-469"><a href="#L-469"><span class="linenos"> 469</span></a><span class="sd">        current velocity and the inverse of distance left to reach the nearest hardstop.</span>
 </span><span id="L-470"><a href="#L-470"><span class="linenos"> 470</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -807,7 +808,7 @@
 </span><span id="L-559"><a href="#L-559"><span class="linenos"> 559</span></a>                    <span class="k">raise</span> <span class="n">DynamixelCommError</span>
 </span><span id="L-560"><a href="#L-560"><span class="linenos"> 560</span></a>    
 </span><span id="L-561"><a href="#L-561"><span class="linenos"> 561</span></a>    <span class="k">def</span> <span class="nf">_step_vel_braking</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_des</span><span class="p">):</span>
-</span><span id="L-562"><a href="#L-562"><span class="linenos"> 562</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-562"><a href="#L-562"><span class="linenos"> 562</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-563"><a href="#L-563"><span class="linenos"> 563</span></a><span class="sd">        In velocity mode while using set_velocity() command, when the joint is in a braking zone,</span>
 </span><span id="L-564"><a href="#L-564"><span class="linenos"> 564</span></a><span class="sd">        the input velocities are tapered till the joint limits  to zero and smoothly braked at the limits to </span>
 </span><span id="L-565"><a href="#L-565"><span class="linenos"> 565</span></a><span class="sd">        avoid hitting the hardstops.</span>
@@ -1002,7 +1003,7 @@
 </span><span id="L-754"><a href="#L-754"><span class="linenos"> 754</span></a>            <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">waypoints</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trajectory_ts</span><span class="p">())</span>
 </span><span id="L-755"><a href="#L-755"><span class="linenos"> 755</span></a>
 </span><span id="L-756"><a href="#L-756"><span class="linenos"> 756</span></a>    <span class="k">def</span> <span class="nf">follow_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">req_calibration</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">move_to_start_point</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="L-757"><a href="#L-757"><span class="linenos"> 757</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
+</span><span id="L-757"><a href="#L-757"><span class="linenos"> 757</span></a>        <span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
 </span><span id="L-758"><a href="#L-758"><span class="linenos"> 758</span></a>
 </span><span id="L-759"><a href="#L-759"><span class="linenos"> 759</span></a><span class="sd">        `self.trajectory` must be populated with a valid trajectory before calling</span>
 </span><span id="L-760"><a href="#L-760"><span class="linenos"> 760</span></a><span class="sd">        this method.</span>
@@ -1071,7 +1072,7 @@
 </span><span id="L-823"><a href="#L-823"><span class="linenos"> 823</span></a>        <span class="k">return</span> <span class="kc">True</span>
 </span><span id="L-824"><a href="#L-824"><span class="linenos"> 824</span></a>
 </span><span id="L-825"><a href="#L-825"><span class="linenos"> 825</span></a>    <span class="k">def</span> <span class="nf">update_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-826"><a href="#L-826"><span class="linenos"> 826</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates hardware with the next position goal of `self.trajectory`</span>
+</span><span id="L-826"><a href="#L-826"><span class="linenos"> 826</span></a>        <span class="sd">&quot;&quot;&quot;Updates hardware with the next position goal of `self.trajectory`</span>
 </span><span id="L-827"><a href="#L-827"><span class="linenos"> 827</span></a>
 </span><span id="L-828"><a href="#L-828"><span class="linenos"> 828</span></a><span class="sd">        This method must be called frequently to enable complete trajectory execution</span>
 </span><span id="L-829"><a href="#L-829"><span class="linenos"> 829</span></a><span class="sd">        and preemption of future segments. If used with `stretch_body.robot.Robot` or</span>
@@ -1099,7 +1100,7 @@
 </span><span id="L-851"><a href="#L-851"><span class="linenos"> 851</span></a>
 </span><span id="L-852"><a href="#L-852"><span class="linenos"> 852</span></a>
 </span><span id="L-853"><a href="#L-853"><span class="linenos"> 853</span></a>    <span class="k">def</span> <span class="nf">stop_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-854"><a href="#L-854"><span class="linenos"> 854</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
+</span><span id="L-854"><a href="#L-854"><span class="linenos"> 854</span></a>        <span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
 </span><span id="L-855"><a href="#L-855"><span class="linenos"> 855</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-856"><a href="#L-856"><span class="linenos"> 856</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_ts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_vel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_accel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 </span><span id="L-857"><a href="#L-857"><span class="linenos"> 857</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
@@ -1153,7 +1154,7 @@
 </span><span id="L-905"><a href="#L-905"><span class="linenos"> 905</span></a>        <span class="k">return</span> <span class="ow">not</span> <span class="n">wd_error</span>
 </span><span id="L-906"><a href="#L-906"><span class="linenos"> 906</span></a>
 </span><span id="L-907"><a href="#L-907"><span class="linenos"> 907</span></a><span class="c1"># ##########################################</span>
-</span><span id="L-908"><a href="#L-908"><span class="linenos"> 908</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-908"><a href="#L-908"><span class="linenos"> 908</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-909"><a href="#L-909"><span class="linenos"> 909</span></a><span class="sd">    Servo calibration works by:</span>
 </span><span id="L-910"><a href="#L-910"><span class="linenos"> 910</span></a><span class="sd">    </span>
 </span><span id="L-911"><a href="#L-911"><span class="linenos"> 911</span></a><span class="sd">    Homing</span>
@@ -1629,7 +1630,7 @@
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430-53"><a href="#DynamixelHelloXL430-53"><span class="linenos">  53</span></a><span class="k">class</span> <span class="nc">DynamixelHelloXL430</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-54"><a href="#DynamixelHelloXL430-54"><span class="linenos">  54</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430-54"><a href="#DynamixelHelloXL430-54"><span class="linenos">  54</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-55"><a href="#DynamixelHelloXL430-55"><span class="linenos">  55</span></a><span class="sd">    Abstract the Dynamixel X-Series to handle calibration, radians, etc</span>
 </span><span id="DynamixelHelloXL430-56"><a href="#DynamixelHelloXL430-56"><span class="linenos">  56</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-57"><a href="#DynamixelHelloXL430-57"><span class="linenos">  57</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">chain</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1689,7 +1690,7 @@
 </span><span id="DynamixelHelloXL430-111"><a href="#DynamixelHelloXL430-111"><span class="linenos"> 111</span></a>    <span class="c1"># ###########  Device Methods #############</span>
 </span><span id="DynamixelHelloXL430-112"><a href="#DynamixelHelloXL430-112"><span class="linenos"> 112</span></a>
 </span><span id="DynamixelHelloXL430-113"><a href="#DynamixelHelloXL430-113"><span class="linenos"> 113</span></a>    <span class="k">def</span> <span class="nf">check_homing_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-114"><a href="#DynamixelHelloXL430-114"><span class="linenos"> 114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430-114"><a href="#DynamixelHelloXL430-114"><span class="linenos"> 114</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-115"><a href="#DynamixelHelloXL430-115"><span class="linenos"> 115</span></a><span class="sd">        Users may incorrectly set the homing offset on a single-turn servo</span>
 </span><span id="DynamixelHelloXL430-116"><a href="#DynamixelHelloXL430-116"><span class="linenos"> 116</span></a><span class="sd">        In general on single-turn servos, the homing offset should be zero</span>
 </span><span id="DynamixelHelloXL430-117"><a href="#DynamixelHelloXL430-117"><span class="linenos"> 117</span></a><span class="sd">        In some cases it may be non-zero but between -1024 and 1024 (per DXL spec)</span>
@@ -1707,7 +1708,7 @@
 </span><span id="DynamixelHelloXL430-129"><a href="#DynamixelHelloXL430-129"><span class="linenos"> 129</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">enable_torque</span><span class="p">()</span>
 </span><span id="DynamixelHelloXL430-130"><a href="#DynamixelHelloXL430-130"><span class="linenos"> 130</span></a>
 </span><span id="DynamixelHelloXL430-131"><a href="#DynamixelHelloXL430-131"><span class="linenos"> 131</span></a>    <span class="k">def</span> <span class="nf">get_soft_motion_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-132"><a href="#DynamixelHelloXL430-132"><span class="linenos"> 132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430-132"><a href="#DynamixelHelloXL430-132"><span class="linenos"> 132</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-133"><a href="#DynamixelHelloXL430-133"><span class="linenos"> 133</span></a><span class="sd">            Return the currently applied soft motion limits: [min, max]</span>
 </span><span id="DynamixelHelloXL430-134"><a href="#DynamixelHelloXL430-134"><span class="linenos"> 134</span></a>
 </span><span id="DynamixelHelloXL430-135"><a href="#DynamixelHelloXL430-135"><span class="linenos"> 135</span></a><span class="sd">            The soft motion limit restricts joint motion to be &lt;= its physical limits.</span>
@@ -1726,7 +1727,7 @@
 </span><span id="DynamixelHelloXL430-148"><a href="#DynamixelHelloXL430-148"><span class="linenos"> 148</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">soft_motion_limits</span><span class="p">[</span><span class="s1">&#39;current&#39;</span><span class="p">]</span>
 </span><span id="DynamixelHelloXL430-149"><a href="#DynamixelHelloXL430-149"><span class="linenos"> 149</span></a>
 </span><span id="DynamixelHelloXL430-150"><a href="#DynamixelHelloXL430-150"><span class="linenos"> 150</span></a>    <span class="k">def</span> <span class="nf">set_soft_motion_limit_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">limit_type</span><span class="o">=</span><span class="s1">&#39;user&#39;</span> <span class="p">):</span>
-</span><span id="DynamixelHelloXL430-151"><a href="#DynamixelHelloXL430-151"><span class="linenos"> 151</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430-151"><a href="#DynamixelHelloXL430-151"><span class="linenos"> 151</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-152"><a href="#DynamixelHelloXL430-152"><span class="linenos"> 152</span></a><span class="sd">        x: value to set a joints limit to</span>
 </span><span id="DynamixelHelloXL430-153"><a href="#DynamixelHelloXL430-153"><span class="linenos"> 153</span></a><span class="sd">        limit_type: &#39;user&#39; or &#39;collision&#39;</span>
 </span><span id="DynamixelHelloXL430-154"><a href="#DynamixelHelloXL430-154"><span class="linenos"> 154</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -1735,7 +1736,7 @@
 </span><span id="DynamixelHelloXL430-157"><a href="#DynamixelHelloXL430-157"><span class="linenos"> 157</span></a>
 </span><span id="DynamixelHelloXL430-158"><a href="#DynamixelHelloXL430-158"><span class="linenos"> 158</span></a>
 </span><span id="DynamixelHelloXL430-159"><a href="#DynamixelHelloXL430-159"><span class="linenos"> 159</span></a>    <span class="k">def</span> <span class="nf">set_soft_motion_limit_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">limit_type</span><span class="o">=</span><span class="s1">&#39;user&#39;</span> <span class="p">):</span>
-</span><span id="DynamixelHelloXL430-160"><a href="#DynamixelHelloXL430-160"><span class="linenos"> 160</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430-160"><a href="#DynamixelHelloXL430-160"><span class="linenos"> 160</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-161"><a href="#DynamixelHelloXL430-161"><span class="linenos"> 161</span></a><span class="sd">        x: value to set a joints limit to</span>
 </span><span id="DynamixelHelloXL430-162"><a href="#DynamixelHelloXL430-162"><span class="linenos"> 162</span></a><span class="sd">        limit_type: &#39;user&#39; or &#39;collision&#39;</span>
 </span><span id="DynamixelHelloXL430-163"><a href="#DynamixelHelloXL430-163"><span class="linenos"> 163</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -1948,7 +1949,7 @@
 </span><span id="DynamixelHelloXL430-370"><a href="#DynamixelHelloXL430-370"><span class="linenos"> 370</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">write_device_params</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 </span><span id="DynamixelHelloXL430-371"><a href="#DynamixelHelloXL430-371"><span class="linenos"> 371</span></a>
 </span><span id="DynamixelHelloXL430-372"><a href="#DynamixelHelloXL430-372"><span class="linenos"> 372</span></a>    <span class="k">def</span> <span class="nf">wait_until_at_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-373"><a href="#DynamixelHelloXL430-373"><span class="linenos"> 373</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Polls for moving status to wait until at commanded position goal</span>
+</span><span id="DynamixelHelloXL430-373"><a href="#DynamixelHelloXL430-373"><span class="linenos"> 373</span></a>        <span class="sd">&quot;&quot;&quot;Polls for moving status to wait until at commanded position goal</span>
 </span><span id="DynamixelHelloXL430-374"><a href="#DynamixelHelloXL430-374"><span class="linenos"> 374</span></a>
 </span><span id="DynamixelHelloXL430-375"><a href="#DynamixelHelloXL430-375"><span class="linenos"> 375</span></a><span class="sd">        Returns</span>
 </span><span id="DynamixelHelloXL430-376"><a href="#DynamixelHelloXL430-376"><span class="linenos"> 376</span></a><span class="sd">        -------</span>
@@ -2043,7 +2044,7 @@
 </span><span id="DynamixelHelloXL430-465"><a href="#DynamixelHelloXL430-465"><span class="linenos"> 465</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_update_safety_vel_brake_zone</span><span class="p">()</span>
 </span><span id="DynamixelHelloXL430-466"><a href="#DynamixelHelloXL430-466"><span class="linenos"> 466</span></a>    
 </span><span id="DynamixelHelloXL430-467"><a href="#DynamixelHelloXL430-467"><span class="linenos"> 467</span></a>    <span class="k">def</span> <span class="nf">_update_safety_vel_brake_zone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-468"><a href="#DynamixelHelloXL430-468"><span class="linenos"> 468</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430-468"><a href="#DynamixelHelloXL430-468"><span class="linenos"> 468</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-469"><a href="#DynamixelHelloXL430-469"><span class="linenos"> 469</span></a><span class="sd">        dynamically update the braking zone thresh based on it is propotional nature to the </span>
 </span><span id="DynamixelHelloXL430-470"><a href="#DynamixelHelloXL430-470"><span class="linenos"> 470</span></a><span class="sd">        current velocity and the inverse of distance left to reach the nearest hardstop.</span>
 </span><span id="DynamixelHelloXL430-471"><a href="#DynamixelHelloXL430-471"><span class="linenos"> 471</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2138,7 +2139,7 @@
 </span><span id="DynamixelHelloXL430-560"><a href="#DynamixelHelloXL430-560"><span class="linenos"> 560</span></a>                    <span class="k">raise</span> <span class="n">DynamixelCommError</span>
 </span><span id="DynamixelHelloXL430-561"><a href="#DynamixelHelloXL430-561"><span class="linenos"> 561</span></a>    
 </span><span id="DynamixelHelloXL430-562"><a href="#DynamixelHelloXL430-562"><span class="linenos"> 562</span></a>    <span class="k">def</span> <span class="nf">_step_vel_braking</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_des</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-563"><a href="#DynamixelHelloXL430-563"><span class="linenos"> 563</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430-563"><a href="#DynamixelHelloXL430-563"><span class="linenos"> 563</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-564"><a href="#DynamixelHelloXL430-564"><span class="linenos"> 564</span></a><span class="sd">        In velocity mode while using set_velocity() command, when the joint is in a braking zone,</span>
 </span><span id="DynamixelHelloXL430-565"><a href="#DynamixelHelloXL430-565"><span class="linenos"> 565</span></a><span class="sd">        the input velocities are tapered till the joint limits  to zero and smoothly braked at the limits to </span>
 </span><span id="DynamixelHelloXL430-566"><a href="#DynamixelHelloXL430-566"><span class="linenos"> 566</span></a><span class="sd">        avoid hitting the hardstops.</span>
@@ -2333,7 +2334,7 @@
 </span><span id="DynamixelHelloXL430-755"><a href="#DynamixelHelloXL430-755"><span class="linenos"> 755</span></a>            <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">waypoints</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trajectory_ts</span><span class="p">())</span>
 </span><span id="DynamixelHelloXL430-756"><a href="#DynamixelHelloXL430-756"><span class="linenos"> 756</span></a>
 </span><span id="DynamixelHelloXL430-757"><a href="#DynamixelHelloXL430-757"><span class="linenos"> 757</span></a>    <span class="k">def</span> <span class="nf">follow_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">req_calibration</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">move_to_start_point</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-758"><a href="#DynamixelHelloXL430-758"><span class="linenos"> 758</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
+</span><span id="DynamixelHelloXL430-758"><a href="#DynamixelHelloXL430-758"><span class="linenos"> 758</span></a>        <span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
 </span><span id="DynamixelHelloXL430-759"><a href="#DynamixelHelloXL430-759"><span class="linenos"> 759</span></a>
 </span><span id="DynamixelHelloXL430-760"><a href="#DynamixelHelloXL430-760"><span class="linenos"> 760</span></a><span class="sd">        `self.trajectory` must be populated with a valid trajectory before calling</span>
 </span><span id="DynamixelHelloXL430-761"><a href="#DynamixelHelloXL430-761"><span class="linenos"> 761</span></a><span class="sd">        this method.</span>
@@ -2402,7 +2403,7 @@
 </span><span id="DynamixelHelloXL430-824"><a href="#DynamixelHelloXL430-824"><span class="linenos"> 824</span></a>        <span class="k">return</span> <span class="kc">True</span>
 </span><span id="DynamixelHelloXL430-825"><a href="#DynamixelHelloXL430-825"><span class="linenos"> 825</span></a>
 </span><span id="DynamixelHelloXL430-826"><a href="#DynamixelHelloXL430-826"><span class="linenos"> 826</span></a>    <span class="k">def</span> <span class="nf">update_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-827"><a href="#DynamixelHelloXL430-827"><span class="linenos"> 827</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates hardware with the next position goal of `self.trajectory`</span>
+</span><span id="DynamixelHelloXL430-827"><a href="#DynamixelHelloXL430-827"><span class="linenos"> 827</span></a>        <span class="sd">&quot;&quot;&quot;Updates hardware with the next position goal of `self.trajectory`</span>
 </span><span id="DynamixelHelloXL430-828"><a href="#DynamixelHelloXL430-828"><span class="linenos"> 828</span></a>
 </span><span id="DynamixelHelloXL430-829"><a href="#DynamixelHelloXL430-829"><span class="linenos"> 829</span></a><span class="sd">        This method must be called frequently to enable complete trajectory execution</span>
 </span><span id="DynamixelHelloXL430-830"><a href="#DynamixelHelloXL430-830"><span class="linenos"> 830</span></a><span class="sd">        and preemption of future segments. If used with `stretch_body.robot.Robot` or</span>
@@ -2430,7 +2431,7 @@
 </span><span id="DynamixelHelloXL430-852"><a href="#DynamixelHelloXL430-852"><span class="linenos"> 852</span></a>
 </span><span id="DynamixelHelloXL430-853"><a href="#DynamixelHelloXL430-853"><span class="linenos"> 853</span></a>
 </span><span id="DynamixelHelloXL430-854"><a href="#DynamixelHelloXL430-854"><span class="linenos"> 854</span></a>    <span class="k">def</span> <span class="nf">stop_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430-855"><a href="#DynamixelHelloXL430-855"><span class="linenos"> 855</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
+</span><span id="DynamixelHelloXL430-855"><a href="#DynamixelHelloXL430-855"><span class="linenos"> 855</span></a>        <span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
 </span><span id="DynamixelHelloXL430-856"><a href="#DynamixelHelloXL430-856"><span class="linenos"> 856</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-857"><a href="#DynamixelHelloXL430-857"><span class="linenos"> 857</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_ts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_vel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_accel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 </span><span id="DynamixelHelloXL430-858"><a href="#DynamixelHelloXL430-858"><span class="linenos"> 858</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
@@ -2484,7 +2485,7 @@
 </span><span id="DynamixelHelloXL430-906"><a href="#DynamixelHelloXL430-906"><span class="linenos"> 906</span></a>        <span class="k">return</span> <span class="ow">not</span> <span class="n">wd_error</span>
 </span><span id="DynamixelHelloXL430-907"><a href="#DynamixelHelloXL430-907"><span class="linenos"> 907</span></a>
 </span><span id="DynamixelHelloXL430-908"><a href="#DynamixelHelloXL430-908"><span class="linenos"> 908</span></a><span class="c1"># ##########################################</span>
-</span><span id="DynamixelHelloXL430-909"><a href="#DynamixelHelloXL430-909"><span class="linenos"> 909</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430-909"><a href="#DynamixelHelloXL430-909"><span class="linenos"> 909</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430-910"><a href="#DynamixelHelloXL430-910"><span class="linenos"> 910</span></a><span class="sd">    Servo calibration works by:</span>
 </span><span id="DynamixelHelloXL430-911"><a href="#DynamixelHelloXL430-911"><span class="linenos"> 911</span></a><span class="sd">    </span>
 </span><span id="DynamixelHelloXL430-912"><a href="#DynamixelHelloXL430-912"><span class="linenos"> 912</span></a><span class="sd">    Homing</span>
@@ -2777,7 +2778,7 @@
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430.check_homing_offset"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430.check_homing_offset-113"><a href="#DynamixelHelloXL430.check_homing_offset-113"><span class="linenos">113</span></a>    <span class="k">def</span> <span class="nf">check_homing_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430.check_homing_offset-114"><a href="#DynamixelHelloXL430.check_homing_offset-114"><span class="linenos">114</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430.check_homing_offset-114"><a href="#DynamixelHelloXL430.check_homing_offset-114"><span class="linenos">114</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430.check_homing_offset-115"><a href="#DynamixelHelloXL430.check_homing_offset-115"><span class="linenos">115</span></a><span class="sd">        Users may incorrectly set the homing offset on a single-turn servo</span>
 </span><span id="DynamixelHelloXL430.check_homing_offset-116"><a href="#DynamixelHelloXL430.check_homing_offset-116"><span class="linenos">116</span></a><span class="sd">        In general on single-turn servos, the homing offset should be zero</span>
 </span><span id="DynamixelHelloXL430.check_homing_offset-117"><a href="#DynamixelHelloXL430.check_homing_offset-117"><span class="linenos">117</span></a><span class="sd">        In some cases it may be non-zero but between -1024 and 1024 (per DXL spec)</span>
@@ -2818,7 +2819,7 @@ This can create unexpected behavior</p>
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430.get_soft_motion_limits"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430.get_soft_motion_limits-131"><a href="#DynamixelHelloXL430.get_soft_motion_limits-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">get_soft_motion_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430.get_soft_motion_limits-132"><a href="#DynamixelHelloXL430.get_soft_motion_limits-132"><span class="linenos">132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430.get_soft_motion_limits-132"><a href="#DynamixelHelloXL430.get_soft_motion_limits-132"><span class="linenos">132</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430.get_soft_motion_limits-133"><a href="#DynamixelHelloXL430.get_soft_motion_limits-133"><span class="linenos">133</span></a><span class="sd">            Return the currently applied soft motion limits: [min, max]</span>
 </span><span id="DynamixelHelloXL430.get_soft_motion_limits-134"><a href="#DynamixelHelloXL430.get_soft_motion_limits-134"><span class="linenos">134</span></a>
 </span><span id="DynamixelHelloXL430.get_soft_motion_limits-135"><a href="#DynamixelHelloXL430.get_soft_motion_limits-135"><span class="linenos">135</span></a><span class="sd">            The soft motion limit restricts joint motion to be &lt;= its physical limits.</span>
@@ -2868,7 +2869,7 @@ Then, by commanding User limits of None, the joint limits will revert back to th
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430.set_soft_motion_limit_min"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430.set_soft_motion_limit_min-150"><a href="#DynamixelHelloXL430.set_soft_motion_limit_min-150"><span class="linenos">150</span></a>    <span class="k">def</span> <span class="nf">set_soft_motion_limit_min</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">limit_type</span><span class="o">=</span><span class="s1">&#39;user&#39;</span> <span class="p">):</span>
-</span><span id="DynamixelHelloXL430.set_soft_motion_limit_min-151"><a href="#DynamixelHelloXL430.set_soft_motion_limit_min-151"><span class="linenos">151</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430.set_soft_motion_limit_min-151"><a href="#DynamixelHelloXL430.set_soft_motion_limit_min-151"><span class="linenos">151</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430.set_soft_motion_limit_min-152"><a href="#DynamixelHelloXL430.set_soft_motion_limit_min-152"><span class="linenos">152</span></a><span class="sd">        x: value to set a joints limit to</span>
 </span><span id="DynamixelHelloXL430.set_soft_motion_limit_min-153"><a href="#DynamixelHelloXL430.set_soft_motion_limit_min-153"><span class="linenos">153</span></a><span class="sd">        limit_type: &#39;user&#39; or &#39;collision&#39;</span>
 </span><span id="DynamixelHelloXL430.set_soft_motion_limit_min-154"><a href="#DynamixelHelloXL430.set_soft_motion_limit_min-154"><span class="linenos">154</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2895,7 +2896,7 @@ limit_type: 'user' or 'collision'</p>
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430.set_soft_motion_limit_max"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430.set_soft_motion_limit_max-159"><a href="#DynamixelHelloXL430.set_soft_motion_limit_max-159"><span class="linenos">159</span></a>    <span class="k">def</span> <span class="nf">set_soft_motion_limit_max</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">limit_type</span><span class="o">=</span><span class="s1">&#39;user&#39;</span> <span class="p">):</span>
-</span><span id="DynamixelHelloXL430.set_soft_motion_limit_max-160"><a href="#DynamixelHelloXL430.set_soft_motion_limit_max-160"><span class="linenos">160</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelHelloXL430.set_soft_motion_limit_max-160"><a href="#DynamixelHelloXL430.set_soft_motion_limit_max-160"><span class="linenos">160</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430.set_soft_motion_limit_max-161"><a href="#DynamixelHelloXL430.set_soft_motion_limit_max-161"><span class="linenos">161</span></a><span class="sd">        x: value to set a joints limit to</span>
 </span><span id="DynamixelHelloXL430.set_soft_motion_limit_max-162"><a href="#DynamixelHelloXL430.set_soft_motion_limit_max-162"><span class="linenos">162</span></a><span class="sd">        limit_type: &#39;user&#39; or &#39;collision&#39;</span>
 </span><span id="DynamixelHelloXL430.set_soft_motion_limit_max-163"><a href="#DynamixelHelloXL430.set_soft_motion_limit_max-163"><span class="linenos">163</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -3231,7 +3232,7 @@ limit_type: 'user' or 'collision'</p>
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430.wait_until_at_setpoint"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430.wait_until_at_setpoint-372"><a href="#DynamixelHelloXL430.wait_until_at_setpoint-372"><span class="linenos">372</span></a>    <span class="k">def</span> <span class="nf">wait_until_at_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430.wait_until_at_setpoint-373"><a href="#DynamixelHelloXL430.wait_until_at_setpoint-373"><span class="linenos">373</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Polls for moving status to wait until at commanded position goal</span>
+</span><span id="DynamixelHelloXL430.wait_until_at_setpoint-373"><a href="#DynamixelHelloXL430.wait_until_at_setpoint-373"><span class="linenos">373</span></a>        <span class="sd">&quot;&quot;&quot;Polls for moving status to wait until at commanded position goal</span>
 </span><span id="DynamixelHelloXL430.wait_until_at_setpoint-374"><a href="#DynamixelHelloXL430.wait_until_at_setpoint-374"><span class="linenos">374</span></a>
 </span><span id="DynamixelHelloXL430.wait_until_at_setpoint-375"><a href="#DynamixelHelloXL430.wait_until_at_setpoint-375"><span class="linenos">375</span></a><span class="sd">        Returns</span>
 </span><span id="DynamixelHelloXL430.wait_until_at_setpoint-376"><a href="#DynamixelHelloXL430.wait_until_at_setpoint-376"><span class="linenos">376</span></a><span class="sd">        -------</span>
@@ -3896,7 +3897,7 @@ limit_type: 'user' or 'collision'</p>
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430.follow_trajectory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430.follow_trajectory-757"><a href="#DynamixelHelloXL430.follow_trajectory-757"><span class="linenos">757</span></a>    <span class="k">def</span> <span class="nf">follow_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">req_calibration</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">move_to_start_point</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430.follow_trajectory-758"><a href="#DynamixelHelloXL430.follow_trajectory-758"><span class="linenos">758</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
+</span><span id="DynamixelHelloXL430.follow_trajectory-758"><a href="#DynamixelHelloXL430.follow_trajectory-758"><span class="linenos">758</span></a>        <span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
 </span><span id="DynamixelHelloXL430.follow_trajectory-759"><a href="#DynamixelHelloXL430.follow_trajectory-759"><span class="linenos">759</span></a>
 </span><span id="DynamixelHelloXL430.follow_trajectory-760"><a href="#DynamixelHelloXL430.follow_trajectory-760"><span class="linenos">760</span></a><span class="sd">        `self.trajectory` must be populated with a valid trajectory before calling</span>
 </span><span id="DynamixelHelloXL430.follow_trajectory-761"><a href="#DynamixelHelloXL430.follow_trajectory-761"><span class="linenos">761</span></a><span class="sd">        this method.</span>
@@ -3998,7 +3999,7 @@ move_to_start_point : bool
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430.update_trajectory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430.update_trajectory-826"><a href="#DynamixelHelloXL430.update_trajectory-826"><span class="linenos">826</span></a>    <span class="k">def</span> <span class="nf">update_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430.update_trajectory-827"><a href="#DynamixelHelloXL430.update_trajectory-827"><span class="linenos">827</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates hardware with the next position goal of `self.trajectory`</span>
+</span><span id="DynamixelHelloXL430.update_trajectory-827"><a href="#DynamixelHelloXL430.update_trajectory-827"><span class="linenos">827</span></a>        <span class="sd">&quot;&quot;&quot;Updates hardware with the next position goal of `self.trajectory`</span>
 </span><span id="DynamixelHelloXL430.update_trajectory-828"><a href="#DynamixelHelloXL430.update_trajectory-828"><span class="linenos">828</span></a>
 </span><span id="DynamixelHelloXL430.update_trajectory-829"><a href="#DynamixelHelloXL430.update_trajectory-829"><span class="linenos">829</span></a><span class="sd">        This method must be called frequently to enable complete trajectory execution</span>
 </span><span id="DynamixelHelloXL430.update_trajectory-830"><a href="#DynamixelHelloXL430.update_trajectory-830"><span class="linenos">830</span></a><span class="sd">        and preemption of future segments. If used with `stretch_body.robot.Robot` or</span>
@@ -4048,7 +4049,7 @@ Otherwise, the user must handle calling this method.</p>
     </div>
     <a class="headerlink" href="#DynamixelHelloXL430.stop_trajectory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelHelloXL430.stop_trajectory-854"><a href="#DynamixelHelloXL430.stop_trajectory-854"><span class="linenos">854</span></a>    <span class="k">def</span> <span class="nf">stop_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="DynamixelHelloXL430.stop_trajectory-855"><a href="#DynamixelHelloXL430.stop_trajectory-855"><span class="linenos">855</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
+</span><span id="DynamixelHelloXL430.stop_trajectory-855"><a href="#DynamixelHelloXL430.stop_trajectory-855"><span class="linenos">855</span></a>        <span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
 </span><span id="DynamixelHelloXL430.stop_trajectory-856"><a href="#DynamixelHelloXL430.stop_trajectory-856"><span class="linenos">856</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="DynamixelHelloXL430.stop_trajectory-857"><a href="#DynamixelHelloXL430.stop_trajectory-857"><span class="linenos">857</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_ts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_vel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_accel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 </span><span id="DynamixelHelloXL430.stop_trajectory-858"><a href="#DynamixelHelloXL430.stop_trajectory-858"><span class="linenos">858</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>

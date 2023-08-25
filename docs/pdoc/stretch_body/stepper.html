@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -709,6 +709,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/stepper.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.stepper    </h1>
 
@@ -732,7 +733,7 @@
 </span><span id="L-13"><a href="#L-13"><span class="linenos">  13</span></a><span class="c1"># ######################## STEPPER #################################</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos">  14</span></a>
 </span><span id="L-15"><a href="#L-15"><span class="linenos">  15</span></a><span class="k">class</span> <span class="nc">StepperBase</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">  16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">  16</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos">  17</span></a><span class="sd">    API to the Stretch Stepper Board</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos">  18</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos">  19</span></a>    <span class="n">RPC_SET_COMMAND</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1174,7 +1175,7 @@
 </span><span id="L-455"><a href="#L-455"><span class="linenos"> 455</span></a>
 </span><span id="L-456"><a href="#L-456"><span class="linenos"> 456</span></a>
 </span><span id="L-457"><a href="#L-457"><span class="linenos"> 457</span></a>    <span class="k">def</span> <span class="nf">wait_while_is_moving</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="L-458"><a href="#L-458"><span class="linenos"> 458</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-458"><a href="#L-458"><span class="linenos"> 458</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-459"><a href="#L-459"><span class="linenos"> 459</span></a><span class="sd">        Poll until is moving flag is false</span>
 </span><span id="L-460"><a href="#L-460"><span class="linenos"> 460</span></a><span class="sd">        Return True if success</span>
 </span><span id="L-461"><a href="#L-461"><span class="linenos"> 461</span></a><span class="sd">        Return False if timeout</span>
@@ -1187,7 +1188,7 @@
 </span><span id="L-468"><a href="#L-468"><span class="linenos"> 468</span></a>        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;is_moving&#39;</span><span class="p">]</span>
 </span><span id="L-469"><a href="#L-469"><span class="linenos"> 469</span></a>
 </span><span id="L-470"><a href="#L-470"><span class="linenos"> 470</span></a>    <span class="k">def</span> <span class="nf">wait_until_at_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="L-471"><a href="#L-471"><span class="linenos"> 471</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-471"><a href="#L-471"><span class="linenos"> 471</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-472"><a href="#L-472"><span class="linenos"> 472</span></a><span class="sd">        Poll until near setpoint</span>
 </span><span id="L-473"><a href="#L-473"><span class="linenos"> 473</span></a><span class="sd">        Return True if success</span>
 </span><span id="L-474"><a href="#L-474"><span class="linenos"> 474</span></a><span class="sd">        Return False if timeout</span>
@@ -1711,7 +1712,7 @@
 </span><span id="L-992"><a href="#L-992"><span class="linenos"> 992</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">set_command</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">MODE_POS_TRAJ_WAYPOINT</span><span class="p">)</span>
 </span><span id="L-993"><a href="#L-993"><span class="linenos"> 993</span></a>
 </span><span id="L-994"><a href="#L-994"><span class="linenos"> 994</span></a>    <span class="k">def</span> <span class="nf">start_waypoint_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_segment</span><span class="p">):</span>
-</span><span id="L-995"><a href="#L-995"><span class="linenos"> 995</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts execution of a waypoint trajectory on hardware</span>
+</span><span id="L-995"><a href="#L-995"><span class="linenos"> 995</span></a>        <span class="sd">&quot;&quot;&quot;Starts execution of a waypoint trajectory on hardware</span>
 </span><span id="L-996"><a href="#L-996"><span class="linenos"> 996</span></a>
 </span><span id="L-997"><a href="#L-997"><span class="linenos"> 997</span></a><span class="sd">        Parameters</span>
 </span><span id="L-998"><a href="#L-998"><span class="linenos"> 998</span></a><span class="sd">        ----------</span>
@@ -1742,7 +1743,7 @@
 </span><span id="L-1023"><a href="#L-1023"><span class="linenos">1023</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_traj_start_success</span>
 </span><span id="L-1024"><a href="#L-1024"><span class="linenos">1024</span></a>
 </span><span id="L-1025"><a href="#L-1025"><span class="linenos">1025</span></a>    <span class="k">def</span> <span class="nf">set_next_trajectory_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">next_segment</span><span class="p">):</span>
-</span><span id="L-1026"><a href="#L-1026"><span class="linenos">1026</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the next segment for the hardware to execute</span>
+</span><span id="L-1026"><a href="#L-1026"><span class="linenos">1026</span></a>        <span class="sd">&quot;&quot;&quot;Sets the next segment for the hardware to execute</span>
 </span><span id="L-1027"><a href="#L-1027"><span class="linenos">1027</span></a>
 </span><span id="L-1028"><a href="#L-1028"><span class="linenos">1028</span></a><span class="sd">        This method is generally called multiple times while the prior segment is executing. This</span>
 </span><span id="L-1029"><a href="#L-1029"><span class="linenos">1029</span></a><span class="sd">        provides the hardware with the next segment to gracefully transition across the entire spline,</span>
@@ -1777,7 +1778,7 @@
 </span><span id="L-1058"><a href="#L-1058"><span class="linenos">1058</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_traj_set_next_traj_success</span>
 </span><span id="L-1059"><a href="#L-1059"><span class="linenos">1059</span></a>
 </span><span id="L-1060"><a href="#L-1060"><span class="linenos">1060</span></a>    <span class="k">def</span> <span class="nf">stop_waypoint_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-1061"><a href="#L-1061"><span class="linenos">1061</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stops execution of the waypoint trajectory running in hardware</span>
+</span><span id="L-1061"><a href="#L-1061"><span class="linenos">1061</span></a>        <span class="sd">&quot;&quot;&quot;Stops execution of the waypoint trajectory running in hardware</span>
 </span><span id="L-1062"><a href="#L-1062"><span class="linenos">1062</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-1063"><a href="#L-1063"><span class="linenos">1063</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_ts</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="L-1064"><a href="#L-1064"><span class="linenos">1064</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">RPC_RESET_TRAJECTORY</span><span class="p">])</span>
@@ -2001,7 +2002,7 @@
 </span><span id="L-1282"><a href="#L-1282"><span class="linenos">1282</span></a>
 </span><span id="L-1283"><a href="#L-1283"><span class="linenos">1283</span></a><span class="c1"># ######################## STEPPER #################################</span>
 </span><span id="L-1284"><a href="#L-1284"><span class="linenos">1284</span></a><span class="k">class</span> <span class="nc">Stepper</span><span class="p">(</span><span class="n">StepperBase</span><span class="p">):</span>
-</span><span id="L-1285"><a href="#L-1285"><span class="linenos">1285</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-1285"><a href="#L-1285"><span class="linenos">1285</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1286"><a href="#L-1286"><span class="linenos">1286</span></a><span class="sd">    API to the Stretch Stepper Board</span>
 </span><span id="L-1287"><a href="#L-1287"><span class="linenos">1287</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-1288"><a href="#L-1288"><span class="linenos">1288</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">usb</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2014,11 +2015,11 @@
 </span><span id="L-1295"><a href="#L-1295"><span class="linenos">1295</span></a>    
 </span><span id="L-1296"><a href="#L-1296"><span class="linenos">1296</span></a>    <span class="k">def</span> <span class="nf">expand_protocol_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol_class</span><span class="p">):</span>
 </span><span id="L-1297"><a href="#L-1297"><span class="linenos">1297</span></a>        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span> <span class="ow">in</span> <span class="n">protocol_class</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="L-1298"><a href="#L-1298"><span class="linenos">1298</span></a>            <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">attr_value</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">):</span>
+</span><span id="L-1298"><a href="#L-1298"><span class="linenos">1298</span></a>            <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">attr_value</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">):</span>
 </span><span id="L-1299"><a href="#L-1299"><span class="linenos">1299</span></a>                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Stepper</span><span class="p">))</span>
 </span><span id="L-1300"><a href="#L-1300"><span class="linenos">1300</span></a>                
 </span><span id="L-1301"><a href="#L-1301"><span class="linenos">1301</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-1302"><a href="#L-1302"><span class="linenos">1302</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-1302"><a href="#L-1302"><span class="linenos">1302</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-1303"><a href="#L-1303"><span class="linenos">1303</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="L-1304"><a href="#L-1304"><span class="linenos">1304</span></a><span class="sd">        Based on that version, populates Stepper class with the supported specific Stepper_protocol_P* class methods.</span>
 </span><span id="L-1305"><a href="#L-1305"><span class="linenos">1305</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2072,7 +2073,7 @@
     </div>
     <a class="headerlink" href="#StepperBase"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="StepperBase-16"><a href="#StepperBase-16"><span class="linenos"> 16</span></a><span class="k">class</span> <span class="nc">StepperBase</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="StepperBase-17"><a href="#StepperBase-17"><span class="linenos"> 17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="StepperBase-17"><a href="#StepperBase-17"><span class="linenos"> 17</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="StepperBase-18"><a href="#StepperBase-18"><span class="linenos"> 18</span></a><span class="sd">    API to the Stretch Stepper Board</span>
 </span><span id="StepperBase-19"><a href="#StepperBase-19"><span class="linenos"> 19</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="StepperBase-20"><a href="#StepperBase-20"><span class="linenos"> 20</span></a>    <span class="n">RPC_SET_COMMAND</span> <span class="o">=</span> <span class="mi">1</span>
@@ -2514,7 +2515,7 @@
 </span><span id="StepperBase-456"><a href="#StepperBase-456"><span class="linenos">456</span></a>
 </span><span id="StepperBase-457"><a href="#StepperBase-457"><span class="linenos">457</span></a>
 </span><span id="StepperBase-458"><a href="#StepperBase-458"><span class="linenos">458</span></a>    <span class="k">def</span> <span class="nf">wait_while_is_moving</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="StepperBase-459"><a href="#StepperBase-459"><span class="linenos">459</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="StepperBase-459"><a href="#StepperBase-459"><span class="linenos">459</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="StepperBase-460"><a href="#StepperBase-460"><span class="linenos">460</span></a><span class="sd">        Poll until is moving flag is false</span>
 </span><span id="StepperBase-461"><a href="#StepperBase-461"><span class="linenos">461</span></a><span class="sd">        Return True if success</span>
 </span><span id="StepperBase-462"><a href="#StepperBase-462"><span class="linenos">462</span></a><span class="sd">        Return False if timeout</span>
@@ -2527,7 +2528,7 @@
 </span><span id="StepperBase-469"><a href="#StepperBase-469"><span class="linenos">469</span></a>        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;is_moving&#39;</span><span class="p">]</span>
 </span><span id="StepperBase-470"><a href="#StepperBase-470"><span class="linenos">470</span></a>
 </span><span id="StepperBase-471"><a href="#StepperBase-471"><span class="linenos">471</span></a>    <span class="k">def</span> <span class="nf">wait_until_at_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="StepperBase-472"><a href="#StepperBase-472"><span class="linenos">472</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="StepperBase-472"><a href="#StepperBase-472"><span class="linenos">472</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="StepperBase-473"><a href="#StepperBase-473"><span class="linenos">473</span></a><span class="sd">        Poll until near setpoint</span>
 </span><span id="StepperBase-474"><a href="#StepperBase-474"><span class="linenos">474</span></a><span class="sd">        Return True if success</span>
 </span><span id="StepperBase-475"><a href="#StepperBase-475"><span class="linenos">475</span></a><span class="sd">        Return False if timeout</span>
@@ -4973,7 +4974,7 @@
     </div>
     <a class="headerlink" href="#StepperBase.wait_while_is_moving"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="StepperBase.wait_while_is_moving-458"><a href="#StepperBase.wait_while_is_moving-458"><span class="linenos">458</span></a>    <span class="k">def</span> <span class="nf">wait_while_is_moving</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="StepperBase.wait_while_is_moving-459"><a href="#StepperBase.wait_while_is_moving-459"><span class="linenos">459</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="StepperBase.wait_while_is_moving-459"><a href="#StepperBase.wait_while_is_moving-459"><span class="linenos">459</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="StepperBase.wait_while_is_moving-460"><a href="#StepperBase.wait_while_is_moving-460"><span class="linenos">460</span></a><span class="sd">        Poll until is moving flag is false</span>
 </span><span id="StepperBase.wait_while_is_moving-461"><a href="#StepperBase.wait_while_is_moving-461"><span class="linenos">461</span></a><span class="sd">        Return True if success</span>
 </span><span id="StepperBase.wait_while_is_moving-462"><a href="#StepperBase.wait_while_is_moving-462"><span class="linenos">462</span></a><span class="sd">        Return False if timeout</span>
@@ -5006,7 +5007,7 @@ Return False if timeout</p>
     </div>
     <a class="headerlink" href="#StepperBase.wait_until_at_setpoint"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="StepperBase.wait_until_at_setpoint-471"><a href="#StepperBase.wait_until_at_setpoint-471"><span class="linenos">471</span></a>    <span class="k">def</span> <span class="nf">wait_until_at_setpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">timeout</span><span class="o">=</span><span class="mf">15.0</span><span class="p">):</span>
-</span><span id="StepperBase.wait_until_at_setpoint-472"><a href="#StepperBase.wait_until_at_setpoint-472"><span class="linenos">472</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="StepperBase.wait_until_at_setpoint-472"><a href="#StepperBase.wait_until_at_setpoint-472"><span class="linenos">472</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="StepperBase.wait_until_at_setpoint-473"><a href="#StepperBase.wait_until_at_setpoint-473"><span class="linenos">473</span></a><span class="sd">        Poll until near setpoint</span>
 </span><span id="StepperBase.wait_until_at_setpoint-474"><a href="#StepperBase.wait_until_at_setpoint-474"><span class="linenos">474</span></a><span class="sd">        Return True if success</span>
 </span><span id="StepperBase.wait_until_at_setpoint-475"><a href="#StepperBase.wait_until_at_setpoint-475"><span class="linenos">475</span></a><span class="sd">        Return False if timeout</span>
@@ -6538,7 +6539,7 @@ Return False if timeout</p>
 </span><span id="Stepper_Protocol_P1-993"><a href="#Stepper_Protocol_P1-993"><span class="linenos"> 993</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">set_command</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">MODE_POS_TRAJ_WAYPOINT</span><span class="p">)</span>
 </span><span id="Stepper_Protocol_P1-994"><a href="#Stepper_Protocol_P1-994"><span class="linenos"> 994</span></a>
 </span><span id="Stepper_Protocol_P1-995"><a href="#Stepper_Protocol_P1-995"><span class="linenos"> 995</span></a>    <span class="k">def</span> <span class="nf">start_waypoint_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_segment</span><span class="p">):</span>
-</span><span id="Stepper_Protocol_P1-996"><a href="#Stepper_Protocol_P1-996"><span class="linenos"> 996</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts execution of a waypoint trajectory on hardware</span>
+</span><span id="Stepper_Protocol_P1-996"><a href="#Stepper_Protocol_P1-996"><span class="linenos"> 996</span></a>        <span class="sd">&quot;&quot;&quot;Starts execution of a waypoint trajectory on hardware</span>
 </span><span id="Stepper_Protocol_P1-997"><a href="#Stepper_Protocol_P1-997"><span class="linenos"> 997</span></a>
 </span><span id="Stepper_Protocol_P1-998"><a href="#Stepper_Protocol_P1-998"><span class="linenos"> 998</span></a><span class="sd">        Parameters</span>
 </span><span id="Stepper_Protocol_P1-999"><a href="#Stepper_Protocol_P1-999"><span class="linenos"> 999</span></a><span class="sd">        ----------</span>
@@ -6569,7 +6570,7 @@ Return False if timeout</p>
 </span><span id="Stepper_Protocol_P1-1024"><a href="#Stepper_Protocol_P1-1024"><span class="linenos">1024</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_traj_start_success</span>
 </span><span id="Stepper_Protocol_P1-1025"><a href="#Stepper_Protocol_P1-1025"><span class="linenos">1025</span></a>
 </span><span id="Stepper_Protocol_P1-1026"><a href="#Stepper_Protocol_P1-1026"><span class="linenos">1026</span></a>    <span class="k">def</span> <span class="nf">set_next_trajectory_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">next_segment</span><span class="p">):</span>
-</span><span id="Stepper_Protocol_P1-1027"><a href="#Stepper_Protocol_P1-1027"><span class="linenos">1027</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the next segment for the hardware to execute</span>
+</span><span id="Stepper_Protocol_P1-1027"><a href="#Stepper_Protocol_P1-1027"><span class="linenos">1027</span></a>        <span class="sd">&quot;&quot;&quot;Sets the next segment for the hardware to execute</span>
 </span><span id="Stepper_Protocol_P1-1028"><a href="#Stepper_Protocol_P1-1028"><span class="linenos">1028</span></a>
 </span><span id="Stepper_Protocol_P1-1029"><a href="#Stepper_Protocol_P1-1029"><span class="linenos">1029</span></a><span class="sd">        This method is generally called multiple times while the prior segment is executing. This</span>
 </span><span id="Stepper_Protocol_P1-1030"><a href="#Stepper_Protocol_P1-1030"><span class="linenos">1030</span></a><span class="sd">        provides the hardware with the next segment to gracefully transition across the entire spline,</span>
@@ -6604,7 +6605,7 @@ Return False if timeout</p>
 </span><span id="Stepper_Protocol_P1-1059"><a href="#Stepper_Protocol_P1-1059"><span class="linenos">1059</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_traj_set_next_traj_success</span>
 </span><span id="Stepper_Protocol_P1-1060"><a href="#Stepper_Protocol_P1-1060"><span class="linenos">1060</span></a>
 </span><span id="Stepper_Protocol_P1-1061"><a href="#Stepper_Protocol_P1-1061"><span class="linenos">1061</span></a>    <span class="k">def</span> <span class="nf">stop_waypoint_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Stepper_Protocol_P1-1062"><a href="#Stepper_Protocol_P1-1062"><span class="linenos">1062</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stops execution of the waypoint trajectory running in hardware</span>
+</span><span id="Stepper_Protocol_P1-1062"><a href="#Stepper_Protocol_P1-1062"><span class="linenos">1062</span></a>        <span class="sd">&quot;&quot;&quot;Stops execution of the waypoint trajectory running in hardware</span>
 </span><span id="Stepper_Protocol_P1-1063"><a href="#Stepper_Protocol_P1-1063"><span class="linenos">1063</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Stepper_Protocol_P1-1064"><a href="#Stepper_Protocol_P1-1064"><span class="linenos">1064</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_ts</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="Stepper_Protocol_P1-1065"><a href="#Stepper_Protocol_P1-1065"><span class="linenos">1065</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">RPC_RESET_TRAJECTORY</span><span class="p">])</span>
@@ -6791,7 +6792,7 @@ Return False if timeout</p>
     </div>
     <a class="headerlink" href="#Stepper_Protocol_P1.start_waypoint_trajectory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Stepper_Protocol_P1.start_waypoint_trajectory-995"><a href="#Stepper_Protocol_P1.start_waypoint_trajectory-995"><span class="linenos"> 995</span></a>    <span class="k">def</span> <span class="nf">start_waypoint_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">first_segment</span><span class="p">):</span>
-</span><span id="Stepper_Protocol_P1.start_waypoint_trajectory-996"><a href="#Stepper_Protocol_P1.start_waypoint_trajectory-996"><span class="linenos"> 996</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts execution of a waypoint trajectory on hardware</span>
+</span><span id="Stepper_Protocol_P1.start_waypoint_trajectory-996"><a href="#Stepper_Protocol_P1.start_waypoint_trajectory-996"><span class="linenos"> 996</span></a>        <span class="sd">&quot;&quot;&quot;Starts execution of a waypoint trajectory on hardware</span>
 </span><span id="Stepper_Protocol_P1.start_waypoint_trajectory-997"><a href="#Stepper_Protocol_P1.start_waypoint_trajectory-997"><span class="linenos"> 997</span></a>
 </span><span id="Stepper_Protocol_P1.start_waypoint_trajectory-998"><a href="#Stepper_Protocol_P1.start_waypoint_trajectory-998"><span class="linenos"> 998</span></a><span class="sd">        Parameters</span>
 </span><span id="Stepper_Protocol_P1.start_waypoint_trajectory-999"><a href="#Stepper_Protocol_P1.start_waypoint_trajectory-999"><span class="linenos"> 999</span></a><span class="sd">        ----------</span>
@@ -6853,7 +6854,7 @@ Return False if timeout</p>
     </div>
     <a class="headerlink" href="#Stepper_Protocol_P1.set_next_trajectory_segment"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Stepper_Protocol_P1.set_next_trajectory_segment-1026"><a href="#Stepper_Protocol_P1.set_next_trajectory_segment-1026"><span class="linenos">1026</span></a>    <span class="k">def</span> <span class="nf">set_next_trajectory_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">next_segment</span><span class="p">):</span>
-</span><span id="Stepper_Protocol_P1.set_next_trajectory_segment-1027"><a href="#Stepper_Protocol_P1.set_next_trajectory_segment-1027"><span class="linenos">1027</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the next segment for the hardware to execute</span>
+</span><span id="Stepper_Protocol_P1.set_next_trajectory_segment-1027"><a href="#Stepper_Protocol_P1.set_next_trajectory_segment-1027"><span class="linenos">1027</span></a>        <span class="sd">&quot;&quot;&quot;Sets the next segment for the hardware to execute</span>
 </span><span id="Stepper_Protocol_P1.set_next_trajectory_segment-1028"><a href="#Stepper_Protocol_P1.set_next_trajectory_segment-1028"><span class="linenos">1028</span></a>
 </span><span id="Stepper_Protocol_P1.set_next_trajectory_segment-1029"><a href="#Stepper_Protocol_P1.set_next_trajectory_segment-1029"><span class="linenos">1029</span></a><span class="sd">        This method is generally called multiple times while the prior segment is executing. This</span>
 </span><span id="Stepper_Protocol_P1.set_next_trajectory_segment-1030"><a href="#Stepper_Protocol_P1.set_next_trajectory_segment-1030"><span class="linenos">1030</span></a><span class="sd">        provides the hardware with the next segment to gracefully transition across the entire spline,</span>
@@ -6925,7 +6926,7 @@ while allowing users to preempt or modify the future trajectory in real time.</p
     </div>
     <a class="headerlink" href="#Stepper_Protocol_P1.stop_waypoint_trajectory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Stepper_Protocol_P1.stop_waypoint_trajectory-1061"><a href="#Stepper_Protocol_P1.stop_waypoint_trajectory-1061"><span class="linenos">1061</span></a>    <span class="k">def</span> <span class="nf">stop_waypoint_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Stepper_Protocol_P1.stop_waypoint_trajectory-1062"><a href="#Stepper_Protocol_P1.stop_waypoint_trajectory-1062"><span class="linenos">1062</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stops execution of the waypoint trajectory running in hardware</span>
+</span><span id="Stepper_Protocol_P1.stop_waypoint_trajectory-1062"><a href="#Stepper_Protocol_P1.stop_waypoint_trajectory-1062"><span class="linenos">1062</span></a>        <span class="sd">&quot;&quot;&quot;Stops execution of the waypoint trajectory running in hardware</span>
 </span><span id="Stepper_Protocol_P1.stop_waypoint_trajectory-1063"><a href="#Stepper_Protocol_P1.stop_waypoint_trajectory-1063"><span class="linenos">1063</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Stepper_Protocol_P1.stop_waypoint_trajectory-1064"><a href="#Stepper_Protocol_P1.stop_waypoint_trajectory-1064"><span class="linenos">1064</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_waypoint_ts</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="Stepper_Protocol_P1.stop_waypoint_trajectory-1065"><a href="#Stepper_Protocol_P1.stop_waypoint_trajectory-1065"><span class="linenos">1065</span></a>        <span class="n">payload</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">RPC_RESET_TRAJECTORY</span><span class="p">])</span>
@@ -8308,7 +8309,7 @@ while allowing users to preempt or modify the future trajectory in real time.</p
     </div>
     <a class="headerlink" href="#Stepper"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Stepper-1285"><a href="#Stepper-1285"><span class="linenos">1285</span></a><span class="k">class</span> <span class="nc">Stepper</span><span class="p">(</span><span class="n">StepperBase</span><span class="p">):</span>
-</span><span id="Stepper-1286"><a href="#Stepper-1286"><span class="linenos">1286</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Stepper-1286"><a href="#Stepper-1286"><span class="linenos">1286</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Stepper-1287"><a href="#Stepper-1287"><span class="linenos">1287</span></a><span class="sd">    API to the Stretch Stepper Board</span>
 </span><span id="Stepper-1288"><a href="#Stepper-1288"><span class="linenos">1288</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Stepper-1289"><a href="#Stepper-1289"><span class="linenos">1289</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">usb</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -8321,11 +8322,11 @@ while allowing users to preempt or modify the future trajectory in real time.</p
 </span><span id="Stepper-1296"><a href="#Stepper-1296"><span class="linenos">1296</span></a>    
 </span><span id="Stepper-1297"><a href="#Stepper-1297"><span class="linenos">1297</span></a>    <span class="k">def</span> <span class="nf">expand_protocol_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol_class</span><span class="p">):</span>
 </span><span id="Stepper-1298"><a href="#Stepper-1298"><span class="linenos">1298</span></a>        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span> <span class="ow">in</span> <span class="n">protocol_class</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="Stepper-1299"><a href="#Stepper-1299"><span class="linenos">1299</span></a>            <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">attr_value</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">):</span>
+</span><span id="Stepper-1299"><a href="#Stepper-1299"><span class="linenos">1299</span></a>            <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">attr_value</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">):</span>
 </span><span id="Stepper-1300"><a href="#Stepper-1300"><span class="linenos">1300</span></a>                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Stepper</span><span class="p">))</span>
 </span><span id="Stepper-1301"><a href="#Stepper-1301"><span class="linenos">1301</span></a>                
 </span><span id="Stepper-1302"><a href="#Stepper-1302"><span class="linenos">1302</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Stepper-1303"><a href="#Stepper-1303"><span class="linenos">1303</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Stepper-1303"><a href="#Stepper-1303"><span class="linenos">1303</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Stepper-1304"><a href="#Stepper-1304"><span class="linenos">1304</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="Stepper-1305"><a href="#Stepper-1305"><span class="linenos">1305</span></a><span class="sd">        Based on that version, populates Stepper class with the supported specific Stepper_protocol_P* class methods.</span>
 </span><span id="Stepper-1306"><a href="#Stepper-1306"><span class="linenos">1306</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -8417,7 +8418,7 @@ while allowing users to preempt or modify the future trajectory in real time.</p
     <a class="headerlink" href="#Stepper.expand_protocol_methods"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Stepper.expand_protocol_methods-1297"><a href="#Stepper.expand_protocol_methods-1297"><span class="linenos">1297</span></a>    <span class="k">def</span> <span class="nf">expand_protocol_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol_class</span><span class="p">):</span>
 </span><span id="Stepper.expand_protocol_methods-1298"><a href="#Stepper.expand_protocol_methods-1298"><span class="linenos">1298</span></a>        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span> <span class="ow">in</span> <span class="n">protocol_class</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="Stepper.expand_protocol_methods-1299"><a href="#Stepper.expand_protocol_methods-1299"><span class="linenos">1299</span></a>            <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">attr_value</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">):</span>
+</span><span id="Stepper.expand_protocol_methods-1299"><a href="#Stepper.expand_protocol_methods-1299"><span class="linenos">1299</span></a>            <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">attr_value</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">):</span>
 </span><span id="Stepper.expand_protocol_methods-1300"><a href="#Stepper.expand_protocol_methods-1300"><span class="linenos">1300</span></a>                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Stepper</span><span class="p">))</span>
 </span></pre></div>
 
@@ -8437,7 +8438,7 @@ while allowing users to preempt or modify the future trajectory in real time.</p
     </div>
     <a class="headerlink" href="#Stepper.startup"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Stepper.startup-1302"><a href="#Stepper.startup-1302"><span class="linenos">1302</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Stepper.startup-1303"><a href="#Stepper.startup-1303"><span class="linenos">1303</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Stepper.startup-1303"><a href="#Stepper.startup-1303"><span class="linenos">1303</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Stepper.startup-1304"><a href="#Stepper.startup-1304"><span class="linenos">1304</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="Stepper.startup-1305"><a href="#Stepper.startup-1305"><span class="linenos">1305</span></a><span class="sd">        Based on that version, populates Stepper class with the supported specific Stepper_protocol_P* class methods.</span>
 </span><span id="Stepper.startup-1306"><a href="#Stepper.startup-1306"><span class="linenos">1306</span></a><span class="sd">        &quot;&quot;&quot;</span>

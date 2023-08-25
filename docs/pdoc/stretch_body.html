@@ -18,8 +18,8 @@
         <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
         <input id="togglestate" type="checkbox" aria-hidden="true" tabindex="-1">
         <div>
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -82,10 +82,13 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/__init__.py">Edit on GitHub</a>
                     <h1 class="modulename">
 stretch_body    </h1>
 
-                        <div class="docstring"><h1 id="stretch-body">Stretch Body</h1>
+                        <div class="docstring"><p><img src="../../docs/images/banner.png" width="765"></p>
+
+<h1 id="stretch-body">Stretch Body</h1>
 
 <p>The stretch_body package provides a low level Python API to the Hello Robot Stretch hardware. This package comes pre-installed on Stretch robots. Tutorials for using this package can be found <a href="https://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/">on the docs</a>.</p>
 
@@ -94,14 +97,14 @@ stretch_body    </h1>
 <p>This package comes pre-installed on Stretch robots. To install or upgrade to a stable Stretch Body for Python3, run:</p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>hello-robot-stretch-body
+<pre><span></span><code>$ python3 -m pip install --upgrade hello-robot-stretch-body
 </code></pre>
 </div>
 
 <p>To install or upgrade to a pre-release of Stretch Body for Python3, run:</p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>--pre<span class="w"> </span>hello-robot-stretch-body
+<pre><span></span><code>$ python3 -m pip install --upgrade --pre hello-robot-stretch-body
 </code></pre>
 </div>
 
@@ -116,9 +119,9 @@ stretch_body    </h1>
 <p>For example, to run the <code><a href="stretch_body/robot.html#Robot">stretch_body.robot.Robot</a></code> functional tests, run:</p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/hello-robot/stretch_body.git
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>stretch_body/body
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>test.test_robot
+<pre><span></span><code>$ git clone https://github.com/hello-robot/stretch_body.git
+$ <span class="nb">cd</span> stretch_body/body
+$ python3 -m unittest test.test_robot
 </code></pre>
 </div>
 
@@ -131,10 +134,10 @@ $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </spa
 <p>For example, to test changes to <code><a href="stretch_body/robot.html#Robot">stretch_body.robot.Robot</a></code>, run:</p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>uninstall<span class="w"> </span>hello-robot-stretch-body<span class="w"> </span><span class="c1"># ensure previous Stretch Body installations are removed</span>
-$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/hello-robot/stretch_body.git
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>stretch_body/body
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+<pre><span></span><code>$ python3 -m pip uninstall hello-robot-stretch-body <span class="c1"># ensure previous Stretch Body installations are removed</span>
+$ git clone https://github.com/hello-robot/stretch_body.git
+$ <span class="nb">cd</span> stretch_body/body
+$ python3 -m pip install -e .
 </code></pre>
 </div>
 
@@ -150,9 +153,10 @@ $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </spa
                         <label class="view-source-button" for="mod-stretch_body-view-source"><span>View Source</span></label>
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="sd">.. include:: ../README.md</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">4</span></a><span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="sd">&lt;img src=&quot;../../docs/images/banner.png&quot; width=&quot;765&quot;&gt;</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="sd">.. include:: ../README.md</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">4</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">5</span></a><span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
 </span></pre></div>
 
 

@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -520,6 +520,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/pimu.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.pimu    </h1>
 
@@ -546,7 +547,7 @@
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="k">class</span> <span class="nc">IMUBase</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    API to the Stretch IMU found in the base</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -650,7 +651,7 @@
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="c1"># ##################################################################################</span>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="k">class</span> <span class="nc">PimuBase</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">    API to the Stretch Power and IMU board (Pimu)</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="n">RPC_SET_PIMU_CONFIG</span> <span class="o">=</span> <span class="mi">1</span>
@@ -856,21 +857,21 @@
 </span><span id="L-326"><a href="#L-326"><span class="linenos">326</span></a>
 </span><span id="L-327"><a href="#L-327"><span class="linenos">327</span></a>
 </span><span id="L-328"><a href="#L-328"><span class="linenos">328</span></a>    <span class="k">def</span> <span class="nf">runstop_event_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-329"><a href="#L-329"><span class="linenos">329</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-330"><a href="#L-330"><span class="linenos">330</span></a><span class="sd">        Reset the robot runstop, allowing motion to continue</span>
 </span><span id="L-331"><a href="#L-331"><span class="linenos">331</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-332"><a href="#L-332"><span class="linenos">332</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_RUNSTOP_RESET</span>
 </span><span id="L-333"><a href="#L-333"><span class="linenos">333</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty_trigger</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="L-334"><a href="#L-334"><span class="linenos">334</span></a>
 </span><span id="L-335"><a href="#L-335"><span class="linenos">335</span></a>    <span class="k">def</span> <span class="nf">runstop_event_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-336"><a href="#L-336"><span class="linenos">336</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-337"><a href="#L-337"><span class="linenos">337</span></a><span class="sd">        Trigger the robot runstop, stopping motion</span>
 </span><span id="L-338"><a href="#L-338"><span class="linenos">338</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-339"><a href="#L-339"><span class="linenos">339</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_RUNSTOP_ON</span>
 </span><span id="L-340"><a href="#L-340"><span class="linenos">340</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty_trigger</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="L-341"><a href="#L-341"><span class="linenos">341</span></a>
 </span><span id="L-342"><a href="#L-342"><span class="linenos">342</span></a>    <span class="k">def</span> <span class="nf">trigger_beep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-343"><a href="#L-343"><span class="linenos">343</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-344"><a href="#L-344"><span class="linenos">344</span></a><span class="sd">        Generate a single short beep</span>
 </span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_BEEP</span>
@@ -1287,7 +1288,7 @@
 </span><span id="L-757"><a href="#L-757"><span class="linenos">757</span></a>
 </span><span id="L-758"><a href="#L-758"><span class="linenos">758</span></a>
 </span><span id="L-759"><a href="#L-759"><span class="linenos">759</span></a>    <span class="k">def</span> <span class="nf">is_ready_for_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-760"><a href="#L-760"><span class="linenos">760</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-760"><a href="#L-760"><span class="linenos">760</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-761"><a href="#L-761"><span class="linenos">761</span></a><span class="sd">        With P3 this function is no longer meaningful as sync overruns are handled on the fw level</span>
 </span><span id="L-762"><a href="#L-762"><span class="linenos">762</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-763"><a href="#L-763"><span class="linenos">763</span></a>        <span class="k">return</span> <span class="kc">True</span>
@@ -1376,7 +1377,7 @@
 </span><span id="L-846"><a href="#L-846"><span class="linenos">846</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error RPC_REPLY_LOAD_TEST_PULL&#39;</span><span class="p">,</span> <span class="n">reply</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </span><span id="L-847"><a href="#L-847"><span class="linenos">847</span></a><span class="c1"># ######################## PIMU #################################</span>
 </span><span id="L-848"><a href="#L-848"><span class="linenos">848</span></a><span class="k">class</span> <span class="nc">Pimu</span><span class="p">(</span><span class="n">PimuBase</span><span class="p">):</span>
-</span><span id="L-849"><a href="#L-849"><span class="linenos">849</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-849"><a href="#L-849"><span class="linenos">849</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-850"><a href="#L-850"><span class="linenos">850</span></a><span class="sd">    API to the Stretch Power and IMU board (Pimu)</span>
 </span><span id="L-851"><a href="#L-851"><span class="linenos">851</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-852"><a href="#L-852"><span class="linenos">852</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_reset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1387,7 +1388,7 @@
 </span><span id="L-857"><a href="#L-857"><span class="linenos">857</span></a>                                    <span class="s1">&#39;p3&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Pimu_Protocol_P3</span><span class="p">,</span> <span class="n">Pimu_Protocol_P2</span><span class="p">,</span> <span class="n">Pimu_Protocol_P1</span><span class="p">,</span> <span class="n">Pimu_Protocol_P0</span><span class="p">,)}</span>
 </span><span id="L-858"><a href="#L-858"><span class="linenos">858</span></a>
 </span><span id="L-859"><a href="#L-859"><span class="linenos">859</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-860"><a href="#L-860"><span class="linenos">860</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-860"><a href="#L-860"><span class="linenos">860</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-861"><a href="#L-861"><span class="linenos">861</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="L-862"><a href="#L-862"><span class="linenos">862</span></a><span class="sd">        Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol</span>
 </span><span id="L-863"><a href="#L-863"><span class="linenos">863</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -1437,7 +1438,7 @@
     </div>
     <a class="headerlink" href="#IMUBase"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="IMUBase-19"><a href="#IMUBase-19"><span class="linenos">19</span></a><span class="k">class</span> <span class="nc">IMUBase</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="IMUBase-20"><a href="#IMUBase-20"><span class="linenos">20</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="IMUBase-20"><a href="#IMUBase-20"><span class="linenos">20</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="IMUBase-21"><a href="#IMUBase-21"><span class="linenos">21</span></a><span class="sd">    API to the Stretch IMU found in the base</span>
 </span><span id="IMUBase-22"><a href="#IMUBase-22"><span class="linenos">22</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="IMUBase-23"><a href="#IMUBase-23"><span class="linenos">23</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1936,7 +1937,7 @@
     </div>
     <a class="headerlink" href="#PimuBase"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PimuBase-123"><a href="#PimuBase-123"><span class="linenos">123</span></a><span class="k">class</span> <span class="nc">PimuBase</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="PimuBase-124"><a href="#PimuBase-124"><span class="linenos">124</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PimuBase-124"><a href="#PimuBase-124"><span class="linenos">124</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PimuBase-125"><a href="#PimuBase-125"><span class="linenos">125</span></a><span class="sd">    API to the Stretch Power and IMU board (Pimu)</span>
 </span><span id="PimuBase-126"><a href="#PimuBase-126"><span class="linenos">126</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="PimuBase-127"><a href="#PimuBase-127"><span class="linenos">127</span></a>    <span class="n">RPC_SET_PIMU_CONFIG</span> <span class="o">=</span> <span class="mi">1</span>
@@ -2142,21 +2143,21 @@
 </span><span id="PimuBase-327"><a href="#PimuBase-327"><span class="linenos">327</span></a>
 </span><span id="PimuBase-328"><a href="#PimuBase-328"><span class="linenos">328</span></a>
 </span><span id="PimuBase-329"><a href="#PimuBase-329"><span class="linenos">329</span></a>    <span class="k">def</span> <span class="nf">runstop_event_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="PimuBase-330"><a href="#PimuBase-330"><span class="linenos">330</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PimuBase-330"><a href="#PimuBase-330"><span class="linenos">330</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PimuBase-331"><a href="#PimuBase-331"><span class="linenos">331</span></a><span class="sd">        Reset the robot runstop, allowing motion to continue</span>
 </span><span id="PimuBase-332"><a href="#PimuBase-332"><span class="linenos">332</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="PimuBase-333"><a href="#PimuBase-333"><span class="linenos">333</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_RUNSTOP_RESET</span>
 </span><span id="PimuBase-334"><a href="#PimuBase-334"><span class="linenos">334</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty_trigger</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="PimuBase-335"><a href="#PimuBase-335"><span class="linenos">335</span></a>
 </span><span id="PimuBase-336"><a href="#PimuBase-336"><span class="linenos">336</span></a>    <span class="k">def</span> <span class="nf">runstop_event_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="PimuBase-337"><a href="#PimuBase-337"><span class="linenos">337</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PimuBase-337"><a href="#PimuBase-337"><span class="linenos">337</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PimuBase-338"><a href="#PimuBase-338"><span class="linenos">338</span></a><span class="sd">        Trigger the robot runstop, stopping motion</span>
 </span><span id="PimuBase-339"><a href="#PimuBase-339"><span class="linenos">339</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="PimuBase-340"><a href="#PimuBase-340"><span class="linenos">340</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_RUNSTOP_ON</span>
 </span><span id="PimuBase-341"><a href="#PimuBase-341"><span class="linenos">341</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty_trigger</span><span class="o">=</span><span class="kc">True</span>
 </span><span id="PimuBase-342"><a href="#PimuBase-342"><span class="linenos">342</span></a>
 </span><span id="PimuBase-343"><a href="#PimuBase-343"><span class="linenos">343</span></a>    <span class="k">def</span> <span class="nf">trigger_beep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="PimuBase-344"><a href="#PimuBase-344"><span class="linenos">344</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PimuBase-344"><a href="#PimuBase-344"><span class="linenos">344</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PimuBase-345"><a href="#PimuBase-345"><span class="linenos">345</span></a><span class="sd">        Generate a single short beep</span>
 </span><span id="PimuBase-346"><a href="#PimuBase-346"><span class="linenos">346</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="PimuBase-347"><a href="#PimuBase-347"><span class="linenos">347</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_BEEP</span>
@@ -3460,7 +3461,7 @@
     </div>
     <a class="headerlink" href="#PimuBase.runstop_event_reset"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PimuBase.runstop_event_reset-329"><a href="#PimuBase.runstop_event_reset-329"><span class="linenos">329</span></a>    <span class="k">def</span> <span class="nf">runstop_event_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="PimuBase.runstop_event_reset-330"><a href="#PimuBase.runstop_event_reset-330"><span class="linenos">330</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PimuBase.runstop_event_reset-330"><a href="#PimuBase.runstop_event_reset-330"><span class="linenos">330</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PimuBase.runstop_event_reset-331"><a href="#PimuBase.runstop_event_reset-331"><span class="linenos">331</span></a><span class="sd">        Reset the robot runstop, allowing motion to continue</span>
 </span><span id="PimuBase.runstop_event_reset-332"><a href="#PimuBase.runstop_event_reset-332"><span class="linenos">332</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="PimuBase.runstop_event_reset-333"><a href="#PimuBase.runstop_event_reset-333"><span class="linenos">333</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_RUNSTOP_RESET</span>
@@ -3485,7 +3486,7 @@
     </div>
     <a class="headerlink" href="#PimuBase.runstop_event_trigger"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PimuBase.runstop_event_trigger-336"><a href="#PimuBase.runstop_event_trigger-336"><span class="linenos">336</span></a>    <span class="k">def</span> <span class="nf">runstop_event_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="PimuBase.runstop_event_trigger-337"><a href="#PimuBase.runstop_event_trigger-337"><span class="linenos">337</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PimuBase.runstop_event_trigger-337"><a href="#PimuBase.runstop_event_trigger-337"><span class="linenos">337</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PimuBase.runstop_event_trigger-338"><a href="#PimuBase.runstop_event_trigger-338"><span class="linenos">338</span></a><span class="sd">        Trigger the robot runstop, stopping motion</span>
 </span><span id="PimuBase.runstop_event_trigger-339"><a href="#PimuBase.runstop_event_trigger-339"><span class="linenos">339</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="PimuBase.runstop_event_trigger-340"><a href="#PimuBase.runstop_event_trigger-340"><span class="linenos">340</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_RUNSTOP_ON</span>
@@ -3510,7 +3511,7 @@
     </div>
     <a class="headerlink" href="#PimuBase.trigger_beep"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="PimuBase.trigger_beep-343"><a href="#PimuBase.trigger_beep-343"><span class="linenos">343</span></a>    <span class="k">def</span> <span class="nf">trigger_beep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="PimuBase.trigger_beep-344"><a href="#PimuBase.trigger_beep-344"><span class="linenos">344</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="PimuBase.trigger_beep-344"><a href="#PimuBase.trigger_beep-344"><span class="linenos">344</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="PimuBase.trigger_beep-345"><a href="#PimuBase.trigger_beep-345"><span class="linenos">345</span></a><span class="sd">        Generate a single short beep</span>
 </span><span id="PimuBase.trigger_beep-346"><a href="#PimuBase.trigger_beep-346"><span class="linenos">346</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="PimuBase.trigger_beep-347"><a href="#PimuBase.trigger_beep-347"><span class="linenos">347</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRIGGER_BEEP</span>
@@ -5192,7 +5193,7 @@
 </span><span id="Pimu_Protocol_P3-758"><a href="#Pimu_Protocol_P3-758"><span class="linenos">758</span></a>
 </span><span id="Pimu_Protocol_P3-759"><a href="#Pimu_Protocol_P3-759"><span class="linenos">759</span></a>
 </span><span id="Pimu_Protocol_P3-760"><a href="#Pimu_Protocol_P3-760"><span class="linenos">760</span></a>    <span class="k">def</span> <span class="nf">is_ready_for_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Pimu_Protocol_P3-761"><a href="#Pimu_Protocol_P3-761"><span class="linenos">761</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Pimu_Protocol_P3-761"><a href="#Pimu_Protocol_P3-761"><span class="linenos">761</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Pimu_Protocol_P3-762"><a href="#Pimu_Protocol_P3-762"><span class="linenos">762</span></a><span class="sd">        With P3 this function is no longer meaningful as sync overruns are handled on the fw level</span>
 </span><span id="Pimu_Protocol_P3-763"><a href="#Pimu_Protocol_P3-763"><span class="linenos">763</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Pimu_Protocol_P3-764"><a href="#Pimu_Protocol_P3-764"><span class="linenos">764</span></a>        <span class="k">return</span> <span class="kc">True</span>
@@ -5298,7 +5299,7 @@
     </div>
     <a class="headerlink" href="#Pimu_Protocol_P3.is_ready_for_sync"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Pimu_Protocol_P3.is_ready_for_sync-760"><a href="#Pimu_Protocol_P3.is_ready_for_sync-760"><span class="linenos">760</span></a>    <span class="k">def</span> <span class="nf">is_ready_for_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Pimu_Protocol_P3.is_ready_for_sync-761"><a href="#Pimu_Protocol_P3.is_ready_for_sync-761"><span class="linenos">761</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Pimu_Protocol_P3.is_ready_for_sync-761"><a href="#Pimu_Protocol_P3.is_ready_for_sync-761"><span class="linenos">761</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Pimu_Protocol_P3.is_ready_for_sync-762"><a href="#Pimu_Protocol_P3.is_ready_for_sync-762"><span class="linenos">762</span></a><span class="sd">        With P3 this function is no longer meaningful as sync overruns are handled on the fw level</span>
 </span><span id="Pimu_Protocol_P3.is_ready_for_sync-763"><a href="#Pimu_Protocol_P3.is_ready_for_sync-763"><span class="linenos">763</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Pimu_Protocol_P3.is_ready_for_sync-764"><a href="#Pimu_Protocol_P3.is_ready_for_sync-764"><span class="linenos">764</span></a>        <span class="k">return</span> <span class="kc">True</span>
@@ -5690,7 +5691,7 @@
     </div>
     <a class="headerlink" href="#Pimu"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Pimu-849"><a href="#Pimu-849"><span class="linenos">849</span></a><span class="k">class</span> <span class="nc">Pimu</span><span class="p">(</span><span class="n">PimuBase</span><span class="p">):</span>
-</span><span id="Pimu-850"><a href="#Pimu-850"><span class="linenos">850</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Pimu-850"><a href="#Pimu-850"><span class="linenos">850</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Pimu-851"><a href="#Pimu-851"><span class="linenos">851</span></a><span class="sd">    API to the Stretch Power and IMU board (Pimu)</span>
 </span><span id="Pimu-852"><a href="#Pimu-852"><span class="linenos">852</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Pimu-853"><a href="#Pimu-853"><span class="linenos">853</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_reset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -5701,7 +5702,7 @@
 </span><span id="Pimu-858"><a href="#Pimu-858"><span class="linenos">858</span></a>                                    <span class="s1">&#39;p3&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Pimu_Protocol_P3</span><span class="p">,</span> <span class="n">Pimu_Protocol_P2</span><span class="p">,</span> <span class="n">Pimu_Protocol_P1</span><span class="p">,</span> <span class="n">Pimu_Protocol_P0</span><span class="p">,)}</span>
 </span><span id="Pimu-859"><a href="#Pimu-859"><span class="linenos">859</span></a>
 </span><span id="Pimu-860"><a href="#Pimu-860"><span class="linenos">860</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Pimu-861"><a href="#Pimu-861"><span class="linenos">861</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Pimu-861"><a href="#Pimu-861"><span class="linenos">861</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Pimu-862"><a href="#Pimu-862"><span class="linenos">862</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="Pimu-863"><a href="#Pimu-863"><span class="linenos">863</span></a><span class="sd">        Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol</span>
 </span><span id="Pimu-864"><a href="#Pimu-864"><span class="linenos">864</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -5787,7 +5788,7 @@
     </div>
     <a class="headerlink" href="#Pimu.startup"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Pimu.startup-860"><a href="#Pimu.startup-860"><span class="linenos">860</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Pimu.startup-861"><a href="#Pimu.startup-861"><span class="linenos">861</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Pimu.startup-861"><a href="#Pimu.startup-861"><span class="linenos">861</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Pimu.startup-862"><a href="#Pimu.startup-862"><span class="linenos">862</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="Pimu.startup-863"><a href="#Pimu.startup-863"><span class="linenos">863</span></a><span class="sd">        Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol</span>
 </span><span id="Pimu.startup-864"><a href="#Pimu.startup-864"><span class="linenos">864</span></a><span class="sd">        &quot;&quot;&quot;</span>

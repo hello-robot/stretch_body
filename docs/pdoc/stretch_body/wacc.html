@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -295,6 +295,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/wacc.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.wacc    </h1>
 
@@ -314,7 +315,7 @@
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="c1"># ######################## WACC #################################</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="k">class</span> <span class="nc">WaccBase</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    API to the Stretch wrist+accelerometer (Wacc) board</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="sd">    The Wacc has:</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="sd">    -- 3-axis accelerometer reported as Ax,Ay,and Az</span>
@@ -400,14 +401,14 @@
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="k">def</span> <span class="nf">set_D2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">on</span><span class="p">):</span><span class="c1">#0 or 1</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">        Set the Digital Out 2 on the Wacc expansion header</span>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_command</span><span class="p">[</span><span class="s1">&#39;d2&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">on</span><span class="p">)</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty_command</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="nf">set_D3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">on</span><span class="p">):</span> <span class="c1">#0 or 1</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">        Set the Digital Out 3 on the Wacc expansion header</span>
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_command</span><span class="p">[</span><span class="s1">&#39;d3&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">on</span><span class="p">)</span>
@@ -737,7 +738,7 @@
 </span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error RPC_REPLY_LOAD_TEST_PULL&#39;</span><span class="p">,</span> <span class="n">reply</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a><span class="c1"># ######################## Wacc #################################</span>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="k">class</span> <span class="nc">Wacc</span><span class="p">(</span><span class="n">WaccBase</span><span class="p">):</span>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a><span class="sd">    API to the Stretch Wrist Accelerometer (Wacc) Board</span>
 </span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -747,7 +748,7 @@
 </span><span id="L-442"><a href="#L-442"><span class="linenos">442</span></a>                                    <span class="s1">&#39;p3&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Wacc_Protocol_P3</span><span class="p">,</span> <span class="n">Wacc_Protocol_P2</span><span class="p">,</span> <span class="n">Wacc_Protocol_P1</span><span class="p">,</span> <span class="n">Wacc_Protocol_P0</span><span class="p">,),}</span>
 </span><span id="L-443"><a href="#L-443"><span class="linenos">443</span></a>
 </span><span id="L-444"><a href="#L-444"><span class="linenos">444</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-445"><a href="#L-445"><span class="linenos">445</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-446"><a href="#L-446"><span class="linenos">446</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="L-447"><a href="#L-447"><span class="linenos">447</span></a><span class="sd">        Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol</span>
 </span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -796,7 +797,7 @@
     </div>
     <a class="headerlink" href="#WaccBase"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="WaccBase-12"><a href="#WaccBase-12"><span class="linenos"> 12</span></a><span class="k">class</span> <span class="nc">WaccBase</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="WaccBase-13"><a href="#WaccBase-13"><span class="linenos"> 13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WaccBase-13"><a href="#WaccBase-13"><span class="linenos"> 13</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WaccBase-14"><a href="#WaccBase-14"><span class="linenos"> 14</span></a><span class="sd">    API to the Stretch wrist+accelerometer (Wacc) board</span>
 </span><span id="WaccBase-15"><a href="#WaccBase-15"><span class="linenos"> 15</span></a><span class="sd">    The Wacc has:</span>
 </span><span id="WaccBase-16"><a href="#WaccBase-16"><span class="linenos"> 16</span></a><span class="sd">    -- 3-axis accelerometer reported as Ax,Ay,and Az</span>
@@ -882,14 +883,14 @@
 </span><span id="WaccBase-96"><a href="#WaccBase-96"><span class="linenos"> 96</span></a>
 </span><span id="WaccBase-97"><a href="#WaccBase-97"><span class="linenos"> 97</span></a>
 </span><span id="WaccBase-98"><a href="#WaccBase-98"><span class="linenos"> 98</span></a>    <span class="k">def</span> <span class="nf">set_D2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">on</span><span class="p">):</span><span class="c1">#0 or 1</span>
-</span><span id="WaccBase-99"><a href="#WaccBase-99"><span class="linenos"> 99</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WaccBase-99"><a href="#WaccBase-99"><span class="linenos"> 99</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WaccBase-100"><a href="#WaccBase-100"><span class="linenos">100</span></a><span class="sd">        Set the Digital Out 2 on the Wacc expansion header</span>
 </span><span id="WaccBase-101"><a href="#WaccBase-101"><span class="linenos">101</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="WaccBase-102"><a href="#WaccBase-102"><span class="linenos">102</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_command</span><span class="p">[</span><span class="s1">&#39;d2&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">on</span><span class="p">)</span>
 </span><span id="WaccBase-103"><a href="#WaccBase-103"><span class="linenos">103</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_dirty_command</span> <span class="o">=</span> <span class="kc">True</span>
 </span><span id="WaccBase-104"><a href="#WaccBase-104"><span class="linenos">104</span></a>
 </span><span id="WaccBase-105"><a href="#WaccBase-105"><span class="linenos">105</span></a>    <span class="k">def</span> <span class="nf">set_D3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">on</span><span class="p">):</span> <span class="c1">#0 or 1</span>
-</span><span id="WaccBase-106"><a href="#WaccBase-106"><span class="linenos">106</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WaccBase-106"><a href="#WaccBase-106"><span class="linenos">106</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WaccBase-107"><a href="#WaccBase-107"><span class="linenos">107</span></a><span class="sd">        Set the Digital Out 3 on the Wacc expansion header</span>
 </span><span id="WaccBase-108"><a href="#WaccBase-108"><span class="linenos">108</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="WaccBase-109"><a href="#WaccBase-109"><span class="linenos">109</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_command</span><span class="p">[</span><span class="s1">&#39;d3&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">on</span><span class="p">)</span>
@@ -1533,7 +1534,7 @@ ext_command_cb: Callback to handle custom command data</p>
     </div>
     <a class="headerlink" href="#WaccBase.set_D2"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="WaccBase.set_D2-98"><a href="#WaccBase.set_D2-98"><span class="linenos"> 98</span></a>    <span class="k">def</span> <span class="nf">set_D2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">on</span><span class="p">):</span><span class="c1">#0 or 1</span>
-</span><span id="WaccBase.set_D2-99"><a href="#WaccBase.set_D2-99"><span class="linenos"> 99</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WaccBase.set_D2-99"><a href="#WaccBase.set_D2-99"><span class="linenos"> 99</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WaccBase.set_D2-100"><a href="#WaccBase.set_D2-100"><span class="linenos">100</span></a><span class="sd">        Set the Digital Out 2 on the Wacc expansion header</span>
 </span><span id="WaccBase.set_D2-101"><a href="#WaccBase.set_D2-101"><span class="linenos">101</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="WaccBase.set_D2-102"><a href="#WaccBase.set_D2-102"><span class="linenos">102</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_command</span><span class="p">[</span><span class="s1">&#39;d2&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">on</span><span class="p">)</span>
@@ -1558,7 +1559,7 @@ ext_command_cb: Callback to handle custom command data</p>
     </div>
     <a class="headerlink" href="#WaccBase.set_D3"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="WaccBase.set_D3-105"><a href="#WaccBase.set_D3-105"><span class="linenos">105</span></a>    <span class="k">def</span> <span class="nf">set_D3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">on</span><span class="p">):</span> <span class="c1">#0 or 1</span>
-</span><span id="WaccBase.set_D3-106"><a href="#WaccBase.set_D3-106"><span class="linenos">106</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WaccBase.set_D3-106"><a href="#WaccBase.set_D3-106"><span class="linenos">106</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WaccBase.set_D3-107"><a href="#WaccBase.set_D3-107"><span class="linenos">107</span></a><span class="sd">        Set the Digital Out 3 on the Wacc expansion header</span>
 </span><span id="WaccBase.set_D3-108"><a href="#WaccBase.set_D3-108"><span class="linenos">108</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="WaccBase.set_D3-109"><a href="#WaccBase.set_D3-109"><span class="linenos">109</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_command</span><span class="p">[</span><span class="s1">&#39;d3&#39;</span><span class="p">]</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">on</span><span class="p">)</span>
@@ -3030,7 +3031,7 @@ ext_command_cb: Callback to handle custom command data</p>
     </div>
     <a class="headerlink" href="#Wacc"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Wacc-435"><a href="#Wacc-435"><span class="linenos">435</span></a><span class="k">class</span> <span class="nc">Wacc</span><span class="p">(</span><span class="n">WaccBase</span><span class="p">):</span>
-</span><span id="Wacc-436"><a href="#Wacc-436"><span class="linenos">436</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Wacc-436"><a href="#Wacc-436"><span class="linenos">436</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Wacc-437"><a href="#Wacc-437"><span class="linenos">437</span></a><span class="sd">    API to the Stretch Wrist Accelerometer (Wacc) Board</span>
 </span><span id="Wacc-438"><a href="#Wacc-438"><span class="linenos">438</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Wacc-439"><a href="#Wacc-439"><span class="linenos">439</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -3040,7 +3041,7 @@ ext_command_cb: Callback to handle custom command data</p>
 </span><span id="Wacc-443"><a href="#Wacc-443"><span class="linenos">443</span></a>                                    <span class="s1">&#39;p3&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">Wacc_Protocol_P3</span><span class="p">,</span> <span class="n">Wacc_Protocol_P2</span><span class="p">,</span> <span class="n">Wacc_Protocol_P1</span><span class="p">,</span> <span class="n">Wacc_Protocol_P0</span><span class="p">,),}</span>
 </span><span id="Wacc-444"><a href="#Wacc-444"><span class="linenos">444</span></a>
 </span><span id="Wacc-445"><a href="#Wacc-445"><span class="linenos">445</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Wacc-446"><a href="#Wacc-446"><span class="linenos">446</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Wacc-446"><a href="#Wacc-446"><span class="linenos">446</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Wacc-447"><a href="#Wacc-447"><span class="linenos">447</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="Wacc-448"><a href="#Wacc-448"><span class="linenos">448</span></a><span class="sd">        Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol</span>
 </span><span id="Wacc-449"><a href="#Wacc-449"><span class="linenos">449</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -3124,7 +3125,7 @@ ext_command_cb: Callback to handle custom command data</p>
     </div>
     <a class="headerlink" href="#Wacc.startup"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Wacc.startup-445"><a href="#Wacc.startup-445"><span class="linenos">445</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Wacc.startup-446"><a href="#Wacc.startup-446"><span class="linenos">446</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Wacc.startup-446"><a href="#Wacc.startup-446"><span class="linenos">446</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Wacc.startup-447"><a href="#Wacc.startup-447"><span class="linenos">447</span></a><span class="sd">        First determine which protocol version the uC firmware is running.</span>
 </span><span id="Wacc.startup-448"><a href="#Wacc.startup-448"><span class="linenos">448</span></a><span class="sd">        Based on that version, replaces PimuBase class inheritance with a inheritance to a child class of PimuBase that supports that protocol</span>
 </span><span id="Wacc.startup-449"><a href="#Wacc.startup-449"><span class="linenos">449</span></a><span class="sd">        &quot;&quot;&quot;</span>

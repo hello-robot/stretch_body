@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -286,6 +286,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/robot.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.robot    </h1>
 
@@ -318,7 +319,7 @@
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="c1"># #############################################################</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="k">class</span> <span class="nc">DXLHeadStatusThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    This thread polls the status data of the Dynamixel devices</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    at 15Hz</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -345,7 +346,7 @@
 </span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Shutting down DXLHeadStatusThread&#39;</span><span class="p">)</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
 </span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="k">class</span> <span class="nc">DXLEndOfArmStatusThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">    This thread polls the status data of the Dynamixel devices</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">    at 15Hz</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -370,7 +371,7 @@
 </span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Shutting down DXLEndOfArmStatusThread&#39;</span><span class="p">)</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="k">class</span> <span class="nc">NonDXLStatusThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">    This thread runs at 25Hz.</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">    It updates the status data of the Devices.</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">    It also steps the Sentry, Monitor, and Collision functions</span>
@@ -409,7 +410,7 @@
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Shutting down NonDXLStatusThread&#39;</span><span class="p">)</span>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="k">class</span> <span class="nc">SystemMonitorThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">    This thread runs at 25Hz.</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">    It updates the status data of the Devices.</span>
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">    It also steps the Sentry, Monitor, and Collision functions</span>
@@ -460,7 +461,7 @@
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Shutting down SystemMonitorThread&#39;</span><span class="p">)</span>
 </span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>
 </span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="k">class</span> <span class="nc">Robot</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">    API to the Stretch Robot</span>
 </span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -506,7 +507,7 @@
 </span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>    <span class="c1"># ###########  Device Methods #############</span>
 </span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>
 </span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">start_non_dxl_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">start_dxl_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">start_sys_mon_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="sd">        To be called once after class instantiation.</span>
 </span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="sd">        Prepares devices for communications and motion</span>
 </span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a>
@@ -562,7 +563,7 @@
 </span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>        <span class="k">return</span> <span class="n">success</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a><span class="sd">        To be called once before exiting a program</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a><span class="sd">        Cleanly stops down motion and communication</span>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -587,7 +588,7 @@
 </span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;---- Shutdown complete ----&#39;</span><span class="p">)</span>
 </span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>
 </span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>    <span class="k">def</span> <span class="nf">get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a><span class="sd">        Thread safe and atomic read of current Robot status data</span>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="sd">        Returns as a dict.</span>
 </span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -613,7 +614,7 @@
 </span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>        <span class="k">return</span> <span class="n">results</span>
 </span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a>        
 </span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a>    <span class="k">def</span> <span class="nf">push_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a><span class="sd">        Cause all queued up RPC commands to be sent down to Devices</span>
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a>        
@@ -679,7 +680,7 @@
 </span><span id="L-383"><a href="#L-383"><span class="linenos">383</span></a><span class="c1"># ##################Home and Stow #######################################</span>
 </span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>
 </span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a>    <span class="k">def</span> <span class="nf">is_calibrated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a><span class="sd">        Returns true if homing-calibration has been run all joints that require it</span>
 </span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a>        <span class="n">ready</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lift</span><span class="o">.</span><span class="n">motor</span><span class="o">.</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;pos_calibrated&#39;</span><span class="p">]</span>
@@ -690,7 +691,7 @@
 </span><span id="L-394"><a href="#L-394"><span class="linenos">394</span></a>        <span class="k">return</span> <span class="n">ready</span>
 </span><span id="L-395"><a href="#L-395"><span class="linenos">395</span></a>
 </span><span id="L-396"><a href="#L-396"><span class="linenos">396</span></a>    <span class="k">def</span> <span class="nf">get_stow_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">joint</span><span class="p">):</span>
-</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-397"><a href="#L-397"><span class="linenos">397</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-398"><a href="#L-398"><span class="linenos">398</span></a><span class="sd">        Return the stow position of a joint.</span>
 </span><span id="L-399"><a href="#L-399"><span class="linenos">399</span></a><span class="sd">        Allow the end_of_arm to override the defaults in order to accomodate stowing different tools</span>
 </span><span id="L-400"><a href="#L-400"><span class="linenos">400</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -700,7 +701,7 @@
 </span><span id="L-404"><a href="#L-404"><span class="linenos">404</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;stow&#39;</span><span class="p">][</span><span class="n">joint</span><span class="p">]</span>
 </span><span id="L-405"><a href="#L-405"><span class="linenos">405</span></a>
 </span><span id="L-406"><a href="#L-406"><span class="linenos">406</span></a>    <span class="k">def</span> <span class="nf">stow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-407"><a href="#L-407"><span class="linenos">407</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-408"><a href="#L-408"><span class="linenos">408</span></a><span class="sd">        Cause the robot to move to its stow position</span>
 </span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a><span class="sd">        Blocking.</span>
 </span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -744,7 +745,7 @@
 </span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
 </span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>
 </span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a><span class="sd">        Cause the robot to home its joints by moving to hardstops</span>
 </span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="sd">        Blocking.</span>
 </span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -845,7 +846,7 @@
     </div>
     <a class="headerlink" href="#DXLHeadStatusThread"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DXLHeadStatusThread-25"><a href="#DXLHeadStatusThread-25"><span class="linenos">25</span></a><span class="k">class</span> <span class="nc">DXLHeadStatusThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="DXLHeadStatusThread-26"><a href="#DXLHeadStatusThread-26"><span class="linenos">26</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DXLHeadStatusThread-26"><a href="#DXLHeadStatusThread-26"><span class="linenos">26</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DXLHeadStatusThread-27"><a href="#DXLHeadStatusThread-27"><span class="linenos">27</span></a><span class="sd">    This thread polls the status data of the Dynamixel devices</span>
 </span><span id="DXLHeadStatusThread-28"><a href="#DXLHeadStatusThread-28"><span class="linenos">28</span></a><span class="sd">    at 15Hz</span>
 </span><span id="DXLHeadStatusThread-29"><a href="#DXLHeadStatusThread-29"><span class="linenos">29</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -1062,7 +1063,7 @@ from the args and kwargs arguments, respectively.</p>
     </div>
     <a class="headerlink" href="#DXLEndOfArmStatusThread"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DXLEndOfArmStatusThread-52"><a href="#DXLEndOfArmStatusThread-52"><span class="linenos">52</span></a><span class="k">class</span> <span class="nc">DXLEndOfArmStatusThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="DXLEndOfArmStatusThread-53"><a href="#DXLEndOfArmStatusThread-53"><span class="linenos">53</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DXLEndOfArmStatusThread-53"><a href="#DXLEndOfArmStatusThread-53"><span class="linenos">53</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DXLEndOfArmStatusThread-54"><a href="#DXLEndOfArmStatusThread-54"><span class="linenos">54</span></a><span class="sd">    This thread polls the status data of the Dynamixel devices</span>
 </span><span id="DXLEndOfArmStatusThread-55"><a href="#DXLEndOfArmStatusThread-55"><span class="linenos">55</span></a><span class="sd">    at 15Hz</span>
 </span><span id="DXLEndOfArmStatusThread-56"><a href="#DXLEndOfArmStatusThread-56"><span class="linenos">56</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -1277,7 +1278,7 @@ from the args and kwargs arguments, respectively.</p>
     </div>
     <a class="headerlink" href="#NonDXLStatusThread"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="NonDXLStatusThread-77"><a href="#NonDXLStatusThread-77"><span class="linenos"> 77</span></a><span class="k">class</span> <span class="nc">NonDXLStatusThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="NonDXLStatusThread-78"><a href="#NonDXLStatusThread-78"><span class="linenos"> 78</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="NonDXLStatusThread-78"><a href="#NonDXLStatusThread-78"><span class="linenos"> 78</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="NonDXLStatusThread-79"><a href="#NonDXLStatusThread-79"><span class="linenos"> 79</span></a><span class="sd">    This thread runs at 25Hz.</span>
 </span><span id="NonDXLStatusThread-80"><a href="#NonDXLStatusThread-80"><span class="linenos"> 80</span></a><span class="sd">    It updates the status data of the Devices.</span>
 </span><span id="NonDXLStatusThread-81"><a href="#NonDXLStatusThread-81"><span class="linenos"> 81</span></a><span class="sd">    It also steps the Sentry, Monitor, and Collision functions</span>
@@ -1552,7 +1553,7 @@ from the args and kwargs arguments, respectively.</p>
     </div>
     <a class="headerlink" href="#SystemMonitorThread"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="SystemMonitorThread-116"><a href="#SystemMonitorThread-116"><span class="linenos">116</span></a><span class="k">class</span> <span class="nc">SystemMonitorThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
-</span><span id="SystemMonitorThread-117"><a href="#SystemMonitorThread-117"><span class="linenos">117</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SystemMonitorThread-117"><a href="#SystemMonitorThread-117"><span class="linenos">117</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SystemMonitorThread-118"><a href="#SystemMonitorThread-118"><span class="linenos">118</span></a><span class="sd">    This thread runs at 25Hz.</span>
 </span><span id="SystemMonitorThread-119"><a href="#SystemMonitorThread-119"><span class="linenos">119</span></a><span class="sd">    It updates the status data of the Devices.</span>
 </span><span id="SystemMonitorThread-120"><a href="#SystemMonitorThread-120"><span class="linenos">120</span></a><span class="sd">    It also steps the Sentry, Monitor, and Collision functions</span>
@@ -1883,7 +1884,7 @@ from the args and kwargs arguments, respectively.</p>
     </div>
     <a class="headerlink" href="#Robot"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot-167"><a href="#Robot-167"><span class="linenos">167</span></a><span class="k">class</span> <span class="nc">Robot</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="Robot-168"><a href="#Robot-168"><span class="linenos">168</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-168"><a href="#Robot-168"><span class="linenos">168</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-169"><a href="#Robot-169"><span class="linenos">169</span></a><span class="sd">    API to the Stretch Robot</span>
 </span><span id="Robot-170"><a href="#Robot-170"><span class="linenos">170</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Robot-171"><a href="#Robot-171"><span class="linenos">171</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1929,7 +1930,7 @@ from the args and kwargs arguments, respectively.</p>
 </span><span id="Robot-211"><a href="#Robot-211"><span class="linenos">211</span></a>    <span class="c1"># ###########  Device Methods #############</span>
 </span><span id="Robot-212"><a href="#Robot-212"><span class="linenos">212</span></a>
 </span><span id="Robot-213"><a href="#Robot-213"><span class="linenos">213</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">start_non_dxl_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">start_dxl_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">start_sys_mon_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="Robot-214"><a href="#Robot-214"><span class="linenos">214</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-214"><a href="#Robot-214"><span class="linenos">214</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-215"><a href="#Robot-215"><span class="linenos">215</span></a><span class="sd">        To be called once after class instantiation.</span>
 </span><span id="Robot-216"><a href="#Robot-216"><span class="linenos">216</span></a><span class="sd">        Prepares devices for communications and motion</span>
 </span><span id="Robot-217"><a href="#Robot-217"><span class="linenos">217</span></a>
@@ -1985,7 +1986,7 @@ from the args and kwargs arguments, respectively.</p>
 </span><span id="Robot-267"><a href="#Robot-267"><span class="linenos">267</span></a>        <span class="k">return</span> <span class="n">success</span>
 </span><span id="Robot-268"><a href="#Robot-268"><span class="linenos">268</span></a>
 </span><span id="Robot-269"><a href="#Robot-269"><span class="linenos">269</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot-270"><a href="#Robot-270"><span class="linenos">270</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-270"><a href="#Robot-270"><span class="linenos">270</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-271"><a href="#Robot-271"><span class="linenos">271</span></a><span class="sd">        To be called once before exiting a program</span>
 </span><span id="Robot-272"><a href="#Robot-272"><span class="linenos">272</span></a><span class="sd">        Cleanly stops down motion and communication</span>
 </span><span id="Robot-273"><a href="#Robot-273"><span class="linenos">273</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2010,7 +2011,7 @@ from the args and kwargs arguments, respectively.</p>
 </span><span id="Robot-292"><a href="#Robot-292"><span class="linenos">292</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;---- Shutdown complete ----&#39;</span><span class="p">)</span>
 </span><span id="Robot-293"><a href="#Robot-293"><span class="linenos">293</span></a>
 </span><span id="Robot-294"><a href="#Robot-294"><span class="linenos">294</span></a>    <span class="k">def</span> <span class="nf">get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot-295"><a href="#Robot-295"><span class="linenos">295</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-295"><a href="#Robot-295"><span class="linenos">295</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-296"><a href="#Robot-296"><span class="linenos">296</span></a><span class="sd">        Thread safe and atomic read of current Robot status data</span>
 </span><span id="Robot-297"><a href="#Robot-297"><span class="linenos">297</span></a><span class="sd">        Returns as a dict.</span>
 </span><span id="Robot-298"><a href="#Robot-298"><span class="linenos">298</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2036,7 +2037,7 @@ from the args and kwargs arguments, respectively.</p>
 </span><span id="Robot-318"><a href="#Robot-318"><span class="linenos">318</span></a>        <span class="k">return</span> <span class="n">results</span>
 </span><span id="Robot-319"><a href="#Robot-319"><span class="linenos">319</span></a>        
 </span><span id="Robot-320"><a href="#Robot-320"><span class="linenos">320</span></a>    <span class="k">def</span> <span class="nf">push_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot-321"><a href="#Robot-321"><span class="linenos">321</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-321"><a href="#Robot-321"><span class="linenos">321</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-322"><a href="#Robot-322"><span class="linenos">322</span></a><span class="sd">        Cause all queued up RPC commands to be sent down to Devices</span>
 </span><span id="Robot-323"><a href="#Robot-323"><span class="linenos">323</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Robot-324"><a href="#Robot-324"><span class="linenos">324</span></a>        
@@ -2102,7 +2103,7 @@ from the args and kwargs arguments, respectively.</p>
 </span><span id="Robot-384"><a href="#Robot-384"><span class="linenos">384</span></a><span class="c1"># ##################Home and Stow #######################################</span>
 </span><span id="Robot-385"><a href="#Robot-385"><span class="linenos">385</span></a>
 </span><span id="Robot-386"><a href="#Robot-386"><span class="linenos">386</span></a>    <span class="k">def</span> <span class="nf">is_calibrated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot-387"><a href="#Robot-387"><span class="linenos">387</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-387"><a href="#Robot-387"><span class="linenos">387</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-388"><a href="#Robot-388"><span class="linenos">388</span></a><span class="sd">        Returns true if homing-calibration has been run all joints that require it</span>
 </span><span id="Robot-389"><a href="#Robot-389"><span class="linenos">389</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Robot-390"><a href="#Robot-390"><span class="linenos">390</span></a>        <span class="n">ready</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lift</span><span class="o">.</span><span class="n">motor</span><span class="o">.</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;pos_calibrated&#39;</span><span class="p">]</span>
@@ -2113,7 +2114,7 @@ from the args and kwargs arguments, respectively.</p>
 </span><span id="Robot-395"><a href="#Robot-395"><span class="linenos">395</span></a>        <span class="k">return</span> <span class="n">ready</span>
 </span><span id="Robot-396"><a href="#Robot-396"><span class="linenos">396</span></a>
 </span><span id="Robot-397"><a href="#Robot-397"><span class="linenos">397</span></a>    <span class="k">def</span> <span class="nf">get_stow_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">joint</span><span class="p">):</span>
-</span><span id="Robot-398"><a href="#Robot-398"><span class="linenos">398</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-398"><a href="#Robot-398"><span class="linenos">398</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-399"><a href="#Robot-399"><span class="linenos">399</span></a><span class="sd">        Return the stow position of a joint.</span>
 </span><span id="Robot-400"><a href="#Robot-400"><span class="linenos">400</span></a><span class="sd">        Allow the end_of_arm to override the defaults in order to accomodate stowing different tools</span>
 </span><span id="Robot-401"><a href="#Robot-401"><span class="linenos">401</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2123,7 +2124,7 @@ from the args and kwargs arguments, respectively.</p>
 </span><span id="Robot-405"><a href="#Robot-405"><span class="linenos">405</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;stow&#39;</span><span class="p">][</span><span class="n">joint</span><span class="p">]</span>
 </span><span id="Robot-406"><a href="#Robot-406"><span class="linenos">406</span></a>
 </span><span id="Robot-407"><a href="#Robot-407"><span class="linenos">407</span></a>    <span class="k">def</span> <span class="nf">stow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot-408"><a href="#Robot-408"><span class="linenos">408</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-408"><a href="#Robot-408"><span class="linenos">408</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-409"><a href="#Robot-409"><span class="linenos">409</span></a><span class="sd">        Cause the robot to move to its stow position</span>
 </span><span id="Robot-410"><a href="#Robot-410"><span class="linenos">410</span></a><span class="sd">        Blocking.</span>
 </span><span id="Robot-411"><a href="#Robot-411"><span class="linenos">411</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2167,7 +2168,7 @@ from the args and kwargs arguments, respectively.</p>
 </span><span id="Robot-449"><a href="#Robot-449"><span class="linenos">449</span></a>            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
 </span><span id="Robot-450"><a href="#Robot-450"><span class="linenos">450</span></a>
 </span><span id="Robot-451"><a href="#Robot-451"><span class="linenos">451</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot-452"><a href="#Robot-452"><span class="linenos">452</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot-452"><a href="#Robot-452"><span class="linenos">452</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot-453"><a href="#Robot-453"><span class="linenos">453</span></a><span class="sd">        Cause the robot to home its joints by moving to hardstops</span>
 </span><span id="Robot-454"><a href="#Robot-454"><span class="linenos">454</span></a><span class="sd">        Blocking.</span>
 </span><span id="Robot-455"><a href="#Robot-455"><span class="linenos">455</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2425,7 +2426,7 @@ from the args and kwargs arguments, respectively.</p>
     </div>
     <a class="headerlink" href="#Robot.startup"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot.startup-213"><a href="#Robot.startup-213"><span class="linenos">213</span></a>    <span class="k">def</span> <span class="nf">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">start_non_dxl_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">start_dxl_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">start_sys_mon_thread</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="Robot.startup-214"><a href="#Robot.startup-214"><span class="linenos">214</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot.startup-214"><a href="#Robot.startup-214"><span class="linenos">214</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot.startup-215"><a href="#Robot.startup-215"><span class="linenos">215</span></a><span class="sd">        To be called once after class instantiation.</span>
 </span><span id="Robot.startup-216"><a href="#Robot.startup-216"><span class="linenos">216</span></a><span class="sd">        Prepares devices for communications and motion</span>
 </span><span id="Robot.startup-217"><a href="#Robot.startup-217"><span class="linenos">217</span></a>
@@ -2505,7 +2506,7 @@ Prepares devices for communications and motion</p>
     </div>
     <a class="headerlink" href="#Robot.stop"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot.stop-269"><a href="#Robot.stop-269"><span class="linenos">269</span></a>    <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot.stop-270"><a href="#Robot.stop-270"><span class="linenos">270</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot.stop-270"><a href="#Robot.stop-270"><span class="linenos">270</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot.stop-271"><a href="#Robot.stop-271"><span class="linenos">271</span></a><span class="sd">        To be called once before exiting a program</span>
 </span><span id="Robot.stop-272"><a href="#Robot.stop-272"><span class="linenos">272</span></a><span class="sd">        Cleanly stops down motion and communication</span>
 </span><span id="Robot.stop-273"><a href="#Robot.stop-273"><span class="linenos">273</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2549,7 +2550,7 @@ Cleanly stops down motion and communication</p>
     </div>
     <a class="headerlink" href="#Robot.get_status"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot.get_status-294"><a href="#Robot.get_status-294"><span class="linenos">294</span></a>    <span class="k">def</span> <span class="nf">get_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot.get_status-295"><a href="#Robot.get_status-295"><span class="linenos">295</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot.get_status-295"><a href="#Robot.get_status-295"><span class="linenos">295</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot.get_status-296"><a href="#Robot.get_status-296"><span class="linenos">296</span></a><span class="sd">        Thread safe and atomic read of current Robot status data</span>
 </span><span id="Robot.get_status-297"><a href="#Robot.get_status-297"><span class="linenos">297</span></a><span class="sd">        Returns as a dict.</span>
 </span><span id="Robot.get_status-298"><a href="#Robot.get_status-298"><span class="linenos">298</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2626,7 +2627,7 @@ Returns as a dict.</p>
     </div>
     <a class="headerlink" href="#Robot.push_command"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot.push_command-320"><a href="#Robot.push_command-320"><span class="linenos">320</span></a>    <span class="k">def</span> <span class="nf">push_command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot.push_command-321"><a href="#Robot.push_command-321"><span class="linenos">321</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot.push_command-321"><a href="#Robot.push_command-321"><span class="linenos">321</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot.push_command-322"><a href="#Robot.push_command-322"><span class="linenos">322</span></a><span class="sd">        Cause all queued up RPC commands to be sent down to Devices</span>
 </span><span id="Robot.push_command-323"><a href="#Robot.push_command-323"><span class="linenos">323</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Robot.push_command-324"><a href="#Robot.push_command-324"><span class="linenos">324</span></a>        
@@ -2752,7 +2753,7 @@ Returns as a dict.</p>
     </div>
     <a class="headerlink" href="#Robot.is_calibrated"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot.is_calibrated-386"><a href="#Robot.is_calibrated-386"><span class="linenos">386</span></a>    <span class="k">def</span> <span class="nf">is_calibrated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot.is_calibrated-387"><a href="#Robot.is_calibrated-387"><span class="linenos">387</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot.is_calibrated-387"><a href="#Robot.is_calibrated-387"><span class="linenos">387</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot.is_calibrated-388"><a href="#Robot.is_calibrated-388"><span class="linenos">388</span></a><span class="sd">        Returns true if homing-calibration has been run all joints that require it</span>
 </span><span id="Robot.is_calibrated-389"><a href="#Robot.is_calibrated-389"><span class="linenos">389</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Robot.is_calibrated-390"><a href="#Robot.is_calibrated-390"><span class="linenos">390</span></a>        <span class="n">ready</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lift</span><span class="o">.</span><span class="n">motor</span><span class="o">.</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;pos_calibrated&#39;</span><span class="p">]</span>
@@ -2781,7 +2782,7 @@ Returns as a dict.</p>
     </div>
     <a class="headerlink" href="#Robot.get_stow_pos"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot.get_stow_pos-397"><a href="#Robot.get_stow_pos-397"><span class="linenos">397</span></a>    <span class="k">def</span> <span class="nf">get_stow_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">joint</span><span class="p">):</span>
-</span><span id="Robot.get_stow_pos-398"><a href="#Robot.get_stow_pos-398"><span class="linenos">398</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot.get_stow_pos-398"><a href="#Robot.get_stow_pos-398"><span class="linenos">398</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot.get_stow_pos-399"><a href="#Robot.get_stow_pos-399"><span class="linenos">399</span></a><span class="sd">        Return the stow position of a joint.</span>
 </span><span id="Robot.get_stow_pos-400"><a href="#Robot.get_stow_pos-400"><span class="linenos">400</span></a><span class="sd">        Allow the end_of_arm to override the defaults in order to accomodate stowing different tools</span>
 </span><span id="Robot.get_stow_pos-401"><a href="#Robot.get_stow_pos-401"><span class="linenos">401</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2810,7 +2811,7 @@ Allow the end_of_arm to override the defaults in order to accomodate stowing dif
     </div>
     <a class="headerlink" href="#Robot.stow"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot.stow-407"><a href="#Robot.stow-407"><span class="linenos">407</span></a>    <span class="k">def</span> <span class="nf">stow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot.stow-408"><a href="#Robot.stow-408"><span class="linenos">408</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot.stow-408"><a href="#Robot.stow-408"><span class="linenos">408</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot.stow-409"><a href="#Robot.stow-409"><span class="linenos">409</span></a><span class="sd">        Cause the robot to move to its stow position</span>
 </span><span id="Robot.stow-410"><a href="#Robot.stow-410"><span class="linenos">410</span></a><span class="sd">        Blocking.</span>
 </span><span id="Robot.stow-411"><a href="#Robot.stow-411"><span class="linenos">411</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2873,7 +2874,7 @@ Blocking.</p>
     </div>
     <a class="headerlink" href="#Robot.home"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Robot.home-451"><a href="#Robot.home-451"><span class="linenos">451</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Robot.home-452"><a href="#Robot.home-452"><span class="linenos">452</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Robot.home-452"><a href="#Robot.home-452"><span class="linenos">452</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Robot.home-453"><a href="#Robot.home-453"><span class="linenos">453</span></a><span class="sd">        Cause the robot to home its joints by moving to hardstops</span>
 </span><span id="Robot.home-454"><a href="#Robot.home-454"><span class="linenos">454</span></a><span class="sd">        Blocking.</span>
 </span><span id="Robot.home-455"><a href="#Robot.home-455"><span class="linenos">455</span></a><span class="sd">        &quot;&quot;&quot;</span>

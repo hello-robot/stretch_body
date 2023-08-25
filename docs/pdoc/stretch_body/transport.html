@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -340,6 +340,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/transport.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.transport    </h1>
 
@@ -384,7 +385,7 @@
 </span><span id="L-34"><a href="#L-34"><span class="linenos">  34</span></a>
 </span><span id="L-35"><a href="#L-35"><span class="linenos">  35</span></a>
 </span><span id="L-36"><a href="#L-36"><span class="linenos">  36</span></a><span class="k">class</span> <span class="nc">TransportError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">  37</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for exceptions in this module.&quot;&quot;&quot;</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">  37</span></a>    <span class="sd">&quot;&quot;&quot;Base class for exceptions in this module.&quot;&quot;&quot;</span>
 </span><span id="L-38"><a href="#L-38"><span class="linenos">  38</span></a>    <span class="k">pass</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos">  39</span></a>
 </span><span id="L-40"><a href="#L-40"><span class="linenos">  40</span></a>
@@ -440,7 +441,7 @@
 </span><span id="L-90"><a href="#L-90"><span class="linenos">  90</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_frame</span><span class="p">[:]</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos">  91</span></a>
 </span><span id="L-92"><a href="#L-92"><span class="linenos">  92</span></a>    <span class="k">def</span> <span class="nf">handle_push_ack_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crc</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">ack_code</span><span class="p">):</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos">  93</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos">  93</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-94"><a href="#L-94"><span class="linenos">  94</span></a><span class="sd">        Utility function for code readability</span>
 </span><span id="L-95"><a href="#L-95"><span class="linenos">  95</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-96"><a href="#L-96"><span class="linenos">  96</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbg_on</span><span class="p">:</span>
@@ -457,7 +458,7 @@
 </span><span id="L-107"><a href="#L-107"><span class="linenos"> 107</span></a>            <span class="k">raise</span> <span class="n">TransportError</span>
 </span><span id="L-108"><a href="#L-108"><span class="linenos"> 108</span></a>
 </span><span id="L-109"><a href="#L-109"><span class="linenos"> 109</span></a>    <span class="k">def</span> <span class="nf">handle_pull_ack_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crc</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">ack_code</span><span class="p">):</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos"> 110</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos"> 110</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-111"><a href="#L-111"><span class="linenos"> 111</span></a><span class="sd">        Utility function for code readability</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos"> 112</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos"> 113</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbg_on</span><span class="p">:</span>
@@ -537,7 +538,7 @@
 </span><span id="L-187"><a href="#L-187"><span class="linenos"> 187</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SerialException(</span><span class="si">{0}</span><span class="s2">): </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">strerror</span><span class="p">))</span>
 </span><span id="L-188"><a href="#L-188"><span class="linenos"> 188</span></a>
 </span><span id="L-189"><a href="#L-189"><span class="linenos"> 189</span></a>    <span class="k">def</span> <span class="nf">do_push_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="L-190"><a href="#L-190"><span class="linenos"> 190</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos"> 190</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos"> 191</span></a><span class="sd">                Parameters</span>
 </span><span id="L-192"><a href="#L-192"><span class="linenos"> 192</span></a><span class="sd">        ----------</span>
 </span><span id="L-193"><a href="#L-193"><span class="linenos"> 193</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -620,7 +621,7 @@
 </span><span id="L-270"><a href="#L-270"><span class="linenos"> 270</span></a>        <span class="k">return</span> <span class="kc">False</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos"> 271</span></a>
 </span><span id="L-272"><a href="#L-272"><span class="linenos"> 272</span></a>    <span class="k">def</span> <span class="nf">do_pull_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="L-273"><a href="#L-273"><span class="linenos"> 273</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-273"><a href="#L-273"><span class="linenos"> 273</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-274"><a href="#L-274"><span class="linenos"> 274</span></a><span class="sd">                Parameters</span>
 </span><span id="L-275"><a href="#L-275"><span class="linenos"> 275</span></a><span class="sd">        ----------</span>
 </span><span id="L-276"><a href="#L-276"><span class="linenos"> 276</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -863,7 +864,7 @@
 </span><span id="L-513"><a href="#L-513"><span class="linenos"> 513</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SerialException(</span><span class="si">{0}</span><span class="s2">): </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">strerror</span><span class="p">))</span>
 </span><span id="L-514"><a href="#L-514"><span class="linenos"> 514</span></a>
 </span><span id="L-515"><a href="#L-515"><span class="linenos"> 515</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_pull_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="L-516"><a href="#L-516"><span class="linenos"> 516</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-516"><a href="#L-516"><span class="linenos"> 516</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-517"><a href="#L-517"><span class="linenos"> 517</span></a><span class="sd">                Parameters</span>
 </span><span id="L-518"><a href="#L-518"><span class="linenos"> 518</span></a><span class="sd">        ----------</span>
 </span><span id="L-519"><a href="#L-519"><span class="linenos"> 519</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -922,7 +923,7 @@
 </span><span id="L-572"><a href="#L-572"><span class="linenos"> 572</span></a>        <span class="k">return</span> <span class="kc">False</span>
 </span><span id="L-573"><a href="#L-573"><span class="linenos"> 573</span></a>
 </span><span id="L-574"><a href="#L-574"><span class="linenos"> 574</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_push_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="L-575"><a href="#L-575"><span class="linenos"> 575</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-575"><a href="#L-575"><span class="linenos"> 575</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-576"><a href="#L-576"><span class="linenos"> 576</span></a><span class="sd">                Parameters</span>
 </span><span id="L-577"><a href="#L-577"><span class="linenos"> 577</span></a><span class="sd">        ----------</span>
 </span><span id="L-578"><a href="#L-578"><span class="linenos"> 578</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -1138,7 +1139,7 @@
 </span><span id="L-788"><a href="#L-788"><span class="linenos"> 788</span></a>
 </span><span id="L-789"><a href="#L-789"><span class="linenos"> 789</span></a>
 </span><span id="L-790"><a href="#L-790"><span class="linenos"> 790</span></a><span class="k">class</span> <span class="nc">Transport</span><span class="p">():</span>
-</span><span id="L-791"><a href="#L-791"><span class="linenos"> 791</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-791"><a href="#L-791"><span class="linenos"> 791</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-792"><a href="#L-792"><span class="linenos"> 792</span></a><span class="sd">    Handle serial communications to a Hello Robot USB device using pySerial and asyncio</span>
 </span><span id="L-793"><a href="#L-793"><span class="linenos"> 793</span></a>
 </span><span id="L-794"><a href="#L-794"><span class="linenos"> 794</span></a><span class="sd">    Aioserial supports the standard  pySerial interface as well as async versions of the pySerial interface.</span>
@@ -1191,7 +1192,7 @@
 </span><span id="L-841"><a href="#L-841"><span class="linenos"> 841</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_payload</span><span class="p">[:]</span>
 </span><span id="L-842"><a href="#L-842"><span class="linenos"> 842</span></a>
 </span><span id="L-843"><a href="#L-843"><span class="linenos"> 843</span></a>    <span class="k">def</span> <span class="nf">configure_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">firmware_version</span><span class="p">):</span>
-</span><span id="L-844"><a href="#L-844"><span class="linenos"> 844</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-844"><a href="#L-844"><span class="linenos"> 844</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-845"><a href="#L-845"><span class="linenos"> 845</span></a><span class="sd">        Starting with Stepper/Wacc/Pimu firmware v0.4.0 a faster version (V1) of the transport layer is supported</span>
 </span><span id="L-846"><a href="#L-846"><span class="linenos"> 846</span></a><span class="sd">        Check here if can run the Transport in V1 mode</span>
 </span><span id="L-847"><a href="#L-847"><span class="linenos"> 847</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -1216,7 +1217,7 @@
 </span><span id="L-866"><a href="#L-866"><span class="linenos"> 866</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sync_handler</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_handler</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">v</span>
 </span><span id="L-867"><a href="#L-867"><span class="linenos"> 867</span></a>
 </span><span id="L-868"><a href="#L-868"><span class="linenos"> 868</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_pull_rpc_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-869"><a href="#L-869"><span class="linenos"> 869</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-869"><a href="#L-869"><span class="linenos"> 869</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-870"><a href="#L-870"><span class="linenos"> 870</span></a><span class="sd">        Do an RPC that pulls data from the device</span>
 </span><span id="L-871"><a href="#L-871"><span class="linenos"> 871</span></a><span class="sd">        Parameters</span>
 </span><span id="L-872"><a href="#L-872"><span class="linenos"> 872</span></a><span class="sd">        ----------</span>
@@ -1236,7 +1237,7 @@
 </span><span id="L-886"><a href="#L-886"><span class="linenos"> 886</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 </span><span id="L-887"><a href="#L-887"><span class="linenos"> 887</span></a>
 </span><span id="L-888"><a href="#L-888"><span class="linenos"> 888</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_push_rpc_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-889"><a href="#L-889"><span class="linenos"> 889</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-889"><a href="#L-889"><span class="linenos"> 889</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-890"><a href="#L-890"><span class="linenos"> 890</span></a><span class="sd">        Do an RPC that pushes data to the device</span>
 </span><span id="L-891"><a href="#L-891"><span class="linenos"> 891</span></a><span class="sd">        Parameters</span>
 </span><span id="L-892"><a href="#L-892"><span class="linenos"> 892</span></a><span class="sd">        ----------</span>
@@ -1253,7 +1254,7 @@
 </span><span id="L-903"><a href="#L-903"><span class="linenos"> 903</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 </span><span id="L-904"><a href="#L-904"><span class="linenos"> 904</span></a>
 </span><span id="L-905"><a href="#L-905"><span class="linenos"> 905</span></a>    <span class="k">def</span> <span class="nf">do_pull_rpc_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-906"><a href="#L-906"><span class="linenos"> 906</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-906"><a href="#L-906"><span class="linenos"> 906</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-907"><a href="#L-907"><span class="linenos"> 907</span></a><span class="sd">        Do an RPC that pulls data from the device</span>
 </span><span id="L-908"><a href="#L-908"><span class="linenos"> 908</span></a><span class="sd">        Parameters</span>
 </span><span id="L-909"><a href="#L-909"><span class="linenos"> 909</span></a><span class="sd">        ----------</span>
@@ -1269,7 +1270,7 @@
 </span><span id="L-919"><a href="#L-919"><span class="linenos"> 919</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">sync_handler</span><span class="o">.</span><span class="n">do_rpc</span><span class="p">(</span><span class="n">push</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="o">=</span><span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="n">exiting</span><span class="p">)</span>
 </span><span id="L-920"><a href="#L-920"><span class="linenos"> 920</span></a>
 </span><span id="L-921"><a href="#L-921"><span class="linenos"> 921</span></a>    <span class="k">def</span> <span class="nf">do_push_rpc_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-922"><a href="#L-922"><span class="linenos"> 922</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-922"><a href="#L-922"><span class="linenos"> 922</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-923"><a href="#L-923"><span class="linenos"> 923</span></a><span class="sd">        Do an RPC that pushes data to the device</span>
 </span><span id="L-924"><a href="#L-924"><span class="linenos"> 924</span></a><span class="sd">        Parameters</span>
 </span><span id="L-925"><a href="#L-925"><span class="linenos"> 925</span></a><span class="sd">        ----------</span>
@@ -1374,7 +1375,7 @@
     </div>
     <a class="headerlink" href="#TransportError"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="TransportError-37"><a href="#TransportError-37"><span class="linenos">37</span></a><span class="k">class</span> <span class="nc">TransportError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="TransportError-38"><a href="#TransportError-38"><span class="linenos">38</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for exceptions in this module.&quot;&quot;&quot;</span>
+</span><span id="TransportError-38"><a href="#TransportError-38"><span class="linenos">38</span></a>    <span class="sd">&quot;&quot;&quot;Base class for exceptions in this module.&quot;&quot;&quot;</span>
 </span><span id="TransportError-39"><a href="#TransportError-39"><span class="linenos">39</span></a>    <span class="k">pass</span>
 </span></pre></div>
 
@@ -1751,7 +1752,7 @@
 </span><span id="SyncTransactionHandler-91"><a href="#SyncTransactionHandler-91"><span class="linenos"> 91</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_frame</span><span class="p">[:]</span>
 </span><span id="SyncTransactionHandler-92"><a href="#SyncTransactionHandler-92"><span class="linenos"> 92</span></a>
 </span><span id="SyncTransactionHandler-93"><a href="#SyncTransactionHandler-93"><span class="linenos"> 93</span></a>    <span class="k">def</span> <span class="nf">handle_push_ack_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crc</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">ack_code</span><span class="p">):</span>
-</span><span id="SyncTransactionHandler-94"><a href="#SyncTransactionHandler-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SyncTransactionHandler-94"><a href="#SyncTransactionHandler-94"><span class="linenos"> 94</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler-95"><a href="#SyncTransactionHandler-95"><span class="linenos"> 95</span></a><span class="sd">        Utility function for code readability</span>
 </span><span id="SyncTransactionHandler-96"><a href="#SyncTransactionHandler-96"><span class="linenos"> 96</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler-97"><a href="#SyncTransactionHandler-97"><span class="linenos"> 97</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbg_on</span><span class="p">:</span>
@@ -1768,7 +1769,7 @@
 </span><span id="SyncTransactionHandler-108"><a href="#SyncTransactionHandler-108"><span class="linenos">108</span></a>            <span class="k">raise</span> <span class="n">TransportError</span>
 </span><span id="SyncTransactionHandler-109"><a href="#SyncTransactionHandler-109"><span class="linenos">109</span></a>
 </span><span id="SyncTransactionHandler-110"><a href="#SyncTransactionHandler-110"><span class="linenos">110</span></a>    <span class="k">def</span> <span class="nf">handle_pull_ack_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crc</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">ack_code</span><span class="p">):</span>
-</span><span id="SyncTransactionHandler-111"><a href="#SyncTransactionHandler-111"><span class="linenos">111</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SyncTransactionHandler-111"><a href="#SyncTransactionHandler-111"><span class="linenos">111</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler-112"><a href="#SyncTransactionHandler-112"><span class="linenos">112</span></a><span class="sd">        Utility function for code readability</span>
 </span><span id="SyncTransactionHandler-113"><a href="#SyncTransactionHandler-113"><span class="linenos">113</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler-114"><a href="#SyncTransactionHandler-114"><span class="linenos">114</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbg_on</span><span class="p">:</span>
@@ -1848,7 +1849,7 @@
 </span><span id="SyncTransactionHandler-188"><a href="#SyncTransactionHandler-188"><span class="linenos">188</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SerialException(</span><span class="si">{0}</span><span class="s2">): </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">strerror</span><span class="p">))</span>
 </span><span id="SyncTransactionHandler-189"><a href="#SyncTransactionHandler-189"><span class="linenos">189</span></a>
 </span><span id="SyncTransactionHandler-190"><a href="#SyncTransactionHandler-190"><span class="linenos">190</span></a>    <span class="k">def</span> <span class="nf">do_push_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="SyncTransactionHandler-191"><a href="#SyncTransactionHandler-191"><span class="linenos">191</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SyncTransactionHandler-191"><a href="#SyncTransactionHandler-191"><span class="linenos">191</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler-192"><a href="#SyncTransactionHandler-192"><span class="linenos">192</span></a><span class="sd">                Parameters</span>
 </span><span id="SyncTransactionHandler-193"><a href="#SyncTransactionHandler-193"><span class="linenos">193</span></a><span class="sd">        ----------</span>
 </span><span id="SyncTransactionHandler-194"><a href="#SyncTransactionHandler-194"><span class="linenos">194</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -1931,7 +1932,7 @@
 </span><span id="SyncTransactionHandler-271"><a href="#SyncTransactionHandler-271"><span class="linenos">271</span></a>        <span class="k">return</span> <span class="kc">False</span>
 </span><span id="SyncTransactionHandler-272"><a href="#SyncTransactionHandler-272"><span class="linenos">272</span></a>
 </span><span id="SyncTransactionHandler-273"><a href="#SyncTransactionHandler-273"><span class="linenos">273</span></a>    <span class="k">def</span> <span class="nf">do_pull_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="SyncTransactionHandler-274"><a href="#SyncTransactionHandler-274"><span class="linenos">274</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SyncTransactionHandler-274"><a href="#SyncTransactionHandler-274"><span class="linenos">274</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler-275"><a href="#SyncTransactionHandler-275"><span class="linenos">275</span></a><span class="sd">                Parameters</span>
 </span><span id="SyncTransactionHandler-276"><a href="#SyncTransactionHandler-276"><span class="linenos">276</span></a><span class="sd">        ----------</span>
 </span><span id="SyncTransactionHandler-277"><a href="#SyncTransactionHandler-277"><span class="linenos">277</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -2299,7 +2300,7 @@
     </div>
     <a class="headerlink" href="#SyncTransactionHandler.handle_push_ack_v1"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="SyncTransactionHandler.handle_push_ack_v1-93"><a href="#SyncTransactionHandler.handle_push_ack_v1-93"><span class="linenos"> 93</span></a>    <span class="k">def</span> <span class="nf">handle_push_ack_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crc</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">ack_code</span><span class="p">):</span>
-</span><span id="SyncTransactionHandler.handle_push_ack_v1-94"><a href="#SyncTransactionHandler.handle_push_ack_v1-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SyncTransactionHandler.handle_push_ack_v1-94"><a href="#SyncTransactionHandler.handle_push_ack_v1-94"><span class="linenos"> 94</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler.handle_push_ack_v1-95"><a href="#SyncTransactionHandler.handle_push_ack_v1-95"><span class="linenos"> 95</span></a><span class="sd">        Utility function for code readability</span>
 </span><span id="SyncTransactionHandler.handle_push_ack_v1-96"><a href="#SyncTransactionHandler.handle_push_ack_v1-96"><span class="linenos"> 96</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler.handle_push_ack_v1-97"><a href="#SyncTransactionHandler.handle_push_ack_v1-97"><span class="linenos"> 97</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbg_on</span><span class="p">:</span>
@@ -2334,7 +2335,7 @@
     </div>
     <a class="headerlink" href="#SyncTransactionHandler.handle_pull_ack_v1"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="SyncTransactionHandler.handle_pull_ack_v1-110"><a href="#SyncTransactionHandler.handle_pull_ack_v1-110"><span class="linenos">110</span></a>    <span class="k">def</span> <span class="nf">handle_pull_ack_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">crc</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">ack_code</span><span class="p">):</span>
-</span><span id="SyncTransactionHandler.handle_pull_ack_v1-111"><a href="#SyncTransactionHandler.handle_pull_ack_v1-111"><span class="linenos">111</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SyncTransactionHandler.handle_pull_ack_v1-111"><a href="#SyncTransactionHandler.handle_pull_ack_v1-111"><span class="linenos">111</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler.handle_pull_ack_v1-112"><a href="#SyncTransactionHandler.handle_pull_ack_v1-112"><span class="linenos">112</span></a><span class="sd">        Utility function for code readability</span>
 </span><span id="SyncTransactionHandler.handle_pull_ack_v1-113"><a href="#SyncTransactionHandler.handle_pull_ack_v1-113"><span class="linenos">113</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler.handle_pull_ack_v1-114"><a href="#SyncTransactionHandler.handle_pull_ack_v1-114"><span class="linenos">114</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dbg_on</span><span class="p">:</span>
@@ -2496,7 +2497,7 @@
     </div>
     <a class="headerlink" href="#SyncTransactionHandler.do_push_transaction_v1"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="SyncTransactionHandler.do_push_transaction_v1-190"><a href="#SyncTransactionHandler.do_push_transaction_v1-190"><span class="linenos">190</span></a>    <span class="k">def</span> <span class="nf">do_push_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="SyncTransactionHandler.do_push_transaction_v1-191"><a href="#SyncTransactionHandler.do_push_transaction_v1-191"><span class="linenos">191</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SyncTransactionHandler.do_push_transaction_v1-191"><a href="#SyncTransactionHandler.do_push_transaction_v1-191"><span class="linenos">191</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler.do_push_transaction_v1-192"><a href="#SyncTransactionHandler.do_push_transaction_v1-192"><span class="linenos">192</span></a><span class="sd">                Parameters</span>
 </span><span id="SyncTransactionHandler.do_push_transaction_v1-193"><a href="#SyncTransactionHandler.do_push_transaction_v1-193"><span class="linenos">193</span></a><span class="sd">        ----------</span>
 </span><span id="SyncTransactionHandler.do_push_transaction_v1-194"><a href="#SyncTransactionHandler.do_push_transaction_v1-194"><span class="linenos">194</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -2632,7 +2633,7 @@ succesfully recieved. It also returns an RPC_ID_ACK for the callback to verify t
     </div>
     <a class="headerlink" href="#SyncTransactionHandler.do_pull_transaction_v1"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="SyncTransactionHandler.do_pull_transaction_v1-273"><a href="#SyncTransactionHandler.do_pull_transaction_v1-273"><span class="linenos">273</span></a>    <span class="k">def</span> <span class="nf">do_pull_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="SyncTransactionHandler.do_pull_transaction_v1-274"><a href="#SyncTransactionHandler.do_pull_transaction_v1-274"><span class="linenos">274</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="SyncTransactionHandler.do_pull_transaction_v1-274"><a href="#SyncTransactionHandler.do_pull_transaction_v1-274"><span class="linenos">274</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="SyncTransactionHandler.do_pull_transaction_v1-275"><a href="#SyncTransactionHandler.do_pull_transaction_v1-275"><span class="linenos">275</span></a><span class="sd">                Parameters</span>
 </span><span id="SyncTransactionHandler.do_pull_transaction_v1-276"><a href="#SyncTransactionHandler.do_pull_transaction_v1-276"><span class="linenos">276</span></a><span class="sd">        ----------</span>
 </span><span id="SyncTransactionHandler.do_pull_transaction_v1-277"><a href="#SyncTransactionHandler.do_pull_transaction_v1-277"><span class="linenos">277</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -2918,7 +2919,7 @@ We get back one or more frames of status data which is then decoded and passed t
 </span><span id="AsyncTransactionHandler-514"><a href="#AsyncTransactionHandler-514"><span class="linenos">514</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SerialException(</span><span class="si">{0}</span><span class="s2">): </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">strerror</span><span class="p">))</span>
 </span><span id="AsyncTransactionHandler-515"><a href="#AsyncTransactionHandler-515"><span class="linenos">515</span></a>
 </span><span id="AsyncTransactionHandler-516"><a href="#AsyncTransactionHandler-516"><span class="linenos">516</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_pull_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="AsyncTransactionHandler-517"><a href="#AsyncTransactionHandler-517"><span class="linenos">517</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AsyncTransactionHandler-517"><a href="#AsyncTransactionHandler-517"><span class="linenos">517</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="AsyncTransactionHandler-518"><a href="#AsyncTransactionHandler-518"><span class="linenos">518</span></a><span class="sd">                Parameters</span>
 </span><span id="AsyncTransactionHandler-519"><a href="#AsyncTransactionHandler-519"><span class="linenos">519</span></a><span class="sd">        ----------</span>
 </span><span id="AsyncTransactionHandler-520"><a href="#AsyncTransactionHandler-520"><span class="linenos">520</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -2977,7 +2978,7 @@ We get back one or more frames of status data which is then decoded and passed t
 </span><span id="AsyncTransactionHandler-573"><a href="#AsyncTransactionHandler-573"><span class="linenos">573</span></a>        <span class="k">return</span> <span class="kc">False</span>
 </span><span id="AsyncTransactionHandler-574"><a href="#AsyncTransactionHandler-574"><span class="linenos">574</span></a>
 </span><span id="AsyncTransactionHandler-575"><a href="#AsyncTransactionHandler-575"><span class="linenos">575</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_push_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="AsyncTransactionHandler-576"><a href="#AsyncTransactionHandler-576"><span class="linenos">576</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AsyncTransactionHandler-576"><a href="#AsyncTransactionHandler-576"><span class="linenos">576</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="AsyncTransactionHandler-577"><a href="#AsyncTransactionHandler-577"><span class="linenos">577</span></a><span class="sd">                Parameters</span>
 </span><span id="AsyncTransactionHandler-578"><a href="#AsyncTransactionHandler-578"><span class="linenos">578</span></a><span class="sd">        ----------</span>
 </span><span id="AsyncTransactionHandler-579"><a href="#AsyncTransactionHandler-579"><span class="linenos">579</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -3326,7 +3327,7 @@ We get back one or more frames of status data which is then decoded and passed t
     </div>
     <a class="headerlink" href="#AsyncTransactionHandler.do_pull_transaction_v1"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="AsyncTransactionHandler.do_pull_transaction_v1-516"><a href="#AsyncTransactionHandler.do_pull_transaction_v1-516"><span class="linenos">516</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_pull_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="AsyncTransactionHandler.do_pull_transaction_v1-517"><a href="#AsyncTransactionHandler.do_pull_transaction_v1-517"><span class="linenos">517</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AsyncTransactionHandler.do_pull_transaction_v1-517"><a href="#AsyncTransactionHandler.do_pull_transaction_v1-517"><span class="linenos">517</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="AsyncTransactionHandler.do_pull_transaction_v1-518"><a href="#AsyncTransactionHandler.do_pull_transaction_v1-518"><span class="linenos">518</span></a><span class="sd">                Parameters</span>
 </span><span id="AsyncTransactionHandler.do_pull_transaction_v1-519"><a href="#AsyncTransactionHandler.do_pull_transaction_v1-519"><span class="linenos">519</span></a><span class="sd">        ----------</span>
 </span><span id="AsyncTransactionHandler.do_pull_transaction_v1-520"><a href="#AsyncTransactionHandler.do_pull_transaction_v1-520"><span class="linenos">520</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -3412,7 +3413,7 @@ We get back one or more frames of status data which is then decoded and passed t
     </div>
     <a class="headerlink" href="#AsyncTransactionHandler.do_push_transaction_v1"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="AsyncTransactionHandler.do_push_transaction_v1-575"><a href="#AsyncTransactionHandler.do_push_transaction_v1-575"><span class="linenos">575</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_push_transaction_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rpc_data</span><span class="p">,</span> <span class="n">rpc_callback</span><span class="p">):</span>
-</span><span id="AsyncTransactionHandler.do_push_transaction_v1-576"><a href="#AsyncTransactionHandler.do_push_transaction_v1-576"><span class="linenos">576</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="AsyncTransactionHandler.do_push_transaction_v1-576"><a href="#AsyncTransactionHandler.do_push_transaction_v1-576"><span class="linenos">576</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="AsyncTransactionHandler.do_push_transaction_v1-577"><a href="#AsyncTransactionHandler.do_push_transaction_v1-577"><span class="linenos">577</span></a><span class="sd">                Parameters</span>
 </span><span id="AsyncTransactionHandler.do_push_transaction_v1-578"><a href="#AsyncTransactionHandler.do_push_transaction_v1-578"><span class="linenos">578</span></a><span class="sd">        ----------</span>
 </span><span id="AsyncTransactionHandler.do_push_transaction_v1-579"><a href="#AsyncTransactionHandler.do_push_transaction_v1-579"><span class="linenos">579</span></a><span class="sd">        rpc_data: Buffer of data to transmit in RPC</span>
@@ -3720,7 +3721,7 @@ succesfully recieved. It also returns an RPC_ID_ACK for the callback to verify t
     </div>
     <a class="headerlink" href="#Transport"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Transport-791"><a href="#Transport-791"><span class="linenos">791</span></a><span class="k">class</span> <span class="nc">Transport</span><span class="p">():</span>
-</span><span id="Transport-792"><a href="#Transport-792"><span class="linenos">792</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport-792"><a href="#Transport-792"><span class="linenos">792</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport-793"><a href="#Transport-793"><span class="linenos">793</span></a><span class="sd">    Handle serial communications to a Hello Robot USB device using pySerial and asyncio</span>
 </span><span id="Transport-794"><a href="#Transport-794"><span class="linenos">794</span></a>
 </span><span id="Transport-795"><a href="#Transport-795"><span class="linenos">795</span></a><span class="sd">    Aioserial supports the standard  pySerial interface as well as async versions of the pySerial interface.</span>
@@ -3773,7 +3774,7 @@ succesfully recieved. It also returns an RPC_ID_ACK for the callback to verify t
 </span><span id="Transport-842"><a href="#Transport-842"><span class="linenos">842</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty_payload</span><span class="p">[:]</span>
 </span><span id="Transport-843"><a href="#Transport-843"><span class="linenos">843</span></a>
 </span><span id="Transport-844"><a href="#Transport-844"><span class="linenos">844</span></a>    <span class="k">def</span> <span class="nf">configure_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">firmware_version</span><span class="p">):</span>
-</span><span id="Transport-845"><a href="#Transport-845"><span class="linenos">845</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport-845"><a href="#Transport-845"><span class="linenos">845</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport-846"><a href="#Transport-846"><span class="linenos">846</span></a><span class="sd">        Starting with Stepper/Wacc/Pimu firmware v0.4.0 a faster version (V1) of the transport layer is supported</span>
 </span><span id="Transport-847"><a href="#Transport-847"><span class="linenos">847</span></a><span class="sd">        Check here if can run the Transport in V1 mode</span>
 </span><span id="Transport-848"><a href="#Transport-848"><span class="linenos">848</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -3798,7 +3799,7 @@ succesfully recieved. It also returns an RPC_ID_ACK for the callback to verify t
 </span><span id="Transport-867"><a href="#Transport-867"><span class="linenos">867</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sync_handler</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">async_handler</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">v</span>
 </span><span id="Transport-868"><a href="#Transport-868"><span class="linenos">868</span></a>
 </span><span id="Transport-869"><a href="#Transport-869"><span class="linenos">869</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_pull_rpc_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Transport-870"><a href="#Transport-870"><span class="linenos">870</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport-870"><a href="#Transport-870"><span class="linenos">870</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport-871"><a href="#Transport-871"><span class="linenos">871</span></a><span class="sd">        Do an RPC that pulls data from the device</span>
 </span><span id="Transport-872"><a href="#Transport-872"><span class="linenos">872</span></a><span class="sd">        Parameters</span>
 </span><span id="Transport-873"><a href="#Transport-873"><span class="linenos">873</span></a><span class="sd">        ----------</span>
@@ -3818,7 +3819,7 @@ succesfully recieved. It also returns an RPC_ID_ACK for the callback to verify t
 </span><span id="Transport-887"><a href="#Transport-887"><span class="linenos">887</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 </span><span id="Transport-888"><a href="#Transport-888"><span class="linenos">888</span></a>
 </span><span id="Transport-889"><a href="#Transport-889"><span class="linenos">889</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_push_rpc_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Transport-890"><a href="#Transport-890"><span class="linenos">890</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport-890"><a href="#Transport-890"><span class="linenos">890</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport-891"><a href="#Transport-891"><span class="linenos">891</span></a><span class="sd">        Do an RPC that pushes data to the device</span>
 </span><span id="Transport-892"><a href="#Transport-892"><span class="linenos">892</span></a><span class="sd">        Parameters</span>
 </span><span id="Transport-893"><a href="#Transport-893"><span class="linenos">893</span></a><span class="sd">        ----------</span>
@@ -3835,7 +3836,7 @@ succesfully recieved. It also returns an RPC_ID_ACK for the callback to verify t
 </span><span id="Transport-904"><a href="#Transport-904"><span class="linenos">904</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
 </span><span id="Transport-905"><a href="#Transport-905"><span class="linenos">905</span></a>
 </span><span id="Transport-906"><a href="#Transport-906"><span class="linenos">906</span></a>    <span class="k">def</span> <span class="nf">do_pull_rpc_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Transport-907"><a href="#Transport-907"><span class="linenos">907</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport-907"><a href="#Transport-907"><span class="linenos">907</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport-908"><a href="#Transport-908"><span class="linenos">908</span></a><span class="sd">        Do an RPC that pulls data from the device</span>
 </span><span id="Transport-909"><a href="#Transport-909"><span class="linenos">909</span></a><span class="sd">        Parameters</span>
 </span><span id="Transport-910"><a href="#Transport-910"><span class="linenos">910</span></a><span class="sd">        ----------</span>
@@ -3851,7 +3852,7 @@ succesfully recieved. It also returns an RPC_ID_ACK for the callback to verify t
 </span><span id="Transport-920"><a href="#Transport-920"><span class="linenos">920</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">sync_handler</span><span class="o">.</span><span class="n">do_rpc</span><span class="p">(</span><span class="n">push</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="o">=</span><span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="n">exiting</span><span class="p">)</span>
 </span><span id="Transport-921"><a href="#Transport-921"><span class="linenos">921</span></a>
 </span><span id="Transport-922"><a href="#Transport-922"><span class="linenos">922</span></a>    <span class="k">def</span> <span class="nf">do_push_rpc_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Transport-923"><a href="#Transport-923"><span class="linenos">923</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport-923"><a href="#Transport-923"><span class="linenos">923</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport-924"><a href="#Transport-924"><span class="linenos">924</span></a><span class="sd">        Do an RPC that pushes data to the device</span>
 </span><span id="Transport-925"><a href="#Transport-925"><span class="linenos">925</span></a><span class="sd">        Parameters</span>
 </span><span id="Transport-926"><a href="#Transport-926"><span class="linenos">926</span></a><span class="sd">        ----------</span>
@@ -4061,7 +4062,7 @@ They can use the asyncio interfaces for timing critical transactions where block
     </div>
     <a class="headerlink" href="#Transport.configure_version"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Transport.configure_version-844"><a href="#Transport.configure_version-844"><span class="linenos">844</span></a>    <span class="k">def</span> <span class="nf">configure_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">firmware_version</span><span class="p">):</span>
-</span><span id="Transport.configure_version-845"><a href="#Transport.configure_version-845"><span class="linenos">845</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport.configure_version-845"><a href="#Transport.configure_version-845"><span class="linenos">845</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport.configure_version-846"><a href="#Transport.configure_version-846"><span class="linenos">846</span></a><span class="sd">        Starting with Stepper/Wacc/Pimu firmware v0.4.0 a faster version (V1) of the transport layer is supported</span>
 </span><span id="Transport.configure_version-847"><a href="#Transport.configure_version-847"><span class="linenos">847</span></a><span class="sd">        Check here if can run the Transport in V1 mode</span>
 </span><span id="Transport.configure_version-848"><a href="#Transport.configure_version-848"><span class="linenos">848</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -4121,7 +4122,7 @@ Check here if can run the Transport in V1 mode</p>
     </div>
     <a class="headerlink" href="#Transport.do_pull_rpc_async"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Transport.do_pull_rpc_async-869"><a href="#Transport.do_pull_rpc_async-869"><span class="linenos">869</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_pull_rpc_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Transport.do_pull_rpc_async-870"><a href="#Transport.do_pull_rpc_async-870"><span class="linenos">870</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport.do_pull_rpc_async-870"><a href="#Transport.do_pull_rpc_async-870"><span class="linenos">870</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport.do_pull_rpc_async-871"><a href="#Transport.do_pull_rpc_async-871"><span class="linenos">871</span></a><span class="sd">        Do an RPC that pulls data from the device</span>
 </span><span id="Transport.do_pull_rpc_async-872"><a href="#Transport.do_pull_rpc_async-872"><span class="linenos">872</span></a><span class="sd">        Parameters</span>
 </span><span id="Transport.do_pull_rpc_async-873"><a href="#Transport.do_pull_rpc_async-873"><span class="linenos">873</span></a><span class="sd">        ----------</span>
@@ -4169,7 +4170,7 @@ exiting: Cleanup if a final call during exit</p>
     </div>
     <a class="headerlink" href="#Transport.do_push_rpc_async"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Transport.do_push_rpc_async-889"><a href="#Transport.do_push_rpc_async-889"><span class="linenos">889</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">do_push_rpc_async</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Transport.do_push_rpc_async-890"><a href="#Transport.do_push_rpc_async-890"><span class="linenos">890</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport.do_push_rpc_async-890"><a href="#Transport.do_push_rpc_async-890"><span class="linenos">890</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport.do_push_rpc_async-891"><a href="#Transport.do_push_rpc_async-891"><span class="linenos">891</span></a><span class="sd">        Do an RPC that pushes data to the device</span>
 </span><span id="Transport.do_push_rpc_async-892"><a href="#Transport.do_push_rpc_async-892"><span class="linenos">892</span></a><span class="sd">        Parameters</span>
 </span><span id="Transport.do_push_rpc_async-893"><a href="#Transport.do_push_rpc_async-893"><span class="linenos">893</span></a><span class="sd">        ----------</span>
@@ -4214,7 +4215,7 @@ exiting: Cleanup if a final call during exit</p>
     </div>
     <a class="headerlink" href="#Transport.do_pull_rpc_sync"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Transport.do_pull_rpc_sync-906"><a href="#Transport.do_pull_rpc_sync-906"><span class="linenos">906</span></a>    <span class="k">def</span> <span class="nf">do_pull_rpc_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Transport.do_pull_rpc_sync-907"><a href="#Transport.do_pull_rpc_sync-907"><span class="linenos">907</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport.do_pull_rpc_sync-907"><a href="#Transport.do_pull_rpc_sync-907"><span class="linenos">907</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport.do_pull_rpc_sync-908"><a href="#Transport.do_pull_rpc_sync-908"><span class="linenos">908</span></a><span class="sd">        Do an RPC that pulls data from the device</span>
 </span><span id="Transport.do_pull_rpc_sync-909"><a href="#Transport.do_pull_rpc_sync-909"><span class="linenos">909</span></a><span class="sd">        Parameters</span>
 </span><span id="Transport.do_pull_rpc_sync-910"><a href="#Transport.do_pull_rpc_sync-910"><span class="linenos">910</span></a><span class="sd">        ----------</span>
@@ -4258,7 +4259,7 @@ exiting: Cleanup if a final call during exit</p>
     </div>
     <a class="headerlink" href="#Transport.do_push_rpc_sync"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Transport.do_push_rpc_sync-922"><a href="#Transport.do_push_rpc_sync-922"><span class="linenos">922</span></a>    <span class="k">def</span> <span class="nf">do_push_rpc_sync</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">reply_callback</span><span class="p">,</span> <span class="n">exiting</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Transport.do_push_rpc_sync-923"><a href="#Transport.do_push_rpc_sync-923"><span class="linenos">923</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Transport.do_push_rpc_sync-923"><a href="#Transport.do_push_rpc_sync-923"><span class="linenos">923</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Transport.do_push_rpc_sync-924"><a href="#Transport.do_push_rpc_sync-924"><span class="linenos">924</span></a><span class="sd">        Do an RPC that pushes data to the device</span>
 </span><span id="Transport.do_push_rpc_sync-925"><a href="#Transport.do_push_rpc_sync-925"><span class="linenos">925</span></a><span class="sd">        Parameters</span>
 </span><span id="Transport.do_push_rpc_sync-926"><a href="#Transport.do_push_rpc_sync-926"><span class="linenos">926</span></a><span class="sd">        ----------</span>

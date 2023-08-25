@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -79,6 +79,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/head.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.head    </h1>
 
@@ -94,7 +95,7 @@
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">stretch_body.robot_params</span> <span class="kn">import</span> <span class="n">RobotParams</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="k">class</span> <span class="nc">Head</span><span class="p">(</span><span class="n">DynamixelXChain</span><span class="p">):</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">    API to the Stretch RE1 Head</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -113,7 +114,7 @@
 </span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>        <span class="k">return</span> <span class="n">DynamixelXChain</span><span class="o">.</span><span class="n">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="n">threaded</span><span class="p">)</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
 </span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">get_joint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_name</span><span class="p">):</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
 </span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">        Parameters</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">        ----------</span>
@@ -128,7 +129,7 @@
 </span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_motor</span><span class="p">(</span><span class="n">joint_name</span><span class="p">)</span>
 </span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>
 </span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="k">def</span> <span class="nf">move_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">        joint: Name of the joint to move (&#39;head_pan&#39; or &#39;head_tilt&#39;)</span>
 </span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">        x_r: commanded absolute position (radians).</span>
 </span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -137,7 +138,7 @@
 </span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span><span class="o">.</span><span class="n">move_to</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span><span class="n">v_r</span><span class="p">,</span><span class="n">a_r</span><span class="p">)</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>
 </span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>    <span class="k">def</span> <span class="nf">move_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span>  <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="sd">        joint: Name of the joint to move (&#39;head_pan&#39; or &#39;head_tilt&#39;)</span>
 </span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a><span class="sd">        x_r: commanded incremental motion (radians).</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -159,7 +160,7 @@
 </span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>
 </span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>
 </span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">a_r</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]):</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a><span class="sd">        p: Dictionary key to named pose (eg &#39;ahead&#39;)</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a><span class="sd">        v_r: list, velocities for trapezoidal motion profile (rad/s).</span>
 </span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a><span class="sd">        a_r: list, accelerations for trapezoidal motion profile (rad/s^2)</span>
@@ -182,7 +183,7 @@
     </div>
     <a class="headerlink" href="#Head"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Head-8"><a href="#Head-8"><span class="linenos"> 8</span></a><span class="k">class</span> <span class="nc">Head</span><span class="p">(</span><span class="n">DynamixelXChain</span><span class="p">):</span>
-</span><span id="Head-9"><a href="#Head-9"><span class="linenos"> 9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Head-9"><a href="#Head-9"><span class="linenos"> 9</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Head-10"><a href="#Head-10"><span class="linenos">10</span></a><span class="sd">    API to the Stretch RE1 Head</span>
 </span><span id="Head-11"><a href="#Head-11"><span class="linenos">11</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Head-12"><a href="#Head-12"><span class="linenos">12</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -201,7 +202,7 @@
 </span><span id="Head-25"><a href="#Head-25"><span class="linenos">25</span></a>        <span class="k">return</span> <span class="n">DynamixelXChain</span><span class="o">.</span><span class="n">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="n">threaded</span><span class="p">)</span>
 </span><span id="Head-26"><a href="#Head-26"><span class="linenos">26</span></a>
 </span><span id="Head-27"><a href="#Head-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="nf">get_joint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_name</span><span class="p">):</span>
-</span><span id="Head-28"><a href="#Head-28"><span class="linenos">28</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
+</span><span id="Head-28"><a href="#Head-28"><span class="linenos">28</span></a>        <span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
 </span><span id="Head-29"><a href="#Head-29"><span class="linenos">29</span></a>
 </span><span id="Head-30"><a href="#Head-30"><span class="linenos">30</span></a><span class="sd">        Parameters</span>
 </span><span id="Head-31"><a href="#Head-31"><span class="linenos">31</span></a><span class="sd">        ----------</span>
@@ -216,7 +217,7 @@
 </span><span id="Head-40"><a href="#Head-40"><span class="linenos">40</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_motor</span><span class="p">(</span><span class="n">joint_name</span><span class="p">)</span>
 </span><span id="Head-41"><a href="#Head-41"><span class="linenos">41</span></a>
 </span><span id="Head-42"><a href="#Head-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="nf">move_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Head-43"><a href="#Head-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Head-43"><a href="#Head-43"><span class="linenos">43</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Head-44"><a href="#Head-44"><span class="linenos">44</span></a><span class="sd">        joint: Name of the joint to move (&#39;head_pan&#39; or &#39;head_tilt&#39;)</span>
 </span><span id="Head-45"><a href="#Head-45"><span class="linenos">45</span></a><span class="sd">        x_r: commanded absolute position (radians).</span>
 </span><span id="Head-46"><a href="#Head-46"><span class="linenos">46</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -225,7 +226,7 @@
 </span><span id="Head-49"><a href="#Head-49"><span class="linenos">49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span><span class="o">.</span><span class="n">move_to</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span><span class="n">v_r</span><span class="p">,</span><span class="n">a_r</span><span class="p">)</span>
 </span><span id="Head-50"><a href="#Head-50"><span class="linenos">50</span></a>
 </span><span id="Head-51"><a href="#Head-51"><span class="linenos">51</span></a>    <span class="k">def</span> <span class="nf">move_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span>  <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Head-52"><a href="#Head-52"><span class="linenos">52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Head-52"><a href="#Head-52"><span class="linenos">52</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Head-53"><a href="#Head-53"><span class="linenos">53</span></a><span class="sd">        joint: Name of the joint to move (&#39;head_pan&#39; or &#39;head_tilt&#39;)</span>
 </span><span id="Head-54"><a href="#Head-54"><span class="linenos">54</span></a><span class="sd">        x_r: commanded incremental motion (radians).</span>
 </span><span id="Head-55"><a href="#Head-55"><span class="linenos">55</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -247,7 +248,7 @@
 </span><span id="Head-71"><a href="#Head-71"><span class="linenos">71</span></a>
 </span><span id="Head-72"><a href="#Head-72"><span class="linenos">72</span></a>
 </span><span id="Head-73"><a href="#Head-73"><span class="linenos">73</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">a_r</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]):</span>
-</span><span id="Head-74"><a href="#Head-74"><span class="linenos">74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Head-74"><a href="#Head-74"><span class="linenos">74</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Head-75"><a href="#Head-75"><span class="linenos">75</span></a><span class="sd">        p: Dictionary key to named pose (eg &#39;ahead&#39;)</span>
 </span><span id="Head-76"><a href="#Head-76"><span class="linenos">76</span></a><span class="sd">        v_r: list, velocities for trapezoidal motion profile (rad/s).</span>
 </span><span id="Head-77"><a href="#Head-77"><span class="linenos">77</span></a><span class="sd">        a_r: list, accelerations for trapezoidal motion profile (rad/s^2)</span>
@@ -353,7 +354,7 @@
     </div>
     <a class="headerlink" href="#Head.get_joint"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Head.get_joint-27"><a href="#Head.get_joint-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="nf">get_joint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_name</span><span class="p">):</span>
-</span><span id="Head.get_joint-28"><a href="#Head.get_joint-28"><span class="linenos">28</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
+</span><span id="Head.get_joint-28"><a href="#Head.get_joint-28"><span class="linenos">28</span></a>        <span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
 </span><span id="Head.get_joint-29"><a href="#Head.get_joint-29"><span class="linenos">29</span></a>
 </span><span id="Head.get_joint-30"><a href="#Head.get_joint-30"><span class="linenos">30</span></a><span class="sd">        Parameters</span>
 </span><span id="Head.get_joint-31"><a href="#Head.get_joint-31"><span class="linenos">31</span></a><span class="sd">        ----------</span>
@@ -396,7 +397,7 @@
     </div>
     <a class="headerlink" href="#Head.move_to"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Head.move_to-42"><a href="#Head.move_to-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="nf">move_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Head.move_to-43"><a href="#Head.move_to-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Head.move_to-43"><a href="#Head.move_to-43"><span class="linenos">43</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Head.move_to-44"><a href="#Head.move_to-44"><span class="linenos">44</span></a><span class="sd">        joint: Name of the joint to move (&#39;head_pan&#39; or &#39;head_tilt&#39;)</span>
 </span><span id="Head.move_to-45"><a href="#Head.move_to-45"><span class="linenos">45</span></a><span class="sd">        x_r: commanded absolute position (radians).</span>
 </span><span id="Head.move_to-46"><a href="#Head.move_to-46"><span class="linenos">46</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -426,7 +427,7 @@ a_r: acceleration for trapezoidal motion profile (rad/s^2)</p>
     </div>
     <a class="headerlink" href="#Head.move_by"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Head.move_by-51"><a href="#Head.move_by-51"><span class="linenos">51</span></a>    <span class="k">def</span> <span class="nf">move_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span>  <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Head.move_by-52"><a href="#Head.move_by-52"><span class="linenos">52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Head.move_by-52"><a href="#Head.move_by-52"><span class="linenos">52</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Head.move_by-53"><a href="#Head.move_by-53"><span class="linenos">53</span></a><span class="sd">        joint: Name of the joint to move (&#39;head_pan&#39; or &#39;head_tilt&#39;)</span>
 </span><span id="Head.move_by-54"><a href="#Head.move_by-54"><span class="linenos">54</span></a><span class="sd">        x_r: commanded incremental motion (radians).</span>
 </span><span id="Head.move_by-55"><a href="#Head.move_by-55"><span class="linenos">55</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -484,7 +485,7 @@ a_r: acceleration for trapezoidal motion profile (rad/s^2)</p>
     </div>
     <a class="headerlink" href="#Head.pose"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Head.pose-73"><a href="#Head.pose-73"><span class="linenos">73</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">a_r</span><span class="o">=</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]):</span>
-</span><span id="Head.pose-74"><a href="#Head.pose-74"><span class="linenos">74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Head.pose-74"><a href="#Head.pose-74"><span class="linenos">74</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Head.pose-75"><a href="#Head.pose-75"><span class="linenos">75</span></a><span class="sd">        p: Dictionary key to named pose (eg &#39;ahead&#39;)</span>
 </span><span id="Head.pose-76"><a href="#Head.pose-76"><span class="linenos">76</span></a><span class="sd">        v_r: list, velocities for trapezoidal motion profile (rad/s).</span>
 </span><span id="Head.pose-77"><a href="#Head.pose-77"><span class="linenos">77</span></a><span class="sd">        a_r: list, accelerations for trapezoidal motion profile (rad/s^2)</span>

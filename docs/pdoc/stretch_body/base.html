@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -205,6 +205,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/base.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.base    </h1>
 
@@ -224,7 +225,7 @@
 </span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span> <span class="nn">numpy</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="k">class</span> <span class="nc">Base</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    API to the Stretch Mobile Base</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">usb_left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">usb_right</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -292,14 +293,14 @@
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="c1"># ###################################################</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">enable_freewheel_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">        Force motors into freewheel</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">enable_freewheel</span><span class="p">()</span>
 </span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">enable_freewheel</span><span class="p">()</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="k">def</span> <span class="nf">enable_pos_incr_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">                Force motors into incremental position mode</span>
 </span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">enable_pos_traj_incr</span><span class="p">()</span>
@@ -322,7 +323,7 @@
 </span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">wait_until_at_setpoint</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
 </span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>
 </span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>    <span class="k">def</span> <span class="nf">contact_thresh_to_motor_current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">is_translate</span><span class="p">,</span><span class="n">contact_thresh</span><span class="p">):</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">        This model converts from a specified percentage effort (-100 to 100) of translate/rotational effort to motor currents</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>        <span class="k">if</span> <span class="n">is_translate</span><span class="p">:</span>
@@ -336,7 +337,7 @@
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="k">return</span> <span class="n">i_l</span><span class="p">,</span><span class="n">i_r</span>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="k">def</span> <span class="nf">translate_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">v_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">        Incremental translation of the base</span>
 </span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">        x_m: desired motion (m)</span>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">        v_m: velocity for trapezoidal motion profile (m/s)</span>
@@ -387,7 +388,7 @@
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>
 </span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>
 </span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="k">def</span> <span class="nf">rotate_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd">        Incremental rotation of the base</span>
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a><span class="sd">        x_r: desired motion (radians)</span>
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s)</span>
@@ -441,7 +442,7 @@
 </span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>
 </span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>
 </span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>    <span class="k">def</span> <span class="nf">set_translate_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_m</span><span class="p">,</span> <span class="n">a_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a><span class="sd">        Command the bases translational velocity.</span>
 </span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
 </span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="sd">        v_m: desired velocity (m/s)</span>
@@ -474,7 +475,7 @@
 </span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a>                                     <span class="n">i_contact_neg</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">i_contact_r</span><span class="p">)</span>
 </span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>
 </span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a>    <span class="k">def</span> <span class="nf">set_rotational_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a><span class="sd">        Command the bases rotational velocity.</span>
 </span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
 </span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a><span class="sd">        v_r: desired rotational velocity (rad/s)</span>
@@ -510,7 +511,7 @@
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>                                     <span class="n">i_contact_neg</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">i_contact_r</span><span class="p">)</span>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a>
 </span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>    <span class="k">def</span> <span class="nf">set_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_m</span><span class="p">,</span> <span class="n">w_r</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a><span class="sd">        Command the bases translational and rotational</span>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a><span class="sd">        velocities simultaneously.</span>
 </span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
@@ -560,7 +561,7 @@
 </span><span id="L-345"><a href="#L-345"><span class="linenos">345</span></a>
 </span><span id="L-346"><a href="#L-346"><span class="linenos">346</span></a>    <span class="c1"># ######### Waypoint Trajectory Interface ##############################</span>
 </span><span id="L-347"><a href="#L-347"><span class="linenos">347</span></a>    <span class="k">def</span> <span class="nf">follow_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
+</span><span id="L-348"><a href="#L-348"><span class="linenos">348</span></a>        <span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
 </span><span id="L-349"><a href="#L-349"><span class="linenos">349</span></a>
 </span><span id="L-350"><a href="#L-350"><span class="linenos">350</span></a><span class="sd">        `self.trajectory` must be populated with a valid trajectory before calling</span>
 </span><span id="L-351"><a href="#L-351"><span class="linenos">351</span></a><span class="sd">        this method.</span>
@@ -639,7 +640,7 @@
 </span><span id="L-424"><a href="#L-424"><span class="linenos">424</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">start_waypoint_trajectory</span><span class="p">(</span><span class="n">rs0</span><span class="o">.</span><span class="n">to_array</span><span class="p">())</span>
 </span><span id="L-425"><a href="#L-425"><span class="linenos">425</span></a>
 </span><span id="L-426"><a href="#L-426"><span class="linenos">426</span></a>    <span class="k">def</span> <span class="nf">reset_odometry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-427"><a href="#L-427"><span class="linenos">427</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-428"><a href="#L-428"><span class="linenos">428</span></a><span class="sd">        Reset X/Y/Theta to report 0</span>
 </span><span id="L-429"><a href="#L-429"><span class="linenos">429</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-430"><a href="#L-430"><span class="linenos">430</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">first_step</span> <span class="o">=</span> <span class="kc">True</span>
@@ -663,7 +664,7 @@
 </span><span id="L-448"><a href="#L-448"><span class="linenos">448</span></a>            <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">waypoints</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trajectory_ts</span><span class="p">())</span>
 </span><span id="L-449"><a href="#L-449"><span class="linenos">449</span></a>
 </span><span id="L-450"><a href="#L-450"><span class="linenos">450</span></a>    <span class="k">def</span> <span class="nf">update_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates hardware with the next segment of `self.trajectory`</span>
+</span><span id="L-451"><a href="#L-451"><span class="linenos">451</span></a>        <span class="sd">&quot;&quot;&quot;Updates hardware with the next segment of `self.trajectory`</span>
 </span><span id="L-452"><a href="#L-452"><span class="linenos">452</span></a>
 </span><span id="L-453"><a href="#L-453"><span class="linenos">453</span></a><span class="sd">        This method must be called frequently to enable complete trajectory execution</span>
 </span><span id="L-454"><a href="#L-454"><span class="linenos">454</span></a><span class="sd">        and preemption of future segments. If used with `stretch_body.robot.Robot` or</span>
@@ -700,13 +701,13 @@
 </span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">push_command</span><span class="p">()</span>
 </span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a>
 </span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a>    <span class="k">def</span> <span class="nf">stop_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
+</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>        <span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
 </span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">stop_waypoint_trajectory</span><span class="p">()</span>
 </span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">stop_waypoint_trajectory</span><span class="p">()</span>
 </span><span id="L-492"><a href="#L-492"><span class="linenos">492</span></a>
 </span><span id="L-493"><a href="#L-493"><span class="linenos">493</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
-</span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-494"><a href="#L-494"><span class="linenos">494</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-495"><a href="#L-495"><span class="linenos">495</span></a><span class="sd">        Only allow fast mobile base motion if the lift is low,</span>
 </span><span id="L-496"><a href="#L-496"><span class="linenos">496</span></a><span class="sd">        the arm is retracted, and the wrist is stowed. This is</span>
 </span><span id="L-497"><a href="#L-497"><span class="linenos">497</span></a><span class="sd">        intended to keep the center of mass low for increased</span>
@@ -738,7 +739,7 @@
 </span><span id="L-523"><a href="#L-523"><span class="linenos">523</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">push_command</span><span class="p">()</span>
 </span><span id="L-524"><a href="#L-524"><span class="linenos">524</span></a>
 </span><span id="L-525"><a href="#L-525"><span class="linenos">525</span></a>    <span class="k">def</span> <span class="nf">pull_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-526"><a href="#L-526"><span class="linenos">526</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-526"><a href="#L-526"><span class="linenos">526</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-527"><a href="#L-527"><span class="linenos">527</span></a><span class="sd">        Computes base odometery based on stepper positions / velocities</span>
 </span><span id="L-528"><a href="#L-528"><span class="linenos">528</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-529"><a href="#L-529"><span class="linenos">529</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">pull_status</span><span class="p">()</span>
@@ -746,7 +747,7 @@
 </span><span id="L-531"><a href="#L-531"><span class="linenos">531</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__update_status</span><span class="p">()</span>
 </span><span id="L-532"><a href="#L-532"><span class="linenos">532</span></a>
 </span><span id="L-533"><a href="#L-533"><span class="linenos">533</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">pull_status_async</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-534"><a href="#L-534"><span class="linenos">534</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-535"><a href="#L-535"><span class="linenos">535</span></a><span class="sd">        Computes base odometery based on stepper positions / velocities</span>
 </span><span id="L-536"><a href="#L-536"><span class="linenos">536</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-537"><a href="#L-537"><span class="linenos">537</span></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">pull_status_async</span><span class="p">()</span>
@@ -966,7 +967,7 @@
     </div>
     <a class="headerlink" href="#Base"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base-12"><a href="#Base-12"><span class="linenos"> 12</span></a><span class="k">class</span> <span class="nc">Base</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="Base-13"><a href="#Base-13"><span class="linenos"> 13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-13"><a href="#Base-13"><span class="linenos"> 13</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-14"><a href="#Base-14"><span class="linenos"> 14</span></a><span class="sd">    API to the Stretch Mobile Base</span>
 </span><span id="Base-15"><a href="#Base-15"><span class="linenos"> 15</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Base-16"><a href="#Base-16"><span class="linenos"> 16</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">usb_left</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">usb_right</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1034,14 +1035,14 @@
 </span><span id="Base-78"><a href="#Base-78"><span class="linenos"> 78</span></a>
 </span><span id="Base-79"><a href="#Base-79"><span class="linenos"> 79</span></a>    <span class="c1"># ###################################################</span>
 </span><span id="Base-80"><a href="#Base-80"><span class="linenos"> 80</span></a>    <span class="k">def</span> <span class="nf">enable_freewheel_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base-81"><a href="#Base-81"><span class="linenos"> 81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-81"><a href="#Base-81"><span class="linenos"> 81</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-82"><a href="#Base-82"><span class="linenos"> 82</span></a><span class="sd">        Force motors into freewheel</span>
 </span><span id="Base-83"><a href="#Base-83"><span class="linenos"> 83</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base-84"><a href="#Base-84"><span class="linenos"> 84</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">enable_freewheel</span><span class="p">()</span>
 </span><span id="Base-85"><a href="#Base-85"><span class="linenos"> 85</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">enable_freewheel</span><span class="p">()</span>
 </span><span id="Base-86"><a href="#Base-86"><span class="linenos"> 86</span></a>
 </span><span id="Base-87"><a href="#Base-87"><span class="linenos"> 87</span></a>    <span class="k">def</span> <span class="nf">enable_pos_incr_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base-88"><a href="#Base-88"><span class="linenos"> 88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-88"><a href="#Base-88"><span class="linenos"> 88</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-89"><a href="#Base-89"><span class="linenos"> 89</span></a><span class="sd">                Force motors into incremental position mode</span>
 </span><span id="Base-90"><a href="#Base-90"><span class="linenos"> 90</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base-91"><a href="#Base-91"><span class="linenos"> 91</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">enable_pos_traj_incr</span><span class="p">()</span>
@@ -1064,7 +1065,7 @@
 </span><span id="Base-108"><a href="#Base-108"><span class="linenos">108</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">wait_until_at_setpoint</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
 </span><span id="Base-109"><a href="#Base-109"><span class="linenos">109</span></a>
 </span><span id="Base-110"><a href="#Base-110"><span class="linenos">110</span></a>    <span class="k">def</span> <span class="nf">contact_thresh_to_motor_current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">is_translate</span><span class="p">,</span><span class="n">contact_thresh</span><span class="p">):</span>
-</span><span id="Base-111"><a href="#Base-111"><span class="linenos">111</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-111"><a href="#Base-111"><span class="linenos">111</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-112"><a href="#Base-112"><span class="linenos">112</span></a><span class="sd">        This model converts from a specified percentage effort (-100 to 100) of translate/rotational effort to motor currents</span>
 </span><span id="Base-113"><a href="#Base-113"><span class="linenos">113</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base-114"><a href="#Base-114"><span class="linenos">114</span></a>        <span class="k">if</span> <span class="n">is_translate</span><span class="p">:</span>
@@ -1078,7 +1079,7 @@
 </span><span id="Base-122"><a href="#Base-122"><span class="linenos">122</span></a>        <span class="k">return</span> <span class="n">i_l</span><span class="p">,</span><span class="n">i_r</span>
 </span><span id="Base-123"><a href="#Base-123"><span class="linenos">123</span></a>
 </span><span id="Base-124"><a href="#Base-124"><span class="linenos">124</span></a>    <span class="k">def</span> <span class="nf">translate_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">v_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base-125"><a href="#Base-125"><span class="linenos">125</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-125"><a href="#Base-125"><span class="linenos">125</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-126"><a href="#Base-126"><span class="linenos">126</span></a><span class="sd">        Incremental translation of the base</span>
 </span><span id="Base-127"><a href="#Base-127"><span class="linenos">127</span></a><span class="sd">        x_m: desired motion (m)</span>
 </span><span id="Base-128"><a href="#Base-128"><span class="linenos">128</span></a><span class="sd">        v_m: velocity for trapezoidal motion profile (m/s)</span>
@@ -1129,7 +1130,7 @@
 </span><span id="Base-173"><a href="#Base-173"><span class="linenos">173</span></a>
 </span><span id="Base-174"><a href="#Base-174"><span class="linenos">174</span></a>
 </span><span id="Base-175"><a href="#Base-175"><span class="linenos">175</span></a>    <span class="k">def</span> <span class="nf">rotate_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base-176"><a href="#Base-176"><span class="linenos">176</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-176"><a href="#Base-176"><span class="linenos">176</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-177"><a href="#Base-177"><span class="linenos">177</span></a><span class="sd">        Incremental rotation of the base</span>
 </span><span id="Base-178"><a href="#Base-178"><span class="linenos">178</span></a><span class="sd">        x_r: desired motion (radians)</span>
 </span><span id="Base-179"><a href="#Base-179"><span class="linenos">179</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s)</span>
@@ -1183,7 +1184,7 @@
 </span><span id="Base-227"><a href="#Base-227"><span class="linenos">227</span></a>
 </span><span id="Base-228"><a href="#Base-228"><span class="linenos">228</span></a>
 </span><span id="Base-229"><a href="#Base-229"><span class="linenos">229</span></a>    <span class="k">def</span> <span class="nf">set_translate_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_m</span><span class="p">,</span> <span class="n">a_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base-230"><a href="#Base-230"><span class="linenos">230</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-230"><a href="#Base-230"><span class="linenos">230</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-231"><a href="#Base-231"><span class="linenos">231</span></a><span class="sd">        Command the bases translational velocity.</span>
 </span><span id="Base-232"><a href="#Base-232"><span class="linenos">232</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
 </span><span id="Base-233"><a href="#Base-233"><span class="linenos">233</span></a><span class="sd">        v_m: desired velocity (m/s)</span>
@@ -1216,7 +1217,7 @@
 </span><span id="Base-260"><a href="#Base-260"><span class="linenos">260</span></a>                                     <span class="n">i_contact_neg</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">i_contact_r</span><span class="p">)</span>
 </span><span id="Base-261"><a href="#Base-261"><span class="linenos">261</span></a>
 </span><span id="Base-262"><a href="#Base-262"><span class="linenos">262</span></a>    <span class="k">def</span> <span class="nf">set_rotational_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base-263"><a href="#Base-263"><span class="linenos">263</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-263"><a href="#Base-263"><span class="linenos">263</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-264"><a href="#Base-264"><span class="linenos">264</span></a><span class="sd">        Command the bases rotational velocity.</span>
 </span><span id="Base-265"><a href="#Base-265"><span class="linenos">265</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
 </span><span id="Base-266"><a href="#Base-266"><span class="linenos">266</span></a><span class="sd">        v_r: desired rotational velocity (rad/s)</span>
@@ -1252,7 +1253,7 @@
 </span><span id="Base-296"><a href="#Base-296"><span class="linenos">296</span></a>                                     <span class="n">i_contact_neg</span><span class="o">=-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">i_contact_r</span><span class="p">)</span>
 </span><span id="Base-297"><a href="#Base-297"><span class="linenos">297</span></a>
 </span><span id="Base-298"><a href="#Base-298"><span class="linenos">298</span></a>    <span class="k">def</span> <span class="nf">set_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_m</span><span class="p">,</span> <span class="n">w_r</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base-299"><a href="#Base-299"><span class="linenos">299</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-299"><a href="#Base-299"><span class="linenos">299</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-300"><a href="#Base-300"><span class="linenos">300</span></a><span class="sd">        Command the bases translational and rotational</span>
 </span><span id="Base-301"><a href="#Base-301"><span class="linenos">301</span></a><span class="sd">        velocities simultaneously.</span>
 </span><span id="Base-302"><a href="#Base-302"><span class="linenos">302</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
@@ -1302,7 +1303,7 @@
 </span><span id="Base-346"><a href="#Base-346"><span class="linenos">346</span></a>
 </span><span id="Base-347"><a href="#Base-347"><span class="linenos">347</span></a>    <span class="c1"># ######### Waypoint Trajectory Interface ##############################</span>
 </span><span id="Base-348"><a href="#Base-348"><span class="linenos">348</span></a>    <span class="k">def</span> <span class="nf">follow_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base-349"><a href="#Base-349"><span class="linenos">349</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
+</span><span id="Base-349"><a href="#Base-349"><span class="linenos">349</span></a>        <span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
 </span><span id="Base-350"><a href="#Base-350"><span class="linenos">350</span></a>
 </span><span id="Base-351"><a href="#Base-351"><span class="linenos">351</span></a><span class="sd">        `self.trajectory` must be populated with a valid trajectory before calling</span>
 </span><span id="Base-352"><a href="#Base-352"><span class="linenos">352</span></a><span class="sd">        this method.</span>
@@ -1381,7 +1382,7 @@
 </span><span id="Base-425"><a href="#Base-425"><span class="linenos">425</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">start_waypoint_trajectory</span><span class="p">(</span><span class="n">rs0</span><span class="o">.</span><span class="n">to_array</span><span class="p">())</span>
 </span><span id="Base-426"><a href="#Base-426"><span class="linenos">426</span></a>
 </span><span id="Base-427"><a href="#Base-427"><span class="linenos">427</span></a>    <span class="k">def</span> <span class="nf">reset_odometry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base-428"><a href="#Base-428"><span class="linenos">428</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-428"><a href="#Base-428"><span class="linenos">428</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-429"><a href="#Base-429"><span class="linenos">429</span></a><span class="sd">        Reset X/Y/Theta to report 0</span>
 </span><span id="Base-430"><a href="#Base-430"><span class="linenos">430</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base-431"><a href="#Base-431"><span class="linenos">431</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">first_step</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1405,7 +1406,7 @@
 </span><span id="Base-449"><a href="#Base-449"><span class="linenos">449</span></a>            <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">waypoints</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trajectory_ts</span><span class="p">())</span>
 </span><span id="Base-450"><a href="#Base-450"><span class="linenos">450</span></a>
 </span><span id="Base-451"><a href="#Base-451"><span class="linenos">451</span></a>    <span class="k">def</span> <span class="nf">update_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base-452"><a href="#Base-452"><span class="linenos">452</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates hardware with the next segment of `self.trajectory`</span>
+</span><span id="Base-452"><a href="#Base-452"><span class="linenos">452</span></a>        <span class="sd">&quot;&quot;&quot;Updates hardware with the next segment of `self.trajectory`</span>
 </span><span id="Base-453"><a href="#Base-453"><span class="linenos">453</span></a>
 </span><span id="Base-454"><a href="#Base-454"><span class="linenos">454</span></a><span class="sd">        This method must be called frequently to enable complete trajectory execution</span>
 </span><span id="Base-455"><a href="#Base-455"><span class="linenos">455</span></a><span class="sd">        and preemption of future segments. If used with `stretch_body.robot.Robot` or</span>
@@ -1442,13 +1443,13 @@
 </span><span id="Base-486"><a href="#Base-486"><span class="linenos">486</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">push_command</span><span class="p">()</span>
 </span><span id="Base-487"><a href="#Base-487"><span class="linenos">487</span></a>
 </span><span id="Base-488"><a href="#Base-488"><span class="linenos">488</span></a>    <span class="k">def</span> <span class="nf">stop_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base-489"><a href="#Base-489"><span class="linenos">489</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
+</span><span id="Base-489"><a href="#Base-489"><span class="linenos">489</span></a>        <span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
 </span><span id="Base-490"><a href="#Base-490"><span class="linenos">490</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base-491"><a href="#Base-491"><span class="linenos">491</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">stop_waypoint_trajectory</span><span class="p">()</span>
 </span><span id="Base-492"><a href="#Base-492"><span class="linenos">492</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">stop_waypoint_trajectory</span><span class="p">()</span>
 </span><span id="Base-493"><a href="#Base-493"><span class="linenos">493</span></a>
 </span><span id="Base-494"><a href="#Base-494"><span class="linenos">494</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
-</span><span id="Base-495"><a href="#Base-495"><span class="linenos">495</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-495"><a href="#Base-495"><span class="linenos">495</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-496"><a href="#Base-496"><span class="linenos">496</span></a><span class="sd">        Only allow fast mobile base motion if the lift is low,</span>
 </span><span id="Base-497"><a href="#Base-497"><span class="linenos">497</span></a><span class="sd">        the arm is retracted, and the wrist is stowed. This is</span>
 </span><span id="Base-498"><a href="#Base-498"><span class="linenos">498</span></a><span class="sd">        intended to keep the center of mass low for increased</span>
@@ -1480,7 +1481,7 @@
 </span><span id="Base-524"><a href="#Base-524"><span class="linenos">524</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">push_command</span><span class="p">()</span>
 </span><span id="Base-525"><a href="#Base-525"><span class="linenos">525</span></a>
 </span><span id="Base-526"><a href="#Base-526"><span class="linenos">526</span></a>    <span class="k">def</span> <span class="nf">pull_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base-527"><a href="#Base-527"><span class="linenos">527</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-527"><a href="#Base-527"><span class="linenos">527</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-528"><a href="#Base-528"><span class="linenos">528</span></a><span class="sd">        Computes base odometery based on stepper positions / velocities</span>
 </span><span id="Base-529"><a href="#Base-529"><span class="linenos">529</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base-530"><a href="#Base-530"><span class="linenos">530</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">pull_status</span><span class="p">()</span>
@@ -1488,7 +1489,7 @@
 </span><span id="Base-532"><a href="#Base-532"><span class="linenos">532</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">__update_status</span><span class="p">()</span>
 </span><span id="Base-533"><a href="#Base-533"><span class="linenos">533</span></a>
 </span><span id="Base-534"><a href="#Base-534"><span class="linenos">534</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">pull_status_async</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base-535"><a href="#Base-535"><span class="linenos">535</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base-535"><a href="#Base-535"><span class="linenos">535</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base-536"><a href="#Base-536"><span class="linenos">536</span></a><span class="sd">        Computes base odometery based on stepper positions / velocities</span>
 </span><span id="Base-537"><a href="#Base-537"><span class="linenos">537</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base-538"><a href="#Base-538"><span class="linenos">538</span></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">pull_status_async</span><span class="p">()</span>
@@ -1978,7 +1979,7 @@
     </div>
     <a class="headerlink" href="#Base.enable_freewheel_mode"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.enable_freewheel_mode-80"><a href="#Base.enable_freewheel_mode-80"><span class="linenos">80</span></a>    <span class="k">def</span> <span class="nf">enable_freewheel_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base.enable_freewheel_mode-81"><a href="#Base.enable_freewheel_mode-81"><span class="linenos">81</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.enable_freewheel_mode-81"><a href="#Base.enable_freewheel_mode-81"><span class="linenos">81</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.enable_freewheel_mode-82"><a href="#Base.enable_freewheel_mode-82"><span class="linenos">82</span></a><span class="sd">        Force motors into freewheel</span>
 </span><span id="Base.enable_freewheel_mode-83"><a href="#Base.enable_freewheel_mode-83"><span class="linenos">83</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base.enable_freewheel_mode-84"><a href="#Base.enable_freewheel_mode-84"><span class="linenos">84</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">enable_freewheel</span><span class="p">()</span>
@@ -2003,7 +2004,7 @@
     </div>
     <a class="headerlink" href="#Base.enable_pos_incr_mode"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.enable_pos_incr_mode-87"><a href="#Base.enable_pos_incr_mode-87"><span class="linenos">87</span></a>    <span class="k">def</span> <span class="nf">enable_pos_incr_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base.enable_pos_incr_mode-88"><a href="#Base.enable_pos_incr_mode-88"><span class="linenos">88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.enable_pos_incr_mode-88"><a href="#Base.enable_pos_incr_mode-88"><span class="linenos">88</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.enable_pos_incr_mode-89"><a href="#Base.enable_pos_incr_mode-89"><span class="linenos">89</span></a><span class="sd">                Force motors into incremental position mode</span>
 </span><span id="Base.enable_pos_incr_mode-90"><a href="#Base.enable_pos_incr_mode-90"><span class="linenos">90</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base.enable_pos_incr_mode-91"><a href="#Base.enable_pos_incr_mode-91"><span class="linenos">91</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">enable_pos_traj_incr</span><span class="p">()</span>
@@ -2074,7 +2075,7 @@
     </div>
     <a class="headerlink" href="#Base.contact_thresh_to_motor_current"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.contact_thresh_to_motor_current-110"><a href="#Base.contact_thresh_to_motor_current-110"><span class="linenos">110</span></a>    <span class="k">def</span> <span class="nf">contact_thresh_to_motor_current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">is_translate</span><span class="p">,</span><span class="n">contact_thresh</span><span class="p">):</span>
-</span><span id="Base.contact_thresh_to_motor_current-111"><a href="#Base.contact_thresh_to_motor_current-111"><span class="linenos">111</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.contact_thresh_to_motor_current-111"><a href="#Base.contact_thresh_to_motor_current-111"><span class="linenos">111</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.contact_thresh_to_motor_current-112"><a href="#Base.contact_thresh_to_motor_current-112"><span class="linenos">112</span></a><span class="sd">        This model converts from a specified percentage effort (-100 to 100) of translate/rotational effort to motor currents</span>
 </span><span id="Base.contact_thresh_to_motor_current-113"><a href="#Base.contact_thresh_to_motor_current-113"><span class="linenos">113</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base.contact_thresh_to_motor_current-114"><a href="#Base.contact_thresh_to_motor_current-114"><span class="linenos">114</span></a>        <span class="k">if</span> <span class="n">is_translate</span><span class="p">:</span>
@@ -2106,7 +2107,7 @@
     </div>
     <a class="headerlink" href="#Base.translate_by"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.translate_by-124"><a href="#Base.translate_by-124"><span class="linenos">124</span></a>    <span class="k">def</span> <span class="nf">translate_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">v_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base.translate_by-125"><a href="#Base.translate_by-125"><span class="linenos">125</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.translate_by-125"><a href="#Base.translate_by-125"><span class="linenos">125</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.translate_by-126"><a href="#Base.translate_by-126"><span class="linenos">126</span></a><span class="sd">        Incremental translation of the base</span>
 </span><span id="Base.translate_by-127"><a href="#Base.translate_by-127"><span class="linenos">127</span></a><span class="sd">        x_m: desired motion (m)</span>
 </span><span id="Base.translate_by-128"><a href="#Base.translate_by-128"><span class="linenos">128</span></a><span class="sd">        v_m: velocity for trapezoidal motion profile (m/s)</span>
@@ -2180,7 +2181,7 @@ contact_thresh: effort to stop at (units of effort_pct (-100, 100))</p>
     </div>
     <a class="headerlink" href="#Base.rotate_by"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.rotate_by-175"><a href="#Base.rotate_by-175"><span class="linenos">175</span></a>    <span class="k">def</span> <span class="nf">rotate_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base.rotate_by-176"><a href="#Base.rotate_by-176"><span class="linenos">176</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.rotate_by-176"><a href="#Base.rotate_by-176"><span class="linenos">176</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.rotate_by-177"><a href="#Base.rotate_by-177"><span class="linenos">177</span></a><span class="sd">        Incremental rotation of the base</span>
 </span><span id="Base.rotate_by-178"><a href="#Base.rotate_by-178"><span class="linenos">178</span></a><span class="sd">        x_r: desired motion (radians)</span>
 </span><span id="Base.rotate_by-179"><a href="#Base.rotate_by-179"><span class="linenos">179</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s)</span>
@@ -2256,7 +2257,7 @@ contact_thresh: effort to stop at (units of effort_pct (-100, 100))</p>
     </div>
     <a class="headerlink" href="#Base.set_translate_velocity"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.set_translate_velocity-229"><a href="#Base.set_translate_velocity-229"><span class="linenos">229</span></a>    <span class="k">def</span> <span class="nf">set_translate_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_m</span><span class="p">,</span> <span class="n">a_m</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base.set_translate_velocity-230"><a href="#Base.set_translate_velocity-230"><span class="linenos">230</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.set_translate_velocity-230"><a href="#Base.set_translate_velocity-230"><span class="linenos">230</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.set_translate_velocity-231"><a href="#Base.set_translate_velocity-231"><span class="linenos">231</span></a><span class="sd">        Command the bases translational velocity.</span>
 </span><span id="Base.set_translate_velocity-232"><a href="#Base.set_translate_velocity-232"><span class="linenos">232</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
 </span><span id="Base.set_translate_velocity-233"><a href="#Base.set_translate_velocity-233"><span class="linenos">233</span></a><span class="sd">        v_m: desired velocity (m/s)</span>
@@ -2312,7 +2313,7 @@ contact_thresh: effort to stop at (units of effort_pct (-100, 100))</p>
     </div>
     <a class="headerlink" href="#Base.set_rotational_velocity"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.set_rotational_velocity-262"><a href="#Base.set_rotational_velocity-262"><span class="linenos">262</span></a>    <span class="k">def</span> <span class="nf">set_rotational_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base.set_rotational_velocity-263"><a href="#Base.set_rotational_velocity-263"><span class="linenos">263</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.set_rotational_velocity-263"><a href="#Base.set_rotational_velocity-263"><span class="linenos">263</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.set_rotational_velocity-264"><a href="#Base.set_rotational_velocity-264"><span class="linenos">264</span></a><span class="sd">        Command the bases rotational velocity.</span>
 </span><span id="Base.set_rotational_velocity-265"><a href="#Base.set_rotational_velocity-265"><span class="linenos">265</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
 </span><span id="Base.set_rotational_velocity-266"><a href="#Base.set_rotational_velocity-266"><span class="linenos">266</span></a><span class="sd">        v_r: desired rotational velocity (rad/s)</span>
@@ -2371,7 +2372,7 @@ contact_thresh: effort to stop at (units of effort_pct (-100, 100))</p>
     </div>
     <a class="headerlink" href="#Base.set_velocity"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.set_velocity-298"><a href="#Base.set_velocity-298"><span class="linenos">298</span></a>    <span class="k">def</span> <span class="nf">set_velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_m</span><span class="p">,</span> <span class="n">w_r</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base.set_velocity-299"><a href="#Base.set_velocity-299"><span class="linenos">299</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.set_velocity-299"><a href="#Base.set_velocity-299"><span class="linenos">299</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.set_velocity-300"><a href="#Base.set_velocity-300"><span class="linenos">300</span></a><span class="sd">        Command the bases translational and rotational</span>
 </span><span id="Base.set_velocity-301"><a href="#Base.set_velocity-301"><span class="linenos">301</span></a><span class="sd">        velocities simultaneously.</span>
 </span><span id="Base.set_velocity-302"><a href="#Base.set_velocity-302"><span class="linenos">302</span></a><span class="sd">        Use care to prevent collisions / avoid runaways</span>
@@ -2445,7 +2446,7 @@ contact_thresh: effort to stop at (units of effort_pct (-100, 100))</p>
     </div>
     <a class="headerlink" href="#Base.follow_trajectory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.follow_trajectory-348"><a href="#Base.follow_trajectory-348"><span class="linenos">348</span></a>    <span class="k">def</span> <span class="nf">follow_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stiffness</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">contact_thresh</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="Base.follow_trajectory-349"><a href="#Base.follow_trajectory-349"><span class="linenos">349</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
+</span><span id="Base.follow_trajectory-349"><a href="#Base.follow_trajectory-349"><span class="linenos">349</span></a>        <span class="sd">&quot;&quot;&quot;Starts executing a waypoint trajectory</span>
 </span><span id="Base.follow_trajectory-350"><a href="#Base.follow_trajectory-350"><span class="linenos">350</span></a>
 </span><span id="Base.follow_trajectory-351"><a href="#Base.follow_trajectory-351"><span class="linenos">351</span></a><span class="sd">        `self.trajectory` must be populated with a valid trajectory before calling</span>
 </span><span id="Base.follow_trajectory-352"><a href="#Base.follow_trajectory-352"><span class="linenos">352</span></a><span class="sd">        this method.</span>
@@ -2556,7 +2557,7 @@ contact_thresh: effort to stop at (units of effort_pct (-100, 100))</p>
     </div>
     <a class="headerlink" href="#Base.reset_odometry"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.reset_odometry-427"><a href="#Base.reset_odometry-427"><span class="linenos">427</span></a>    <span class="k">def</span> <span class="nf">reset_odometry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base.reset_odometry-428"><a href="#Base.reset_odometry-428"><span class="linenos">428</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.reset_odometry-428"><a href="#Base.reset_odometry-428"><span class="linenos">428</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.reset_odometry-429"><a href="#Base.reset_odometry-429"><span class="linenos">429</span></a><span class="sd">        Reset X/Y/Theta to report 0</span>
 </span><span id="Base.reset_odometry-430"><a href="#Base.reset_odometry-430"><span class="linenos">430</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base.reset_odometry-431"><a href="#Base.reset_odometry-431"><span class="linenos">431</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">first_step</span> <span class="o">=</span> <span class="kc">True</span>
@@ -2646,7 +2647,7 @@ contact_thresh: effort to stop at (units of effort_pct (-100, 100))</p>
     </div>
     <a class="headerlink" href="#Base.update_trajectory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.update_trajectory-451"><a href="#Base.update_trajectory-451"><span class="linenos">451</span></a>    <span class="k">def</span> <span class="nf">update_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base.update_trajectory-452"><a href="#Base.update_trajectory-452"><span class="linenos">452</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates hardware with the next segment of `self.trajectory`</span>
+</span><span id="Base.update_trajectory-452"><a href="#Base.update_trajectory-452"><span class="linenos">452</span></a>        <span class="sd">&quot;&quot;&quot;Updates hardware with the next segment of `self.trajectory`</span>
 </span><span id="Base.update_trajectory-453"><a href="#Base.update_trajectory-453"><span class="linenos">453</span></a>
 </span><span id="Base.update_trajectory-454"><a href="#Base.update_trajectory-454"><span class="linenos">454</span></a><span class="sd">        This method must be called frequently to enable complete trajectory execution</span>
 </span><span id="Base.update_trajectory-455"><a href="#Base.update_trajectory-455"><span class="linenos">455</span></a><span class="sd">        and preemption of future segments. If used with `stretch_body.robot.Robot` or</span>
@@ -2706,7 +2707,7 @@ Otherwise, the user must handle calling this method.</p>
     </div>
     <a class="headerlink" href="#Base.stop_trajectory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.stop_trajectory-488"><a href="#Base.stop_trajectory-488"><span class="linenos">488</span></a>    <span class="k">def</span> <span class="nf">stop_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base.stop_trajectory-489"><a href="#Base.stop_trajectory-489"><span class="linenos">489</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
+</span><span id="Base.stop_trajectory-489"><a href="#Base.stop_trajectory-489"><span class="linenos">489</span></a>        <span class="sd">&quot;&quot;&quot;Stop waypoint trajectory immediately and resets hardware</span>
 </span><span id="Base.stop_trajectory-490"><a href="#Base.stop_trajectory-490"><span class="linenos">490</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base.stop_trajectory-491"><a href="#Base.stop_trajectory-491"><span class="linenos">491</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">stop_waypoint_trajectory</span><span class="p">()</span>
 </span><span id="Base.stop_trajectory-492"><a href="#Base.stop_trajectory-492"><span class="linenos">492</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right_wheel</span><span class="o">.</span><span class="n">stop_waypoint_trajectory</span><span class="p">()</span>
@@ -2730,7 +2731,7 @@ Otherwise, the user must handle calling this method.</p>
     </div>
     <a class="headerlink" href="#Base.step_sentry"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.step_sentry-494"><a href="#Base.step_sentry-494"><span class="linenos">494</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
-</span><span id="Base.step_sentry-495"><a href="#Base.step_sentry-495"><span class="linenos">495</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.step_sentry-495"><a href="#Base.step_sentry-495"><span class="linenos">495</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.step_sentry-496"><a href="#Base.step_sentry-496"><span class="linenos">496</span></a><span class="sd">        Only allow fast mobile base motion if the lift is low,</span>
 </span><span id="Base.step_sentry-497"><a href="#Base.step_sentry-497"><span class="linenos">497</span></a><span class="sd">        the arm is retracted, and the wrist is stowed. This is</span>
 </span><span id="Base.step_sentry-498"><a href="#Base.step_sentry-498"><span class="linenos">498</span></a><span class="sd">        intended to keep the center of mass low for increased</span>
@@ -2799,7 +2800,7 @@ something.</p>
     </div>
     <a class="headerlink" href="#Base.pull_status"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.pull_status-526"><a href="#Base.pull_status-526"><span class="linenos">526</span></a>    <span class="k">def</span> <span class="nf">pull_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base.pull_status-527"><a href="#Base.pull_status-527"><span class="linenos">527</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.pull_status-527"><a href="#Base.pull_status-527"><span class="linenos">527</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.pull_status-528"><a href="#Base.pull_status-528"><span class="linenos">528</span></a><span class="sd">        Computes base odometery based on stepper positions / velocities</span>
 </span><span id="Base.pull_status-529"><a href="#Base.pull_status-529"><span class="linenos">529</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base.pull_status-530"><a href="#Base.pull_status-530"><span class="linenos">530</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">pull_status</span><span class="p">()</span>
@@ -2825,7 +2826,7 @@ something.</p>
     </div>
     <a class="headerlink" href="#Base.pull_status_async"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Base.pull_status_async-534"><a href="#Base.pull_status_async-534"><span class="linenos">534</span></a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">pull_status_async</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Base.pull_status_async-535"><a href="#Base.pull_status_async-535"><span class="linenos">535</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Base.pull_status_async-535"><a href="#Base.pull_status_async-535"><span class="linenos">535</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="Base.pull_status_async-536"><a href="#Base.pull_status_async-536"><span class="linenos">536</span></a><span class="sd">        Computes base odometery based on stepper positions / velocities</span>
 </span><span id="Base.pull_status_async-537"><a href="#Base.pull_status_async-537"><span class="linenos">537</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="Base.pull_status_async-538"><a href="#Base.pull_status_async-538"><span class="linenos">538</span></a>        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">left_wheel</span><span class="o">.</span><span class="n">pull_status_async</span><span class="p">()</span>

@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -82,6 +82,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/end_of_arm.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.end_of_arm    </h1>
 
@@ -96,7 +97,7 @@
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">from</span> <span class="nn">stretch_body.robot_params</span> <span class="kn">import</span> <span class="n">RobotParams</span>
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="k">class</span> <span class="nc">EndOfArm</span><span class="p">(</span><span class="n">DynamixelXChain</span><span class="p">):</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="sd">    The EndOfArm class allows for an extensible serial chain of Dynamixel X series devices</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">    It allows the specific type of device to be declared at runtime via the Yaml parameters</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">    In this way, a user can add their own custom Dynamixel based tools to the robot end-of-arm by</span>
@@ -118,7 +119,7 @@
 </span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="k">return</span> <span class="n">DynamixelXChain</span><span class="o">.</span><span class="n">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="n">threaded</span><span class="p">)</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>
 </span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>    <span class="k">def</span> <span class="nf">get_joint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_name</span><span class="p">):</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>        <span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>
 </span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">        Parameters</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="sd">        ----------</span>
@@ -133,7 +134,7 @@
 </span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_motor</span><span class="p">(</span><span class="n">joint_name</span><span class="p">)</span>
 </span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>
 </span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="k">def</span> <span class="nf">move_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span><span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">        joint: name of joint (string)</span>
 </span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">        x_r: commanded absolute position (radians).</span>
 </span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -143,7 +144,7 @@
 </span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span><span class="o">.</span><span class="n">move_to</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="p">,</span> <span class="n">a_r</span><span class="p">)</span>
 </span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>
 </span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>    <span class="k">def</span> <span class="nf">move_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a><span class="sd">        joint: name of joint (string)</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a><span class="sd">        x_r: commanded incremental motion (radians).</span>
 </span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -153,7 +154,7 @@
 </span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span><span class="o">.</span><span class="n">move_by</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="p">,</span> <span class="n">a_r</span><span class="p">)</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>
 </span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">joint</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span><span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a><span class="sd">                joint: name of joint (string)</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a><span class="sd">                p: named pose of joint</span>
 </span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a><span class="sd">                v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -167,7 +168,7 @@
 </span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">move_to</span><span class="p">(</span><span class="s1">&#39;wrist_yaw&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;stow&#39;</span><span class="p">][</span><span class="s1">&#39;wrist_yaw&#39;</span><span class="p">])</span>
 </span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>
 </span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos">79</span></a><span class="sd">        Home to hardstops</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos">80</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos">81</span></a>        <span class="k">if</span> <span class="n">joint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -179,7 +180,7 @@
 </span><span id="L-87"><a href="#L-87"><span class="linenos">87</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span><span class="o">.</span><span class="n">home</span><span class="p">()</span>
 </span><span id="L-88"><a href="#L-88"><span class="linenos">88</span></a>
 </span><span id="L-89"><a href="#L-89"><span class="linenos">89</span></a>    <span class="k">def</span> <span class="nf">is_tool_present</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">class_name</span><span class="p">):</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos">90</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos">90</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-91"><a href="#L-91"><span class="linenos">91</span></a><span class="sd">        Return true if the given tool type is present (eg. StretchGripper)</span>
 </span><span id="L-92"><a href="#L-92"><span class="linenos">92</span></a><span class="sd">        Allows for conditional logic when switching end-of-arm tools</span>
 </span><span id="L-93"><a href="#L-93"><span class="linenos">93</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -203,7 +204,7 @@
     </div>
     <a class="headerlink" href="#EndOfArm"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="EndOfArm-7"><a href="#EndOfArm-7"><span class="linenos"> 7</span></a><span class="k">class</span> <span class="nc">EndOfArm</span><span class="p">(</span><span class="n">DynamixelXChain</span><span class="p">):</span>
-</span><span id="EndOfArm-8"><a href="#EndOfArm-8"><span class="linenos"> 8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm-8"><a href="#EndOfArm-8"><span class="linenos"> 8</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm-9"><a href="#EndOfArm-9"><span class="linenos"> 9</span></a><span class="sd">    The EndOfArm class allows for an extensible serial chain of Dynamixel X series devices</span>
 </span><span id="EndOfArm-10"><a href="#EndOfArm-10"><span class="linenos">10</span></a><span class="sd">    It allows the specific type of device to be declared at runtime via the Yaml parameters</span>
 </span><span id="EndOfArm-11"><a href="#EndOfArm-11"><span class="linenos">11</span></a><span class="sd">    In this way, a user can add their own custom Dynamixel based tools to the robot end-of-arm by</span>
@@ -225,7 +226,7 @@
 </span><span id="EndOfArm-27"><a href="#EndOfArm-27"><span class="linenos">27</span></a>        <span class="k">return</span> <span class="n">DynamixelXChain</span><span class="o">.</span><span class="n">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="n">threaded</span><span class="p">)</span>
 </span><span id="EndOfArm-28"><a href="#EndOfArm-28"><span class="linenos">28</span></a>
 </span><span id="EndOfArm-29"><a href="#EndOfArm-29"><span class="linenos">29</span></a>    <span class="k">def</span> <span class="nf">get_joint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_name</span><span class="p">):</span>
-</span><span id="EndOfArm-30"><a href="#EndOfArm-30"><span class="linenos">30</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
+</span><span id="EndOfArm-30"><a href="#EndOfArm-30"><span class="linenos">30</span></a>        <span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
 </span><span id="EndOfArm-31"><a href="#EndOfArm-31"><span class="linenos">31</span></a>
 </span><span id="EndOfArm-32"><a href="#EndOfArm-32"><span class="linenos">32</span></a><span class="sd">        Parameters</span>
 </span><span id="EndOfArm-33"><a href="#EndOfArm-33"><span class="linenos">33</span></a><span class="sd">        ----------</span>
@@ -240,7 +241,7 @@
 </span><span id="EndOfArm-42"><a href="#EndOfArm-42"><span class="linenos">42</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_motor</span><span class="p">(</span><span class="n">joint_name</span><span class="p">)</span>
 </span><span id="EndOfArm-43"><a href="#EndOfArm-43"><span class="linenos">43</span></a>
 </span><span id="EndOfArm-44"><a href="#EndOfArm-44"><span class="linenos">44</span></a>    <span class="k">def</span> <span class="nf">move_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span><span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="EndOfArm-45"><a href="#EndOfArm-45"><span class="linenos">45</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm-45"><a href="#EndOfArm-45"><span class="linenos">45</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm-46"><a href="#EndOfArm-46"><span class="linenos">46</span></a><span class="sd">        joint: name of joint (string)</span>
 </span><span id="EndOfArm-47"><a href="#EndOfArm-47"><span class="linenos">47</span></a><span class="sd">        x_r: commanded absolute position (radians).</span>
 </span><span id="EndOfArm-48"><a href="#EndOfArm-48"><span class="linenos">48</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -250,7 +251,7 @@
 </span><span id="EndOfArm-52"><a href="#EndOfArm-52"><span class="linenos">52</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span><span class="o">.</span><span class="n">move_to</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="p">,</span> <span class="n">a_r</span><span class="p">)</span>
 </span><span id="EndOfArm-53"><a href="#EndOfArm-53"><span class="linenos">53</span></a>
 </span><span id="EndOfArm-54"><a href="#EndOfArm-54"><span class="linenos">54</span></a>    <span class="k">def</span> <span class="nf">move_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="EndOfArm-55"><a href="#EndOfArm-55"><span class="linenos">55</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm-55"><a href="#EndOfArm-55"><span class="linenos">55</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm-56"><a href="#EndOfArm-56"><span class="linenos">56</span></a><span class="sd">        joint: name of joint (string)</span>
 </span><span id="EndOfArm-57"><a href="#EndOfArm-57"><span class="linenos">57</span></a><span class="sd">        x_r: commanded incremental motion (radians).</span>
 </span><span id="EndOfArm-58"><a href="#EndOfArm-58"><span class="linenos">58</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -260,7 +261,7 @@
 </span><span id="EndOfArm-62"><a href="#EndOfArm-62"><span class="linenos">62</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span><span class="o">.</span><span class="n">move_by</span><span class="p">(</span><span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="p">,</span> <span class="n">a_r</span><span class="p">)</span>
 </span><span id="EndOfArm-63"><a href="#EndOfArm-63"><span class="linenos">63</span></a>
 </span><span id="EndOfArm-64"><a href="#EndOfArm-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">joint</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span><span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="EndOfArm-65"><a href="#EndOfArm-65"><span class="linenos">65</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm-65"><a href="#EndOfArm-65"><span class="linenos">65</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm-66"><a href="#EndOfArm-66"><span class="linenos">66</span></a><span class="sd">                joint: name of joint (string)</span>
 </span><span id="EndOfArm-67"><a href="#EndOfArm-67"><span class="linenos">67</span></a><span class="sd">                p: named pose of joint</span>
 </span><span id="EndOfArm-68"><a href="#EndOfArm-68"><span class="linenos">68</span></a><span class="sd">                v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -274,7 +275,7 @@
 </span><span id="EndOfArm-76"><a href="#EndOfArm-76"><span class="linenos">76</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">move_to</span><span class="p">(</span><span class="s1">&#39;wrist_yaw&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;stow&#39;</span><span class="p">][</span><span class="s1">&#39;wrist_yaw&#39;</span><span class="p">])</span>
 </span><span id="EndOfArm-77"><a href="#EndOfArm-77"><span class="linenos">77</span></a>
 </span><span id="EndOfArm-78"><a href="#EndOfArm-78"><span class="linenos">78</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="EndOfArm-79"><a href="#EndOfArm-79"><span class="linenos">79</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm-79"><a href="#EndOfArm-79"><span class="linenos">79</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm-80"><a href="#EndOfArm-80"><span class="linenos">80</span></a><span class="sd">        Home to hardstops</span>
 </span><span id="EndOfArm-81"><a href="#EndOfArm-81"><span class="linenos">81</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="EndOfArm-82"><a href="#EndOfArm-82"><span class="linenos">82</span></a>        <span class="k">if</span> <span class="n">joint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -286,7 +287,7 @@
 </span><span id="EndOfArm-88"><a href="#EndOfArm-88"><span class="linenos">88</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="p">[</span><span class="n">joint</span><span class="p">]</span><span class="o">.</span><span class="n">home</span><span class="p">()</span>
 </span><span id="EndOfArm-89"><a href="#EndOfArm-89"><span class="linenos">89</span></a>
 </span><span id="EndOfArm-90"><a href="#EndOfArm-90"><span class="linenos">90</span></a>    <span class="k">def</span> <span class="nf">is_tool_present</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">class_name</span><span class="p">):</span>
-</span><span id="EndOfArm-91"><a href="#EndOfArm-91"><span class="linenos">91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm-91"><a href="#EndOfArm-91"><span class="linenos">91</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm-92"><a href="#EndOfArm-92"><span class="linenos">92</span></a><span class="sd">        Return true if the given tool type is present (eg. StretchGripper)</span>
 </span><span id="EndOfArm-93"><a href="#EndOfArm-93"><span class="linenos">93</span></a><span class="sd">        Allows for conditional logic when switching end-of-arm tools</span>
 </span><span id="EndOfArm-94"><a href="#EndOfArm-94"><span class="linenos">94</span></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -385,7 +386,7 @@ in the User YAML file</p>
     </div>
     <a class="headerlink" href="#EndOfArm.get_joint"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="EndOfArm.get_joint-29"><a href="#EndOfArm.get_joint-29"><span class="linenos">29</span></a>    <span class="k">def</span> <span class="nf">get_joint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint_name</span><span class="p">):</span>
-</span><span id="EndOfArm.get_joint-30"><a href="#EndOfArm.get_joint-30"><span class="linenos">30</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
+</span><span id="EndOfArm.get_joint-30"><a href="#EndOfArm.get_joint-30"><span class="linenos">30</span></a>        <span class="sd">&quot;&quot;&quot;Retrieves joint by name.</span>
 </span><span id="EndOfArm.get_joint-31"><a href="#EndOfArm.get_joint-31"><span class="linenos">31</span></a>
 </span><span id="EndOfArm.get_joint-32"><a href="#EndOfArm.get_joint-32"><span class="linenos">32</span></a><span class="sd">        Parameters</span>
 </span><span id="EndOfArm.get_joint-33"><a href="#EndOfArm.get_joint-33"><span class="linenos">33</span></a><span class="sd">        ----------</span>
@@ -428,7 +429,7 @@ in the User YAML file</p>
     </div>
     <a class="headerlink" href="#EndOfArm.move_to"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="EndOfArm.move_to-44"><a href="#EndOfArm.move_to-44"><span class="linenos">44</span></a>    <span class="k">def</span> <span class="nf">move_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span><span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="EndOfArm.move_to-45"><a href="#EndOfArm.move_to-45"><span class="linenos">45</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm.move_to-45"><a href="#EndOfArm.move_to-45"><span class="linenos">45</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm.move_to-46"><a href="#EndOfArm.move_to-46"><span class="linenos">46</span></a><span class="sd">        joint: name of joint (string)</span>
 </span><span id="EndOfArm.move_to-47"><a href="#EndOfArm.move_to-47"><span class="linenos">47</span></a><span class="sd">        x_r: commanded absolute position (radians).</span>
 </span><span id="EndOfArm.move_to-48"><a href="#EndOfArm.move_to-48"><span class="linenos">48</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -459,7 +460,7 @@ a_r: acceleration for trapezoidal motion profile (rad/s^2)</p>
     </div>
     <a class="headerlink" href="#EndOfArm.move_by"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="EndOfArm.move_by-54"><a href="#EndOfArm.move_by-54"><span class="linenos">54</span></a>    <span class="k">def</span> <span class="nf">move_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="p">,</span> <span class="n">x_r</span><span class="p">,</span> <span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="EndOfArm.move_by-55"><a href="#EndOfArm.move_by-55"><span class="linenos">55</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm.move_by-55"><a href="#EndOfArm.move_by-55"><span class="linenos">55</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm.move_by-56"><a href="#EndOfArm.move_by-56"><span class="linenos">56</span></a><span class="sd">        joint: name of joint (string)</span>
 </span><span id="EndOfArm.move_by-57"><a href="#EndOfArm.move_by-57"><span class="linenos">57</span></a><span class="sd">        x_r: commanded incremental motion (radians).</span>
 </span><span id="EndOfArm.move_by-58"><a href="#EndOfArm.move_by-58"><span class="linenos">58</span></a><span class="sd">        v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -490,7 +491,7 @@ a_r: acceleration for trapezoidal motion profile (rad/s^2)</p>
     </div>
     <a class="headerlink" href="#EndOfArm.pose"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="EndOfArm.pose-64"><a href="#EndOfArm.pose-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">joint</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span><span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="EndOfArm.pose-65"><a href="#EndOfArm.pose-65"><span class="linenos">65</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm.pose-65"><a href="#EndOfArm.pose-65"><span class="linenos">65</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm.pose-66"><a href="#EndOfArm.pose-66"><span class="linenos">66</span></a><span class="sd">                joint: name of joint (string)</span>
 </span><span id="EndOfArm.pose-67"><a href="#EndOfArm.pose-67"><span class="linenos">67</span></a><span class="sd">                p: named pose of joint</span>
 </span><span id="EndOfArm.pose-68"><a href="#EndOfArm.pose-68"><span class="linenos">68</span></a><span class="sd">                v_r: velocity for trapezoidal motion profile (rad/s).</span>
@@ -541,7 +542,7 @@ a_r: acceleration for trapezoidal motion profile (rad/s^2)</p>
     </div>
     <a class="headerlink" href="#EndOfArm.home"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="EndOfArm.home-78"><a href="#EndOfArm.home-78"><span class="linenos">78</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">joint</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="EndOfArm.home-79"><a href="#EndOfArm.home-79"><span class="linenos">79</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm.home-79"><a href="#EndOfArm.home-79"><span class="linenos">79</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm.home-80"><a href="#EndOfArm.home-80"><span class="linenos">80</span></a><span class="sd">        Home to hardstops</span>
 </span><span id="EndOfArm.home-81"><a href="#EndOfArm.home-81"><span class="linenos">81</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="EndOfArm.home-82"><a href="#EndOfArm.home-82"><span class="linenos">82</span></a>        <span class="k">if</span> <span class="n">joint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -571,7 +572,7 @@ a_r: acceleration for trapezoidal motion profile (rad/s^2)</p>
     </div>
     <a class="headerlink" href="#EndOfArm.is_tool_present"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="EndOfArm.is_tool_present-90"><a href="#EndOfArm.is_tool_present-90"><span class="linenos">90</span></a>    <span class="k">def</span> <span class="nf">is_tool_present</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">class_name</span><span class="p">):</span>
-</span><span id="EndOfArm.is_tool_present-91"><a href="#EndOfArm.is_tool_present-91"><span class="linenos">91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="EndOfArm.is_tool_present-91"><a href="#EndOfArm.is_tool_present-91"><span class="linenos">91</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="EndOfArm.is_tool_present-92"><a href="#EndOfArm.is_tool_present-92"><span class="linenos">92</span></a><span class="sd">        Return true if the given tool type is present (eg. StretchGripper)</span>
 </span><span id="EndOfArm.is_tool_present-93"><a href="#EndOfArm.is_tool_present-93"><span class="linenos">93</span></a><span class="sd">        Allows for conditional logic when switching end-of-arm tools</span>
 </span><span id="EndOfArm.is_tool_present-94"><a href="#EndOfArm.is_tool_present-94"><span class="linenos">94</span></a><span class="sd">        &quot;&quot;&quot;</span>

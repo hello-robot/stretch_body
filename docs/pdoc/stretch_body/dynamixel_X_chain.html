@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -115,6 +115,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/dynamixel_X_chain.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.dynamixel_X_chain    </h1>
 
@@ -139,7 +140,7 @@
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="k">class</span> <span class="nc">DynamixelXChain</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    This class manages a daisy chain of Dynamixel X-Series servos</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    It allows adding more than one servo at run time</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    It allows manage group reading of status data from servos so as to not overload the control bus</span>
@@ -379,7 +380,7 @@
 </span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a>
 </span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>
 </span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
-</span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;This sentry places the Dynamixel servos in torque_disabled</span>
+</span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>        <span class="sd">&quot;&quot;&quot;This sentry places the Dynamixel servos in torque_disabled</span>
 </span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a><span class="sd">        mode when the runstop is enabled.</span>
 </span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -400,7 +401,7 @@
     </div>
     <a class="headerlink" href="#DynamixelXChain"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelXChain-17"><a href="#DynamixelXChain-17"><span class="linenos"> 17</span></a><span class="k">class</span> <span class="nc">DynamixelXChain</span><span class="p">(</span><span class="n">Device</span><span class="p">):</span>
-</span><span id="DynamixelXChain-18"><a href="#DynamixelXChain-18"><span class="linenos"> 18</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="DynamixelXChain-18"><a href="#DynamixelXChain-18"><span class="linenos"> 18</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="DynamixelXChain-19"><a href="#DynamixelXChain-19"><span class="linenos"> 19</span></a><span class="sd">    This class manages a daisy chain of Dynamixel X-Series servos</span>
 </span><span id="DynamixelXChain-20"><a href="#DynamixelXChain-20"><span class="linenos"> 20</span></a><span class="sd">    It allows adding more than one servo at run time</span>
 </span><span id="DynamixelXChain-21"><a href="#DynamixelXChain-21"><span class="linenos"> 21</span></a><span class="sd">    It allows manage group reading of status data from servos so as to not overload the control bus</span>
@@ -640,7 +641,7 @@
 </span><span id="DynamixelXChain-255"><a href="#DynamixelXChain-255"><span class="linenos">255</span></a>
 </span><span id="DynamixelXChain-256"><a href="#DynamixelXChain-256"><span class="linenos">256</span></a>
 </span><span id="DynamixelXChain-257"><a href="#DynamixelXChain-257"><span class="linenos">257</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
-</span><span id="DynamixelXChain-258"><a href="#DynamixelXChain-258"><span class="linenos">258</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;This sentry places the Dynamixel servos in torque_disabled</span>
+</span><span id="DynamixelXChain-258"><a href="#DynamixelXChain-258"><span class="linenos">258</span></a>        <span class="sd">&quot;&quot;&quot;This sentry places the Dynamixel servos in torque_disabled</span>
 </span><span id="DynamixelXChain-259"><a href="#DynamixelXChain-259"><span class="linenos">259</span></a><span class="sd">        mode when the runstop is enabled.</span>
 </span><span id="DynamixelXChain-260"><a href="#DynamixelXChain-260"><span class="linenos">260</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="DynamixelXChain-261"><a href="#DynamixelXChain-261"><span class="linenos">261</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -1188,7 +1189,7 @@ It allows manage group reading of status data from servos so as to not overload 
     </div>
     <a class="headerlink" href="#DynamixelXChain.step_sentry"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="DynamixelXChain.step_sentry-257"><a href="#DynamixelXChain.step_sentry-257"><span class="linenos">257</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
-</span><span id="DynamixelXChain.step_sentry-258"><a href="#DynamixelXChain.step_sentry-258"><span class="linenos">258</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;This sentry places the Dynamixel servos in torque_disabled</span>
+</span><span id="DynamixelXChain.step_sentry-258"><a href="#DynamixelXChain.step_sentry-258"><span class="linenos">258</span></a>        <span class="sd">&quot;&quot;&quot;This sentry places the Dynamixel servos in torque_disabled</span>
 </span><span id="DynamixelXChain.step_sentry-259"><a href="#DynamixelXChain.step_sentry-259"><span class="linenos">259</span></a><span class="sd">        mode when the runstop is enabled.</span>
 </span><span id="DynamixelXChain.step_sentry-260"><a href="#DynamixelXChain.step_sentry-260"><span class="linenos">260</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="DynamixelXChain.step_sentry-261"><a href="#DynamixelXChain.step_sentry-261"><span class="linenos">261</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">motors</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>

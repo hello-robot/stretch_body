@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -70,6 +70,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/wrist_yaw.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.wrist_yaw    </h1>
 
@@ -85,7 +86,7 @@
 </span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="k">class</span> <span class="nc">WristYaw</span><span class="p">(</span><span class="n">DynamixelHelloXL430</span><span class="p">):</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">    API to the Stretch wrist yaw joint</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -98,14 +99,14 @@
 </span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="k">return</span> <span class="n">DynamixelHelloXL430</span><span class="o">.</span><span class="n">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="n">threaded</span><span class="p">)</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>
 </span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="sd">        Home to hardstops</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>        <span class="n">DynamixelHelloXL430</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">single_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span> <span class="c1">#extra time to get back</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
 </span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">        p: Dictionary key to named pose (eg &#39;forward&#39;)</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">        v_r: velocityfor trapezoidal motion profile (rad/s).</span>
 </span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">        a_r: acceleration for trapezoidal motion profile (rad/s^2)</span>
@@ -113,7 +114,7 @@
 </span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">move_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poses</span><span class="p">[</span><span class="n">p</span><span class="p">],</span><span class="n">v_r</span><span class="p">,</span><span class="n">a_r</span><span class="p">)</span>
 </span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>
 </span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot</span><span class="p">):</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;This sentry attempts to prevent the wrist yaw servo from overheating</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>        <span class="sd">&quot;&quot;&quot;This sentry attempts to prevent the wrist yaw servo from overheating</span>
 </span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">        if it is pushing against an object for too long. It works by backing off</span>
 </span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="sd">        the commanded position from the current position, so as to lower the steady</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="sd">        state error of the PID controller.</span>
@@ -145,7 +146,7 @@
     </div>
     <a class="headerlink" href="#WristYaw"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="WristYaw-8"><a href="#WristYaw-8"><span class="linenos"> 8</span></a><span class="k">class</span> <span class="nc">WristYaw</span><span class="p">(</span><span class="n">DynamixelHelloXL430</span><span class="p">):</span>
-</span><span id="WristYaw-9"><a href="#WristYaw-9"><span class="linenos"> 9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WristYaw-9"><a href="#WristYaw-9"><span class="linenos"> 9</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WristYaw-10"><a href="#WristYaw-10"><span class="linenos">10</span></a><span class="sd">    API to the Stretch wrist yaw joint</span>
 </span><span id="WristYaw-11"><a href="#WristYaw-11"><span class="linenos">11</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="WristYaw-12"><a href="#WristYaw-12"><span class="linenos">12</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chain</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">usb</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -158,14 +159,14 @@
 </span><span id="WristYaw-19"><a href="#WristYaw-19"><span class="linenos">19</span></a>        <span class="k">return</span> <span class="n">DynamixelHelloXL430</span><span class="o">.</span><span class="n">startup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threaded</span><span class="o">=</span><span class="n">threaded</span><span class="p">)</span>
 </span><span id="WristYaw-20"><a href="#WristYaw-20"><span class="linenos">20</span></a>
 </span><span id="WristYaw-21"><a href="#WristYaw-21"><span class="linenos">21</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="WristYaw-22"><a href="#WristYaw-22"><span class="linenos">22</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WristYaw-22"><a href="#WristYaw-22"><span class="linenos">22</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WristYaw-23"><a href="#WristYaw-23"><span class="linenos">23</span></a><span class="sd">        Home to hardstops</span>
 </span><span id="WristYaw-24"><a href="#WristYaw-24"><span class="linenos">24</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="WristYaw-25"><a href="#WristYaw-25"><span class="linenos">25</span></a>        <span class="n">DynamixelHelloXL430</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">single_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="WristYaw-26"><a href="#WristYaw-26"><span class="linenos">26</span></a>        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span> <span class="c1">#extra time to get back</span>
 </span><span id="WristYaw-27"><a href="#WristYaw-27"><span class="linenos">27</span></a>
 </span><span id="WristYaw-28"><a href="#WristYaw-28"><span class="linenos">28</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="WristYaw-29"><a href="#WristYaw-29"><span class="linenos">29</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WristYaw-29"><a href="#WristYaw-29"><span class="linenos">29</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WristYaw-30"><a href="#WristYaw-30"><span class="linenos">30</span></a><span class="sd">        p: Dictionary key to named pose (eg &#39;forward&#39;)</span>
 </span><span id="WristYaw-31"><a href="#WristYaw-31"><span class="linenos">31</span></a><span class="sd">        v_r: velocityfor trapezoidal motion profile (rad/s).</span>
 </span><span id="WristYaw-32"><a href="#WristYaw-32"><span class="linenos">32</span></a><span class="sd">        a_r: acceleration for trapezoidal motion profile (rad/s^2)</span>
@@ -173,7 +174,7 @@
 </span><span id="WristYaw-34"><a href="#WristYaw-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">move_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">poses</span><span class="p">[</span><span class="n">p</span><span class="p">],</span><span class="n">v_r</span><span class="p">,</span><span class="n">a_r</span><span class="p">)</span>
 </span><span id="WristYaw-35"><a href="#WristYaw-35"><span class="linenos">35</span></a>
 </span><span id="WristYaw-36"><a href="#WristYaw-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot</span><span class="p">):</span>
-</span><span id="WristYaw-37"><a href="#WristYaw-37"><span class="linenos">37</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;This sentry attempts to prevent the wrist yaw servo from overheating</span>
+</span><span id="WristYaw-37"><a href="#WristYaw-37"><span class="linenos">37</span></a>        <span class="sd">&quot;&quot;&quot;This sentry attempts to prevent the wrist yaw servo from overheating</span>
 </span><span id="WristYaw-38"><a href="#WristYaw-38"><span class="linenos">38</span></a><span class="sd">        if it is pushing against an object for too long. It works by backing off</span>
 </span><span id="WristYaw-39"><a href="#WristYaw-39"><span class="linenos">39</span></a><span class="sd">        the commanded position from the current position, so as to lower the steady</span>
 </span><span id="WristYaw-40"><a href="#WristYaw-40"><span class="linenos">40</span></a><span class="sd">        state error of the PID controller.</span>
@@ -271,7 +272,7 @@
     </div>
     <a class="headerlink" href="#WristYaw.home"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="WristYaw.home-21"><a href="#WristYaw.home-21"><span class="linenos">21</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="WristYaw.home-22"><a href="#WristYaw.home-22"><span class="linenos">22</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WristYaw.home-22"><a href="#WristYaw.home-22"><span class="linenos">22</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WristYaw.home-23"><a href="#WristYaw.home-23"><span class="linenos">23</span></a><span class="sd">        Home to hardstops</span>
 </span><span id="WristYaw.home-24"><a href="#WristYaw.home-24"><span class="linenos">24</span></a><span class="sd">        &quot;&quot;&quot;</span>
 </span><span id="WristYaw.home-25"><a href="#WristYaw.home-25"><span class="linenos">25</span></a>        <span class="n">DynamixelHelloXL430</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">single_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -296,7 +297,7 @@
     </div>
     <a class="headerlink" href="#WristYaw.pose"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="WristYaw.pose-28"><a href="#WristYaw.pose-28"><span class="linenos">28</span></a>    <span class="k">def</span> <span class="nf">pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">v_r</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">a_r</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="WristYaw.pose-29"><a href="#WristYaw.pose-29"><span class="linenos">29</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="WristYaw.pose-29"><a href="#WristYaw.pose-29"><span class="linenos">29</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="WristYaw.pose-30"><a href="#WristYaw.pose-30"><span class="linenos">30</span></a><span class="sd">        p: Dictionary key to named pose (eg &#39;forward&#39;)</span>
 </span><span id="WristYaw.pose-31"><a href="#WristYaw.pose-31"><span class="linenos">31</span></a><span class="sd">        v_r: velocityfor trapezoidal motion profile (rad/s).</span>
 </span><span id="WristYaw.pose-32"><a href="#WristYaw.pose-32"><span class="linenos">32</span></a><span class="sd">        a_r: acceleration for trapezoidal motion profile (rad/s^2)</span>
@@ -324,7 +325,7 @@ a_r: acceleration for trapezoidal motion profile (rad/s^2)</p>
     </div>
     <a class="headerlink" href="#WristYaw.step_sentry"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="WristYaw.step_sentry-36"><a href="#WristYaw.step_sentry-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="nf">step_sentry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot</span><span class="p">):</span>
-</span><span id="WristYaw.step_sentry-37"><a href="#WristYaw.step_sentry-37"><span class="linenos">37</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;This sentry attempts to prevent the wrist yaw servo from overheating</span>
+</span><span id="WristYaw.step_sentry-37"><a href="#WristYaw.step_sentry-37"><span class="linenos">37</span></a>        <span class="sd">&quot;&quot;&quot;This sentry attempts to prevent the wrist yaw servo from overheating</span>
 </span><span id="WristYaw.step_sentry-38"><a href="#WristYaw.step_sentry-38"><span class="linenos">38</span></a><span class="sd">        if it is pushing against an object for too long. It works by backing off</span>
 </span><span id="WristYaw.step_sentry-39"><a href="#WristYaw.step_sentry-39"><span class="linenos">39</span></a><span class="sd">        the commanded position from the current position, so as to lower the steady</span>
 </span><span id="WristYaw.step_sentry-40"><a href="#WristYaw.step_sentry-40"><span class="linenos">40</span></a><span class="sd">        state error of the PID controller.</span>

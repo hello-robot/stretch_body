@@ -23,8 +23,8 @@
   <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
 </svg>                &nbsp;stretch_body</a>
 
-            <img src="../images/banner.png" class="logo" alt="project logo"/>
-
+<a href="https://github.com/hello-robot/stretch_body">            <img src="../images/banner.png" class="logo" alt="project logo"/>
+</a>
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
@@ -193,6 +193,7 @@
     </nav>
     <main class="pdoc">
             <section class="module-info">
+                        <a class="pdoc-button git-button" href="https://github.com/hello-robot/stretch_body/tree/feature/pdoc/body/stretch_body/hello_utils.py">Edit on GitHub</a>
                     <h1 class="modulename">
 <a href="./../stretch_body.html">stretch_body</a><wbr>.hello_utils    </h1>
 
@@ -217,7 +218,7 @@
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---------------------------------------------------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="k">def</span> <span class="nf">create_time_string</span><span class="p">(</span><span class="n">time_format</span><span class="o">=</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">):</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns current time formatted as `time_format`</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="sd">&quot;&quot;&quot;Returns current time formatted as `time_format`</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    Parameters</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    ----------</span>
@@ -263,7 +264,7 @@
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="k">def</span> <span class="nf">get_stretch_directory</span><span class="p">(</span><span class="n">sub_directory</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="sd">&quot;&quot;&quot;Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">    Parameters</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">    ----------</span>
@@ -280,7 +281,7 @@
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="k">return</span> <span class="n">full_path</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="k">def</span> <span class="nf">read_fleet_yaml</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">fleet_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads yaml by filename from fleet directory</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="sd">&quot;&quot;&quot;Reads yaml by filename from fleet directory</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    Parameters</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">    ----------</span>
@@ -316,7 +317,7 @@
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="k">def</span> <span class="nf">overwrite_dict</span><span class="p">(</span><span class="n">overwritee_dict</span><span class="p">,</span> <span class="n">overwriter_dict</span><span class="p">):</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Merge two dictionaries while overwriting common keys and</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="sd">&quot;&quot;&quot;Merge two dictionaries while overwriting common keys and</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">    report errors when values of the same key differ in Python</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">    type. The result gets stored in `overwritee_dict`.</span>
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
@@ -349,7 +350,7 @@
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="k">return</span> <span class="n">no_mismatches</span>
 </span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="k">def</span> <span class="nf">pretty_print_dict</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Print human readable representation of dictionary to terminal</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="sd">&quot;&quot;&quot;Print human readable representation of dictionary to terminal</span>
 </span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="sd">    Parameters</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="sd">    ----------</span>
@@ -369,7 +370,7 @@
 </span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="k">class</span> <span class="nc">LoopStats</span><span class="p">():</span>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Track timing statistics for control loops</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>    <span class="sd">&quot;&quot;&quot;Track timing statistics for control loops</span>
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loop_name</span><span class="p">,</span> <span class="n">target_loop_rate</span><span class="p">):</span>
@@ -469,7 +470,7 @@
 </span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="k">if</span> <span class="n">save</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save</span><span class="p">)</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>    <span class="k">def</span> <span class="nf">get_loop_sleep_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a><span class="sd">        Returns</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a><span class="sd">        -------</span>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a><span class="sd">        float : Time to sleep for to hit target loop rate</span>
@@ -485,7 +486,7 @@
 </span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>
 </span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a><span class="k">class</span> <span class="nc">ThreadServiceExit</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a><span class="sd">    Custom exception which is used to trigger the clean exit</span>
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="sd">    of all running threads and the main program.</span>
 </span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -497,7 +498,7 @@
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>    <span class="k">raise</span> <span class="n">ThreadServiceExit</span>
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="k">def</span> <span class="nf">evaluate_polynomial_at</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate a quintic polynomial at a given time.</span>
+</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>    <span class="sd">&quot;&quot;&quot;Evaluate a quintic polynomial at a given time.</span>
 </span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>
 </span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a><span class="sd">    Parameters</span>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a><span class="sd">    ----------</span>
@@ -520,7 +521,7 @@
 </span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">vel</span><span class="p">,</span> <span class="n">accel</span><span class="p">)</span>
 </span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a>
 </span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="k">def</span> <span class="nf">is_segment_feasible</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="n">v_des</span><span class="p">,</span> <span class="n">a_des</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
-</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine whether a segment adheres to dynamic limits.</span>
+</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a>    <span class="sd">&quot;&quot;&quot;Determine whether a segment adheres to dynamic limits.</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a>
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a><span class="sd">    Parameters</span>
 </span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a><span class="sd">    ----------</span>
@@ -560,7 +561,7 @@
 </span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>    <span class="k">return</span> <span class="n">success</span><span class="p">,</span> <span class="n">max_v</span><span class="p">,</span> <span class="n">max_a</span>
 </span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a>
 </span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a><span class="k">def</span> <span class="nf">generate_quintic_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate quintic polynomial from two points</span>
+</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a>    <span class="sd">&quot;&quot;&quot;Generate quintic polynomial from two points</span>
 </span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a>
 </span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a><span class="sd">    Parameters</span>
 </span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a><span class="sd">    ----------</span>
@@ -587,7 +588,7 @@
 </span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">duration</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a4</span><span class="p">,</span> <span class="n">a5</span><span class="p">]</span>
 </span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a>
 </span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a><span class="k">def</span> <span class="nf">generate_cubic_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate cubic polynomial from two points</span>
+</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>    <span class="sd">&quot;&quot;&quot;Generate cubic polynomial from two points</span>
 </span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>
 </span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a><span class="sd">    Parameters</span>
 </span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a><span class="sd">    ----------</span>
@@ -612,7 +613,7 @@
 </span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">duration</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 </span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>
 </span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a><span class="k">def</span> <span class="nf">generate_linear_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate linear polynomial from two points</span>
+</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>    <span class="sd">&quot;&quot;&quot;Generate linear polynomial from two points</span>
 </span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a>
 </span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a><span class="sd">    Parameters</span>
 </span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a><span class="sd">    ----------</span>
@@ -635,7 +636,7 @@
 </span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">duration</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 </span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="k">def</span> <span class="nf">get_pose_diff</span><span class="p">(</span><span class="n">pose0</span><span class="p">,</span> <span class="n">pose1</span><span class="p">,</span> <span class="n">translation_atol</span><span class="o">=</span><span class="mf">2e-3</span><span class="p">,</span> <span class="n">rotation_atol</span><span class="o">=</span><span class="mf">2e-2</span><span class="p">):</span>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the motion required to get from pose 0 to pose 1.</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="sd">&quot;&quot;&quot;Return the motion required to get from pose 0 to pose 1.</span>
 </span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>
 </span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="sd">    Assumed that between pose 0 and pose 1, there has only been</span>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a><span class="sd">    either a translation or rotation motion.</span>
@@ -688,7 +689,7 @@
 </span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a>
 </span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a>
 </span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a><span class="k">def</span> <span class="nf">check_deprecated_contact_model_base</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span><span class="n">method_name</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="p">,</span><span class="n">contact_thresh</span> <span class="p">):</span>
-</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a><span class="sd">    With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)</span>
 </span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a><span class="sd">    Catch older code that is using the older API and require updating of code</span>
 </span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -714,7 +715,7 @@
 </span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 </span><span id="L-512"><a href="#L-512"><span class="linenos">512</span></a>
 </span><span id="L-513"><a href="#L-513"><span class="linenos">513</span></a><span class="k">def</span> <span class="nf">check_deprecated_contact_model_prismatic_joint</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span><span class="n">method_name</span><span class="p">,</span> <span class="n">contact_thresh_pos_N</span><span class="p">,</span><span class="n">contact_thresh_neg_N</span><span class="p">,</span><span class="n">contact_thresh_pos</span><span class="p">,</span><span class="n">contact_thresh_neg</span> <span class="p">):</span>
-</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-515"><a href="#L-515"><span class="linenos">515</span></a><span class="sd">    With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)</span>
 </span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a><span class="sd">    Catch older code that is using the older API and require updating of code</span>
 </span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a><span class="sd">    For code that was, for example:</span>
@@ -793,7 +794,7 @@
     </div>
     <a class="headerlink" href="#create_time_string"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="create_time_string-17"><a href="#create_time_string-17"><span class="linenos">17</span></a><span class="k">def</span> <span class="nf">create_time_string</span><span class="p">(</span><span class="n">time_format</span><span class="o">=</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">):</span>
-</span><span id="create_time_string-18"><a href="#create_time_string-18"><span class="linenos">18</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns current time formatted as `time_format`</span>
+</span><span id="create_time_string-18"><a href="#create_time_string-18"><span class="linenos">18</span></a>    <span class="sd">&quot;&quot;&quot;Returns current time formatted as `time_format`</span>
 </span><span id="create_time_string-19"><a href="#create_time_string-19"><span class="linenos">19</span></a>
 </span><span id="create_time_string-20"><a href="#create_time_string-20"><span class="linenos">20</span></a><span class="sd">    Parameters</span>
 </span><span id="create_time_string-21"><a href="#create_time_string-21"><span class="linenos">21</span></a><span class="sd">    ----------</span>
@@ -992,7 +993,7 @@
     </div>
     <a class="headerlink" href="#get_stretch_directory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_stretch_directory-63"><a href="#get_stretch_directory-63"><span class="linenos">63</span></a><span class="k">def</span> <span class="nf">get_stretch_directory</span><span class="p">(</span><span class="n">sub_directory</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-</span><span id="get_stretch_directory-64"><a href="#get_stretch_directory-64"><span class="linenos">64</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists</span>
+</span><span id="get_stretch_directory-64"><a href="#get_stretch_directory-64"><span class="linenos">64</span></a>    <span class="sd">&quot;&quot;&quot;Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists</span>
 </span><span id="get_stretch_directory-65"><a href="#get_stretch_directory-65"><span class="linenos">65</span></a>
 </span><span id="get_stretch_directory-66"><a href="#get_stretch_directory-66"><span class="linenos">66</span></a><span class="sd">    Parameters</span>
 </span><span id="get_stretch_directory-67"><a href="#get_stretch_directory-67"><span class="linenos">67</span></a><span class="sd">    ----------</span>
@@ -1037,7 +1038,7 @@
     </div>
     <a class="headerlink" href="#read_fleet_yaml"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="read_fleet_yaml-80"><a href="#read_fleet_yaml-80"><span class="linenos"> 80</span></a><span class="k">def</span> <span class="nf">read_fleet_yaml</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">fleet_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="read_fleet_yaml-81"><a href="#read_fleet_yaml-81"><span class="linenos"> 81</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads yaml by filename from fleet directory</span>
+</span><span id="read_fleet_yaml-81"><a href="#read_fleet_yaml-81"><span class="linenos"> 81</span></a>    <span class="sd">&quot;&quot;&quot;Reads yaml by filename from fleet directory</span>
 </span><span id="read_fleet_yaml-82"><a href="#read_fleet_yaml-82"><span class="linenos"> 82</span></a>
 </span><span id="read_fleet_yaml-83"><a href="#read_fleet_yaml-83"><span class="linenos"> 83</span></a><span class="sd">    Parameters</span>
 </span><span id="read_fleet_yaml-84"><a href="#read_fleet_yaml-84"><span class="linenos"> 84</span></a><span class="sd">    ----------</span>
@@ -1116,7 +1117,7 @@
     </div>
     <a class="headerlink" href="#overwrite_dict"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="overwrite_dict-116"><a href="#overwrite_dict-116"><span class="linenos">116</span></a><span class="k">def</span> <span class="nf">overwrite_dict</span><span class="p">(</span><span class="n">overwritee_dict</span><span class="p">,</span> <span class="n">overwriter_dict</span><span class="p">):</span>
-</span><span id="overwrite_dict-117"><a href="#overwrite_dict-117"><span class="linenos">117</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Merge two dictionaries while overwriting common keys and</span>
+</span><span id="overwrite_dict-117"><a href="#overwrite_dict-117"><span class="linenos">117</span></a>    <span class="sd">&quot;&quot;&quot;Merge two dictionaries while overwriting common keys and</span>
 </span><span id="overwrite_dict-118"><a href="#overwrite_dict-118"><span class="linenos">118</span></a><span class="sd">    report errors when values of the same key differ in Python</span>
 </span><span id="overwrite_dict-119"><a href="#overwrite_dict-119"><span class="linenos">119</span></a><span class="sd">    type. The result gets stored in `overwritee_dict`.</span>
 </span><span id="overwrite_dict-120"><a href="#overwrite_dict-120"><span class="linenos">120</span></a>
@@ -1181,7 +1182,7 @@ overwriter_dict : dict
     </div>
     <a class="headerlink" href="#pretty_print_dict"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="pretty_print_dict-149"><a href="#pretty_print_dict-149"><span class="linenos">149</span></a><span class="k">def</span> <span class="nf">pretty_print_dict</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-</span><span id="pretty_print_dict-150"><a href="#pretty_print_dict-150"><span class="linenos">150</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Print human readable representation of dictionary to terminal</span>
+</span><span id="pretty_print_dict-150"><a href="#pretty_print_dict-150"><span class="linenos">150</span></a>    <span class="sd">&quot;&quot;&quot;Print human readable representation of dictionary to terminal</span>
 </span><span id="pretty_print_dict-151"><a href="#pretty_print_dict-151"><span class="linenos">151</span></a>
 </span><span id="pretty_print_dict-152"><a href="#pretty_print_dict-152"><span class="linenos">152</span></a><span class="sd">    Parameters</span>
 </span><span id="pretty_print_dict-153"><a href="#pretty_print_dict-153"><span class="linenos">153</span></a><span class="sd">    ----------</span>
@@ -1224,7 +1225,7 @@ d : dict
     </div>
     <a class="headerlink" href="#LoopStats"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="LoopStats-169"><a href="#LoopStats-169"><span class="linenos">169</span></a><span class="k">class</span> <span class="nc">LoopStats</span><span class="p">():</span>
-</span><span id="LoopStats-170"><a href="#LoopStats-170"><span class="linenos">170</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Track timing statistics for control loops</span>
+</span><span id="LoopStats-170"><a href="#LoopStats-170"><span class="linenos">170</span></a>    <span class="sd">&quot;&quot;&quot;Track timing statistics for control loops</span>
 </span><span id="LoopStats-171"><a href="#LoopStats-171"><span class="linenos">171</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LoopStats-172"><a href="#LoopStats-172"><span class="linenos">172</span></a>
 </span><span id="LoopStats-173"><a href="#LoopStats-173"><span class="linenos">173</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loop_name</span><span class="p">,</span> <span class="n">target_loop_rate</span><span class="p">):</span>
@@ -1324,7 +1325,7 @@ d : dict
 </span><span id="LoopStats-267"><a href="#LoopStats-267"><span class="linenos">267</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="k">if</span> <span class="n">save</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save</span><span class="p">)</span>
 </span><span id="LoopStats-268"><a href="#LoopStats-268"><span class="linenos">268</span></a>
 </span><span id="LoopStats-269"><a href="#LoopStats-269"><span class="linenos">269</span></a>    <span class="k">def</span> <span class="nf">get_loop_sleep_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="LoopStats-270"><a href="#LoopStats-270"><span class="linenos">270</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="LoopStats-270"><a href="#LoopStats-270"><span class="linenos">270</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LoopStats-271"><a href="#LoopStats-271"><span class="linenos">271</span></a><span class="sd">        Returns</span>
 </span><span id="LoopStats-272"><a href="#LoopStats-272"><span class="linenos">272</span></a><span class="sd">        -------</span>
 </span><span id="LoopStats-273"><a href="#LoopStats-273"><span class="linenos">273</span></a><span class="sd">        float : Time to sleep for to hit target loop rate</span>
@@ -1673,7 +1674,7 @@ d : dict
     </div>
     <a class="headerlink" href="#LoopStats.get_loop_sleep_time"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="LoopStats.get_loop_sleep_time-269"><a href="#LoopStats.get_loop_sleep_time-269"><span class="linenos">269</span></a>    <span class="k">def</span> <span class="nf">get_loop_sleep_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="LoopStats.get_loop_sleep_time-270"><a href="#LoopStats.get_loop_sleep_time-270"><span class="linenos">270</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="LoopStats.get_loop_sleep_time-270"><a href="#LoopStats.get_loop_sleep_time-270"><span class="linenos">270</span></a>        <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LoopStats.get_loop_sleep_time-271"><a href="#LoopStats.get_loop_sleep_time-271"><span class="linenos">271</span></a><span class="sd">        Returns</span>
 </span><span id="LoopStats.get_loop_sleep_time-272"><a href="#LoopStats.get_loop_sleep_time-272"><span class="linenos">272</span></a><span class="sd">        -------</span>
 </span><span id="LoopStats.get_loop_sleep_time-273"><a href="#LoopStats.get_loop_sleep_time-273"><span class="linenos">273</span></a><span class="sd">        float : Time to sleep for to hit target loop rate</span>
@@ -1725,7 +1726,7 @@ d : dict
     </div>
     <a class="headerlink" href="#ThreadServiceExit"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ThreadServiceExit-285"><a href="#ThreadServiceExit-285"><span class="linenos">285</span></a><span class="k">class</span> <span class="nc">ThreadServiceExit</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="ThreadServiceExit-286"><a href="#ThreadServiceExit-286"><span class="linenos">286</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="ThreadServiceExit-286"><a href="#ThreadServiceExit-286"><span class="linenos">286</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ThreadServiceExit-287"><a href="#ThreadServiceExit-287"><span class="linenos">287</span></a><span class="sd">    Custom exception which is used to trigger the clean exit</span>
 </span><span id="ThreadServiceExit-288"><a href="#ThreadServiceExit-288"><span class="linenos">288</span></a><span class="sd">    of all running threads and the main program.</span>
 </span><span id="ThreadServiceExit-289"><a href="#ThreadServiceExit-289"><span class="linenos">289</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -1785,7 +1786,7 @@ of all running threads and the main program.</p>
     </div>
     <a class="headerlink" href="#evaluate_polynomial_at"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="evaluate_polynomial_at-297"><a href="#evaluate_polynomial_at-297"><span class="linenos">297</span></a><span class="k">def</span> <span class="nf">evaluate_polynomial_at</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-</span><span id="evaluate_polynomial_at-298"><a href="#evaluate_polynomial_at-298"><span class="linenos">298</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate a quintic polynomial at a given time.</span>
+</span><span id="evaluate_polynomial_at-298"><a href="#evaluate_polynomial_at-298"><span class="linenos">298</span></a>    <span class="sd">&quot;&quot;&quot;Evaluate a quintic polynomial at a given time.</span>
 </span><span id="evaluate_polynomial_at-299"><a href="#evaluate_polynomial_at-299"><span class="linenos">299</span></a>
 </span><span id="evaluate_polynomial_at-300"><a href="#evaluate_polynomial_at-300"><span class="linenos">300</span></a><span class="sd">    Parameters</span>
 </span><span id="evaluate_polynomial_at-301"><a href="#evaluate_polynomial_at-301"><span class="linenos">301</span></a><span class="sd">    ----------</span>
@@ -1839,7 +1840,7 @@ t : float
     </div>
     <a class="headerlink" href="#is_segment_feasible"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="is_segment_feasible-320"><a href="#is_segment_feasible-320"><span class="linenos">320</span></a><span class="k">def</span> <span class="nf">is_segment_feasible</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="n">v_des</span><span class="p">,</span> <span class="n">a_des</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
-</span><span id="is_segment_feasible-321"><a href="#is_segment_feasible-321"><span class="linenos">321</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine whether a segment adheres to dynamic limits.</span>
+</span><span id="is_segment_feasible-321"><a href="#is_segment_feasible-321"><span class="linenos">321</span></a>    <span class="sd">&quot;&quot;&quot;Determine whether a segment adheres to dynamic limits.</span>
 </span><span id="is_segment_feasible-322"><a href="#is_segment_feasible-322"><span class="linenos">322</span></a>
 </span><span id="is_segment_feasible-323"><a href="#is_segment_feasible-323"><span class="linenos">323</span></a><span class="sd">    Parameters</span>
 </span><span id="is_segment_feasible-324"><a href="#is_segment_feasible-324"><span class="linenos">324</span></a><span class="sd">    ----------</span>
@@ -1920,7 +1921,7 @@ max_a: float
     </div>
     <a class="headerlink" href="#generate_quintic_polynomial"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="generate_quintic_polynomial-360"><a href="#generate_quintic_polynomial-360"><span class="linenos">360</span></a><span class="k">def</span> <span class="nf">generate_quintic_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="generate_quintic_polynomial-361"><a href="#generate_quintic_polynomial-361"><span class="linenos">361</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate quintic polynomial from two points</span>
+</span><span id="generate_quintic_polynomial-361"><a href="#generate_quintic_polynomial-361"><span class="linenos">361</span></a>    <span class="sd">&quot;&quot;&quot;Generate quintic polynomial from two points</span>
 </span><span id="generate_quintic_polynomial-362"><a href="#generate_quintic_polynomial-362"><span class="linenos">362</span></a>
 </span><span id="generate_quintic_polynomial-363"><a href="#generate_quintic_polynomial-363"><span class="linenos">363</span></a><span class="sd">    Parameters</span>
 </span><span id="generate_quintic_polynomial-364"><a href="#generate_quintic_polynomial-364"><span class="linenos">364</span></a><span class="sd">    ----------</span>
@@ -1978,7 +1979,7 @@ f : List(float)
     </div>
     <a class="headerlink" href="#generate_cubic_polynomial"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="generate_cubic_polynomial-387"><a href="#generate_cubic_polynomial-387"><span class="linenos">387</span></a><span class="k">def</span> <span class="nf">generate_cubic_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="generate_cubic_polynomial-388"><a href="#generate_cubic_polynomial-388"><span class="linenos">388</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate cubic polynomial from two points</span>
+</span><span id="generate_cubic_polynomial-388"><a href="#generate_cubic_polynomial-388"><span class="linenos">388</span></a>    <span class="sd">&quot;&quot;&quot;Generate cubic polynomial from two points</span>
 </span><span id="generate_cubic_polynomial-389"><a href="#generate_cubic_polynomial-389"><span class="linenos">389</span></a>
 </span><span id="generate_cubic_polynomial-390"><a href="#generate_cubic_polynomial-390"><span class="linenos">390</span></a><span class="sd">    Parameters</span>
 </span><span id="generate_cubic_polynomial-391"><a href="#generate_cubic_polynomial-391"><span class="linenos">391</span></a><span class="sd">    ----------</span>
@@ -2034,7 +2035,7 @@ f : List(float)
     </div>
     <a class="headerlink" href="#generate_linear_polynomial"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="generate_linear_polynomial-412"><a href="#generate_linear_polynomial-412"><span class="linenos">412</span></a><span class="k">def</span> <span class="nf">generate_linear_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="generate_linear_polynomial-413"><a href="#generate_linear_polynomial-413"><span class="linenos">413</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate linear polynomial from two points</span>
+</span><span id="generate_linear_polynomial-413"><a href="#generate_linear_polynomial-413"><span class="linenos">413</span></a>    <span class="sd">&quot;&quot;&quot;Generate linear polynomial from two points</span>
 </span><span id="generate_linear_polynomial-414"><a href="#generate_linear_polynomial-414"><span class="linenos">414</span></a>
 </span><span id="generate_linear_polynomial-415"><a href="#generate_linear_polynomial-415"><span class="linenos">415</span></a><span class="sd">    Parameters</span>
 </span><span id="generate_linear_polynomial-416"><a href="#generate_linear_polynomial-416"><span class="linenos">416</span></a><span class="sd">    ----------</span>
@@ -2088,7 +2089,7 @@ f : List(float)
     </div>
     <a class="headerlink" href="#get_pose_diff"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_pose_diff-435"><a href="#get_pose_diff-435"><span class="linenos">435</span></a><span class="k">def</span> <span class="nf">get_pose_diff</span><span class="p">(</span><span class="n">pose0</span><span class="p">,</span> <span class="n">pose1</span><span class="p">,</span> <span class="n">translation_atol</span><span class="o">=</span><span class="mf">2e-3</span><span class="p">,</span> <span class="n">rotation_atol</span><span class="o">=</span><span class="mf">2e-2</span><span class="p">):</span>
-</span><span id="get_pose_diff-436"><a href="#get_pose_diff-436"><span class="linenos">436</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the motion required to get from pose 0 to pose 1.</span>
+</span><span id="get_pose_diff-436"><a href="#get_pose_diff-436"><span class="linenos">436</span></a>    <span class="sd">&quot;&quot;&quot;Return the motion required to get from pose 0 to pose 1.</span>
 </span><span id="get_pose_diff-437"><a href="#get_pose_diff-437"><span class="linenos">437</span></a>
 </span><span id="get_pose_diff-438"><a href="#get_pose_diff-438"><span class="linenos">438</span></a><span class="sd">    Assumed that between pose 0 and pose 1, there has only been</span>
 </span><span id="get_pose_diff-439"><a href="#get_pose_diff-439"><span class="linenos">439</span></a><span class="sd">    either a translation or rotation motion.</span>
@@ -2190,7 +2191,7 @@ pose1 : Tuple(float, float, float)
     </div>
     <a class="headerlink" href="#check_deprecated_contact_model_base"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="check_deprecated_contact_model_base-488"><a href="#check_deprecated_contact_model_base-488"><span class="linenos">488</span></a><span class="k">def</span> <span class="nf">check_deprecated_contact_model_base</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span><span class="n">method_name</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="p">,</span><span class="n">contact_thresh</span> <span class="p">):</span>
-</span><span id="check_deprecated_contact_model_base-489"><a href="#check_deprecated_contact_model_base-489"><span class="linenos">489</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="check_deprecated_contact_model_base-489"><a href="#check_deprecated_contact_model_base-489"><span class="linenos">489</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="check_deprecated_contact_model_base-490"><a href="#check_deprecated_contact_model_base-490"><span class="linenos">490</span></a><span class="sd">    With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)</span>
 </span><span id="check_deprecated_contact_model_base-491"><a href="#check_deprecated_contact_model_base-491"><span class="linenos">491</span></a><span class="sd">    Catch older code that is using the older API and require updating of code</span>
 </span><span id="check_deprecated_contact_model_base-492"><a href="#check_deprecated_contact_model_base-492"><span class="linenos">492</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -2235,7 +2236,7 @@ Catch older code that is using the older API and require updating of code</p>
     </div>
     <a class="headerlink" href="#check_deprecated_contact_model_prismatic_joint"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="check_deprecated_contact_model_prismatic_joint-514"><a href="#check_deprecated_contact_model_prismatic_joint-514"><span class="linenos">514</span></a><span class="k">def</span> <span class="nf">check_deprecated_contact_model_prismatic_joint</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span><span class="n">method_name</span><span class="p">,</span> <span class="n">contact_thresh_pos_N</span><span class="p">,</span><span class="n">contact_thresh_neg_N</span><span class="p">,</span><span class="n">contact_thresh_pos</span><span class="p">,</span><span class="n">contact_thresh_neg</span> <span class="p">):</span>
-</span><span id="check_deprecated_contact_model_prismatic_joint-515"><a href="#check_deprecated_contact_model_prismatic_joint-515"><span class="linenos">515</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="check_deprecated_contact_model_prismatic_joint-515"><a href="#check_deprecated_contact_model_prismatic_joint-515"><span class="linenos">515</span></a>    <span class="sd">&quot;&quot;&quot;</span>
 </span><span id="check_deprecated_contact_model_prismatic_joint-516"><a href="#check_deprecated_contact_model_prismatic_joint-516"><span class="linenos">516</span></a><span class="sd">    With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)</span>
 </span><span id="check_deprecated_contact_model_prismatic_joint-517"><a href="#check_deprecated_contact_model_prismatic_joint-517"><span class="linenos">517</span></a><span class="sd">    Catch older code that is using the older API and require updating of code</span>
 </span><span id="check_deprecated_contact_model_prismatic_joint-518"><a href="#check_deprecated_contact_model_prismatic_joint-518"><span class="linenos">518</span></a><span class="sd">    For code that was, for example:</span>
