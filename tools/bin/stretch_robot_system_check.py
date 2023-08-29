@@ -132,7 +132,7 @@ if robot_devices['hello-motor-left-wheel']:
     m = r.base.left_wheel
     val_is_not('Position',m.status['pos'], vnot=0)
     print(Style.RESET_ALL)
-    m.stop()
+
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-right-wheel']:
