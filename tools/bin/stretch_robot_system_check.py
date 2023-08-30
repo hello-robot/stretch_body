@@ -180,6 +180,10 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                 'ros-noetic-librealsense2': False,
                 'ros-galactic-librealsense2': False,
                 'librealsense2': True,
+            },
+            '22.04': {
+                'ros-iron-librealsense2': False,
+                'librealsense2': True,
             }
         }
         apt_list = apt.Cache()
@@ -273,7 +277,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                 'ros2_numpy': True,
                 'stretch_moveit_plugins': True,
             },
-            'humble': {
+            'iron': {
                 'stretch_core': True,
                 'realsense2_camera': True,
                 'sllidar_ros2': True,
