@@ -100,7 +100,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_m': 0.3,
                 'accel_m': 0.5},
-                'vel_brakezone_factor': 1},
+                'vel_brakezone_factor': 0.2},
         'set_safe_velocity': 1},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
@@ -188,7 +188,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 8.0,
                 'accel_r': 16.0},
-            'vel_brakezone_factor': 1},
+            'vel_brakezone_factor': 1.5},
         'set_safe_velocity': 1,
         'pid': [800, 200, 200],
         'pwm_homing': [-300,300],
@@ -229,7 +229,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 8.0,
                 'accel_r': 16.0},
-            'vel_brakezone_factor': 1},
+            'vel_brakezone_factor': 1.2},
         'set_safe_velocity': 1,
         'pid': [800,200,200],
         'pwm_homing': [-300,300],
@@ -299,7 +299,7 @@ nominal_params={
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
             'pKd_d': 40.0,
-            'pKi_d': 0.1,
+            'pKi_d': 0.0,
             'pKi_limit': 200,
             'pKp_d': 8.0,
             'pLPF': 200,
@@ -371,7 +371,7 @@ nominal_params={
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
             'pKd_d': 40.0,
-            'pKi_d': 0.1,
+            'pKi_d': 0.0,
             'pKi_limit': 200,
             'pKp_d': 8.0,
             'pLPF': 200,
@@ -417,7 +417,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_m': 0.2,
                 'accel_m': 0.3},
-            'vel_brakezone_factor': 1},
+            'vel_brakezone_factor': 0.03},
         'set_safe_velocity': 1,
         'pinion_t': 12},
     'pimu':{

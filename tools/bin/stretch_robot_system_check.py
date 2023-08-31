@@ -132,7 +132,7 @@ if robot_devices['hello-motor-left-wheel']:
     m = r.base.left_wheel
     val_is_not('Position',m.status['pos'], vnot=0)
     print(Style.RESET_ALL)
-    m.stop()
+
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-motor-right-wheel']:
@@ -179,6 +179,10 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             '20.04': {
                 'ros-noetic-librealsense2': False,
                 'ros-galactic-librealsense2': False,
+                'librealsense2': True,
+            },
+            '22.04': {
+                'ros-iron-librealsense2': False,
                 'librealsense2': True,
             }
         }
@@ -273,7 +277,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                 'ros2_numpy': True,
                 'stretch_moveit_plugins': True,
             },
-            'humble': {
+            'iron': {
                 'stretch_core': True,
                 'realsense2_camera': True,
                 'sllidar_ros2': True,
