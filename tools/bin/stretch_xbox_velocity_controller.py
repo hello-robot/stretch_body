@@ -108,12 +108,8 @@ class CommandLiftVelocity:
 class CommandArmVelocity:
     def __init__(self, robot):
         self.motor = robot.arm
-        self.increase_contact_threash = 30
         self._prev_set_vel_ts = None
-        self.max_linear_vel = self.motor.params['motion']['max']['vel_m']
-        self.contact_sensivity = self.motor.params['contact_models']['effort_pct']['contact_thresh_default']
-        self.contact_sensivity[0] = self.contact_sensivity[0] - self.increase_contact_threash
-        self.contact_sensivity[1] = self.contact_sensivity[1] + self.increase_contact_threash
+        self.max_linear_vel = self.motor.params['motion']['default']['vel_m']
         self.safety_v_m = 0
         self.scale_factor = 1
     
@@ -137,7 +133,7 @@ class CommandArmVelocity:
     def command_stick_to_velocity(self, x):
         x = to_parabola_transform(x)
         self._process_stick_to_vel(x)
-        self.motor.set_velocity(self.safety_v_m, contact_thresh_pos=self.contact_sensivity[1],contact_thresh_neg=self.contact_sensivity[0])
+        self.motor.set_velocity(self.safety_v_m)
         self._prev_set_vel_ts = time.time()
         print(f"[CommandArmVelocity]  X: {x} || v_m: {self.safety_v_m}")
 
@@ -301,7 +297,8 @@ def main():
     xbox_controller.start()
     robot = rb.Robot()
     try:
-        robot.startup()
+        if robot.startup():
+            do_double_beep(robot)
         
         base_command = CommandBaseVelocity(robot)
         lift_command = CommandLiftVelocity(robot)
@@ -318,9 +315,11 @@ def main():
             state = xbox_controller.get_state()
             if not robot.is_calibrated() and state['start_button_pressed']:
                 robot.home()
+                time.sleep(1)
             if robot.is_calibrated():
                 if state['top_button_pressed']:
                     robot.stow()
+                    time.sleep(1)
                 else:
                     if state['right_shoulder_button_pressed']:
                         wirst_yaw_command.command_stick_to_velocity(state['right_stick_x'])

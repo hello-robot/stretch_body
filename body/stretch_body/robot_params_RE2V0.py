@@ -92,7 +92,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_m': 0.4,
                 'accel_m': 0.4},
-        'vel_brakezone_factor': 0.2},
+        'vel_brakezone_factor': 0.05},
         'set_safe_velocity': 1},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
