@@ -68,8 +68,8 @@ class CommandBase:
         self._step_feedback_check(v_m, w_r)
     
     def command_stick_to_motion(self, x, y):
-        x = to_parabola_transform(x)
-        y = to_parabola_transform(y)
+        # x = to_parabola_transform(x)
+        # y = to_parabola_transform(y)
         self._process_stick_to_vel(x,y)
         self.base.set_velocity(self.safety_v_m, self.safety_w_r)
         self._prev_set_vel_ts = time.time()
@@ -78,6 +78,7 @@ class CommandBase:
 class CommandLift:
     def __init__(self, robot):
         self.motor = robot.lift
+        self.dead_zone = 0.0001
         self._prev_set_vel_ts = None
         self.max_linear_vel = self.motor.params['motion']['max']['vel_m']
         self.safety_v_m = 0
@@ -85,8 +86,7 @@ class CommandLift:
         self.precision_mode = False
         
         self.start_pos = None
-        self.direction = None
-        self.prev_direction = None
+        self.target_position = self.start_pos
     
     def _step_feedback_check(self,v_m):
         if self._prev_set_vel_ts is None:
@@ -106,9 +106,11 @@ class CommandLift:
         self._step_feedback_check(v_m)
     
     def command_stick_to_motion(self, x):
+        if abs(x) < self.dead_zone:
+            x = 0
         if not self.precision_mode:
             self.start_pos = None
-            x = to_parabola_transform(x)
+            # x = to_parabola_transform(x)
             self._process_stick_to_vel(x)
             self.motor.set_velocity(self.safety_v_m)
             self._prev_set_vel_ts = time.time()
@@ -116,18 +118,53 @@ class CommandLift:
         else:
             if self.start_pos is None:
                 self.start_pos = self.motor.status['pos']
-            
-            if x<0:
-                self.direction = -1
-            else:
-                self.direction = 1
-            
-            xv = -1*map_to_range(x,0,0.006) if x<0 else map_to_range(x,0,0.006)
-            t = 1
-            x_des = self.start_pos+x
-            self.motor.move_to(x_des)
-            print(f"[CommandLift]  joy: {x} || x_0: {self.start_pos} || x_diff: {x_des}")
+                self.target_position = self.start_pos
                 
+                
+            r = 1/100 # max precision vel
+            xv = map_to_range(abs(x),0,r)
+            if x<0:
+                xv = -1*xv
+            # if self.motor.status['timestamp_pc'] > self._prev_set_vel_ts:
+            self.step_precision_move_by(xv)
+                # self.step_precision_move_by(xv)
+                
+            
+    def step_precision_move_by(self,xv):
+        Kp_position = 2
+        curr_v = self.motor.status['vel']
+        e = xv - curr_v
+        self.motor.move_by(e*Kp_position)
+        self._prev_set_vel_ts = time.time()
+        print(f"LIFT || start_pos: {self.start_pos} | xv: {xv} | curr_v: {curr_v}")
+    
+    def step_precision_move_by(self,xv):
+        Kp_position =0.5
+        # Read the current joint position
+        current_position = self.motor.status['pos']
+
+        # Calculate the time elapsed since the last iteration
+        current_time = time.time()
+        elapsed_time = current_time - self._prev_set_vel_ts 
+
+        # Calculate the desired change in position to achieve the desired velocity
+        desired_position_change = xv * elapsed_time
+        
+        # Update the target position based on the desired position change
+        self.target_position = self.target_position + desired_position_change
+
+        # Calculate the position error
+        position_error = self.target_position - current_position
+
+        # Calculate the control effort (position control)
+        x_des = Kp_position * position_error
+
+        # Set the control_effort as the position setpoint for the joint
+        self.motor.move_to(self.start_pos + x_des)
+
+        # Update the previous_time for the next iteration
+        self._prev_set_vel_ts = time.time()
+        print(f"start_pos: {self.start_pos} || current_position: {current_position} || target_pos: {self.target_position} || desired_position_change: {desired_position_change} || position_error: {position_error} || xv: {xv} || x_des: {x_des}|| v_curr: {self.motor.status['vel']}")
 
 class CommandArm:
     def __init__(self, robot):
@@ -137,6 +174,7 @@ class CommandArm:
         self.safety_v_m = 0
         self.scale_factor = 1
         self.precision_mode = False
+        self.dead_zone = 0.001
     
     def _step_feedback_check(self,v_m):
         if self._prev_set_vel_ts is None:
@@ -156,12 +194,33 @@ class CommandArm:
         self._step_feedback_check(v_m)
     
     def command_stick_to_motion(self, x):
-        x = to_parabola_transform(x)
-        self._process_stick_to_vel(x)
-        self.motor.set_velocity(self.safety_v_m)
-        self._prev_set_vel_ts = time.time()
+        if abs(x) < self.dead_zone:
+            x = 0
+        if not self.precision_mode:
+            self.start_pos = None
+            # x = to_parabola_transform(x)
+            self._process_stick_to_vel(x)
+            self.motor.set_velocity(self.safety_v_m)
+            self._prev_set_vel_ts = time.time()
         # print(f"[CommandArm]  X: {x} || v_m: {self.safety_v_m}")
-
+        else:
+            if self.start_pos is None:
+                self.start_pos = self.motor.status['pos']
+                
+            r = 10/100 # 10 cm/s
+            xv = map_to_range(abs(x),0,r)
+            if x<0:
+                xv = -1*xv
+            if self.motor.status['timestamp_pc'] > self._prev_set_vel_ts:
+                self.step_precision_move_by(xv)
+                
+    def step_precision_move_by(self,xv):
+        Kp_position = 0.1
+        curr_v = self.motor.status['vel']
+        e = xv - curr_v
+        self.motor.move_by(e*Kp_position)
+        self._prev_set_vel_ts = time.time()
+        print(f"ARM || start_pos: {self.start_pos} | xv: {xv} | curr_v: {curr_v}")
 
 class CommandWristYaw:
     def __init__(self, robot):
@@ -389,15 +448,6 @@ class TeleopController:
                 self.robot.stow()
                 time.sleep(1)
             else:
-                # if self.precision_mode:
-                #     self.arm_command.scale_factor = 0.2
-                #     self.lift_command.scale_factor = 0.2
-                #     self.base_command.scale_factor = 0.2
-                #     print("Precision Mode")
-                # else:
-                #     self.arm_command.scale_factor = 1
-                #     self.lift_command.scale_factor = 1
-                #     self.base_command.scale_factor = 1
                 self.arm_command.precision_mode = self.precision_mode
                 self.lift_command.precision_mode = self.precision_mode
                 self.base_command.precision_mode = self.precision_mode
@@ -418,9 +468,6 @@ class TeleopController:
         except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError):
             self.xbox_controller.stop()
             self.robot.stop()
-            
-        
-    
 
 
 
