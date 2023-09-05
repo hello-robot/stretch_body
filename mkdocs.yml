@@ -1,7 +1,7 @@
 site_name: Stretch Body
 site_url: https://docs.hello-robot.com/stretch_body
 site_description: "Hello Robot Stretch Body Documentation"
-copyright: 'Copyright &copy; 2022 Hello Robot Inc'
+copyright: 'Copyright &copy; 2023 Hello Robot Inc'
 site_author: Hello Robot Inc
 use_directory_urls: True
 docs_dir: .
@@ -77,7 +77,7 @@ extra:
 nav:
  - Overview: README.md
  - Documentation:
-    - API: https://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/tutorial_stretch_body_api/
+    - API: https://docs.hello-robot.com/0.3/stretch-tutorials/stretch_body/tutorial_stretch_body_api/
     - Robot Parameters: docs/robot_parameters.md
- - Tutorials: https://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/
+ - Tutorials: https://docs.hello-robot.com/0.3/stretch-tutorials/stretch_body/
  - Changelog: CHANGELOG.md

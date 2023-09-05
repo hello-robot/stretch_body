@@ -2,7 +2,7 @@
 
 # Overview
 
-The stretch_body repository includes Python packages that allow a developer to interact with the hardware of the Stretch RE1 and RE2 robots. These packages are:
+The stretch_body repository includes Python packages that allow a developer to interact with the hardware of the Stretch robots. These packages are:
 
 | Package                        | Description                                |
 |--------------------------------|--------------------------------------------|
@@ -28,9 +28,9 @@ See the [changelog](./CHANGELOG.md) for information on what changed with each re
 
 ## License
 
-Each subdirectory contains a LICENSE.md file that applies to the directory's contents. This software is intended for use with the Stretch RE1 and RE2 mobile manipulators, which are robots produced and sold by Hello Robot Inc. For further information including inquiries about dual licensing, please contact Hello Robot Inc.
+Each subdirectory contains a LICENSE.md file that applies to the directory's contents. This software is intended for use with the Stretch mobile manipulators, which are robots produced and sold by Hello Robot Inc. For further information including inquiries about dual licensing, please contact Hello Robot Inc.
 
 
 ------
-<div align="center"> All materials are Copyright 2022 by Hello Robot Inc. Hello Robot and Stretch are registered trademarks. </div>
+<div align="center"> All materials are Copyright 2023 by Hello Robot Inc. Hello Robot and Stretch are registered trademarks. </div>
 

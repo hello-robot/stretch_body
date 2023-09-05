@@ -186,7 +186,7 @@ command_to_rotary_motion = CommandToRotaryMotion(dead_zone, move_s, max_dist_rad
 ############################
 # Fast Motion
 fast_move_s = 0.6
-fast_max_dist_m = 0.12
+fast_max_dist_m = 0.12 #0.12
 fast_accel_m = 0.8
 # fast, but unstable on thresholds: 0.6 s, 0.15 m, 0.8 m/s^2
 
@@ -206,6 +206,7 @@ def manage_base(robot, controller_state):
     if (navigation_mode_trigger > 0.5):
         fast_navigation_mode = True
 
+    print('FAST',fast_navigation_mode)
     ##################
     # convert robot commands to robot movement
     # only allow a pure translation or a pure rotation command
@@ -555,7 +556,7 @@ def main():
     global use_head_mapping, use_dex_wrist_mapping, use_stretch_gripper_mapping
     xbox_controller = xc.XboxController()
     xbox_controller.start()
-    check_usb_devices(wait_timeout=5)
+    check_usb_devices(wait_timeout=0.5)
     robot = rb.Robot()
     try:
         robot.startup()

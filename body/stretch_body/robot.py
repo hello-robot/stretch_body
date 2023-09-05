@@ -386,11 +386,13 @@ class Robot(Device):
         """
         Returns true if homing-calibration has been run all joints that require it
         """
-        ready = self.lift.motor.status['pos_calibrated']
-        ready = ready and self.arm.motor.status['pos_calibrated']
-        for j in self.end_of_arm.joints:
-            req = self.end_of_arm.motors[j].params['req_calibration'] and not self.end_of_arm.motors[j].is_calibrated
-            ready = ready and not req
+        ready=True
+        ready = ready and (not self.lift.motor.hw_valid  or self.lift.motor.status['pos_calibrated'])
+        ready = ready and (not self.arm.motor.hw_valid  or self.arm.motor.status['pos_calibrated'])
+        if self.end_of_arm.hw_valid:
+            for j in self.end_of_arm.joints:
+                req = self.end_of_arm.motors[j].params['req_calibration'] and not self.end_of_arm.motors[j].is_calibrated
+                ready = ready and not req
         return ready
 
     def get_stow_pos(self,joint):
@@ -452,22 +454,22 @@ class Robot(Device):
         Cause the robot to home its joints by moving to hardstops
         Blocking.
         """
-        if self.head is not None:
+        if self.head is not None and self.head.hw_valid:
             print('--------- Homing Head ----')
             self.head.home()
 
         # Home the lift
-        if self.lift is not None:
+        if self.lift is not None and self.lift.motor.hw_valid:
             print('--------- Homing Lift ----')
             self.lift.home()
 
         # Home the arm
-        if self.arm is not None:
+        if self.arm is not None and self.arm.motor.hw_valid:
             print('--------- Homing Arm ----')
             self.arm.home()
 
         # Home the end-of-arm
-        if self.end_of_arm is not None:
+        if self.end_of_arm is not None and self.end_of_arm.hw_valid:
             self.end_of_arm.home()
         #Let user know it is done
         self.pimu.trigger_beep()
