@@ -48,12 +48,8 @@ class CommandBase:
         self.precision_mode = False
 
         # Precision mode params
-        self.start_pos = (None,None) # 
-        self.target_position = self.start_pos
-        self.precision_kp_linear = 1
-        self.precision_kp_rot = 1
         self.precision_max_linear_vel = 0.01 # m/s 
-        self.precision_max_rot_vel = 0.1 # rad/s 
+        self.precision_max_rot_vel = 0.04 # rad/s 
     
     def _safety_check(self,v_m, w_r):
         if self._prev_set_vel_ts is None:
@@ -82,18 +78,60 @@ class CommandBase:
         if abs(y) < self.dead_zone:
             y = 0
         # x = to_parabola_transform(x)
-        # y = to_parabola_transform(y)
+        # y = to_parabola_transform(y) 
         
         # Standard Mode
         if not self.precision_mode:
+            self.start_pos = None
+            self.start_theta = None
             self._process_stick_to_vel(x,y)
             self.base.set_velocity(self.safety_v_m, self.safety_w_r)
             self._prev_set_vel_ts = time.time()
             # print(f"[CommandBase]  X: {x} | Y: {y} || v_m: {self.safety_v_m} | w_r: {self.safety_w_r}")
         else:
         # Precision Mode
-            pass
+            if self.start_pos is None:
+                self.start_pos = [self.base.status['x'],self.base.status['y']]
+                self.start_theta = self.base.status['theta']
+                self.target_position = self.start_pos
+                self.target_theta = self.start_theta  
+            yv = map_to_range(abs(y),0,self.precision_max_linear_vel)
+            xv = map_to_range(abs(x),0,self.precision_max_rot_vel)
+            if x<0:
+                xv = -1*xv
+            if y<0:
+                yv = -1*yv
+            if abs(x)>abs(y):
+                self.step_precision_rotate(xv)
+            else:
+                self.step_precision_translate(yv)
+            # Update the previous_time for the next iteration
+            self._prev_set_vel_ts = time.time()
+            
+    def step_precision_rotate(self, xv):
+        # Calculate the time elapsed since the last iteration
+        current_time = time.time()
+        elapsed_time = current_time - self._prev_set_vel_ts 
 
+        # Calculate the desired change in position to achieve the desired velocity
+        desired_theta_change = xv * elapsed_time
+
+        # Set the control_effort as the position setpoint for the joint
+        if abs(xv)>=0:
+            self.base.rotate_by(-1*desired_theta_change)
+
+    def step_precision_translate(self, yv):
+        
+        # Calculate the time elapsed since the last iteration
+        current_time = time.time()
+        elapsed_time = current_time - self._prev_set_vel_ts 
+
+        # Calculate the desired change in position to achieve the desired velocity
+        desired_position_change = yv * elapsed_time
+
+        # Set the control_effort as the position setpoint for the joint
+        if abs(yv)>=0:
+            self.base.translate_by(desired_position_change)
             
 
 class CommandLift:
@@ -150,9 +188,9 @@ class CommandLift:
             xv = map_to_range(abs(x),0,r)
             if x<0:
                 xv = -1*xv
-            self.step_precision_move_by(xv)
+            self.step_precision_move(xv)
     
-    def step_precision_move_by(self,xv):
+    def step_precision_move(self,xv):
         # Read the current joint position
         current_position = self.motor.status['pos']
 
@@ -178,14 +216,14 @@ class CommandLift:
 
         # Update the previous_time for the next iteration
         self._prev_set_vel_ts = time.time()
-        print(f"[LIFT]\nstart_pos: {self.start_pos}\n"
-              f"current_position: {current_position}\n"
-              f"target_pos: {self.target_position}\n"
-              f"desired_position_change: {desired_position_change}\n"
-              f"position_error: {position_error}\n"
-              f"xv: {xv}\n"
-              f"x_des: {x_des}\n"
-              f"v_curr: {self.motor.status['vel']}\n")
+        # print(f"[LIFT]\nstart_pos: {self.start_pos}\n"
+        #       f"current_position: {current_position}\n"
+        #       f"target_pos: {self.target_position}\n"
+        #       f"desired_position_change: {desired_position_change}\n"
+        #       f"position_error: {position_error}\n"
+        #       f"xv: {xv}\n"
+        #       f"x_des: {x_des}\n"
+        #       f"v_curr: {self.motor.status['vel']}\n")
 
 class CommandArm:
     def __init__(self, robot):
@@ -222,16 +260,16 @@ class CommandArm:
     def command_stick_to_motion(self, x):
         if abs(x) < self.dead_zone:
             x = 0
+        # x = to_parabola_transform(x)
         if not self.precision_mode:
-            # Standard Mode
+        # Standard Mode
             self.start_pos = None
-            # x = to_parabola_transform(x)
             self._process_stick_to_vel(x)
             self.motor.set_velocity(self.safety_v_m)
             self._prev_set_vel_ts = time.time()
             # print(f"[CommandLift]  X: {x} || v_m: {self.safety_v_m}")
         else:
-            # Precision Mode
+        # Precision Mode
             if self.start_pos is None:
                 self.start_pos = self.motor.status['pos']
                 self.target_position = self.start_pos
@@ -240,9 +278,9 @@ class CommandArm:
             xv = map_to_range(abs(x),0,r)
             if x<0:
                 xv = -1*xv
-            self.step_precision_move_by(xv)
+            self.step_precision_move(xv)
     
-    def step_precision_move_by(self,xv):
+    def step_precision_move(self,xv):
         # Read the current joint position
         current_position = self.motor.status['pos']
 
@@ -268,14 +306,14 @@ class CommandArm:
 
         # Update the previous_time for the next iteration
         self._prev_set_vel_ts = time.time()
-        print(f"[ARM]\nstart_pos: {self.start_pos}\n"
-              f"current_position: {current_position}\n"
-              f"target_pos: {self.target_position}\n"
-              f"desired_position_change: {desired_position_change}\n"
-              f"position_error: {position_error}\n"
-              f"xv: {xv}\n"
-              f"x_des: {x_des}\n"
-              f"v_curr: {self.motor.status['vel']}\n")
+        # print(f"[ARM]\nstart_pos: {self.start_pos}\n"
+        #       f"current_position: {current_position}\n"
+        #       f"target_pos: {self.target_position}\n"
+        #       f"desired_position_change: {desired_position_change}\n"
+        #       f"position_error: {position_error}\n"
+        #       f"xv: {xv}\n"
+        #       f"x_des: {x_des}\n"
+        #       f"v_curr: {self.motor.status['vel']}\n")
         
 class CommandWristYaw:
     def __init__(self, robot):
