@@ -34,7 +34,6 @@ def map_to_range(value, new_min, new_max):
     mapped_value = (value - 0) * (new_max - new_min) / (1 - 0) + new_min
     return mapped_value
 
-
 class CommandBase:
     def __init__(self, robot):
         self.base = robot.base
@@ -42,11 +41,14 @@ class CommandBase:
         self._prev_set_vel_ts = None
         self.max_linear_vel = self.base.params['motion']['max']['vel_m']
         self.max_rotation_vel = 1.90241 # rad/s
+        self.normal_linear_vel = self.base.params['motion']['default']['vel_m']
+        self.normal_rotation_vel = self.max_rotation_vel*0.4
         self.safety_v_m = 0
         self.safety_w_r = 0
         self.scale_factor_linear = 1
         self.scale_factor_rot = 1
         self.precision_mode = False
+        self.fast_base_mode = False
 
         # Precision mode params
         self.precision_max_linear_vel = 0.01 # m/s 
@@ -64,11 +66,13 @@ class CommandBase:
 
     def _process_stick_to_vel(self, x, y):
         # do someting
-        v_m = map_to_range(abs(y), 0, self.max_linear_vel)
+        max_linear_vel =  self.max_linear_vel if self.fast_base_mode else self.normal_linear_vel
+        max_rotation_vel = self.max_rotation_vel if self.fast_base_mode else self.normal_rotation_vel
+        v_m = map_to_range(abs(y), 0, max_linear_vel)
         if y<0:
             v_m = -1*v_m
         x = -1*x
-        w_r = map_to_range(abs(x), 0, self.max_rotation_vel)
+        w_r = map_to_range(abs(x), 0, max_rotation_vel)
         if x<0:
             w_r = -1*w_r
         self._safety_check(v_m, w_r)
@@ -376,6 +380,7 @@ class CommandGripperPosition:
         self.gripper_rotate_pct = 10.0
         self.gripper_accel = self.motor.params['motion']['max']['accel']
         self.gripper_vel = self.motor.params['motion']['max']['vel']
+        self.precision_mode = False
     
     def open_gripper(self):
         self.motor.move_by(self.gripper_rotate_pct, self.gripper_vel, self.gripper_accel)
@@ -387,6 +392,7 @@ class TeleopController:
     def __init__(self):
         self.xbox_controller = xc.XboxController()
         self.precision_mode = False
+        self.fast_base_mode = False
         self.robot = rb.Robot()
         self.controller_state = None
         self.end_of_arm_tool = self.robot.end_of_arm.name
@@ -414,8 +420,8 @@ class TeleopController:
         
     def update_state(self):
         self.controller_state = self.xbox_controller.get_state()
-        self.precision_mode = self.controller_state['right_trigger_pulled'] > 0.9
-    
+        self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
+        self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
     def startup(self):
         self.xbox_controller.start()
         if self.robot.startup():
@@ -431,6 +437,7 @@ class TeleopController:
 
     def command_joints_A(self):
         # Standard Key Mapping
+        
         if self.controller_state['right_shoulder_button_pressed']:
             self.wirst_yaw_command.command_button_to_motion(-1)
             
@@ -505,24 +512,29 @@ class TeleopController:
                 self.gripper.open_gripper()
             elif self.controller_state['bottom_button_pressed']:
                 self.gripper.close_gripper()
-
+    
+    def update_modes(self):
+        self.arm_command.precision_mode = self.precision_mode
+        self.lift_command.precision_mode = self.precision_mode
+        self.base_command.precision_mode = self.precision_mode
+        self.base_command.fast_base_mode = self.fast_base_mode
+        self.wirst_yaw_command.precision_mode = self.precision_mode
+        if self.gripper:
+            self.gripper.precision_mode = self.precision_mode
+        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+            self.wrist_pitch_command.precision_mode = self.precision_mode
+            self.wrist_roll_command.precision_mode = self.precision_mode
+        self.head_pan_command.precision_mode = self.precision_mode
+        self.head_tilt_command.precision_mode = self.precision_mode
+    
+    
     def step(self):
         if self.robot.is_calibrated():
             if self.controller_state['top_button_pressed']:
                 self.robot.stow()
                 time.sleep(1)
             else:
-                self.arm_command.precision_mode = self.precision_mode
-                self.lift_command.precision_mode = self.precision_mode
-                self.base_command.precision_mode = self.precision_mode
-                self.wirst_yaw_command.precision_mode = self.precision_mode
-                if self.gripper:
-                    self.gripper.precision_mode = self.precision_mode
-                if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
-                    self.wrist_pitch_command.precision_mode = self.precision_mode
-                    self.wrist_roll_command.precision_mode = self.precision_mode
-                self.head_pan_command.precision_mode = self.precision_mode
-                self.head_tilt_command.precision_mode = self.precision_mode
+                self.update_modes()
                 self.command_joints_A()
                 # self.command_joints_B()
                 self.robot.push_command()
