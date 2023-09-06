@@ -78,7 +78,7 @@ class CommandBase:
             x = 0
         if abs(y) < self.dead_zone:
             y = 0
-        # x = to_parabola_transform(x)
+        x = to_parabola_transform(x)
         # y = to_parabola_transform(y) 
         
         # Standard Mode

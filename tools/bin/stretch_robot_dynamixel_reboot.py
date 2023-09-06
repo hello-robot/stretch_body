@@ -22,6 +22,7 @@ for j in r.end_of_arm.joints:
     if r.end_of_arm.get_motor(j).motor.do_ping(verbose=False):
         print('Rebooting: %s' % j)
         r.end_of_arm.get_motor(j).motor.do_reboot()
+r.stop()
 
 print('')
 print('Dynamixel servo reboot complete. You will need to re-home servos now.')
