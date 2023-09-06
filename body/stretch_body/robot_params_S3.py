@@ -64,7 +64,7 @@ configuration_params_template={
         'zero_t': 7005}}
 
 # ###################### NOMINAL PARAMS #####################################################
-#Parameters that are common across the RE2 fleet
+#Parameters that are common across the S3 fleet
 nominal_params={
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
