@@ -44,7 +44,8 @@ class CommandBase:
         self.max_rotation_vel = 1.90241 # rad/s
         self.safety_v_m = 0
         self.safety_w_r = 0
-        self.scale_factor = 1
+        self.scale_factor_linear = 1
+        self.scale_factor_rot = 1
         self.precision_mode = False
 
         # Precision mode params
@@ -58,8 +59,8 @@ class CommandBase:
             # modify vel value based on 
             # feedback from reading the status
             pass
-        self.safety_v_m = v_m*self.scale_factor
-        self.safety_w_r = w_r*self.scale_factor
+        self.safety_v_m = v_m*self.scale_factor_linear
+        self.safety_w_r = w_r*self.scale_factor_rot
 
     def _process_stick_to_vel(self, x, y):
         # do someting
@@ -133,7 +134,6 @@ class CommandBase:
         if abs(yv)>=0:
             self.base.translate_by(desired_position_change)
             
-
 class CommandLift:
     def __init__(self, robot):
         self.motor = robot.lift
@@ -147,8 +147,9 @@ class CommandLift:
         # Precision mode params
         self.start_pos = None
         self.target_position = self.start_pos
-        self.precision_kp = 1
-        self.precision_max_vel = 0.01 # m/s 
+        self.precision_kp = 0.5
+        self.precision_max_vel = 0.02 # m/s
+        self.stopped_for_prec = False 
     
     def _safety_check(self,v_m):
         if self._prev_set_vel_ts is None:
@@ -183,11 +184,13 @@ class CommandLift:
             if self.start_pos is None:
                 self.start_pos = self.motor.status['pos']
                 self.target_position = self.start_pos
+                # TODO: Wait for the velocity to settle to zero
                 
             r = self.precision_max_vel
             xv = map_to_range(abs(x),0,r)
             if x<0:
                 xv = -1*xv
+            # if self.motor.status['timestamp_pc'] > self._prev_set_vel_ts:
             self.step_precision_move(xv)
     
     def step_precision_move(self,xv):
@@ -211,8 +214,7 @@ class CommandLift:
         x_des = self.precision_kp * position_error
 
         # Set the control_effort as the position setpoint for the joint
-        if abs(xv)>=0:
-            self.motor.move_to(self.start_pos + x_des)
+        self.motor.move_to(self.start_pos + x_des)
 
         # Update the previous_time for the next iteration
         self._prev_set_vel_ts = time.time()
@@ -238,8 +240,8 @@ class CommandArm:
         # Precision mode params
         self.start_pos = None
         self.target_position = self.start_pos
-        self.precision_kp = 1
-        self.precision_max_vel = 0.01 # m/s 
+        self.precision_kp = 0.6
+        self.precision_max_vel = 0.02 # m/s 
     
     def _safety_check(self,v_m):
         if self._prev_set_vel_ts is None:
@@ -273,6 +275,7 @@ class CommandArm:
             if self.start_pos is None:
                 self.start_pos = self.motor.status['pos']
                 self.target_position = self.start_pos
+                # TODO: Wait for the velocity to settle to zero
                 
             r = self.precision_max_vel
             xv = map_to_range(abs(x),0,r)
@@ -319,7 +322,7 @@ class CommandWristYaw:
     def __init__(self, robot):
         self.motor = robot.end_of_arm.get_joint('wrist_yaw')
         self._prev_set_vel_ts = None
-        self.max_linear_vel = self.motor.params['motion']['max']['vel']
+        self.max_linear_vel = self.motor.params['motion']['default']['vel']
         self.safety_v = 0
         self.scale_factor = 1
     
@@ -385,7 +388,7 @@ class CommandHeadPan:
     def __init__(self, robot):
         self.motor = robot.head.get_joint('head_pan')
         self._prev_set_vel_ts = None
-        self.max_linear_vel = self.motor.params['motion']['max']['vel']
+        self.max_linear_vel = self.motor.params['motion']['default']['vel']
         self.safety_v = 0
         self.scale_factor = 1
     
@@ -418,7 +421,7 @@ class CommandHeadTilt:
     def __init__(self, robot):
         self.motor = robot.head.get_joint('head_tilt')
         self._prev_set_vel_ts = None
-        self.max_linear_vel = self.motor.params['motion']['max']['vel']
+        self.max_linear_vel = self.motor.params['motion']['default']['vel']
         self.safety_v = 0
         self.scale_factor = 1
     
