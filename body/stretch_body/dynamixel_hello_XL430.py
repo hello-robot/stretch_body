@@ -100,7 +100,7 @@ class DynamixelHelloXL430(Device):
             self.in_vel_brake_zone = False
             self.in_vel_mode = False 
             self.dist_to_min_max = None # track dist to min,max limits
-            self.vel_brake_zone_thresh = 0.6 # initial/minimum brake zone thresh value
+            self.vel_brake_zone_thresh = 0.2 # initial/minimum brake zone thresh value
             self._prev_set_vel_ts = None
             self.watchdog_enabled = False
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
@@ -474,7 +474,7 @@ class DynamixelHelloXL430(Device):
         if distance_to_limit!=0:
             brake_zone_thresh = brake_zone_factor*abs(self.status['vel'])/distance_to_limit
             brake_zone_thresh =  self.bound_value(brake_zone_thresh,0,self.total_range/2)
-            brake_zone_thresh = brake_zone_thresh + 0.6 #0.6 rad is minimum brake zone thresh  
+            brake_zone_thresh = brake_zone_thresh + 0.3 #0.3 rad is minimum brake zone thresh  
             self._set_vel_brake_thresh(brake_zone_thresh)
 
     def _set_vel_brake_thresh(self, thresh):

@@ -414,7 +414,7 @@ nominal_params={
             'trajectory_max': {
               'accel_m': 0.3,
               'vel_m': 0.15},
-        'vel_brakezone_factor': 0.03},
+        'vel_brakezone_factor': 0.02},
         'set_safe_velocity': 1,
           'pinion_t': 12},
     'pimu':{
@@ -592,7 +592,7 @@ nominal_params={
               'trajectory_max': {
                   'vel_r': 3.0,
                   'accel_r': 3.0},
-            'vel_brakezone_factor': 1},
+            'vel_brakezone_factor': 0.2},
         'set_safe_velocity': 1,
         'pid': [640,0,0],
         'pwm_homing': [-300,300],

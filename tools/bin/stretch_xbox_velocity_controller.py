@@ -49,6 +49,7 @@ class CommandBase:
         self.scale_factor_rot = 1
         self.precision_mode = False
         self.fast_base_mode = False
+        self.acc = self.base.params['motion']['max']['accel_m']
 
         # Precision mode params
         self.precision_max_linear_vel = 0.01 # m/s 
@@ -90,7 +91,7 @@ class CommandBase:
             self.start_pos = None
             self.start_theta = None
             self._process_stick_to_vel(x,y)
-            self.base.set_velocity(self.safety_v_m, self.safety_w_r)
+            self.base.set_velocity(self.safety_v_m, self.safety_w_r, a=self.acc)
             self._prev_set_vel_ts = time.time()
             # print(f"[CommandBase]  X: {x} | Y: {y} || v_m: {self.safety_v_m} | w_r: {self.safety_w_r}")
         else:
@@ -147,6 +148,7 @@ class CommandLift:
         self.safety_v_m = 0
         self.scale_factor = 1.0
         self.precision_mode = False
+        self.acc = self.motor.params['motion']['max']['accel_m']
         
         # Precision mode params
         self.start_pos = None
@@ -180,7 +182,7 @@ class CommandLift:
         if not self.precision_mode:
             self.start_pos = None
             self._process_stick_to_vel(x)
-            self.motor.set_velocity(self.safety_v_m)
+            self.motor.set_velocity(self.safety_v_m, a_m=self.acc)
             self._prev_set_vel_ts = time.time()
             # print(f"[CommandLift]  X: {x} || v_m: {self.safety_v_m}")
         else:
@@ -358,7 +360,7 @@ class CommandDxlJoint:
     def command_stick_to_motion(self, x):
         if abs(x)<self.dead_zone:
             x = 0
-        x = to_parabola_transform(x)
+        # x = to_parabola_transform(x)
         self._process_stick_to_vel(x)
         if self.precision_mode:
             self.safety_v = self.safety_v*self.precision_scale_down
@@ -403,6 +405,7 @@ class TeleopController:
         self.lift_command = CommandLift(self.robot)
         self.arm_command = CommandArm(self.robot)
         self.wirst_yaw_command = CommandDxlJoint(self.robot,'wrist_yaw')
+        self.wirst_yaw_command.max_vel = 1.2
         self.head_pan_command = CommandDxlJoint(self.robot,'head_pan')
         self.head_tilt_command =  CommandDxlJoint(self.robot,'head_tilt')
         
@@ -455,9 +458,9 @@ class TeleopController:
                 self.wrist_pitch_command.command_stick_to_motion(0)
             
             if self.controller_state['left_pad_pressed']:
-                self.wrist_roll_command.command_button_to_motion(1)
-            elif self.controller_state['right_pad_pressed']:
                 self.wrist_roll_command.command_button_to_motion(-1)
+            elif self.controller_state['right_pad_pressed']:
+                self.wrist_roll_command.command_button_to_motion(1)
             else:
                 self.wrist_roll_command.command_stick_to_motion(0)
         else:
@@ -531,7 +534,7 @@ class TeleopController:
     def step(self):
         if self.robot.is_calibrated():
             if self.controller_state['top_button_pressed']:
-                self.robot.stow()
+                self.manage_stow()
                 time.sleep(1)
             else:
                 self.update_modes()
@@ -540,7 +543,15 @@ class TeleopController:
                 self.robot.push_command()
         else:
             print('press the start button to calibrate the robot')
-            
+
+    def manage_stow(self):
+        if self.robot.is_calibrated():
+            # Reset motion params as fast for xbox
+            v = self.robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['vel']
+            a = self.robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['accel']
+            self.robot.end_of_arm.motors['wrist_yaw'].set_motion_params(v, a)
+            self.robot.stow()
+
     def main(self):
         try:
             while True:
