@@ -148,7 +148,7 @@ class CommandLift:
         self.safety_v_m = 0
         self.scale_factor = 1.0
         self.precision_mode = False
-        self.acc = self.motor.params['motion']['max']['accel_m']
+        self.acc = self.motor.params['motion']['fast']['accel_m']
         
         # Precision mode params
         self.start_pos = None
@@ -191,7 +191,7 @@ class CommandLift:
                 self.start_pos = self.motor.status['pos']
                 self.target_position = self.start_pos
                 # TODO: Wait for the velocity to settle to zero
-                
+            
             r = self.precision_max_vel
             xv = map_to_range(abs(x),0,r)
             if x<0:
@@ -242,6 +242,7 @@ class CommandArm:
         self.safety_v_m = 0
         self.scale_factor = 1.0
         self.precision_mode = False
+        self.acc = self.motor.params['motion']['fast']['accel_m']
         
         # Precision mode params
         self.start_pos = None
@@ -273,7 +274,7 @@ class CommandArm:
         # Standard Mode
             self.start_pos = None
             self._process_stick_to_vel(x)
-            self.motor.set_velocity(self.safety_v_m)
+            self.motor.set_velocity(self.safety_v_m,a_m=self.acc)
             self._prev_set_vel_ts = time.time()
             # print(f"[CommandLift]  X: {x} || v_m: {self.safety_v_m}")
         else:
