@@ -53,7 +53,7 @@ configuration_params_template={
         'batch_name': 'NA',
         'serial_no': 'NA',
         'd435i':{'serial_no':'NA'},
-        'model_name':'S3'},
+        'model_name':'SE3'},
     'stretch_gripper':{
         'range_t': [0, 8022],
         'zero_t': 5212},
