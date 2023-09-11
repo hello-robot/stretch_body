@@ -399,7 +399,7 @@ class TeleopController:
         self.robot = rb.Robot()
         self.controller_state = None
         self.end_of_arm_tool = self.robot.end_of_arm.name
-        self.sleep = 1/100
+        self.sleep = 1/50
         self.print_mode = False
             
         self.base_command = CommandBase(self.robot)
