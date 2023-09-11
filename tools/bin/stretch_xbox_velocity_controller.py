@@ -10,6 +10,7 @@ import time
 import argparse
 import random
 import math
+import sys
 import numpy as np
 
 print_stretch_re_use()
@@ -43,8 +44,8 @@ class CommandBase:
         self.acc = self.base.params['motion']['max']['accel_m']
 
         # Precision mode params
-        self.precision_max_linear_vel = 0.01 # m/s 
-        self.precision_max_rot_vel = 0.04 # rad/s 
+        self.precision_max_linear_vel = 0.02 # m/s Very precise: 0.01
+        self.precision_max_rot_vel = 0.08 # rad/s Very precise: 0.04
     
     def is_stowed(self):
         arm = abs(self.robot.get_stow_pos('arm') - self.robot.arm.status['pos']) < 0.01
@@ -142,8 +143,8 @@ class CommandLift:
         # Precision mode params
         self.start_pos = None
         self.target_position = self.start_pos
-        self.precision_kp = 0.5
-        self.precision_max_vel = 0.02 # m/s
+        self.precision_kp = 0.5 # Very Precise: 0.5
+        self.precision_max_vel = 0.04 # m/s Very Precise: 0.02 m/s
         self.stopped_for_prec = False 
     
     def _safety_check(self,v_m):
@@ -220,8 +221,8 @@ class CommandArm:
         # Precision mode params
         self.start_pos = None
         self.target_position = self.start_pos
-        self.precision_kp = 0.6
-        self.precision_max_vel = 0.02 # m/s 
+        self.precision_kp = 0.6 # Very Precise: 0.6
+        self.precision_max_vel = 0.04 # m/s  Very Precise: 0.02 m/s
     
     def _safety_check(self,v_m):
         # Do some safety checks and modify vel
@@ -331,6 +332,7 @@ class CommandDxlJoint:
             self.motor.set_velocity(vel)
         elif direction==-1:
             self.motor.set_velocity(-1*vel)
+        self._prev_set_vel_ts = time.time()
             
 class CommandGripperPosition:
     def __init__(self, robot):
@@ -511,6 +513,7 @@ class TeleopController:
     def manage_shutdown(self):
         self.xbox_controller.stop()
         self.robot.stop()
+        sys.exit()
         # TODO
 
     def main(self):
