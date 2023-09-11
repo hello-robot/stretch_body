@@ -14,7 +14,7 @@ import numpy as np
 
 print_stretch_re_use()
 
-print(" WARNING: BETA VERSION. USE AT OWN RISK.")
+print("  WARNING: BETA VERSION. USE AT OWN RISK.")
 
 def to_parabola_transform(x):
     if x<0:
@@ -284,16 +284,21 @@ class CommandArm:
         self._prev_set_vel_ts = time.time()
 
 class CommandDxlJoint:
-    def __init__(self, robot, name):
+    def __init__(self, robot, name, max_vel=None, acc_type=None):
         if 'wrist' in name:
             self.motor = robot.end_of_arm.get_joint(name)
         if 'head' in name:
             self.motor = robot.head.get_joint(name)
         self.dead_zone = 0.001
         self._prev_set_vel_ts = None
-        self.max_vel = self.motor.params['motion']['default']['vel']
+        self.max_vel = max_vel if max_vel else self.motor.params['motion']['default']['vel']
         self.precision_mode = False
-        self.acc = None
+        self.acc_type = acc_type
+        if self.acc_type:
+            if self.acc_type in list(self.motor.params['motion'].keys()):
+                self.motor.motor.disable_torque()
+                self.motor.set_motion_params(a_des = self.motor.params['motion'][self.acc_type]['accel'])
+                self.motor.motor.enable_torque()
         
         self.precision_scale_down = 0.05
     
@@ -355,8 +360,7 @@ class TeleopController:
         self.base_command = CommandBase(self.robot)
         self.lift_command = CommandLift(self.robot)
         self.arm_command = CommandArm(self.robot)
-        self.wirst_yaw_command = CommandDxlJoint(self.robot,'wrist_yaw')
-        self.wirst_yaw_command.max_vel = 1.2
+        self.wirst_yaw_command = CommandDxlJoint(self.robot,'wrist_yaw', max_vel=1.2, acc_type='slow')
         self.head_pan_command = CommandDxlJoint(self.robot,'head_pan')
         self.head_tilt_command =  CommandDxlJoint(self.robot,'head_tilt')
         
@@ -440,7 +444,7 @@ class TeleopController:
                 self.gripper.close_gripper()
 
     def command_joints_B(self):
-        # All analog key mapping
+        # All analog key mapping | used for debugging velocity behaviours
         if self.controller_state['right_shoulder_button_pressed']:
             self.wirst_yaw_command.command_stick_to_motion(self.controller_state['right_stick_x'])
             if self.wrist_pitch_command:
@@ -486,7 +490,6 @@ class TeleopController:
         if self.robot.is_calibrated():
             if self.controller_state['top_button_pressed']:
                 self.manage_stow()
-                time.sleep(1)
             else:
                 self.update_modes()
                 self.command_joints_A()
@@ -504,6 +507,11 @@ class TeleopController:
             self.robot.stow()
             time.sleep(0.1)
             self.robot.stow()
+    
+    def manage_shutdown(self):
+        self.xbox_controller.stop()
+        self.robot.stop()
+        # TODO
 
     def main(self):
         try:
