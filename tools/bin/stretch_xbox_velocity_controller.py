@@ -14,19 +14,13 @@ import numpy as np
 
 print_stretch_re_use()
 
+print(" WARNING: BETA VERSION. USE AT OWN RISK.")
+
 def to_parabola_transform(x):
     if x<0:
         return  -1*(abs(x)**2)
     else:
         return x**2
-
-def bound_value(value, lower_bound, upper_bound):
-    if value < lower_bound:
-        return lower_bound
-    elif value > upper_bound:
-        return upper_bound
-    else:
-        return value
 
 def map_to_range(value, new_min, new_max):
     # Ensure value is between 0 and 1
@@ -44,10 +38,6 @@ class CommandBase:
         self.max_rotation_vel = 1.90241 # rad/s
         self.normal_linear_vel = self.base.params['motion']['default']['vel_m']
         self.normal_rotation_vel = self.max_rotation_vel*0.4
-        self.safety_v_m = 0
-        self.safety_w_r = 0
-        self.scale_factor_linear = 1
-        self.scale_factor_rot = 1
         self.precision_mode = False
         self.fast_base_mode = False
         self.acc = self.base.params['motion']['max']['accel_m']
@@ -57,24 +47,20 @@ class CommandBase:
         self.precision_max_rot_vel = 0.04 # rad/s 
     
     def is_stowed(self):
-        arm = abs(self.robot.params['stow']['arm'] - self.robot.arm.status['pos']) < 0.01
-        lift = abs(self.robot.params['stow']['lift'] - self.robot.lift.status['pos']) < 0.01
+        arm = abs(self.robot.get_stow_pos('arm') - self.robot.arm.status['pos']) < 0.01
+        lift = abs(self.robot.get_stow_pos('lift') - self.robot.lift.status['pos']) < 0.01
         return arm and lift
         
     def _safety_check(self,v_m, w_r):
-        if self._prev_set_vel_ts is None:
-            return
-        if self.base.status['timestamp_pc'] > self._prev_set_vel_ts:
-            # modify vel value based on 
-            # feedback from reading the status
-            pass
-        self.safety_v_m = v_m*self.scale_factor_linear
-        self.safety_w_r = w_r*self.scale_factor_rot
+        # Do some safety checks and modify vel
+        return v_m, w_r
 
     def _process_stick_to_vel(self, x, y):
-        # do someting
-        max_linear_vel =  self.max_linear_vel if self.fast_base_mode else self.normal_linear_vel
-        max_rotation_vel = self.max_rotation_vel if self.fast_base_mode else self.normal_rotation_vel
+        max_linear_vel = self.normal_linear_vel
+        max_rotation_vel = self.normal_rotation_vel
+        if self.fast_base_mode and self.is_stowed():
+            max_linear_vel =  self.max_linear_vel
+            max_rotation_vel = self.max_rotation_vel
         v_m = map_to_range(abs(y), 0, max_linear_vel)
         if y<0:
             v_m = -1*v_m
@@ -82,7 +68,7 @@ class CommandBase:
         w_r = map_to_range(abs(x), 0, max_rotation_vel)
         if x<0:
             w_r = -1*w_r
-        self._safety_check(v_m, w_r)
+        return self._safety_check(v_m, w_r)
     
     def command_stick_to_motion(self, x, y):
         if abs(x) < self.dead_zone:
@@ -96,10 +82,9 @@ class CommandBase:
         if not self.precision_mode:
             self.start_pos = None
             self.start_theta = None
-            self._process_stick_to_vel(x,y)
-            self.base.set_velocity(self.safety_v_m, self.safety_w_r, a=self.acc)
+            v_m, w_r = self._process_stick_to_vel(x,y)
+            self.base.set_velocity(v_m, w_r, a=self.acc)
             self._prev_set_vel_ts = time.time()
-            # print(f"[CommandBase]  X: {x} | Y: {y} || v_m: {self.safety_v_m} | w_r: {self.safety_w_r}")
         else:
         # Precision Mode
             if self.start_pos is None:
@@ -151,8 +136,6 @@ class CommandLift:
         self.dead_zone = 0.0001
         self._prev_set_vel_ts = None
         self.max_linear_vel = self.motor.params['motion']['max']['vel_m']
-        self.safety_v_m = 0
-        self.scale_factor = 1.0
         self.precision_mode = False
         self.acc = self.motor.params['motion']['fast']['accel_m']
         
@@ -164,20 +147,14 @@ class CommandLift:
         self.stopped_for_prec = False 
     
     def _safety_check(self,v_m):
-        if self._prev_set_vel_ts is None:
-            return
-        if self.motor.status['timestamp_pc'] > self._prev_set_vel_ts:
-            # modify vel value based on 
-            # feedback from reading the status
-            pass
-        self.safety_v_m = v_m*self.scale_factor
+        # Do some safety checks and modify vel
+        return v_m
 
     def _process_stick_to_vel(self, x):
-        # do someting
         v_m = map_to_range(abs(x), 0, self.max_linear_vel)
         if x<0:
             v_m = -1*v_m
-        self._safety_check(v_m)
+        return self._safety_check(v_m)
     
     def command_stick_to_motion(self, x):
         if abs(x) < self.dead_zone:
@@ -187,8 +164,8 @@ class CommandLift:
         # Standard Mode
         if not self.precision_mode:
             self.start_pos = None
-            self._process_stick_to_vel(x)
-            self.motor.set_velocity(self.safety_v_m, a_m=self.acc)
+            v_m = self._process_stick_to_vel(x)
+            self.motor.set_velocity(v_m, a_m=self.acc)
             self._prev_set_vel_ts = time.time()
             # print(f"[CommandLift]  X: {x} || v_m: {self.safety_v_m}")
         else:
@@ -230,14 +207,6 @@ class CommandLift:
 
         # Update the previous_time for the next iteration
         self._prev_set_vel_ts = time.time()
-        # print(f"[LIFT]\nstart_pos: {self.start_pos}\n"
-        #       f"current_position: {current_position}\n"
-        #       f"target_pos: {self.target_position}\n"
-        #       f"desired_position_change: {desired_position_change}\n"
-        #       f"position_error: {position_error}\n"
-        #       f"xv: {xv}\n"
-        #       f"x_des: {x_des}\n"
-        #       f"v_curr: {self.motor.status['vel']}\n")
 
 class CommandArm:
     def __init__(self, robot):
@@ -245,8 +214,6 @@ class CommandArm:
         self.dead_zone = 0.0001
         self._prev_set_vel_ts = None
         self.max_linear_vel = self.motor.params['motion']['default']['vel_m']
-        self.safety_v_m = 0
-        self.scale_factor = 1.0
         self.precision_mode = False
         self.acc = self.motor.params['motion']['max']['accel_m']
         
@@ -257,20 +224,14 @@ class CommandArm:
         self.precision_max_vel = 0.02 # m/s 
     
     def _safety_check(self,v_m):
-        if self._prev_set_vel_ts is None:
-            return
-        if self.motor.status['timestamp_pc'] > self._prev_set_vel_ts:
-            # modify vel value based on 
-            # feedback from reading the status
-            pass
-        self.safety_v_m = v_m*self.scale_factor
+        # Do some safety checks and modify vel
+        return v_m
 
     def _process_stick_to_vel(self, x):
-        # do someting
         v_m = map_to_range(abs(x), 0, self.max_linear_vel)
         if x<0:
             v_m = -1*v_m
-        self._safety_check(v_m)
+        return self._safety_check(v_m)
     
     def command_stick_to_motion(self, x):
         if abs(x) < self.dead_zone:
@@ -279,10 +240,9 @@ class CommandArm:
         if not self.precision_mode:
         # Standard Mode
             self.start_pos = None
-            self._process_stick_to_vel(x)
-            self.motor.set_velocity(self.safety_v_m,a_m=self.acc)
+            v_m = self._process_stick_to_vel(x)
+            self.motor.set_velocity(v_m,a_m=self.acc)
             self._prev_set_vel_ts = time.time()
-            # print(f"[CommandLift]  X: {x} || v_m: {self.safety_v_m}")
         else:
         # Precision Mode
             if self.start_pos is None:
@@ -322,14 +282,6 @@ class CommandArm:
 
         # Update the previous_time for the next iteration
         self._prev_set_vel_ts = time.time()
-        # print(f"[ARM]\nstart_pos: {self.start_pos}\n"
-        #       f"current_position: {current_position}\n"
-        #       f"target_pos: {self.target_position}\n"
-        #       f"desired_position_change: {desired_position_change}\n"
-        #       f"position_error: {position_error}\n"
-        #       f"xv: {xv}\n"
-        #       f"x_des: {x_des}\n"
-        #       f"v_curr: {self.motor.status['vel']}\n")
 
 class CommandDxlJoint:
     def __init__(self, robot, name):
@@ -340,38 +292,30 @@ class CommandDxlJoint:
         self.dead_zone = 0.001
         self._prev_set_vel_ts = None
         self.max_vel = self.motor.params['motion']['default']['vel']
-        self.safety_v = 0
-        self.scale_factor = 1
         self.precision_mode = False
+        self.acc = None
         
         self.precision_scale_down = 0.05
     
-    def _step_feedback_check(self,v):
-        if self._prev_set_vel_ts is None:
-            return
-        if self.motor.status['timestamp_pc'] > self._prev_set_vel_ts:
-            # modify vel value based on 
-            # feedback from reading the status
-            pass
-        self.safety_v = v*self.scale_factor
-
+    def _safety_check(self,v):
+        return v
+    
     def _process_stick_to_vel(self, x):
-        # do someting
         x = -1*x
         v = map_to_range(abs(x), 0, self.max_vel)
         if x<0:
             v = -1*v
 
-        self._step_feedback_check(v)
+        return self._safety_check(v)
     
     def command_stick_to_motion(self, x):
         if abs(x)<self.dead_zone:
             x = 0
         # x = to_parabola_transform(x)
-        self._process_stick_to_vel(x)
+        v = self._process_stick_to_vel(x)
         if self.precision_mode:
-            self.safety_v = self.safety_v*self.precision_scale_down
-        self.motor.set_velocity(self.safety_v)
+            v = v*self.precision_scale_down
+        self.motor.set_velocity(v)
         self._prev_set_vel_ts = time.time()
 
     def command_button_to_motion(self,direction):
@@ -557,6 +501,8 @@ class TeleopController:
             v = self.robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['vel']
             a = self.robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['accel']
             self.robot.end_of_arm.motors['wrist_yaw'].set_motion_params(v, a)
+            self.robot.stow()
+            time.sleep(0.1)
             self.robot.stow()
 
     def main(self):
