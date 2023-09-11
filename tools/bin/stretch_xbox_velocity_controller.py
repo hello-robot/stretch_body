@@ -36,7 +36,8 @@ def map_to_range(value, new_min, new_max):
 
 class CommandBase:
     def __init__(self, robot):
-        self.base = robot.base
+        self.robot = robot
+        self.base = self.robot.base
         self.dead_zone = 0.0001
         self._prev_set_vel_ts = None
         self.max_linear_vel = self.base.params['motion']['max']['vel_m']
@@ -55,6 +56,11 @@ class CommandBase:
         self.precision_max_linear_vel = 0.01 # m/s 
         self.precision_max_rot_vel = 0.04 # rad/s 
     
+    def is_stowed(self):
+        arm = abs(self.robot.params['stow']['arm'] - self.robot.arm.status['pos']) < 0.01
+        lift = abs(self.robot.params['stow']['lift'] - self.robot.lift.status['pos']) < 0.01
+        return arm and lift
+        
     def _safety_check(self,v_m, w_r):
         if self._prev_set_vel_ts is None:
             return
@@ -242,7 +248,7 @@ class CommandArm:
         self.safety_v_m = 0
         self.scale_factor = 1.0
         self.precision_mode = False
-        self.acc = self.motor.params['motion']['fast']['accel_m']
+        self.acc = self.motor.params['motion']['max']['accel_m']
         
         # Precision mode params
         self.start_pos = None
