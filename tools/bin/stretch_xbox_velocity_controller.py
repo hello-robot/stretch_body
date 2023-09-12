@@ -294,12 +294,9 @@ class CommandDxlJoint:
         self._prev_set_vel_ts = None
         self.max_vel = max_vel if max_vel else self.motor.params['motion']['default']['vel']
         self.precision_mode = False
-        self.acc_type = acc_type
-        if self.acc_type:
-            if self.acc_type in list(self.motor.params['motion'].keys()):
-                self.motor.motor.disable_torque()
-                self.motor.set_motion_params(a_des = self.motor.params['motion'][self.acc_type]['accel'])
-                self.motor.motor.enable_torque()
+        self.acc = None
+        if acc_type:
+            self.acc = self.motor.params['motion'][acc_type]['accel']
         
         self.precision_scale_down = 0.05
     
@@ -317,11 +314,14 @@ class CommandDxlJoint:
     def command_stick_to_motion(self, x):
         if abs(x)<self.dead_zone:
             x = 0
+        acc = self.acc
+        if x==0:
+            acc = self.motor.params['motion']['max']['accel'] #Stop with Strong Acceleration
         # x = to_parabola_transform(x)
         v = self._process_stick_to_vel(x)
         if self.precision_mode:
             v = v*self.precision_scale_down
-        self.motor.set_velocity(v)
+        self.motor.set_velocity(v, acc)
         self._prev_set_vel_ts = time.time()
 
     def command_button_to_motion(self,direction):
@@ -329,9 +329,9 @@ class CommandDxlJoint:
         if self.precision_mode:
             vel = vel*self.precision_scale_down
         if direction==1:
-            self.motor.set_velocity(vel)
+            self.motor.set_velocity(vel, self.acc)
         elif direction==-1:
-            self.motor.set_velocity(-1*vel)
+            self.motor.set_velocity(-1*vel, self.acc)
         self._prev_set_vel_ts = time.time()
             
 class CommandGripperPosition:
