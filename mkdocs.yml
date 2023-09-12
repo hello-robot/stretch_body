@@ -77,7 +77,6 @@ extra:
 nav:
  - Overview: README.md
  - Documentation:
-    - API: https://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/tutorial_stretch_body_api/
     - Robot Parameters: docs/robot_parameters.md
  - Tutorials: https://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/
  - Changelog: CHANGELOG.md
