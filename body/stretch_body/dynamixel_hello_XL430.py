@@ -542,12 +542,14 @@ class DynamixelHelloXL430(Device):
         success = False
         if self.motor.get_operating_mode()!=1:
             self.enable_velocity_ctrl()
-        self.set_motion_params(a_des=a_des)
+        
         for i in range(nretry):
             try:
                 if self.params['set_safe_velocity'] and self.in_vel_brake_zone: # only when sentry is active
+                    self.set_motion_params(a_des=self.params['motion']['max']['accel'])
                     self._step_vel_braking(v_des)
                 else:
+                    self.set_motion_params(a_des=a_des)
                     t_des = self.world_rad_to_ticks_per_sec(v_des)
                     self.motor.set_vel(t_des)
                     self._prev_set_vel_ts = time.time()

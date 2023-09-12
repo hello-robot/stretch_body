@@ -362,7 +362,7 @@ class TeleopController:
         self.base_command = CommandBase(self.robot)
         self.lift_command = CommandLift(self.robot)
         self.arm_command = CommandArm(self.robot)
-        self.wirst_yaw_command = CommandDxlJoint(self.robot,'wrist_yaw', max_vel=1.2, acc_type='slow')
+        self.wirst_yaw_command = CommandDxlJoint(self.robot,'wrist_yaw', max_vel=1.5, acc_type='slow')
         self.head_pan_command = CommandDxlJoint(self.robot,'head_pan')
         self.head_tilt_command =  CommandDxlJoint(self.robot,'head_tilt')
         
