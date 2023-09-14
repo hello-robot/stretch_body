@@ -52,9 +52,11 @@ class RobotParams:
     4. stretch_configuration_params.yaml                | Robot specific data (eg, serial numbers and calibrations). Calibration tools may update these.
     5. stretch_user_params.yaml                         | User specific data (eg, contact thresholds, controller tunings, etc)
     """
-    if not exists(hello_utils.get_fleet_directory()+'stretch_user_params.yaml') or not exists(hello_utils.get_fleet_directory()+'stretch_configuration_params.yaml'):
+    user_params_fn = hello_utils.get_fleet_directory()+'stretch_user_params.yaml'
+    config_params_fn = hello_utils.get_fleet_directory()+'stretch_configuration_params.yaml'
+    if not hello_utils.check_file_exists(user_params_fn) or not hello_utils.check_file_exists(config_params_fn):
         _valid_params=False
-        print('Please run tool RE1_migrate_params.py before continuing. For more details, see https://forum.hello-robot.com/t/425')
+        print('Please run tool RE1_migrate_params.py or verify if Stretch configuration YAML files are present before continuing.\nFor more details, see https://forum.hello-robot.com/t/425')
         sys.exit(1)
     else:
         _user_params = hello_utils.read_fleet_yaml('stretch_user_params.yaml')

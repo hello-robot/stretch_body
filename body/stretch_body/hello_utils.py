@@ -554,3 +554,10 @@ def check_deprecated_contact_model_prismatic_joint(joint,method_name, contact_th
             print(msg)
             joint.logger.error(msg)
             sys.exit(1)
+
+def check_file_exists(fn):
+    if os.path.exists(fn):
+        return True
+    else:
+        print(f"Unable to find file: {fn}")
+        return False
