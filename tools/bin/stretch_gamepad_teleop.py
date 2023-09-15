@@ -138,7 +138,7 @@ class CommandLift:
         self._prev_set_vel_ts = None
         self.max_linear_vel = self.motor.params['motion']['max']['vel_m']
         self.precision_mode = False
-        self.acc = self.motor.params['motion']['fast']['accel_m']
+        self.acc = self.motor.params['motion']['max']['accel_m']
         
         # Precision mode params
         self.start_pos = None
