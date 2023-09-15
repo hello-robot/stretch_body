@@ -73,7 +73,7 @@ class Trigger():
         return '{0:4.2f}'.format(self.pulled)
 
 
-class XboxController():
+class GamePadController():
     '''Successfully tested with the following controllers:
             + Xbox One Controller connected using a USB cable (change xbox_one parameter to True for full 10 bit trigger information)
             + EasySMX wireless controller set to appropriate mode (Xbox 360 mode with upper half of ring LED illuminated - top two LED quarter circle arcs)

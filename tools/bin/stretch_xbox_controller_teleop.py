@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import print_function
-import stretch_body.xbox_controller as xc
+import stretch_body.gamepad_controller as xc
 import stretch_body.robot as rb
 from stretch_body.hello_utils import *
 import os

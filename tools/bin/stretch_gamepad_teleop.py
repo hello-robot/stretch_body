@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import print_function
-import stretch_body.xbox_controller as xc
+import stretch_body.gamepad_controller as gc
 from stretch_body.device import Device
 from inputs import UnpluggedError
 import stretch_body.robot as rb
@@ -348,9 +348,9 @@ class CommandGripperPosition:
     def close_gripper(self):
         self.motor.move_by(-self.gripper_rotate_pct, self.gripper_vel, self.gripper_accel)
 
-class TeleopController:
+class GamePadTeleop:
     def __init__(self):
-        self.xbox_controller = xc.XboxController()
+        self.xbox_controller = gc.GamePadController()
         self.precision_mode = False
         self.fast_base_mode = False
         self.robot = rb.Robot()
@@ -530,6 +530,6 @@ class TeleopController:
             self.robot.stop()
 
 if __name__ == "__main__":
-   controller = TeleopController()
-   controller.startup()
-   controller.main()
+   gamepad_teleop = GamePadTeleop()
+   gamepad_teleop.startup()
+   gamepad_teleop.main()
