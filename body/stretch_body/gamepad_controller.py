@@ -94,6 +94,8 @@ class GamePadController():
         
         self.left_stick = Stick()
         self.right_stick = Stick()
+        
+        self.ros_logger = None
 
         self.left_stick_button = Button()
         self.right_stick_button = Button()
