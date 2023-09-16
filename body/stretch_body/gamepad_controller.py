@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from inputs import get_gamepad
+from inputs import DeviceManager, UnpluggedError
 import threading
 import time
+import click
 
 
 class Stick():
@@ -87,7 +88,8 @@ class GamePadController():
 
     def __init__(self, print_events=False):
         self.print_events = print_events
-
+        self.devices = DeviceManager()
+        
         self.left_stick = Stick()
         self.right_stick = Stick()
 
@@ -116,89 +118,119 @@ class GamePadController():
         self.bottom_pad = Button()
 
         self.lock = threading.Lock()
-        self.thread = threading.Thread(target=self.update)
+        self.thread = threading.Thread(target=self.update,name="GamepadEvents_thread")
         self.thread.daemon = True
+
+    def get_gamepad(self):
+        """Get a single action from a gamepad."""
+        try:
+            gamepad = self.devices.gamepads[0]
+            return gamepad.read()
+        except IndexError:
+            raise UnpluggedError("No gamepad found.")
+        
 
     def start(self):
         self.thread.start()
 
     def stop(self):
         pass
-
+    
+    def poll_till_gamepad_dongle_present(self):
+        gamepad_dongle_present = False
+        while not gamepad_dongle_present:
+            click.secho("Waiting for Gamepad Dongle.................", fg="yellow")
+            try:
+                self.devices.__init__()
+                if len(self.devices.gamepads)>0:
+                    click.secho("Gamepad Dongle FOUND!", fg="green", bold=True)
+                    gamepad_dongle_present = True 
+            except FileNotFoundError:
+                pass
+            time.sleep(1)
+    
     def update(self):
         while True:
-            events = get_gamepad()
-            with self.lock:
-                for event in events:
-                    if event.code == 'ABS_X':
-                        self.left_stick.update_x(event.state)
-                    if event.code == 'ABS_Y':
-                        self.left_stick.update_y(event.state)
-                    if event.code == 'ABS_RX':
-                        self.right_stick.update_x(event.state)
-                    if event.code == 'ABS_RY':
-                        self.right_stick.update_y(event.state)
+            if len(self.devices.gamepads)>0:
+                try:
+                    events = self.get_gamepad()
+                    self.update_button_encodings(events)
+                except (OSError, UnpluggedError, Exception) as e:
+                    click.secho("Gamepad Dongle DISCONNECTED........", fg="red", bold=True)
+                    self.poll_till_gamepad_dongle_present()
+            else:
+                self.poll_till_gamepad_dongle_present()
+                
+    def update_button_encodings(self,events):
+        with self.lock:
+            for event in events:
+                if event.code == 'ABS_X':
+                    self.left_stick.update_x(event.state)
+                if event.code == 'ABS_Y':
+                    self.left_stick.update_y(event.state)
+                if event.code == 'ABS_RX':
+                    self.right_stick.update_x(event.state)
+                if event.code == 'ABS_RY':
+                    self.right_stick.update_y(event.state)
 
-                    # This is the glowing X button on an authentic Xbox controller
-                    if event.code == 'BTN_MODE':
-                        self.middle_led_ring_button.update(event.state)
+                # This is the glowing X button on an authentic Xbox controller
+                if event.code == 'BTN_MODE':
+                    self.middle_led_ring_button.update(event.state)
 
-                    if event.code == 'BTN_SOUTH':  # green A, bottom button
-                        self.bottom_button.update(event.state)
-                    if event.code == 'BTN_WEST':  # yellow Y, ***top button*** WEIRD!
-                        self.top_button.update(event.state)
-                    if event.code == 'BTN_NORTH':  # blue X, ***left button*** WEIRD!
-                        self.left_button.update(event.state)
-                    if event.code == 'BTN_EAST':  # red B, right button
-                        self.right_button.update(event.state)
+                if event.code == 'BTN_SOUTH':  # green A, bottom button
+                    self.bottom_button.update(event.state)
+                if event.code == 'BTN_WEST':  # yellow Y, ***top button*** WEIRD!
+                    self.top_button.update(event.state)
+                if event.code == 'BTN_NORTH':  # blue X, ***left button*** WEIRD!
+                    self.left_button.update(event.state)
+                if event.code == 'BTN_EAST':  # red B, right button
+                    self.right_button.update(event.state)
 
-                    if event.code == 'BTN_TL':  # left shoulder button
-                        self.left_shoulder_button.update(event.state)
-                    if event.code == 'BTN_TR':  # right shoulder button
-                        self.right_shoulder_button.update(event.state)
+                if event.code == 'BTN_TL':  # left shoulder button
+                    self.left_shoulder_button.update(event.state)
+                if event.code == 'BTN_TR':  # right shoulder button
+                    self.right_shoulder_button.update(event.state)
 
-                    if event.code == 'ABS_Z':  # left trigger 0-1023
-                        self.left_trigger.update(event.state)
-                    if event.code == 'ABS_RZ':  # right trigger 0-1023
-                        self.right_trigger.update(event.state)
+                if event.code == 'ABS_Z':  # left trigger 0-1023
+                    self.left_trigger.update(event.state)
+                if event.code == 'ABS_RZ':  # right trigger 0-1023
+                    self.right_trigger.update(event.state)
 
-                    if event.code == 'BTN_SELECT':  # 1/0
-                        self.select_button.update(event.state)
-                    if event.code == 'BTN_START':  # 1/0
-                        self.start_button.update(event.state)
+                if event.code == 'BTN_SELECT':  # 1/0
+                    self.select_button.update(event.state)
+                if event.code == 'BTN_START':  # 1/0
+                    self.start_button.update(event.state)
 
-                    if event.code == 'BTN_THUMBL':  # 1/0
-                        self.left_stick_button.update(event.state)
-                    if event.code == 'BTN_THUMBR':  # 1/0
-                        self.right_stick_button.update(event.state)
+                if event.code == 'BTN_THUMBL':  # 1/0
+                    self.left_stick_button.update(event.state)
+                if event.code == 'BTN_THUMBR':  # 1/0
+                    self.right_stick_button.update(event.state)
 
-                    # 4-way pad
-                    if event.code == 'ABS_HAT0Y':  # -1 up / 1 down
-                        if event.state == 0:
-                            self.top_pad.update(0)
-                            self.bottom_pad.update(0)
-                        elif event.state == 1:
-                            self.top_pad.update(0)
-                            self.bottom_pad.update(1)
-                        elif event.state == -1:
-                            self.bottom_pad.update(0)
-                            self.top_pad.update(1)
+                # 4-way pad
+                if event.code == 'ABS_HAT0Y':  # -1 up / 1 down
+                    if event.state == 0:
+                        self.top_pad.update(0)
+                        self.bottom_pad.update(0)
+                    elif event.state == 1:
+                        self.top_pad.update(0)
+                        self.bottom_pad.update(1)
+                    elif event.state == -1:
+                        self.bottom_pad.update(0)
+                        self.top_pad.update(1)
 
-                    if event.code == 'ABS_HAT0X':  # -1 left / 1 right
-                        if event.state == 0:
-                            self.left_pad.update(0)
-                            self.right_pad.update(0)
-                        elif event.state == 1:
-                            self.left_pad.update(0)
-                            self.right_pad.update(1)
-                        elif event.state == -1:
-                            self.right_pad.update(0)
-                            self.left_pad.update(1)
+                if event.code == 'ABS_HAT0X':  # -1 left / 1 right
+                    if event.state == 0:
+                        self.left_pad.update(0)
+                        self.right_pad.update(0)
+                    elif event.state == 1:
+                        self.left_pad.update(0)
+                        self.right_pad.update(1)
+                    elif event.state == -1:
+                        self.right_pad.update(0)
+                        self.left_pad.update(1)
 
-                    if self.print_events:
-                        print(event.ev_type, event.code, event.state)
-                #time.sleep(0.01)
-
+                if self.print_events:
+                    print(event.ev_type, event.code, event.state)
 
 
     def get_state(self):
