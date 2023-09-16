@@ -388,8 +388,8 @@ class GamePadTeleop:
             self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
         
     def startup(self):
-        self.gamepad_controller.start()
         if self._needs_robot_startup:
+            self.gamepad_controller.start()
             if self.robot.startup():
                 self.do_double_beep()
 

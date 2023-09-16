@@ -124,6 +124,7 @@ class GamePadController():
         self.lock = threading.Lock()
         self.thread = threading.Thread(target=self.update,name="GamepadEvents_thread")
         self.thread.daemon = True
+        self.stop_thread = None
 
     def get_gamepad(self):
         """Get a single action from a gamepad."""
@@ -135,10 +136,15 @@ class GamePadController():
         
 
     def start(self):
+        self.stop_thread = False
         self.thread.start()
 
     def stop(self):
-        pass
+        if self.stop_thread is None:
+            pass
+        elif not self.stop_thread:
+            self.stop_thread = True
+            self.thread.join()
     
     def poll_till_gamepad_dongle_present(self):
         # self.is_gamepad_dongle = False
@@ -157,7 +163,7 @@ class GamePadController():
             pass
 
     def update(self):
-        while True:
+        while not self.stop_thread:
             self._i = self._i+1
             if len(self.devices.gamepads)>0:
                 try:
