@@ -7,9 +7,7 @@ import stretch_body.robot as rb
 from stretch_body.hello_utils import *
 import os
 import time
-import argparse
-import random
-import math
+import threading
 import sys
 import numpy as np
 
@@ -350,7 +348,7 @@ class CommandGripperPosition:
 
 class GamePadTeleop:
     def __init__(self):
-        self.xbox_controller = gc.GamePadController()
+        self.gamepad_controller = gc.GamePadController()
         self.precision_mode = False
         self.fast_base_mode = False
         self.robot = rb.Robot()
@@ -358,6 +356,8 @@ class GamePadTeleop:
         self.end_of_arm_tool = self.robot.end_of_arm.name
         self.sleep = 1/50
         self.print_mode = False
+        self._i = 0
+        self.lock = threading.Lock()
             
         self.base_command = CommandBase(self.robot)
         self.lift_command = CommandLift(self.robot)
@@ -379,11 +379,13 @@ class GamePadTeleop:
         print(f"Key mapped to End-Of-Arm Tool: {self.end_of_arm_tool}")
         
     def update_state(self):
-        self.controller_state = self.xbox_controller.get_state()
-        self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
-        self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
+        with self.lock:
+            self.controller_state = self.gamepad_controller.get_state()
+            self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
+            self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
+        
     def startup(self):
-        self.xbox_controller.start()
+        self.gamepad_controller.start()
         if self.robot.startup():
             self.do_double_beep()
 
@@ -489,16 +491,36 @@ class GamePadTeleop:
     
     
     def step(self):
+        self._i = self._i + 1 
+        self.update_state()
+        if not self.robot.is_calibrated() and self.controller_state['start_button_pressed']:
+            self.robot.home()
+            time.sleep(1)
         if self.robot.is_calibrated():
             if self.controller_state['top_button_pressed']:
                 self.manage_stow()
             else:
                 self.update_modes()
-                self.command_joints_A()
-                # self.command_joints_B()
+                if self.gamepad_controller.is_gamepad_dongle:
+                    self.command_joints_A()
+                    # self.command_joints_B()
+                else:
+                    self.safety_stop()
                 self.robot.push_command()
         else:
-            print('press the start button to calibrate the robot')
+            if self._i % 100 == 0: 
+                print('press the start button to calibrate the robot')
+    
+    def safety_stop(self):
+        self.wirst_yaw_command.command_stick_to_motion(0)
+        self.arm_command.command_stick_to_motion(0)
+        self.lift_command.command_stick_to_motion(0)
+        self.head_pan_command.command_stick_to_motion(0)
+        self.head_tilt_command.command_stick_to_motion(0)
+        self.base_command.command_stick_to_motion(0,0)
+        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+            self.wrist_pitch_command.command_stick_to_motion(0)
+            self.wrist_roll_command.command_stick_to_motion(0)
 
     def manage_stow(self):
         if self.robot.is_calibrated():
@@ -511,25 +533,21 @@ class GamePadTeleop:
             self.robot.stow()
     
     def manage_shutdown(self):
-        self.xbox_controller.stop()
+        self.gamepad_controller.stop()
         self.robot.stop()
         sys.exit()
         # TODO
 
-    def main(self):
+    def mainloop(self):
         try:
             while True:
-                self.update_state()
-                if not self.robot.is_calibrated() and self.controller_state['start_button_pressed']:
-                    self.robot.home()
-                    time.sleep(1)
                 self.step()
                 time.sleep(self.sleep)
         except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError):
-            self.xbox_controller.stop()
+            self.gamepad_controller.stop()
             self.robot.stop()
 
 if __name__ == "__main__":
    gamepad_teleop = GamePadTeleop()
    gamepad_teleop.startup()
-   gamepad_teleop.main()
+   gamepad_teleop.mainloop()

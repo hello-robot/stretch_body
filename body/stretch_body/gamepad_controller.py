@@ -89,6 +89,8 @@ class GamePadController():
     def __init__(self, print_events=False):
         self.print_events = print_events
         self.devices = DeviceManager()
+        self.is_gamepad_dongle = True
+        self._i = 0
         
         self.left_stick = Stick()
         self.right_stick = Stick()
@@ -126,7 +128,7 @@ class GamePadController():
         try:
             gamepad = self.devices.gamepads[0]
             return gamepad.read()
-        except IndexError:
+        except Exception as e:
             raise UnpluggedError("No gamepad found.")
         
 
@@ -137,20 +139,24 @@ class GamePadController():
         pass
     
     def poll_till_gamepad_dongle_present(self):
-        gamepad_dongle_present = False
-        while not gamepad_dongle_present:
+        # self.is_gamepad_dongle = False
+        # while not self.is_gamepad_dongle:
+        with self.lock:
+            self.is_gamepad_dongle = False
+        if self._i % 50 == 0:
             click.secho("Waiting for Gamepad Dongle.................", fg="yellow")
-            try:
-                self.devices.__init__()
-                if len(self.devices.gamepads)>0:
-                    click.secho("Gamepad Dongle FOUND!", fg="green", bold=True)
-                    gamepad_dongle_present = True 
-            except FileNotFoundError:
-                pass
-            time.sleep(1)
-    
+        try:
+            self.devices.__init__()
+            if len(self.devices.gamepads)>0:
+                click.secho("Gamepad Dongle FOUND!", fg="green", bold=True)
+                with self.lock:
+                    self.is_gamepad_dongle = True 
+        except Exception as e:
+            pass
+
     def update(self):
         while True:
+            self._i = self._i+1
             if len(self.devices.gamepads)>0:
                 try:
                     events = self.get_gamepad()
@@ -160,6 +166,9 @@ class GamePadController():
                     self.poll_till_gamepad_dongle_present()
             else:
                 self.poll_till_gamepad_dongle_present()
+            if not self.is_gamepad_dongle:
+                if self._i % 2 == 0:
+                    self.set_zero_state()
                 
     def update_button_encodings(self,events):
         with self.lock:
@@ -231,7 +240,32 @@ class GamePadController():
 
                 if self.print_events:
                     print(event.ev_type, event.code, event.state)
+    
+    def set_zero_state(self):
+        with self.lock:
+            self.middle_led_ring_button.pressed = False
+            self.left_stick.x = 0
+            self.left_stick.y = 0
+            self.right_stick.x = 0
+            self.right_stick.y = 0
 
+            self.left_stick_button.pressed = False
+            self.right_stick_button.pressed = False
+            self.bottom_button.pressed = False
+            self.top_button.pressed = False
+            self.left_button.pressed = False
+            self.right_button.pressed = False
+            self.left_shoulder_button.pressed = False
+            self.right_shoulder_button.pressed = False
+            self.select_button.pressed = False
+            self.start_button.pressed = False
+            self.bottom_pad.pressed = False
+            self.top_pad.pressed = False
+            self.left_pad.pressed = False
+            self.right_pad.pressed = False
+            
+            self.left_trigger.pulled = 0
+            self.right_trigger.pulled = 0
 
     def get_state(self):
         with self.lock:
@@ -260,7 +294,7 @@ class GamePadController():
 
 
 def main():
-    xbox_controller = XboxController(print_events=True)
+    xbox_controller = GamePadController(print_events=True)
     xbox_controller.start()
     try:
         while True:
