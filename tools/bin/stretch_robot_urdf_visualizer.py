@@ -3,7 +3,7 @@ import argparse
 import math
 import yaml
 import pathlib
-import urdfpy
+import urchin as urdf_loader
 import pyrender
 import warnings
 
@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 
 class URDFVisualizer:
     """The `show` method in this class is modified from the
-    original implementation of `urdfpy.URDF.show`. This class
+    original implementation of `urdf_loader.URDF.show`. This class
     exists temporarily while the PR for this modification is
     in review.
     """
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     calibration_dir = pathlib.Path(hu.get_fleet_directory()) / 'exported_urdf'
     urdf_path = calibration_dir / 'stretch.urdf'
     controller_params_path = calibration_dir / 'controller_calibration_head.yaml'
-    urdf = urdfpy.URDF.load(str(urdf_path.absolute()))
+    urdf = urdf_loader.URDF.load(str(urdf_path.absolute()))
     viz = URDFVisualizer(urdf)
     with open(str(controller_params_path.absolute()), 'r') as f:
         controller_params = yaml.load(f, Loader=yaml.FullLoader)

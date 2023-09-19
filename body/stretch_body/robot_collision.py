@@ -2,7 +2,7 @@
 
 from stretch_body.device import Device
 import importlib
-import urdfpy
+import urchin as urdf_loader
 import numpy as np
 import os
 
@@ -54,7 +54,7 @@ class RobotCollision(Device):
     def __init__(self,robot):
         Device.__init__(self, name='robot_collision')
         #urdf_file = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'],'exported_urdf/stretch.urdf')
-        #self.robot_model = urdfpy.URDF.load(urdf_file) #Kinematic model available if needed
+        #self.robot_model = urdf_loader.URDF.load(urdf_file) #Kinematic model available if needed
         self.robot=robot
         self.models=[]
         self.models_enabled={}
@@ -140,7 +140,7 @@ class EndOfArmForwardKinematics():
     def __init__(self):
         urdf_file = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'],'exported_urdf/stretch.urdf')
         np.seterr(divide='ignore', invalid='ignore')
-        self.robot_model = urdfpy.URDF.load(urdf_file)
+        self.robot_model = urdf_loader.URDF.load(urdf_file)
 
     def tool_fk(self,cfg,link):
         # returns the 4x4 transform from <link> to link_arm_l0
@@ -156,7 +156,7 @@ class EndOfArmForwardKinematics():
         link_set = set()
         link_set.add(self.robot_model._link_map[link])
 
-        # This is a modified version of link_fk of urdfpy
+        # This is a modified version of link_fk of urdf_loader
         # That stops FK at the 'link_arm_l0' of Stretch
         for lnk in self.robot_model._reverse_topo:
             if lnk not in link_set:
