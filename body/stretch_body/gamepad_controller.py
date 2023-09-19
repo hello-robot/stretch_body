@@ -86,11 +86,12 @@ class GamePadController():
             +/- VOYEE Wired Xbox 360 Controller mostly worked, but it had various issues including false middle LED button presses, phantom shoulder button presses, and low joystick sensitivity that made small motions more difficult to execute.
     '''
 
-    def __init__(self, print_events=False):
+    def __init__(self, print_events=False, print_dongle_status = True):
         self.print_events = print_events
         self.devices = DeviceManager()
         self.is_gamepad_dongle = True
         self._i = 0
+        self.print_dongle_status = print_dongle_status
         
         self.left_stick = Stick()
         self.right_stick = Stick()
@@ -151,7 +152,7 @@ class GamePadController():
         # while not self.is_gamepad_dongle:
         with self.lock:
             self.is_gamepad_dongle = False
-        if self._i % 50 == 0:
+        if self._i % 50 == 0 and self.print_dongle_status:
             click.secho("Waiting for Gamepad Dongle.................", fg="yellow")
         try:
             self.devices.__init__()

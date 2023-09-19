@@ -346,8 +346,8 @@ class CommandGripperPosition:
         self.motor.move_by(-self.gripper_rotate_pct, self.gripper_vel, self.gripper_accel)
 
 class GamePadTeleop:
-    def __init__(self, robot = None):
-        self.gamepad_controller = gc.GamePadController()
+    def __init__(self, robot = None, print_dongle_status = True):
+        self.gamepad_controller = gc.GamePadController(print_dongle_status=print_dongle_status)
         self.precision_mode = False
         self.fast_base_mode = False
         self.robot = robot
@@ -381,15 +381,18 @@ class GamePadTeleop:
             
         print(f"Key mapped to End-Of-Arm Tool: {self.end_of_arm_tool}")
         
-    def update_state(self):
+    def update_state(self, state = None):
         with self.lock:
-            self.controller_state = self.gamepad_controller.get_state()
+            if state is None:
+                self.controller_state = self.gamepad_controller.get_state()
+            else:
+                self.controller_state = state
             self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
             self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
         
     def startup(self):
+        self.gamepad_controller.start()
         if self._needs_robot_startup:
-            self.gamepad_controller.start()
             if self.robot.startup():
                 self.do_double_beep()
 
@@ -494,9 +497,9 @@ class GamePadTeleop:
         self.head_tilt_command.precision_mode = self.precision_mode
     
     
-    def step(self):
+    def step(self, state = None):
         self._i = self._i + 1 
-        self.update_state()
+        self.update_state(state)
         if not self.robot.is_calibrated() and self.controller_state['start_button_pressed']:
             self.robot.home()
             time.sleep(1)
@@ -534,6 +537,11 @@ class GamePadTeleop:
             self.robot.stow()
             time.sleep(0.1)
             self.robot.stow()
+    
+    def stop(self):
+        if self._needs_robot_startup:
+            self.robot.stop()
+        self.gamepad_controller.stop()
     
     def manage_shutdown(self):
         self.gamepad_controller.stop()
