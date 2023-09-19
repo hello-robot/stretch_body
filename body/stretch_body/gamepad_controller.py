@@ -25,7 +25,7 @@ class Stick():
         self.y = -int(abs_y) / self.norm
 
     def print_string(self):
-        return 'x: {0:4.2f}, y:{1:4.2f}'.format(x, y)
+        return 'x: {0:4.2f}, y:{1:4.2f}'.format(self.x, self.y)
 
 
 class Button():
@@ -89,7 +89,7 @@ class GamePadController():
     def __init__(self, print_events=False, print_dongle_status = True):
         self.print_events = print_events
         self.devices = DeviceManager()
-        self.is_gamepad_dongle = True
+        self.is_gamepad_dongle = False
         self._i = 0
         self.print_dongle_status = print_dongle_status
         
@@ -167,6 +167,7 @@ class GamePadController():
         while not self.stop_thread:
             self._i = self._i+1
             if len(self.devices.gamepads)>0:
+                self.is_gamepad_dongle = True
                 try:
                     events = self.get_gamepad()
                     self.update_button_encodings(events)
@@ -174,6 +175,7 @@ class GamePadController():
                     click.secho("Gamepad Dongle DISCONNECTED........", fg="red", bold=True)
                     self.poll_till_gamepad_dongle_present()
             else:
+                self.is_gamepad_dongle = False
                 self.poll_till_gamepad_dongle_present()
             if not self.is_gamepad_dongle:
                 if self._i % 2 == 0:
