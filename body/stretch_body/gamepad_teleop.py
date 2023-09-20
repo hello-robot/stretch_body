@@ -550,8 +550,7 @@ class GamePadTeleop:
             a = self.robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['accel']
             self.robot.end_of_arm.motors['wrist_yaw'].set_motion_params(v, a)
             self.robot.stow()
-            time.sleep(0.1)
-            self.robot.stow()
+
     
     def stop(self):
         if self._needs_robot_startup:
