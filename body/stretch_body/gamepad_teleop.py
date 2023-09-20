@@ -416,20 +416,35 @@ class GamePadTeleop:
             self.wirst_yaw_command.command_stick_to_motion(0)
         
         if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
-            if self.controller_state['top_pad_pressed']:
-                self.wrist_pitch_command.command_button_to_motion(1)
-            elif self.controller_state['bottom_pad_pressed']:
-                self.wrist_pitch_command.command_button_to_motion(-1)
+            if self.controller_state['right_stick_button_pressed']:
+                if self.controller_state['top_pad_pressed']:
+                    self.head_tilt_command.command_button_to_motion(1)
+                elif self.controller_state['bottom_pad_pressed']:
+                    self.head_tilt_command.command_button_to_motion(-1)
+                else:
+                    self.head_tilt_command.command_stick_to_motion(0)
+                
+                if self.controller_state['left_pad_pressed']:
+                    self.head_pan_command.command_button_to_motion(1)
+                elif self.controller_state['right_pad_pressed']:
+                    self.head_pan_command.command_button_to_motion(-1)
+                else:
+                    self.head_pan_command.command_stick_to_motion(0)
             else:
-                self.wrist_pitch_command.command_stick_to_motion(0)
-            
-            if self.controller_state['left_pad_pressed']:
-                self.wrist_roll_command.command_button_to_motion(-1)
-            elif self.controller_state['right_pad_pressed']:
-                self.wrist_roll_command.command_button_to_motion(1)
-            else:
-                self.wrist_roll_command.command_stick_to_motion(0)
-        else:
+                if self.controller_state['top_pad_pressed']:
+                    self.wrist_pitch_command.command_button_to_motion(1)
+                elif self.controller_state['bottom_pad_pressed']:
+                    self.wrist_pitch_command.command_button_to_motion(-1)
+                else:
+                    self.wrist_pitch_command.command_stick_to_motion(0)
+                
+                if self.controller_state['left_pad_pressed']:
+                    self.wrist_roll_command.command_button_to_motion(-1)
+                elif self.controller_state['right_pad_pressed']:
+                    self.wrist_roll_command.command_button_to_motion(1)
+                else:
+                    self.wrist_roll_command.command_stick_to_motion(0)
+        else:   
             if self.controller_state['top_pad_pressed']:
                 self.head_tilt_command.command_button_to_motion(1)
             elif self.controller_state['bottom_pad_pressed']:
@@ -440,7 +455,7 @@ class GamePadTeleop:
             if self.controller_state['left_pad_pressed']:
                 self.head_pan_command.command_button_to_motion(1)
             elif self.controller_state['right_pad_pressed']:
-                self.head_pan_command.command_stick_to_motion(-1)
+                self.head_pan_command.command_button_to_motion(-1)
             else:
                 self.head_pan_command.command_stick_to_motion(0)
                 
