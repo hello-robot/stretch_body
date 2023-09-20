@@ -141,11 +141,10 @@ class GamePadController():
         self.thread.start()
 
     def stop(self):
-        if self.stop_thread is None:
-            pass
-        elif not self.stop_thread:
-            self.stop_thread = True
-            self.thread.join()
+        if not self.stop_thread:
+            with self.lock:
+                self.stop_thread = True
+            # self.thread.join() # Thread._wait_for_tstate_lock() never returns if trying to join this thread
     
     def poll_till_gamepad_dongle_present(self):
         # self.is_gamepad_dongle = False
