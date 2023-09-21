@@ -346,7 +346,7 @@ class CommandGripperPosition:
         self.motor.move_by(-self.gripper_rotate_pct, self.gripper_vel, self.gripper_accel)
 
 class GamePadTeleop:
-    def __init__(self, robot = None, print_dongle_status = True):
+    def __init__(self, robot = None, print_dongle_status = True, lock=None):
         self.gamepad_controller = gc.GamePadController(print_dongle_status=print_dongle_status)
         self.precision_mode = False
         self.fast_base_mode = False
@@ -372,6 +372,7 @@ class GamePadTeleop:
         self.gripper = None
         self.wrist_pitch_command = None
         self.wrist_roll_command = None
+        self.is_gamepad_dongle = False
         
         if not self.end_of_arm_tool == 'tool_stretch_gripper' and not self.end_of_arm_tool=='tool_none':
             self.gripper = CommandGripperPosition(self.robot)
@@ -380,12 +381,16 @@ class GamePadTeleop:
             self.wrist_roll_command = CommandDxlJoint(self.robot,'wrist_roll')
             
         print(f"Key mapped to End-Of-Arm Tool: {self.end_of_arm_tool}")
+        self.lock = lock
+        if not self.lock:
+            self.lock = threading.Lock()
         
     def update_state(self, state = None):
         if state is None:
             self.controller_state = self.gamepad_controller.gamepad_state
         else:
             self.controller_state = state
+        self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
         self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
         self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
         
@@ -515,22 +520,23 @@ class GamePadTeleop:
     def step(self, state = None):
         self._i = self._i + 1 
         self.update_state(state)
-        if not self.robot.is_calibrated() and self.controller_state['start_button_pressed']:
-            self.robot.home()
-            time.sleep(1)
-        if self.robot.is_calibrated():
-            if self.controller_state['top_button_pressed']:
-                self.manage_stow()
-            else:
-                self.update_modes()
-                if self.gamepad_controller.is_gamepad_dongle:
-                    self.command_joints_A()
-                    # self.command_joints_B()
+        with self.lock:
+            if not self.robot.is_calibrated() and self.controller_state['start_button_pressed']:
+                self.robot.home()
+                time.sleep(1)
+            if self.robot.is_calibrated():
+                if self.controller_state['top_button_pressed']:
+                    self.manage_stow()
                 else:
-                    self.safety_stop()
-        else:
-            if self._i % 100 == 0: 
-                print('press the start button to calibrate the robot')
+                    self.update_modes()
+                    if self.gamepad_controller.is_gamepad_dongle:
+                        self.command_joints_A()
+                        # self.command_joints_B()
+                    else:
+                        self.safety_stop()
+            else:
+                if self._i % 100 == 0: 
+                    print('press the start button to calibrate the robot')
     
     def safety_stop(self):
         self.wirst_yaw_command.command_stick_to_motion(0)
