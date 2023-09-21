@@ -355,7 +355,7 @@ class GamePadTeleop:
         if self.robot is None:
             self.robot = rb.Robot()
             self._needs_robot_startup = True
-        self.controller_state = None
+        self.controller_state = self.gamepad_controller.gamepad_state
         self.end_of_arm_tool = self.robot.end_of_arm.name
         self.sleep = 1/50
         self.print_mode = False
@@ -382,15 +382,15 @@ class GamePadTeleop:
         print(f"Key mapped to End-Of-Arm Tool: {self.end_of_arm_tool}")
         
     def update_state(self, state = None):
-        with self.lock:
-            if state is None:
-                self.controller_state = self.gamepad_controller.get_state()
-            else:
-                self.controller_state = state
-            self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
-            self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
+        if state is None:
+            self.controller_state = self.gamepad_controller.gamepad_state
+        else:
+            self.controller_state = state
+        self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
+        self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
         
     def startup(self):
+        self.gamepad_controller.setDaemon(True)
         self.gamepad_controller.start()
         if self._needs_robot_startup:
             if self.robot.startup():
@@ -555,7 +555,9 @@ class GamePadTeleop:
     def stop(self):
         if self._needs_robot_startup:
             self.robot.stop()
-        self.gamepad_controller.stop()
+        if not self.gamepad_controller.stop_thread:
+            self.gamepad_controller.shutdown_flag.set()
+            self.gamepad_controller.join(1)
     
     def manage_shutdown(self):
         self.gamepad_controller.stop()

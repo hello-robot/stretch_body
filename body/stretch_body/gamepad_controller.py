@@ -74,7 +74,7 @@ class Trigger():
         return '{0:4.2f}'.format(self.pulled)
 
 
-class GamePadController():
+class GamePadController(threading.Thread):
     '''Successfully tested with the following controllers:
             + Xbox One Controller connected using a USB cable (change xbox_one parameter to True for full 10 bit trigger information)
             + EasySMX wireless controller set to appropriate mode (Xbox 360 mode with upper half of ring LED illuminated - top two LED quarter circle arcs)
@@ -87,6 +87,7 @@ class GamePadController():
     '''
 
     def __init__(self, print_events=False, print_dongle_status = True):
+        threading.Thread.__init__(self, name = self.__class__.__name__)
         self.print_events = print_events
         self.devices = DeviceManager()
         self.is_gamepad_dongle = False
@@ -123,10 +124,19 @@ class GamePadController():
         self.bottom_pad = Button()
 
         self.lock = threading.Lock()
-        self.thread = threading.Thread(target=self.update,name="GamepadEvents_thread")
-        self.thread.daemon = True
-        self.stop_thread = None
-
+        # self.thread = threading.Thread(target=self.update,name="GamepadEvents_thread")
+        self.daemon = True
+        self.stop_thread = False
+        self.shutdown_flag = threading.Event()
+        
+        self.set_zero_state()
+        self.gamepad_state = self.get_state()
+    
+    def run(self):
+        while not self.shutdown_flag.is_set():
+            if not self.shutdown_flag.is_set():
+                self.update()
+        
     def get_gamepad(self):
         """Get a single action from a gamepad."""
         try:
@@ -135,10 +145,9 @@ class GamePadController():
         except Exception as e:
             raise UnpluggedError("No gamepad found.")
         
-
-    def start(self):
-        self.stop_thread = False
-        self.thread.start()
+    # def start(self):
+    #     self.stop_thread = False
+        # self.thread.start()
 
     def stop(self):
         if not self.stop_thread:
@@ -179,6 +188,7 @@ class GamePadController():
             if not self.is_gamepad_dongle:
                 if self._i % 2 == 0:
                     self.set_zero_state()
+            self.gamepad_state = self.get_state()
                 
     def update_button_encodings(self,events):
         with self.lock:
