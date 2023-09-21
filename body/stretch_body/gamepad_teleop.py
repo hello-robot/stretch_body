@@ -53,10 +53,10 @@ class CommandBase:
         # Do some safety checks and modify vel
         return v_m, w_r
 
-    def _process_stick_to_vel(self, x, y):
+    def _process_stick_to_vel(self, x, y, robot):
         max_linear_vel = self.normal_linear_vel
         max_rotation_vel = self.normal_rotation_vel
-        if self.fast_base_mode and self.is_stowed():
+        if self.fast_base_mode and self.is_stowed(robot):
             max_linear_vel =  self.max_linear_vel
             max_rotation_vel = self.max_rotation_vel
         v_m = map_to_range(abs(y), 0, max_linear_vel)
@@ -80,13 +80,13 @@ class CommandBase:
         if not self.precision_mode:
             self.start_pos = None
             self.start_theta = None
-            v_m, w_r = self._process_stick_to_vel(x,y)
-            self.base.set_velocity(v_m, w_r, a=self.acc)
+            v_m, w_r = self._process_stick_to_vel(x,y, robot)
+            robot.base.set_velocity(v_m, w_r, a=self.acc)
             self._prev_set_vel_ts = time.time()
         else:
         # Precision Mode
             if self.start_pos is None:
-                self.start_pos = [robot.base.status['x'],self.base.status['y']]
+                self.start_pos = [robot.base.status['x'],robot.base.status['y']]
                 self.start_theta = robot.base.status['theta']
                 self.target_position = self.start_pos
                 self.target_theta = self.start_theta  
@@ -307,7 +307,10 @@ class CommandDxlJoint:
         return self._safety_check(v)
     
     def command_stick_to_motion(self, x, robot):
-        motor = robot.end_of_arm.get_joint(self.name)
+        if 'wrist' in self.name:
+            motor = robot.end_of_arm.get_joint(self.name)
+        if 'head' in self.name:
+            motor = robot.head.get_joint(self.name)
         if abs(x)<self.dead_zone:
             x = 0
         acc = self.acc
@@ -321,7 +324,10 @@ class CommandDxlJoint:
         self._prev_set_vel_ts = time.time()
 
     def command_button_to_motion(self,direction, robot):
-        motor = robot.end_of_arm.get_joint(self.name)
+        if 'wrist' in self.name:
+            motor = robot.end_of_arm.get_joint(self.name)
+        if 'head' in self.name:
+            motor = robot.head.get_joint(self.name)
         vel = self.max_vel
         if self.precision_mode:
             vel = vel*self.precision_scale_down
@@ -336,8 +342,8 @@ class CommandGripperPosition:
         self.name = 'stretch_gripper'
         self.params = RobotParams().get_params()[1][self.name]
         self.gripper_rotate_pct = 10.0
-        self.gripper_accel = self.params[self.name]['motion']['max']['accel']
-        self.gripper_vel = self.params[self.name]['motion']['max']['vel']
+        self.gripper_accel = self.params['motion']['max']['accel']
+        self.gripper_vel = self.params['motion']['max']['vel']
         self.precision_mode = False
     
     def open_gripper(self, robot):
@@ -394,19 +400,25 @@ class GamePadTeleop:
         self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
         self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
         
-    def startup(self):
+    def startup(self, robot = None):
+        if self.robot:
+            robot = self.robot
         self.gamepad_controller.setDaemon(True)
         self.gamepad_controller.start()
         if self._needs_robot_startup:
             if self.robot.startup():
                 self.do_double_beep()
+        else:
+            self.do_double_beep(robot)
 
-    def do_double_beep(self):
-        self.robot.pimu.trigger_beep()
-        self.robot.push_command()
+    def do_double_beep(self, robot = None):
+        if self.robot:
+            robot = self.robot
+        robot.pimu.trigger_beep()
+        robot.push_command()
         time.sleep(0.5)
-        self.robot.pimu.trigger_beep()
-        self.robot.push_command()
+        robot.pimu.trigger_beep()
+        robot.push_command()
         time.sleep(0.5)
 
     def command_joints_A(self, robot=None):
