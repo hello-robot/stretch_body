@@ -389,7 +389,7 @@ class GamePadTeleop(Device):
         if not self.end_of_arm_tool == 'tool_stretch_gripper' and not self.end_of_arm_tool=='tool_none':
             self.gripper = CommandGripperPosition()
         if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
-            self.wrist_pitch_command = CommandDxlJoint('wrist_pitch', acc_type='slow')
+            self.wrist_pitch_command = CommandDxlJoint('wrist_pitch', max_vel=1, acc_type='slow')
             self.wrist_roll_command = CommandDxlJoint('wrist_roll')
             
         print(f"Key mapped to End-Of-Arm Tool: {self.end_of_arm_tool}")

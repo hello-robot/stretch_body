@@ -531,10 +531,14 @@ class DynamixelXL430():
     def get_operating_mode(self):
         if not self.hw_valid:
             return 0
-        with self.pt_lock:
-            with DelayedKeyboardInterrupt():
-                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_OPERATING_MODE)
-        self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
+        try:
+            # Catching DynamixelCommError exception to gracefully handle overload errors without erroring out the main script
+            with self.pt_lock:
+                with DelayedKeyboardInterrupt():
+                    p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_OPERATING_MODE)
+            self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
+        except Exception as DynamixelCommError:
+            return 0
         return p
 
     def get_drive_mode(self):
