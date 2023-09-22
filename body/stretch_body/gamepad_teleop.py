@@ -397,10 +397,14 @@ class GamePadTeleop(Device):
         if not self.lock:
             self.lock = threading.Lock()
     
-    def update_gamepad_state(self):
+    def update_gamepad_state(self, robot=None):
+        # Should be added in a loop to asycournously update the keypress inputs and fn action exec
+        if self.robot:
+            robot = self.robot
         with self.lock:
             self.controller_state = self.gamepad_controller.gamepad_state
             self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
+            self.fn_button_Action(robot)
         
     def _update_state(self, state = None):
         with self.lock:
@@ -536,6 +540,7 @@ class GamePadTeleop(Device):
         self.head_tilt_command.precision_mode = self.precision_mode
         
     def do_motion(self, state = None, robot = None):
+        # Should be added in a loop to do motion
         if not robot:
             robot = self.robot
         self._i = self._i + 1 
@@ -555,18 +560,20 @@ class GamePadTeleop(Device):
             else:
                 if self._i % 100 == 0: 
                     print('press the start button to calibrate the robot')
-                    
-            if self.params['enable_fn_button']:
-                if self.controller_state['left_button_pressed']:
-                    if not self._last_fn_btn_press:
-                        self._last_fn_btn_press = time.time()
-                    if time.time() - self._last_fn_btn_press >= self.fn_button_detect_span:
-                        self._last_fn_btn_press = None
-                        click.secho(f"Executing Function command: {self.fn_button_command}", fg="green", bold=True)
-                        self.do_four_beep(robot)
-                        self.execute_fn_cmd()
-                else:
+            self.fn_button_Action(robot)
+            
+    def fn_button_Action(self, robot):      
+        if self.params['enable_fn_button']:
+            if self.controller_state['left_button_pressed']:
+                if not self._last_fn_btn_press:
+                    self._last_fn_btn_press = time.time()
+                if time.time() - self._last_fn_btn_press >= self.fn_button_detect_span:
                     self._last_fn_btn_press = None
+                    click.secho(f"Executing Function command: {self.fn_button_command}", fg="green", bold=True)
+                    self.do_four_beep(robot)
+                    self.execute_fn_cmd()
+            else:
+                self._last_fn_btn_press = None
     
     def execute_fn_cmd(self):
         if self.fn_button_command:
