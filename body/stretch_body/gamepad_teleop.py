@@ -10,8 +10,9 @@ import os
 import time
 import threading
 import sys
+import click
 import numpy as np
-from colorama import Fore, Back, Style
+import subprocess
 
 
 
@@ -352,8 +353,9 @@ class CommandGripperPosition:
     def close_gripper(self, robot):
         robot.end_of_arm.get_joint(self.name).move_by(-self.gripper_rotate_pct, self.gripper_vel, self.gripper_accel)
 
-class GamePadTeleop:
+class GamePadTeleop(Device):
     def __init__(self, robot_instance = True, print_dongle_status = True, lock=None):
+        Device.__init__(self, 'stretch_gamepad')
         self.gamepad_controller = gc.GamePadController(print_dongle_status=print_dongle_status)
         self.precision_mode = False
         self.fast_base_mode = False
@@ -366,6 +368,11 @@ class GamePadTeleop:
         self.sleep = 1/50
         self.print_mode = False
         self._i = 0
+        
+        self.fn_button_command = self.params['function_cmd'] # command to execute on pressing X(left button) for N seconds
+        self.fn_button_detect_span = self.params['press_time_span'] #s
+        
+        self._last_fn_btn_press = None
             
         self.base_command = CommandBase()
         self.lift_command = CommandLift()
@@ -393,6 +400,7 @@ class GamePadTeleop:
     def update_gamepad_state(self):
         with self.lock:
             self.controller_state = self.gamepad_controller.gamepad_state
+            self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
         
     def _update_state(self, state = None):
         with self.lock:
@@ -424,6 +432,22 @@ class GamePadTeleop:
     def do_double_beep(self, robot = None):
         if self.robot:
             robot = self.robot
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+    
+    def do_four_beep(self, robot = None):
+        if self.robot:
+            robot = self.robot
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
         robot.pimu.trigger_beep()
         robot.push_command()
         time.sleep(0.5)
@@ -511,7 +535,7 @@ class GamePadTeleop:
         self.head_pan_command.precision_mode = self.precision_mode
         self.head_tilt_command.precision_mode = self.precision_mode
         
-    def step(self, state = None, robot = None):
+    def do_motion(self, state = None, robot = None):
         if not robot:
             robot = self.robot
         self._i = self._i + 1 
@@ -531,6 +555,22 @@ class GamePadTeleop:
             else:
                 if self._i % 100 == 0: 
                     print('press the start button to calibrate the robot')
+                    
+            if self.params['enable_fn_button']:
+                if self.controller_state['left_button_pressed']:
+                    if not self._last_fn_btn_press:
+                        self._last_fn_btn_press = time.time()
+                    if time.time() - self._last_fn_btn_press >= self.fn_button_detect_span:
+                        self._last_fn_btn_press = None
+                        click.secho(f"Executing Function command: {self.fn_button_command}", fg="green", bold=True)
+                        self.do_four_beep(robot)
+                        self.execute_fn_cmd()
+                else:
+                    self._last_fn_btn_press = None
+    
+    def execute_fn_cmd(self):
+        if self.fn_button_command:
+            execute_command_non_blocking(self.fn_button_command)
     
     def _safety_stop(self, robot):
         self.wirst_yaw_command.command_stick_to_motion(0, robot)
@@ -571,13 +611,21 @@ class GamePadTeleop:
     def mainloop(self):
         try:
             while True:
-                self.step()
+                self.do_motion()
                 self.robot.push_command()
                 time.sleep(self.sleep)
         except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError):
             self.gamepad_controller.stop()
             self.robot.stop()
 
+
+def execute_command_non_blocking(command):
+    try:
+        # Use subprocess.Popen to start the command in a separate process
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        
 if __name__ == "__main__":
    gamepad_teleop = GamePadTeleop()
    gamepad_teleop.startup()

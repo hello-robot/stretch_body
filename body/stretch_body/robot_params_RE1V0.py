@@ -611,7 +611,11 @@ nominal_params={
         'enable_runstop': 1,
         'disable_torque_on_stop': 1},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
-    'lidar': {'usb_name': '/dev/hello-lrf'}
+    'lidar': {'usb_name': '/dev/hello-lrf'},
+    'stretch_gamepad':{
+        'enable_fn_button': 0,
+        'function_cmd':'',
+        'press_time_span':5}
 }
 # ###################### OLDER: FACTORY PARAMS #####################################################
 #The deprecated factory params dictionary for RE1.0 (5.1.2022)
