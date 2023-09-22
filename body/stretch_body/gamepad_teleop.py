@@ -373,13 +373,14 @@ class GamePadTeleop(Device):
         self.fn_button_detect_span = self.params['press_time_span'] #s
         
         self._last_fn_btn_press = None
+        self._last_shutdwon_btn_press = None
             
         self.base_command = CommandBase()
         self.lift_command = CommandLift()
         self.arm_command = CommandArm()
         self.wirst_yaw_command = CommandDxlJoint('wrist_yaw', max_vel=1.5, acc_type='slow')
         self.head_pan_command = CommandDxlJoint('head_pan')
-        self.head_tilt_command =  CommandDxlJoint('head_tilt')
+        self.head_tilt_command =  CommandDxlJoint('head_tilt', acc_type='slow')
         
         self.gripper = None
         self.wrist_pitch_command = None
@@ -524,6 +525,7 @@ class GamePadTeleop(Device):
                 self.gripper.open_gripper(robot)
             elif self.controller_state['bottom_button_pressed']:
                 self.gripper.close_gripper(robot)
+        self.manage_shutdown(robot)
                     
     def _update_modes(self):
         self.arm_command.precision_mode = self.precision_mode
@@ -557,7 +559,7 @@ class GamePadTeleop(Device):
                         self.command_joints(robot)
                     else:
                         self._safety_stop(robot)
-            else:
+            else:   
                 if self._i % 100 == 0: 
                     print('press the start button to calibrate the robot')
             self.fn_button_Action(robot)
@@ -606,14 +608,25 @@ class GamePadTeleop(Device):
             self.gamepad_controller.shutdown_flag.set()
             self.gamepad_controller.join(1)
     
-    def manage_shutdown(self):
-        if self._needs_robot_startup:
-            self.robot.stop()
-        if not self.gamepad_controller.stop_thread:
-            self.gamepad_controller.shutdown_flag.set()
-            self.gamepad_controller.join(1)
-        sys.exit()
-        # TODO
+    def manage_shutdown(self, robot):
+        print("Shutting Down the Robot...")
+        if self.controller_state['select_button_pressed']:
+            if not self._last_shutdwon_btn_press:
+                self._last_shutdwon_btn_press = time.time()
+            if time.time() - self._last_shutdwon_btn_press >= 2:
+                self._last_shutdwon_btn_press = None
+                robot.pimu.trigger_beep()
+                robot.stow()
+                self.gamepad_controller.stop()
+                robot.stop()
+                time.sleep(1.0)
+                os.system(
+                    'paplay --device=alsa_output.pci-0000_00_1f.3.analog-stereo /usr/share/sounds/ubuntu/stereo/desktop-logout.ogg')
+                os.system('sudo shutdown now')  # sudoers should be set up to not need a password
+        else:
+            self._last_fn_btn_press = None
+
+
 
     def mainloop(self):
         try:
