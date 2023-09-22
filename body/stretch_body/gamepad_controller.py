@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from inputs import DeviceManager, UnpluggedError
+from inputs import DeviceManager, UnpluggedError, GamepadLED, SystemLED
 import threading
 import time
 import click
@@ -74,6 +74,12 @@ class Trigger():
         return '{0:4.2f}'.format(self.pulled)
 
 
+class GamePadDevice(DeviceManager):
+    def _parse_led_path(self, path):
+        name = path.rsplit('/', 1)[1]
+        if name.startswith('xpad'):
+            self.leds.append(GamepadLED(self, path, name))
+
 class GamePadController(threading.Thread):
     '''Successfully tested with the following controllers:
             + Xbox One Controller connected using a USB cable (change xbox_one parameter to True for full 10 bit trigger information)
@@ -89,7 +95,7 @@ class GamePadController(threading.Thread):
     def __init__(self, print_events=False, print_dongle_status = True):
         threading.Thread.__init__(self, name = self.__class__.__name__)
         self.print_events = print_events
-        self.devices = DeviceManager()
+        self.devices = GamePadDevice()
         self.is_gamepad_dongle = False
         self._i = 0
         self.print_dongle_status = print_dongle_status

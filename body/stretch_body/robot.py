@@ -433,7 +433,7 @@ class Robot(Device):
             time.sleep(0.1)
         self.end_of_arm.stow()
         time.sleep(0.25)
-
+        self.end_of_arm.stow()
         #Now bring lift down
         if not lift_stowed:
             print('--------- Stowing Lift ----')
