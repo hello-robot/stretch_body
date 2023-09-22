@@ -45,8 +45,8 @@ class CommandBase:
         self.precision_max_rot_vel = 0.08 # rad/s Very precise: 0.04
     
     def is_stowed(self, robot):
-        arm = abs(robot.get_stow_pos('arm') - self.robot.arm.status['pos']) < 0.01
-        lift = abs(robot.get_stow_pos('lift') - self.robot.lift.status['pos']) < 0.01
+        arm = abs(robot.get_stow_pos('arm') - robot.arm.status['pos']) < 0.01
+        lift = abs(robot.get_stow_pos('lift') - robot.lift.status['pos']) < 0.01
         return arm and lift
         
     def _safety_check(self,v_m, w_r):
@@ -353,17 +353,16 @@ class CommandGripperPosition:
         robot.end_of_arm.get_joint(self.name).move_by(-self.gripper_rotate_pct, self.gripper_vel, self.gripper_accel)
 
 class GamePadTeleop:
-    def __init__(self, robot = None, print_dongle_status = True, lock=None):
+    def __init__(self, robot_instance = True, print_dongle_status = True, lock=None):
         self.gamepad_controller = gc.GamePadController(print_dongle_status=print_dongle_status)
         self.precision_mode = False
         self.fast_base_mode = False
-        self.robot = robot
-        self._needs_robot_startup = False
-        if self.robot is None:
+        self.robot = None
+        self._needs_robot_startup = robot_instance
+        if robot_instance:
             self.robot = rb.Robot()
-            self._needs_robot_startup = True
         self.controller_state = self.gamepad_controller.gamepad_state
-        self.end_of_arm_tool = self.params = RobotParams().get_params()[1]['robot']['tool']
+        self.end_of_arm_tool = RobotParams().get_params()[1]['robot']['tool']
         self.sleep = 1/50
         self.print_mode = False
         self._i = 0
@@ -390,12 +389,17 @@ class GamePadTeleop:
         self.lock = lock
         if not self.lock:
             self.lock = threading.Lock()
-        
-    def update_state(self, state = None):
-        if state is None:
+    
+    def update_gamepad_state(self):
+        with self.lock:
             self.controller_state = self.gamepad_controller.gamepad_state
-        else:
-            self.controller_state = state
+        
+    def _update_state(self, state = None):
+        with self.lock:
+            if state is None:
+                self.controller_state = self.gamepad_controller.gamepad_state
+            else:
+                self.controller_state = state
         self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
         self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
         self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
@@ -405,12 +409,18 @@ class GamePadTeleop:
             robot = self.robot
         self.gamepad_controller.setDaemon(True)
         self.gamepad_controller.start()
-        if self._needs_robot_startup:
+        if self.robot:
             if self.robot.startup():
                 self.do_double_beep()
         else:
             self.do_double_beep(robot)
-
+    
+    def do_single_beep(self, robot=None):
+        if self.robot:
+            robot = self.robot
+        robot.pimu.trigger_beep()
+        robot.push_command()
+          
     def do_double_beep(self, robot = None):
         if self.robot:
             robot = self.robot
@@ -421,62 +431,61 @@ class GamePadTeleop:
         robot.push_command()
         time.sleep(0.5)
 
-    def command_joints_A(self, robot=None):
+    def command_joints(self, robot=None):
         if self.robot:
             robot = self.robot
         # Standard Key Mapping
         
+        dxl_zero_vel_set_division_factor = 3 
+        # Note: Coninuously commanding Dxls with ROS2 drivers causes the service callback thread unresponsive because it looks like 
+        # dxl commands create a bottle neck holding the execution thread. This is solved by using a loop factor that skips dxl commands on
+        # concurrent loops avoiding thread lock.
+        
+        # Wrist Yaw Control        
         if self.controller_state['right_shoulder_button_pressed']:
             self.wirst_yaw_command.command_button_to_motion(-1,robot)
             
         elif self.controller_state['left_shoulder_button_pressed']:
             self.wirst_yaw_command.command_button_to_motion(1,robot)
         else:
-            self.wirst_yaw_command.command_stick_to_motion(0,robot)
+            if self._i % dxl_zero_vel_set_division_factor == 0:
+                self.wirst_yaw_command.command_stick_to_motion(0,robot)
         
-        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
-            if self.controller_state['right_stick_button_pressed']:
-                if self.controller_state['top_pad_pressed']:
-                    self.head_tilt_command.command_button_to_motion(1,robot)
-                elif self.controller_state['bottom_pad_pressed']:
-                    self.head_tilt_command.command_button_to_motion(-1,robot)
-                else:
-                    self.head_tilt_command.command_stick_to_motion(0,robot)
-                
-                if self.controller_state['left_pad_pressed']:
-                    self.head_pan_command.command_button_to_motion(1,robot)
-                elif self.controller_state['right_pad_pressed']:
-                    self.head_pan_command.command_button_to_motion(-1,robot)
-                else:
-                    self.head_pan_command.command_stick_to_motion(0,robot)
-            else:
-                if self.controller_state['top_pad_pressed']:
-                    self.wrist_pitch_command.command_button_to_motion(1,robot)
-                elif self.controller_state['bottom_pad_pressed']:
-                    self.wrist_pitch_command.command_button_to_motion(-1,robot)
-                else:
-                    self.wrist_pitch_command.command_stick_to_motion(0,robot)
-                
-                if self.controller_state['left_pad_pressed']:
-                    self.wrist_roll_command.command_button_to_motion(-1,robot)
-                elif self.controller_state['right_pad_pressed']:
-                    self.wrist_roll_command.command_button_to_motion(1,robot)
-                else:
-                    self.wrist_roll_command.command_stick_to_motion(0,robot)
-        else:   
+        if not self.end_of_arm_tool == 'tool_stretch_dex_wrist' or (self.end_of_arm_tool == 'tool_stretch_dex_wrist' and self.controller_state['right_stick_button_pressed']):
+            # Head Control
             if self.controller_state['top_pad_pressed']:
                 self.head_tilt_command.command_button_to_motion(1,robot)
             elif self.controller_state['bottom_pad_pressed']:
                 self.head_tilt_command.command_button_to_motion(-1,robot)
             else:
-                self.head_tilt_command.command_stick_to_motion(0,robot)
+                if self._i % dxl_zero_vel_set_division_factor == 0:
+                    self.head_tilt_command.command_stick_to_motion(0,robot)
             
             if self.controller_state['left_pad_pressed']:
                 self.head_pan_command.command_button_to_motion(1,robot)
             elif self.controller_state['right_pad_pressed']:
                 self.head_pan_command.command_button_to_motion(-1,robot)
             else:
-                self.head_pan_command.command_stick_to_motion(0,robot)
+                if self._i % dxl_zero_vel_set_division_factor == 0:
+                    self.head_pan_command.command_stick_to_motion(0,robot)
+                        
+        elif self.end_of_arm_tool == 'tool_stretch_dex_wrist' and not self.controller_state['right_stick_button_pressed']:
+            # Dex Wrist Control
+            if self.controller_state['top_pad_pressed']:
+                self.wrist_pitch_command.command_button_to_motion(1,robot)
+            elif self.controller_state['bottom_pad_pressed']:
+                self.wrist_pitch_command.command_button_to_motion(-1,robot)
+            else:
+                if self._i % dxl_zero_vel_set_division_factor == 0:
+                    self.wrist_pitch_command.command_stick_to_motion(0,robot)
+            
+            if self.controller_state['left_pad_pressed']:
+                self.wrist_roll_command.command_button_to_motion(-1,robot)
+            elif self.controller_state['right_pad_pressed']:
+                self.wrist_roll_command.command_button_to_motion(1,robot)
+            else:
+                if self._i % dxl_zero_vel_set_division_factor == 0:
+                    self.wrist_roll_command.command_stick_to_motion(0,robot)
                 
         self.arm_command.command_stick_to_motion(self.controller_state['right_stick_x'],robot)
         self.lift_command.command_stick_to_motion(self.controller_state['right_stick_y'],robot)
@@ -484,39 +493,11 @@ class GamePadTeleop:
 
         if self.gripper:
             if self.controller_state['right_button_pressed']:
-                self.gripper.open_gripper()
+                self.gripper.open_gripper(robot)
             elif self.controller_state['bottom_button_pressed']:
-                self.gripper.close_gripper()
-
-    def command_joints_B(self):
-        # All analog key mapping | used for debugging velocity behaviours
-        if self.controller_state['right_shoulder_button_pressed']:
-            self.wirst_yaw_command.command_stick_to_motion(self.controller_state['right_stick_x'])
-            if self.wrist_pitch_command:
-                self.wrist_pitch_command.command_stick_to_motion(self.controller_state['right_stick_y'])
-            self.arm_command.command_stick_to_motion(0)
-            self.lift_command.command_stick_to_motion(0)
-        else:
-            self.arm_command.command_stick_to_motion(self.controller_state['right_stick_x'])
-            self.lift_command.command_stick_to_motion(self.controller_state['right_stick_y'])
-            self.wirst_yaw_command.command_stick_to_motion(0)
-            if self.wrist_pitch_command:
-                self.wrist_pitch_command.command_stick_to_motion(0)
-        if self.controller_state['left_shoulder_button_pressed']:
-            self.head_pan_command.command_stick_to_motion(self.controller_state['left_stick_x'])
-            self.head_tilt_command.command_stick_to_motion(self.controller_state['left_stick_y'])
-            self.base_command.command_stick_to_motion(0,0)
-        else:
-            self.base_command.command_stick_to_motion(self.controller_state['left_stick_x'],self.controller_state['left_stick_y'])
-            self.head_pan_command.command_stick_to_motion(0)
-            self.head_tilt_command.command_stick_to_motion(0)
-        if self.gripper:
-            if self.controller_state['right_button_pressed']:
-                self.gripper.open_gripper()
-            elif self.controller_state['bottom_button_pressed']:
-                self.gripper.close_gripper()
-    
-    def update_modes(self):
+                self.gripper.close_gripper(robot)
+                    
+    def _update_modes(self):
         self.arm_command.precision_mode = self.precision_mode
         self.lift_command.precision_mode = self.precision_mode
         self.base_command.precision_mode = self.precision_mode
@@ -531,29 +512,27 @@ class GamePadTeleop:
         self.head_tilt_command.precision_mode = self.precision_mode
         
     def step(self, state = None, robot = None):
-        if self.robot:
+        if not robot:
             robot = self.robot
         self._i = self._i + 1 
-        self.update_state(state)
+        self._update_state(state)
+        self._update_modes()
         with self.lock:
             if not robot.is_calibrated() and self.controller_state['start_button_pressed']:
                 robot.home()
-                time.sleep(1)
             if robot.is_calibrated():
                 if self.controller_state['top_button_pressed']:
-                    self.manage_stow(robot)
+                    self._manage_stow(robot)
                 else:
-                    self.update_modes()
                     if self.gamepad_controller.is_gamepad_dongle:
-                        self.command_joints_A()
-                        # self.command_joints_B()
+                        self.command_joints(robot)
                     else:
-                        self.safety_stop(robot)
+                        self._safety_stop(robot)
             else:
                 if self._i % 100 == 0: 
                     print('press the start button to calibrate the robot')
     
-    def safety_stop(self, robot):
+    def _safety_stop(self, robot):
         self.wirst_yaw_command.command_stick_to_motion(0, robot)
         self.arm_command.command_stick_to_motion(0, robot)
         self.lift_command.command_stick_to_motion(0, robot)
@@ -564,13 +543,14 @@ class GamePadTeleop:
             self.wrist_pitch_command.command_stick_to_motion(0, robot)
             self.wrist_roll_command.command_stick_to_motion(0, robot)
 
-    def manage_stow(self, robot):
-        if self.robot.is_calibrated():
+    def _manage_stow(self, robot):
+        if robot.is_calibrated():
             # Reset motion params as fast for xbox
             v = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['vel']
             a = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['accel']
             robot.end_of_arm.motors['wrist_yaw'].set_motion_params(v, a)
             robot.stow()
+            self.do_single_beep(robot)
     
     def stop(self):
         if self._needs_robot_startup:
