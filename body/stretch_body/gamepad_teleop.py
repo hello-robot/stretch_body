@@ -45,9 +45,9 @@ class CommandBase:
         self.precision_max_linear_vel = 0.02 # m/s Very precise: 0.01
         self.precision_max_rot_vel = 0.08 # rad/s Very precise: 0.04
     
-    def is_stowed(self, robot):
-        arm = abs(robot.get_stow_pos('arm') - robot.arm.status['pos']) < 0.01
-        lift = abs(robot.get_stow_pos('lift') - robot.lift.status['pos']) < 0.01
+    def is_fastbase_safe(self, robot):
+        arm = robot.arm.status['pos'] < (robot.get_stow_pos('arm') + 0.1) # check if arm pos under stow pose + 0.1 m
+        lift = robot.lift.status['pos'] < (robot.get_stow_pos('lift') + 0.05) # check if lift pos is under stow pose + 0.05m
         return arm and lift
         
     def _safety_check(self,v_m, w_r):
@@ -57,7 +57,7 @@ class CommandBase:
     def _process_stick_to_vel(self, x, y, robot):
         max_linear_vel = self.normal_linear_vel
         max_rotation_vel = self.normal_rotation_vel
-        if self.fast_base_mode and self.is_stowed(robot):
+        if self.fast_base_mode and self.is_fastbase_safe(robot):
             max_linear_vel =  self.max_linear_vel
             max_rotation_vel = self.max_rotation_vel
         v_m = map_to_range(abs(y), 0, max_linear_vel)
@@ -466,9 +466,9 @@ class GamePadTeleop(Device):
         # Standard Key Mapping
         
         dxl_zero_vel_set_division_factor = 3 
-        # Note: Coninuously commanding Dxls with ROS2 drivers causes the service callback thread unresponsive because it looks like 
-        # dxl commands create a bottle neck holding the execution thread. This is solved by using a loop factor that skips dxl commands on
-        # concurrent loops avoiding thread lock.
+        # Note: Coninuously commanding velocities to Dxls with ROS2 drivers causes the service callback thread unresponsive because it looks like 
+        # dxl commands create a bottleneck holding the execution thread. This is solved by using a loop division factor that skips dxl commands on
+        # consecutive loops avoiding the above situation.
         
         # Wrist Yaw Control        
         if self.controller_state['right_shoulder_button_pressed']:
@@ -609,11 +609,11 @@ class GamePadTeleop(Device):
             self.gamepad_controller.join(1)
     
     def manage_shutdown(self, robot):
-        print("Shutting Down the Robot...")
         if self.controller_state['select_button_pressed']:
             if not self._last_shutdwon_btn_press:
                 self._last_shutdwon_btn_press = time.time()
             if time.time() - self._last_shutdwon_btn_press >= 2:
+                print("Shutting Down the Robot...")
                 self._last_shutdwon_btn_press = None
                 robot.pimu.trigger_beep()
                 robot.stow()
