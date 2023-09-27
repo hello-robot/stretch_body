@@ -546,8 +546,7 @@ class DynamixelHelloXL430(Device):
         for i in range(nretry):
             try:
                 if self.params['set_safe_velocity'] and self.in_vel_brake_zone: # only when sentry is active
-                    self.set_motion_params(a_des=self.params['motion']['max']['accel'])
-                    self._step_vel_braking(v_des)
+                    self._step_vel_braking(v_des, a_des)
                 else:
                     self.set_motion_params(a_des=a_des)
                     t_des = self.world_rad_to_ticks_per_sec(v_des)
@@ -561,7 +560,7 @@ class DynamixelHelloXL430(Device):
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
     
-    def _step_vel_braking(self, v_des):
+    def _step_vel_braking(self, v_des, a_des):
         """
         In velocity mode while using set_velocity() command, when the joint is in a braking zone,
         the input velocities are tapered till the joint limits  to zero and smoothly braked at the limits to 
@@ -569,6 +568,7 @@ class DynamixelHelloXL430(Device):
         """
         if self._prev_set_vel_ts is None:
             self._prev_set_vel_ts = time.time()
+        
         if self.status['timestamp_pc']>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency for accurate motion control
             # Honor joint limits in velocity mode
             lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
@@ -591,10 +591,13 @@ class DynamixelHelloXL430(Device):
             d_brake = d_brake+deg_to_rad(5.0) #Pad out by 5 degrees to give a bit of safety margin
             v = 0
             if opp_vel:
+                self.set_motion_params(a_des=a_des)
                 v = v_des # allow input velocity if direction is opposite to nearest limit
             elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower) or min(to_max,to_max)<0.1:
+                self.set_motion_params(a_des=self.params['motion']['max']['accel'])
                 v = 0  # apply brakes if the braking distance is >= limits
             else:
+                self.set_motion_params(a_des=self.params['motion']['max']['accel'])
                 taper = min(to_max,to_min)/self.vel_brake_zone_thresh # normalized (0~1) distance to limits
                 v = v_des*taper # apply tapered velocity inside braking zone
             self.logger.debug(f"Applied safety brakes near limits. reduced set_vel={v} rad/s")
