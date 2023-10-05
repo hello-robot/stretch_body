@@ -61,6 +61,8 @@ class Base(Device):
         self.right_wheel.stop()
 
     def pretty_print(self):
+        """Pretty print the status of the robot's base and wheel components.
+        """
         print('----------Base------')
         print('X (m)',self.status['x'])
         print('Y (m)',self.status['y'])
@@ -78,14 +80,14 @@ class Base(Device):
     # ###################################################
     def enable_freewheel_mode(self):
         """
-        Force motors into freewheel
+        Force motors into freewheel.
         """
         self.left_wheel.enable_freewheel()
         self.right_wheel.enable_freewheel()
 
     def enable_pos_incr_mode(self):
         """
-                Force motors into incremental position mode
+                Force motors into incremental position mode.
         """
         self.left_wheel.enable_pos_traj_incr()
         self.right_wheel.enable_pos_traj_incr()
@@ -93,6 +95,18 @@ class Base(Device):
     # ###################################################
 
     def wait_for_contact(self, timeout=5.0):
+        """Wait for the contact events on the robot's left or right wheels.
+
+        Parameters
+        ----------
+        timeout : float, optional.
+            The maximum time in seconds to wait for contact event, by default 5.0.
+
+        Returns
+        -------
+        bool:
+            True if contact event is detected within specified timeout, False otherwise.
+        """
         ts = time.time()
         while (time.time() - ts < timeout):
             self.pull_status()
@@ -102,13 +116,32 @@ class Base(Device):
         return False
 
     def wait_until_at_setpoint(self, timeout=15.0):
+        """Wait until both wheels reach their setpoints.
+
+        Parameters
+        ----------
+        timeout : float, optional.
+            The maximum time in seconds to wait for both wheels to reach their setpoints, by default 15.0.
+        """
         #Assume both are in motion. This will exit once both are at setpoints
         self.left_wheel.wait_until_at_setpoint(timeout)
         self.right_wheel.wait_until_at_setpoint(timeout)
 
     def contact_thresh_to_motor_current(self,is_translate,contact_thresh):
-        """
-        This model converts from a specified percentage effort (-100 to 100) of translate/rotational effort to motor currents
+        """This model converts from a specified percentage effort (-100 to 100) of translate/rotational effort to motor currents
+
+        Parameters
+        ----------
+        is_translate : bool.
+            Indicates wheter the robot is performing translation (True) or rotation (False).
+        
+        contact_thresh : float or None.
+            The contact threshold value to convert the motor current. If None the default threshold value is used.
+
+        Returns
+        -------
+        Tuple of floats:
+            A tuple containing the current of the left and right motor values.
         """
         if is_translate:
             e_c = self.params['contact_models']['effort_pct']['contact_thresh_translate_default'] if contact_thresh is None else contact_thresh
@@ -122,13 +155,19 @@ class Base(Device):
 
     def translate_by(self, x_m, v_m=None, a_m=None, stiffness=None, contact_thresh_N=None,contact_thresh=None):
         """
-        Incremental translation of the base
-        x_m: desired motion (m)
-        v_m: velocity for trapezoidal motion profile (m/s)
-        a_m: acceleration for trapezoidal motion profile (m/s^2)
-        stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
-        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
+        Incremental translation of the base.
+        
+        x_m: desired motion (m).
+        
+        v_m: velocity for trapezoidal motion profile (m/s).
+        
+        a_m: acceleration for trapezoidal motion profile (m/s^2).
+        
+        stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max).
+        
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N).
+        
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100)).
         """
         check_deprecated_contact_model_base(self,'translate_by', contact_thresh_N, contact_thresh)
 
@@ -173,13 +212,19 @@ class Base(Device):
 
     def rotate_by(self, x_r, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None, contact_thresh=None):
         """
-        Incremental rotation of the base
-        x_r: desired motion (radians)
-        v_r: velocity for trapezoidal motion profile (rad/s)
-        a_r: acceleration for trapezoidal motion profile (rad/s^2)
-        stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
-        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
+        Incremental rotation of the base.
+        
+        x_r: desired motion (radians).
+        
+        v_r: velocity for trapezoidal motion profile (rad/s).
+        
+        a_r: acceleration for trapezoidal motion profile (rad/s^2).
+        
+        stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max).
+        
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N).
+        
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100)).
         """
 
         check_deprecated_contact_model_base(self,'rotate_by', contact_thresh_N, contact_thresh)
@@ -228,11 +273,16 @@ class Base(Device):
     def set_translate_velocity(self, v_m, a_m=None,stiffness=None, contact_thresh_N=None,contact_thresh=None):
         """
         Command the bases translational velocity.
-        Use care to prevent collisions / avoid runaways
-        v_m: desired velocity (m/s)
-        a_m: acceleration of motion profile (m/s^2)
-        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
-        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
+        
+        Use care to prevent collisions / avoid runaways.
+        
+        v_m: desired velocity (m/s).
+        
+        a_m: acceleration of motion profile (m/s^2).
+        
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N).
+        
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100)).
         """
 
         check_deprecated_contact_model_base(self,'set_translate_velocity', contact_thresh_N, contact_thresh)
@@ -261,11 +311,16 @@ class Base(Device):
     def set_rotational_velocity(self, v_r, a_r=None,stiffness=None, contact_thresh_N=None,contact_thresh=None):
         """
         Command the bases rotational velocity.
-        Use care to prevent collisions / avoid runaways
-        v_r: desired rotational velocity (rad/s)
-        a_r: acceleration of motion profile (rad/s^2)
-        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
-        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
+        
+        Use care to prevent collisions / avoid runaways.
+        
+        v_r: desired rotational velocity (rad/s).
+        
+        a_r: acceleration of motion profile (rad/s^2).
+        
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N).
+        
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100)).
         """
 
         check_deprecated_contact_model_base(self,'set_rotational_velocity', contact_thresh_N, contact_thresh)
@@ -298,12 +353,18 @@ class Base(Device):
         """
         Command the bases translational and rotational
         velocities simultaneously.
-        Use care to prevent collisions / avoid runaways
-        v_m: desired velocity (m/s)
-        w_r: desired rotational velocity (rad/s)
-        a:   acceleration of motion profile (m/s^2 and rad/s^2)
-        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
-        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
+        
+        Use care to prevent collisions / avoid runaways.
+        
+        v_m: desired velocity (m/s).
+        
+        w_r: desired rotational velocity (rad/s).
+        
+        a:   acceleration of motion profile (m/s^2 and rad/s^2).
+        
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N).
+        
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100)).
         """
 
         check_deprecated_contact_model_base(self,'set_velocity', contact_thresh_N, contact_thresh)
@@ -345,21 +406,25 @@ class Base(Device):
 
     # ######### Waypoint Trajectory Interface ##############################
     def follow_trajectory(self, v_r=None, a_r=None, stiffness=None, contact_thresh_N=None, contact_thresh=None):
-        """Starts executing a waypoint trajectory
+        """Starts executing a waypoint trajectory.
 
         `self.trajectory` must be populated with a valid trajectory before calling
         this method.
 
         Parameters
         ----------
-        v_r : float
-            velocity limit for trajectory in motor space in meters per second
-        a_r : float
-            acceleration limit for trajectory in motor space in meters per second squared
-        stiffness : float
-            stiffness of motion. Range 0.0 (min) to 1.0 (max)
-        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N)
-        contact_thresh: effort to stop at (units of effort_pct (-100, 100))
+        v_r : float.
+            velocity limit for trajectory in motor space in meters per second.
+        
+        a_r : float.
+            acceleration limit for trajectory in motor space in meters per second squared.
+        
+        stiffness : float.
+            stiffness of motion. Range 0.0 (min) to 1.0 (max).
+        
+        contact_thresh_N: (deprecated) effort to stop at (units of pseudo_N).
+        
+        contact_thresh: effort to stop at (units of effort_pct (-100, 100)).
         """
 
         check_deprecated_contact_model_base(self,'follow_trajectory', contact_thresh_N, contact_thresh)
@@ -425,14 +490,28 @@ class Base(Device):
 
     def reset_odometry(self):
         """
-        Reset X/Y/Theta to report 0
+        Reset X/Y/Theta to report 0.
         """
         self.first_step = True
 
     def is_trajectory_active(self):
+        """Check if the trajectory is active for either left or right wheel.
+
+        Returns
+        -------
+        bool:
+            True if trajectory is active for either wheels, otherwise is False.
+        """
         return (self.left_wheel.status['waypoint_traj']['state'] == 'active' or self.right_wheel.status['waypoint_traj']['state'] == 'active')
 
     def get_trajectory_ts(self):
+        """Get the trajectory execution time.
+
+        Returns
+        -------
+        float:
+            The time in seconds elapsed since the execution of the most recent trajectory or waypoint.
+        """
         # Return trajectory execution time
         if self.is_trajectory_active() and self.left_wheel._waypoint_ts is not None and self.right_wheel._waypoint_ts:
             return max(time.time()-self.left_wheel._waypoint_ts,time.time()-self.right_wheel._waypoint_ts)
@@ -442,17 +521,25 @@ class Base(Device):
             return 0
 
     def get_trajectory_time_remaining(self):
+        """Get the remaining time in the active trajectory.
+
+        Returns
+        -------
+        float:
+            The remaining time in seconds in the current active trajectory or 0 if there's no active trajectory.
+        """
         if not self.is_trajectory_active():
             return 0
         else:
             return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
 
     def update_trajectory(self):
-        """Updates hardware with the next segment of `self.trajectory`
+        """Updates hardware with the next segment of `self.trajectory`.
 
         This method must be called frequently to enable complete trajectory execution
         and preemption of future segments. If used with `stretch_body.robot.Robot` or
         with `self.startup(threaded=True)`, a background thread is launched for this.
+        
         Otherwise, the user must handle calling this method.
         """
         # check if joint valid, right protocol, and right mode
@@ -485,7 +572,7 @@ class Base(Device):
             self.push_command()
 
     def stop_trajectory(self):
-        """Stop waypoint trajectory immediately and resets hardware
+        """Stop waypoint trajectory immediately and resets hardware.
         """
         self.left_wheel.stop_waypoint_trajectory()
         self.right_wheel.stop_waypoint_trajectory()
@@ -519,12 +606,14 @@ class Base(Device):
 
     # ###################################################
     def push_command(self):
+        """Push the commands to both wheels.
+        """
         self.left_wheel.push_command()
         self.right_wheel.push_command()
 
     def pull_status(self):
         """
-        Computes base odometery based on stepper positions / velocities
+        Computes base odometery based on stepper positions / velocities,
         """
         self.left_wheel.pull_status()
         self.right_wheel.pull_status()
@@ -532,7 +621,7 @@ class Base(Device):
 
     async def pull_status_async(self):
         """
-        Computes base odometery based on stepper positions / velocities
+        Computes base odometery based on stepper positions / velocities.
         """
         await self.left_wheel.pull_status_async()
         await self.right_wheel.pull_status_async()
@@ -669,15 +758,33 @@ class Base(Device):
     # ############## Deprecated Contact API ##################
 
     def motor_current_to_translation_force(self, il, ir):
+        """@private
+        Deprecated method: Convert motor currents to translation forces.
+
+        Parameters
+        ----------
+        il : float.
+            Motor current for the left wheel
+        ir : float
+            Motor current for the right wheel
+
+        Raises
+        ------
+        DeprecationWarning
+            Indicates that this method has been deprecated since v0.3.5 and should not be used..
+        """
         raise DeprecationWarning('Method motor_current_to_translate_force has been deprecated since v0.3.5')
 
     def motor_current_to_rotation_torque(self, il, ir):
+        """@private"""
         raise DeprecationWarning('Method motor_current_to_rotation_torque has been deprecated since v0.3.5')
 
     def translation_force_to_motor_current(self, f_N):  # Assume evenly balanced
+        """@private"""
         raise DeprecationWarning('Method translation_force_to_motor_current has been deprecated since v0.3.5')
 
     def rotation_torque_to_motor_current(self, tq_Nm):
+        """@private"""
         raise DeprecationWarning('Method translation_force_to_motor_current has been deprecated since v0.3.5')
 
 
@@ -686,21 +793,73 @@ class Base(Device):
     # Translation effort is -100 to 100 (where 100 =  L/R motors at +iMax / -iMax)
 
     def rotation_effort_pct_to_motor_current(self,e_pct):
+        """Convert rotation effort percentage to motor current.
+
+        Parameters
+        ----------
+        e_pct : float.
+            Rotation effort percentage (-100 to 100).
+
+        Returns
+        -------
+        Tuple of floats:
+            A tuple containing the left and right motor current values.
+        """
         il=self.left_wheel.effort_pct_to_current(e_pct)
         ir= -1*self.right_wheel.effort_pct_to_current(e_pct)
         return il, ir
 
     def translation_effort_pct_to_motor_current(self,e_pct):
+        """Convert translation effort percentage to motor current.
+
+        Parameters
+        ----------
+        e_pct : float.
+            Translation effort percentage (-100 to 100).
+
+        Returns
+        -------
+        Tuple of floats:
+            A tuple containing the left and right motor current values.
+        """
         il = self.left_wheel.effort_pct_to_current(e_pct)
         ir = self.right_wheel.effort_pct_to_current(e_pct)
         return il, ir
 
     def motor_current_to_translate_effort_pct(self,il,ir):
+        """Convert motor currents to translation effort percentage.
+
+        Parameters
+        ----------
+        il : float.
+            Motor current for left wheel
+        ir : float.
+            Motor current for right wheel.
+
+        Returns
+        -------
+        float:
+            Translation effort percentage (-100 to 100).
+        """
         el=self.left_wheel.current_to_effort_pct(il)
         er = self.right_wheel.current_to_effort_pct(ir)
         return (el+er)/2
 
     def motor_current_to_rotation_effort_pct(self,il,ir):
+        """Convert motor currents to rotation effort percentage.
+
+        Parameters
+        ----------
+        il : float.
+            Motor current for the left wheel
+        ir : float.
+            Motor current for the right wheel.
+
+        Returns
+        -------
+        float:
+            Rotation effort percentage (-100 to 100).
+        """
         el = self.left_wheel.current_to_effort_pct(il)
         er = self.right_wheel.current_to_effort_pct(ir)
         return (el-er)/2
@@ -708,30 +867,102 @@ class Base(Device):
     # ########### Kinematic Conversions ####################
 
     def translate_to_motor_rad(self,x_m):
+        """Convert translation distance in meters to motor radians.
+
+        Parameters
+        ----------
+        x_m : float.
+            Translation distance in meters.
+
+        Returns
+        -------
+        float:
+            Translation distance in motor radians.
+        """
         circ=self.params['wheel_diameter_m']*math.pi
         return deg_to_rad(360*self.params['gr']*x_m/circ)
 
     def motor_rad_to_translate(self,x_r):
+        """Convert motor radians to translation distance in meters.
+
+        Parameters
+        ----------
+        x_r : float.
+            Translation distance in radians.
+
+        Returns
+        -------
+        float:
+            Translation distance in meters.
+        """
         circ = self.params['wheel_diameter_m'] * math.pi
         return rad_to_deg(x_r)*circ/360/self.params['gr']
 
     def rotate_to_motor_rad(self,x_r):
+        """Convert rotation angle (radians) to motor radians
+
+        Parameters
+        ----------
+        x_r : float.
+            Rotation angle in radians.
+
+        Returns
+        -------
+        float:
+            Rotation angle in motor radians.
+        """
         r = self.params['wheel_separation_m'] / 2.0
         c = r * x_r #distance wheel travels (m)
         return self.translate_to_motor_rad(c)
 
     def motor_rad_to_rotate(self, x_r):
+        """Convert motor radians to rotation angle (radians).
+
+        Parameters
+        ----------
+        x_r : float.
+            Rotation angle in motor radians.
+
+        Returns
+        -------
+        float:
+            Rotation angle in radians.
+        """
         c = self.motor_rad_to_translate(x_r)
         r = self.params['wheel_separation_m'] / 2.0
         ang_rad = c /r
         return ang_rad
 
     def translation_to_rotation(self,x_m):
+        """Convert translation distance in meters to rotation angle (radians).
+
+        Parameters
+        ----------
+        x_m : float.
+            Translation distance in meters.
+
+        Returns
+        -------
+        float:
+            Rotation angle in radians.
+        """
         x_mr=self.translate_to_motor_rad(x_m)
         x_r=self.motor_rad_to_rotate(x_mr)
         return x_r
 
     def rotation_to_translation(self,x_r):
+        """Convert rotation angle (radians) to translation distance in meters.
+
+        Parameters
+        ----------
+        x_r : float.
+            Rotation angle in radians.
+
+        Returns
+        -------
+        float:
+            Translation distance in meters.
+        """
         x_mr=self.rotate_to_motor_rad(x_r)
         x_m=self.motor_rad_to_translate(x_mr)
         return x_m

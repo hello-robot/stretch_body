@@ -60,10 +60,14 @@ class PrismaticJoint(Device):
         self.motor.stop()
 
     def pull_status(self):
+        """Pull the status information in a sync way from the motor and update the internal status
+        """
         self.motor.pull_status()
         self.__update_status()
 
     async def pull_status_async(self):
+        """Pull the status information in an async way from the motor and update the internal status
+        """
         await self.motor.pull_status_async()
         self.__update_status()
 
@@ -74,10 +78,14 @@ class PrismaticJoint(Device):
         self.status['force'] =  0 #Deprecated
 
     def push_command(self):
+        """Pushes a command to the motor for exectution in a sync way
+        """
         self.motor.push_command()
 
 
     async def push_command_async(self):
+        """Pushes a command to the motor for exectution in an async way
+        """
         await self.motor.push_command_async()
 
     def _thread_loop(self):
@@ -85,6 +93,8 @@ class PrismaticJoint(Device):
         self.update_trajectory()
 
     def pretty_print(self):
+        """Pretty prints the status and information of the motor
+        """
         print('----- %s ------ '%self.name.capitalize())
         print('Pos (m): ', self.status['pos'])
         print('Vel (m/s): ', self.status['vel'])
@@ -115,9 +125,11 @@ class PrismaticJoint(Device):
         return self.soft_motion_limits['current']
 
     def set_soft_motion_limit_min(self,x,limit_type='user' ):
-        """
-        x: value to set a joints limit to
-        limit_type: 'user' or 'collision'
+        """Set the minimum set motion for a joint
+
+        Args:
+            x (float): value to set a joints limit to
+            limit_type: 'user' or 'collision'.
         """
         self.soft_motion_limits[limit_type][0]=x
         xn=max(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][0],self.soft_motion_limits['hard'][0],self.soft_motion_limits['user'][0]]))
@@ -128,9 +140,11 @@ class PrismaticJoint(Device):
             self.motor.set_motion_limits(self.translate_m_to_motor_rad(self.soft_motion_limits['current'][0]), self.translate_m_to_motor_rad(self.soft_motion_limits['current'][1]))
 
     def set_soft_motion_limit_max(self,x,limit_type='user' ):
-        """
-        x: value to set a joints limit to
-        limit_type: 'user' or 'collision'
+        """Set the maximum set motion for a joint
+
+        Args:
+            x: value to set a joints limit to
+            limit_type: 'user' or 'collision'.
         """
         self.soft_motion_limits[limit_type][1]=x
         xn=min(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][1],self.soft_motion_limits['hard'][1],self.soft_motion_limits['user'][1]]))
@@ -157,12 +171,19 @@ class PrismaticJoint(Device):
                      contact_thresh_pos=None, contact_thresh_neg=None):
         """
         v_m: commanded joint velocity (m/s)
+        
         a_m: acceleration for trapezoidal motion profile (m/s^2)
+        
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
+        
         contact_thresh_pos_N: Deprecated: positive threshold to stop motion (units: pseudo_N)
+        
         contact_thresh_neg_N: Deprecated: negative threshold to stop motion (units: pseudo_N)
+        
         req_calibration: Disallow motion prior to homing
+        
         contact_thresh_pos: positive threshold to stop motion (units: effort_pct -100:100)
+        
         contact_thresh_neg: negative threshold to stop motion (units: effort_pct -100:100)
         """
 
@@ -252,6 +273,24 @@ class PrismaticJoint(Device):
             self._prev_set_vel_ts = time.time()
 
     def bound_value(self, value, lower_bound, upper_bound):
+        """Bound a value within a specific range
+
+        Parameters
+        ----------
+        value : float
+            The value to be bounded
+        
+        lower_bound : float
+            The lower bound for the value
+        
+        upper_bound : float
+            The upper bound for the value
+
+        Returns
+        -------
+        float:
+            The bounded value
+        """
         if value < lower_bound:
             return lower_bound
         elif value > upper_bound:
@@ -263,13 +302,21 @@ class PrismaticJoint(Device):
                 req_calibration=True,contact_thresh_pos=None, contact_thresh_neg=None):
         """
         x_m: commanded absolute position (meters). x_m=0 is down. x_m=~1.1 is up
+        
         v_m: velocity for trapezoidal motion profile (m/s)
+        
         a_m: acceleration for trapezoidal motion profile (m/s^2)
+        
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
+        
         contact_thresh_pos_N: Deprecated: positive threshold to stop motion (units: pseudo_N)
+        
         contact_thresh_neg_N: Deprecated: negative threshold to stop motion (units: pseudo_N)
+        
         req_calibration: Disallow motion prior to homing
+        
         contact_thresh_pos: positive threshold to stop motion (units: effort_pct -100:100)
+        
         contact_thresh_neg: negative threshold to stop motion (units: effort_pct -100:100)
         """
         hu.check_deprecated_contact_model_prismatic_joint(self,'move_to', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos,contact_thresh_neg )
@@ -315,13 +362,21 @@ class PrismaticJoint(Device):
                 contact_thresh_pos=None,contact_thresh_neg=None):
         """
         x_m: commanded incremental motion (meters).
+        
         v_m: velocity for trapezoidal motion profile (m/s)
+        
         a_m: acceleration for trapezoidal motion profile (m/s^2)
+        
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
+        
         contact_thresh_pos_N: Deprecated: positive threshold to stop motion (units: pseudo_N)
+        
         contact_thresh_neg_N: Deprecated: negative threshold to stop motion (units: pseudo_N)
+        
         req_calibration: Disallow motion prior to homing
+        
         contact_thresh_pos: positive threshold to stop motion (units: effort_pct -100:100)
+        
         contact_thresh_neg: negative threshold to stop motion (units: effort_pct -100:100)
         """
         hu.check_deprecated_contact_model_prismatic_joint(self,'move_by', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos,contact_thresh_neg )
@@ -377,15 +432,23 @@ class PrismaticJoint(Device):
         ----------
         v_m : float
             velocity limit for trajectory in meters per second
+        
         a_m : float
             acceleration limit for trajectory in meters per second squared
+        
         stiffness: stiffness of motion. Range 0.0 (min) to 1.0 (max)
+        
         contact_thresh_pos_N: Deprecated: positive threshold to stop motion (units: pseudo_N)
+        
         contact_thresh_neg_N: Deprecated: negative threshold to stop motion (units: pseudo_N)
+        
         contact_thresh_pos: positive threshold to stop motion (units: effort_pct -100:100)
+        
         contact_thresh_neg: negative threshold to stop motion (units: effort_pct -100:100)
+        
         req_calibration : bool
             whether to allow motion prior to homing
+        
         move_to_start_point : bool
             whether to move to the trajectory's start to avoid a jump, this
             time to move doesn't count against the trajectory's timeline
@@ -455,9 +518,23 @@ class PrismaticJoint(Device):
         return self.motor.start_waypoint_trajectory(s0)
 
     def is_trajectory_active(self):
+        """Check of trajectory is active
+
+        Returns
+        -------
+        bool:
+            True if the trajectory is active, False otherwise.
+        """
         return self.motor.status['waypoint_traj']['state'] == 'active'
 
     def get_trajectory_ts(self):
+        """Get the time elapsed since the start of the active trajectory
+
+        Returns
+        -------
+        float:
+            The time elapsed in seconds
+        """
         # Return trajectory execution time
         if self.is_trajectory_active() and self.motor._waypoint_ts is not None:
             return time.time()-self.motor._waypoint_ts
@@ -467,6 +544,13 @@ class PrismaticJoint(Device):
             return 0
 
     def get_trajectory_time_remaining(self):
+        """Get the time elapsed since the start of the active trajectory
+
+        Returns
+        -------
+        float:
+            Time elapsed in seconds
+        """
         if not self.is_trajectory_active():
             return 0
         else:
@@ -509,23 +593,92 @@ class PrismaticJoint(Device):
 
 
     def motor_current_to_translate_force(self,i):
+        """@private
+        Deprecated: Convert motor current to translation force.
+        This method has been deprecated since version 0.3.5 and should not be used
+
+        Parameters
+        ----------
+        i : float
+            Motor current value
+
+        Raises
+        ------
+        DeprecationWarning
+            This method has been deprecated and should not be used
+        """
         raise DeprecationWarning('Method motor_current_to_translate_force has been deprecated since v0.3.5')
 
     def translate_force_to_motor_current(self,f):
+        """@private
+        Deprecated: Convert translation to motor current.
+        This method has been deprecated since version 0.3.5 and should not be used
+
+        Parameters
+        ----------
+        f : float
+            Translation force value
+
+        Raises
+        ------
+        DeprecationWarning
+            This method has been deprecated since version 0.3.5 and should not be used
+        """
         raise DeprecationWarning('Method translate_force_to_motor_current has been deprecated since v0.3.5')
 
     def motor_rad_to_translate_m(self,ang): #Override
+        """
+        Convert motor radians to translation meters.
+        This method converts motor angle in radians to translation distance in meters
+
+        Parameters
+        ----------
+        ang : float.
+            Motor angle in radians
+        
+        Returns:
+        ----------
+        float: 
+             Translation distance in meter
+        """
         self.logger.warning('motor_rad_to_translate_m not implemented in %s'%self.name)
         pass
 
     def translate_m_to_motor_rad(self, x):#Override
+        """Convert translation meters to motor radians.
+        This method converts translation distance in meters to motor angle in radians
+
+        Parameters
+        ----------
+        x : float.
+            Translation distance in meters
+        """
         self.logger.warning('motor_rad_to_translate_m not implemented in %s' % self.name)
         pass
 
     def wait_until_at_setpoint(self, timeout=15.0):
+        """Wait until the motor reaches its setpoint
+
+        Parameters
+        ----------
+        timeout : float, optional.
+            Maximum time to wait in seconds, by default 15.0
+        """
         self.motor.wait_until_at_setpoint(timeout)
 
     def wait_for_contact(self, timeout=5.0):
+        """Wait for contact with a guarded event
+
+        Parameters
+        ----------
+        timeout : float, optional.
+            Maximum time to wait for contact in seconds, by default 5.0
+
+        Returns
+        -------
+        bool:
+            True if contact is made, False if the timeout is reached
+        """
         ts=time.time()
         while (time.time()-ts<timeout):
             self.pull_status()
@@ -535,6 +688,13 @@ class PrismaticJoint(Device):
         return False
 
     def step_sentry(self,robot):
+        """Step the sentry for motor safety checks
+
+        Parameters
+        ----------
+        robot : float.
+            The robot object associated with this motor
+        """
         self.motor.step_sentry(robot)
 
         delta1, delta2 = self.get_dist_to_limits() # calculate dist to min,max limits
@@ -566,6 +726,18 @@ class PrismaticJoint(Device):
         self.vel_brake_zone_thresh = thresh
 
     def get_dist_to_limits(self,threshold=0.2):
+        """Calculate the distance to minimum and maximum motion limits
+
+        Parameters
+        ----------
+        threshold : float, optional.
+            The treshold for considering the distance as within limits, by default 0.2
+
+        Returns
+        -------
+        tuple:
+            A tuple containing the distances to the minimum and maximum motion limits, respectively.
+        """
         current_position = self.status['pos']
         min_position = self.get_soft_motion_limits()[0]
         max_position = self.get_soft_motion_limits()[1]
@@ -580,9 +752,13 @@ class PrismaticJoint(Device):
     def home(self,end_pos,to_positive_stop, measuring=False):
         """
         end_pos: position to end on
+        
         to_positive_stop:
+        
         -- True: Move to the positive direction stop and mark to range_m[1]
+        
         -- False: Move to the negative direction stop and mark to range_m[0]
+        
         measuring: After homing to stop, move to opposite stop and report back measured distance
         return measured range-of-motion if measuring. Return None if not a valide measurement
         """

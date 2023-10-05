@@ -22,9 +22,32 @@ from stretch_body.robot_collision import RobotCollision
 
 # #############################################################
 class DXLHeadStatusThread(threading.Thread):
-    """
-    This thread polls the status data of the Dynamixel devices
-    at 15Hz
+    """This thread polls the status data of the Dynamixel Devices at 15 HZ.
+
+    Parameters
+    ----------
+    robot: Robot.
+        The robot object associated with the thread.
+    
+    target_rate_hz : float, optional.
+        The target update rate in Hertz. Defaults to 15.0.
+
+    Attributes
+    ----------
+    stats : hello_utils.LoopStats.
+        Loop statistics for monitoring the thread's performance.
+    
+    shutdown_flag : threading.Event.
+        An event flag to signal the thread to shut down gracefully.
+    
+    running : bool.
+        A flag indicating whether the thread is running.
+
+    Notes
+    -----
+    - This thread is designed to work with Dynamixel devices.
+    - It continuously polls the status data of Dynamixel devices and updates the
+      trajectory.
     """
     def __init__(self, robot, target_rate_hz=15.0):
         threading.Thread.__init__(self, name = self.__class__.__name__)
@@ -35,6 +58,8 @@ class DXLHeadStatusThread(threading.Thread):
         self.running=False
 
     def step(self):
+        """Perform a single step of polling and updating the status data.
+        """
         self.stats.mark_loop_start()
         self.robot._pull_status_head_dynamixel()
         self.robot._update_trajectory_head_dynamixel()
@@ -49,9 +74,34 @@ class DXLHeadStatusThread(threading.Thread):
         self.robot.logger.debug('Shutting down DXLHeadStatusThread')
 
 class DXLEndOfArmStatusThread(threading.Thread):
-    """
-    This thread polls the status data of the Dynamixel devices
-    at 15Hz
+    """This thread polls the status data of the Dynamixel devices
+    at 15Hz.
+
+    Parameters
+    ----------
+    robot: Robot.
+        The robot object associated with the thread.
+    
+    target_rate_hz : float, optional.
+        The target update rate in Hertz. Defaults to 15.0.
+
+    Attributes
+    ----------
+    stats : hello_utils.LoopStats.
+        Loop statistics for monitoring the thread's performance.
+    
+    shutdown_flag : threading.Event.
+        An event flag to signal the thread to shut down gracefully.
+    
+    running : bool.
+        A flag indicating whether the thread is running.
+
+    Notes
+    -----
+    - This thread is specifically designed for polling and updating the status data of
+      end-of-arm Dynamixel devices.
+    - It continuously polls and updates the status data based on the specified target rate.
+    - The thread can be stopped gracefully by setting the `shutdown_flag`.
     """
     def __init__(self, robot, target_rate_hz=15.0):
         threading.Thread.__init__(self, name = self.__class__.__name__)
@@ -61,6 +111,8 @@ class DXLEndOfArmStatusThread(threading.Thread):
         self.shutdown_flag = threading.Event()
         self.running = False
     def step(self):
+        """Perform a single step of polling and updating the status data.
+        """
         self.stats.mark_loop_start()
         self.robot._pull_status_end_of_arm_dynamixel()
         self.robot._update_trajectory_end_of_arm_dynamixel()
@@ -74,10 +126,43 @@ class DXLEndOfArmStatusThread(threading.Thread):
         self.robot.logger.debug('Shutting down DXLEndOfArmStatusThread')
 
 class NonDXLStatusThread(threading.Thread):
-    """
-    This thread runs at 25Hz.
-    It updates the status data of the Devices.
-    It also steps the Sentry, Monitor, and Collision functions
+    """This thread runs at 25Hz. It updates the status data of the Devices and also steps
+    the Sentry, Monitor, and Collision functions.
+
+    Parameters
+    ----------
+    robot : Robot.
+        The robot object associated with the thread.
+    
+    target_rate_hz : float, optional.
+        The target update rate in Hertz. Defaults to 25.0.
+
+    Attributes
+    ----------
+    stats : LoopStats.
+        Loop statistics for monitoring the thread's performance.
+    
+    shutdown_flag : threading.Event.
+        An event flag to signal the thread to shut down gracefully.
+    
+    titr : int.
+        A counter for tracking iterations.?
+    
+    first_status : bool.
+        A flag indicating whether the first status update has been received.
+    
+    loop : asyncio.BaseEventLoop.
+        An asyncio event loop for handling asynchronous operations.
+    
+    running : bool.
+        A flag indicating whether the thread is running.
+
+    Notes
+    -----
+    - This thread is designed for polling and updating the status data of non-Dynamixel devices.
+    - It supports both synchronous and asynchronous status updates based on the robot's configuration.
+    - The update rate is controlled by the specified target rate.
+    - The thread can be stopped gracefully by setting the `shutdown_flag`.
     """
     def __init__(self, robot, target_rate_hz=25.0):
         threading.Thread.__init__(self, name = self.__class__.__name__)
@@ -91,6 +176,8 @@ class NonDXLStatusThread(threading.Thread):
         self.running = False
 
     def step(self):
+        """Perform a single step of polling and updating status data.
+        """
         asyncio.set_event_loop(self.loop)
         self.stats.mark_loop_start()
         if self.robot.params['use_asyncio']:
@@ -113,10 +200,42 @@ class NonDXLStatusThread(threading.Thread):
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
 
 class SystemMonitorThread(threading.Thread):
-    """
-    This thread runs at 25Hz.
-    It updates the status data of the Devices.
-    It also steps the Sentry, Monitor, and Collision functions
+    """This thread runs at 25Hz. It updates the status data of the Devices and also steps
+    the Sentry, Monitor, and Collision functions.
+
+    Parameters
+    ----------
+    robot : Robot.
+        The robot object associated with the thread.
+    
+    target_rate_hz : float, optional.
+        The target update rate in Hertz. Defaults to 25.0.
+
+    Attributes
+    ----------
+    monitor_downrate_int : int.
+        The interval for monitoring components.
+    
+    trace_downrate_int : int.
+        The interval for tracing components.
+    
+    sentry_downrate_int : int.
+        The interval for the sentry component.
+    
+    collision_downrate_int : int.
+        The interval for collision management.
+    
+    trajectory_downrate_int : int.
+        The interval for updating hardware with waypoint trajectory segments.
+
+    Notes
+    -----
+    - This thread is responsible for monitoring and controlling various components
+      of the robot, including monitor, trace, sentry, collision management, and trajectory.
+    - The update rate for each component is controlled by the specified intervals.
+    - Components are updated based on their respective downrate intervals.
+    - Components can be enabled or disabled based on the robot's configuration.
+
     """
     def __init__(self, robot, target_rate_hz=25.0):
         threading.Thread.__init__(self, name = self.__class__.__name__)
@@ -138,6 +257,8 @@ class SystemMonitorThread(threading.Thread):
         self.running=False
 
     def step(self):
+        """Perform a single step of monitoring and control.
+        """
         self.titr = self.titr + 1
         self.stats.mark_loop_start()
         if self.robot.params['use_monitor']:
@@ -212,12 +333,13 @@ class Robot(Device):
     def startup(self,start_non_dxl_thread=True,start_dxl_thread=True,start_sys_mon_thread=True):
         """
         To be called once after class instantiation.
-        Prepares devices for communications and motion
+
+        Prepares devices for communications and motion.
 
         Returns
         -------
-        bool
-            true if startup of robot succeeded
+        bool:
+            true if startup of robot succeeded.
         """
         self.logger.debug('Starting up Robot {0} of batch {1}'.format(self.params['serial_no'], self.params['batch_name']))
         success = True
@@ -267,8 +389,9 @@ class Robot(Device):
 
     def stop(self):
         """
-        To be called once before exiting a program
-        Cleanly stops down motion and communication
+        To be called once before exiting a program.
+
+        Cleanly stops down motion and communication.
         """
         self.logger.debug('---- Shutting down robot ----')
         if self.non_dxl_thread.running:
@@ -292,13 +415,16 @@ class Robot(Device):
 
     def get_status(self):
         """
-        Thread safe and atomic read of current Robot status data
+        Thread safe and atomic read of current Robot status data.
+        
         Returns as a dict.
         """
         with self.lock:
             return self.status.copy()
 
     def pretty_print(self):
+        """Pretty prints the status of the robot.
+        """
         s=self.get_status()
         print('##################### HELLO ROBOT ##################### ')
         print('Time',time.time())
@@ -307,6 +433,13 @@ class Robot(Device):
         hello_utils.pretty_print_dict('Status',s)
     
     async def push_command_coro(self):
+        """Asynchronously push commands to different robot components.
+
+        Returns
+        -------
+        list:
+            A list of results from the aynchronous command pushes
+        """
         tasks = [self.base.left_wheel.push_command_async(),
                  self.base.right_wheel.push_command_async(),
                  self.arm.push_command_async(),
@@ -318,7 +451,7 @@ class Robot(Device):
         
     def push_command(self):
         """
-        Cause all queued up RPC commands to be sent down to Devices
+        Cause all queued up RPC commands to be sent down to Devices.
         """
         
         with self.lock:
@@ -348,12 +481,33 @@ class Robot(Device):
 
 
     def is_trajectory_active(self):
+        """Check if any component's trajectory is active.
+
+        Returns
+        -------
+        bool:
+            True if any component has an active trayectory, otherwise False
+        """
         return self.arm.is_trajectory_active() or self.lift.is_trajectory_active() or \
                self.base.is_trajectory_active() or self.end_of_arm.is_trajectory_active() or \
                self.head.is_trajectory_active()
 
 
     def follow_trajectory(self):
+        """Follow the trajectory for multiple components.
+
+        Returns
+        -------
+        bool:
+            True if all components successfully follow their trajectories, otherwise False.
+
+        Notes
+        -----
+        - The method does not move components to their start points before following the
+        trajectory, assuming that components are already positioned correctly.
+        - It also checks if a motor synchronization is required based on the synchronization
+        signals from the PIMU and triggers motor synchronization if necessary.
+        """
         success = True
         success = success and self.arm.follow_trajectory(move_to_start_point=False)
         success = success and self.lift.follow_trajectory(move_to_start_point=False)
@@ -374,6 +528,8 @@ class Robot(Device):
         return success
 
     def stop_trajectory(self):
+        """Stop the trajectory of multiple robot components
+        """
         self.arm.stop_trajectory()
         self.lift.stop_trajectory()
         self.base.stop_trajectory()
@@ -383,8 +539,12 @@ class Robot(Device):
 # ##################Home and Stow #######################################
 
     def is_calibrated(self):
-        """
-        Returns true if homing-calibration has been run all joints that require it
+        """Check if the components of Stretch are calibrated
+
+        Returns
+        -------
+        bool:
+            Returns true if homing-calibration has been run all joints that require it, otherwise False
         """
         ready = self.lift.motor.status['pos_calibrated']
         ready = ready and self.arm.motor.status['pos_calibrated']
@@ -394,9 +554,22 @@ class Robot(Device):
         return ready
 
     def get_stow_pos(self,joint):
-        """
-        Return the stow position of a joint.
-        Allow the end_of_arm to override the defaults in order to accomodate stowing different tools
+        """Get the stow position for the joints
+
+        Parameters
+        ----------
+        joint : str.
+            The name of the joint for which to retrieve the stow position
+
+        Returns
+        -------
+        float:
+            The stow position for the specified joint
+        
+        Notes
+        -----
+        - This method returns the stow position of a joint.
+        - Allow the end_of_arm to override the defaults in order to accomodate stowing different tools
         """
         if 'stow' in self.end_of_arm.params:
             if joint in self.end_of_arm.params['stow']:
@@ -404,9 +577,14 @@ class Robot(Device):
         return self.params['stow'][joint]
 
     def stow(self):
-        """
-        Cause the robot to move to its stow position
-        Blocking.
+        """Stow the robot's components to a predefined configuration.
+
+        Notes
+        -----
+        - The stow sequence ensures that components are stowed in a specific order to avoid collisions
+        and ensure proper stowing.
+        - After stowing, the method waits for the 'wrist_yaw' joint of the end-of-arm to stop moving
+        before exiting.
         """
         self.head.move_to('head_pan', self.get_stow_pos('head_pan'))
         self.head.move_to('head_tilt',self.get_stow_pos('head_pan'))
@@ -448,9 +626,13 @@ class Robot(Device):
             time.sleep(0.1)
 
     def home(self):
-        """
-        Cause the robot to home its joints by moving to hardstops
+        """Cause the robot to home its joints by moving to hardstops
         Blocking.
+        
+        Notes
+        -----
+        - The homing procedure is performed for each component in a specific order.
+        - After homing, the method triggers a beep and pushes the command.
         """
         if self.head is not None:
             print('--------- Homing Head ----')
@@ -519,6 +701,8 @@ class Robot(Device):
         self.end_of_arm.step_sentry(self)
     
     def start_event_loop(self):
+        """Start an asynchronous event loop for the robot.
+        """
         self.async_event_loop = asyncio.new_event_loop()
         def start_loop(loop):
             asyncio.set_event_loop(loop)
@@ -527,6 +711,8 @@ class Robot(Device):
         self.event_loop_thread.start()
     
     def stop_event_loop(self):
+        """Stop the asynchronous event loop for the robot.
+        """
         try:
             if self.event_loop_thread:
                 self.async_event_loop.call_soon_threadsafe(self.async_event_loop.stop())

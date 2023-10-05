@@ -28,12 +28,12 @@ class Head(DynamixelXChain):
 
         Parameters
         ----------
-        joint_name : str
+        joint_name : str.
             valid joints defined in ``joints``
 
         Returns
         -------
-        DynamixelHelloXL430 or None
+        DynamixelHelloXL430 or None.
             Motor object on valid joint name, else None
         """
         return self.get_motor(joint_name)
@@ -41,8 +41,11 @@ class Head(DynamixelXChain):
     def move_to(self, joint, x_r, v_r=None, a_r=None):
         """
         joint: Name of the joint to move ('head_pan' or 'head_tilt')
+        
         x_r: commanded absolute position (radians).
+        
         v_r: velocity for trapezoidal motion profile (rad/s).
+        
         a_r: acceleration for trapezoidal motion profile (rad/s^2)
         """
         self.motors[joint].move_to(x_r,v_r,a_r)
@@ -50,13 +53,18 @@ class Head(DynamixelXChain):
     def move_by(self, joint,  x_r, v_r=None, a_r=None):
         """
         joint: Name of the joint to move ('head_pan' or 'head_tilt')
+        
         x_r: commanded incremental motion (radians).
+        
         v_r: velocity for trapezoidal motion profile (rad/s).
+        
         a_r: acceleration for trapezoidal motion profile (rad/s^2)
         """
         self.motors[joint].move_by(x_r,v_r,a_r)
 
     def home(self):
+        """Home the robot's head and reset its pan and tilt angles
+        """
         if self.motors['head_pan'].params['req_calibration']:
             with self.pt_lock:
                 self.motors['head_pan'].home(single_stop=True)
@@ -72,7 +80,9 @@ class Head(DynamixelXChain):
     def pose(self, p, v_r=[None, None], a_r=[None, None]):
         """
         p: Dictionary key to named pose (eg 'ahead')
+        
         v_r: list, velocities for trapezoidal motion profile (rad/s).
+        
         a_r: list, accelerations for trapezoidal motion profile (rad/s^2)
         """
         self.move_to('head_pan', self.poses[p][0], v_r[0], a_r[0])
