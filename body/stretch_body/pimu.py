@@ -888,8 +888,6 @@ class Pimu_Protocol_P4(PimuBase):
         # unpack_to['voltage'] = self.get_voltage(unpack_float_t(s[sidx:]));
         # sidx += 4
         return sidx
-
-
     # def pack_gains(self, s, sidx):
     #     sidx = sidx + Stepper_Protocol_P3.pack_gains(self, s, sidx)
     #     pack_float_t(s, sidx, self.gains['voltage_LPF']);

@@ -420,7 +420,7 @@ nominal_params={
       'max_sync_rate_hz': 80.0, #deprecated with P3
       'config':{
         'accel_LPF': 20.0,
-        'bump_thresh': 20.0,
+        'bump_thresh': 10.0,
         'cliff_LPF': 10.0,
         'cliff_thresh': -50,
         'current_LPF': 10.0,
