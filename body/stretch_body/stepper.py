@@ -886,7 +886,8 @@ class Stepper_Protocol_P0(StepperBase):
         print('Effort (Ticks)', self.status['effort_ticks'])
         print('Effort (Pct)',self.status['effort_pct'])
         print('Current (A)', self.status['current'])
-        print('Voltage (V)',self.status['voltage'])
+        if self.board_info['hardware_id']>=3:
+            print('Voltage (V)',self.status['voltage'])
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
         print('Guarded Events:', self.status['guarded_event'])
@@ -965,7 +966,8 @@ class Stepper_Protocol_P1(StepperBase):
         print('Effort (Ticks)', self.status['effort_ticks'])
         print('Effort (Pct)', self.status['effort_pct'])
         print('Current (A)', self.status['current'])
-        print('Voltage (V)', self.status['voltage'])
+        if self.board_info['hardware_id'] >= 3:
+            print('Voltage (V)', self.status['voltage'])
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
         print('Guarded Events:', self.status['guarded_event'])

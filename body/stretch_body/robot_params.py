@@ -60,7 +60,6 @@ class RobotParams:
         _user_params = hello_utils.read_fleet_yaml('stretch_user_params.yaml')
         _config_params = hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
         _robot_params=nominal_system_params
-        print(_user_params)
         if 'robot' in _user_params and 'model_name' in _user_params['robot']:
             param_module_name = 'stretch_body.robot_params_'+_user_params['robot']['model_name']
         else:

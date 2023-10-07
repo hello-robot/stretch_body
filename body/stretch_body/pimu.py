@@ -56,58 +56,45 @@ class IMUBase(Device):
         print('Timestamp (s)', self.status['timestamp'])
         print('-----------------------')
 
-    def unpack_status(self, s):
-        raise NotImplementedError('This method not supported by IMU for firmware.')
+    def unpack_status(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx = 0
+        unpack_to['ax'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['ay'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['az'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['gx'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['gy'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['gz'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['mx'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['my'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['mz'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to['qw'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['qx'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['qy'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['qz'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+        return sidx
+
 
 # ######################## IMU PROTOCOL P0 #################################
 class IMU_Protocol_P0(IMUBase):
-    def unpack_status(self, s):
-        # take in an array of bytes
-        # this needs to exactly match the C struct format
-        sidx=0
-        self.status['ax']=  unpack_float_t(s[sidx:]);sidx += 4
-        self.status['ay'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['az'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gy'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['mx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['my'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['mz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['qw'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qy'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+    def unpack_status(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx =  IMUBase.unpack_status(self, s, unpack_to)
         self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
         return sidx
 
 # ######################## IMU PROTOCOL P1 #################################
 class IMU_Protocol_P1(IMUBase):
-    def unpack_status(self, s):
-        # take in an array of bytes
-        # this needs to exactly match the C struct format
-        sidx=0
-        self.status['ax']=  unpack_float_t(s[sidx:]);sidx += 4
-        self.status['ay'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['az'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gy'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['mx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['my'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['mz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['qw'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qy'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+    def unpack_status(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx = IMUBase.unpack_status(self, s, unpack_to)
         return sidx
 
 # ######################## IMU #################################
@@ -683,8 +670,6 @@ class Pimu_Protocol_P1(PimuBase):
         unpack_to['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
         unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
         return sidx
-
-
 
 
 
