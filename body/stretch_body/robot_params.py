@@ -62,7 +62,11 @@ class RobotParams:
         _user_params = hello_utils.read_fleet_yaml('stretch_user_params.yaml')
         _config_params = hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
         _robot_params=nominal_system_params
-        param_module_name = 'stretch_body.robot_params_'+_config_params['robot']['model_name']
+        if 'robot' in _user_params and 'model_name' in _user_params['robot']:
+            param_module_name = 'stretch_body.robot_params_'+_user_params['robot']['model_name']
+        else:
+            param_module_name = 'stretch_body.robot_params_' + _config_params['robot']['model_name']
+
         _nominal_params = getattr(importlib.import_module(param_module_name), 'nominal_params')
         hello_utils.overwrite_dict(_robot_params, _nominal_params)
         for external_params_module in _config_params.get('params', []):

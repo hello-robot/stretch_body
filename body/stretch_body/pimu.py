@@ -56,58 +56,45 @@ class IMUBase(Device):
         print('Timestamp (s)', self.status['timestamp'])
         print('-----------------------')
 
-    def unpack_status(self, s):
-        raise NotImplementedError('This method not supported by IMU for firmware.')
+    def unpack_status(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx = 0
+        unpack_to['ax'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['ay'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['az'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['gx'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['gy'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['gz'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['mx'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['my'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['mz'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to['qw'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['qx'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['qy'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['qz'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+        return sidx
+
 
 # ######################## IMU PROTOCOL P0 #################################
 class IMU_Protocol_P0(IMUBase):
-    def unpack_status(self, s):
-        # take in an array of bytes
-        # this needs to exactly match the C struct format
-        sidx=0
-        self.status['ax']=  unpack_float_t(s[sidx:]);sidx += 4
-        self.status['ay'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['az'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gy'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['mx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['my'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['mz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['qw'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qy'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+    def unpack_status(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx =  IMUBase.unpack_status(self, s, unpack_to)
         self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
         return sidx
 
 # ######################## IMU PROTOCOL P1 #################################
 class IMU_Protocol_P1(IMUBase):
-    def unpack_status(self, s):
-        # take in an array of bytes
-        # this needs to exactly match the C struct format
-        sidx=0
-        self.status['ax']=  unpack_float_t(s[sidx:]);sidx += 4
-        self.status['ay'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['az'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gy'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['gz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['mx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['my'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['mz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        self.status['qw'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qx'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qy'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['qz'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+    def unpack_status(self, s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx = IMUBase.unpack_status(self, s, unpack_to)
         return sidx
 
 # ######################## IMU #################################
@@ -116,7 +103,8 @@ class IMU(IMUBase):
         IMUBase.__init__(self)
         # Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (IMU_Protocol_P0,), 'p1': (IMU_Protocol_P1,IMU_Protocol_P0,),
-                                    'p2': (IMU_Protocol_P1,IMU_Protocol_P0,),'p3': (IMU_Protocol_P1,IMU_Protocol_P0,)}
+                                    'p2': (IMU_Protocol_P1,IMU_Protocol_P0,),'p3': (IMU_Protocol_P1,IMU_Protocol_P0,),
+                                    'p4': (IMU_Protocol_P1,IMU_Protocol_P0,)}
 
 # ##################################################################################
 class PimuBase(Device):
@@ -193,7 +181,7 @@ class PimuBase(Device):
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'trace_on':0,
                        'motor_sync_rate': 0, 'motor_sync_cnt': 0, 'motor_sync_queues': 0, 'motor_sync_drop': 0,
-                       'transport': self.transport.status}
+                       'transport': self.transport.status, 'current_charge':0}
 
         self.status_zero=self.status.copy()
         self.status_aux = {'foo': 0}
@@ -294,6 +282,8 @@ class PimuBase(Device):
         print('------ Pimu -----')
         print('Voltage',self.status['voltage'])
         print('Current', self.status['current'])
+        if self.board_info['hardware_id']>=3:
+            print('Current Charge',self.status['current_charge'])
         print('CPU Temp',self.status['cpu_temp'])
         print('Board Temp', self.status['temp'])
         print('State', self.status['state'])
@@ -422,9 +412,35 @@ class PimuBase(Device):
         return C
 
     def get_current(self,raw):
+        if self.board_info['hardware_id']>=3:
+            return self.get_current_efuse(raw)
+        else:
+            return self.get_current_shunt(raw)
+    def get_current_shunt(self,raw):
+        """
+        RE1 / RE2 Pimus using shunt resistor for current measurement
+        """
         raw_to_mV = 3300 / 1024.0
         mV = raw * raw_to_mV
         mA = mV/.408 # conversion per circuit
+        return mA/1000.0
+
+    def get_current_efuse(self,raw):
+        """
+        S3 Pimu's using Efuse current measurement
+        """
+        raw_to_mV = 3300 / 1024.0
+        mV = raw * raw_to_mV
+        mA = mV/.224 # conversion per circuit
+        return mA/1000.0
+
+    def get_current_charge(self,raw):
+        """
+        S3 Pimu's shunt measurement of charger current
+        """
+        raw_to_mV = 3300 / 1024.0
+        mV = raw * raw_to_mV
+        mA = mV/.215 # conversion per circuit
         return mA/1000.0
     # ################Data Packing #####################
 
@@ -476,7 +492,7 @@ class PimuBase(Device):
         pack_uint32_t(s,sidx,self._trigger); sidx+=4
         return sidx
 
-    def unpack_status(self,s):
+    def unpack_status(self,s, unpack_to=None):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))
 
@@ -579,38 +595,41 @@ class PimuBase(Device):
 
 # ######################## PIMU PROTOCOL PO #################################
 
+
 class Pimu_Protocol_P0(PimuBase):
-    def unpack_status(self,s):
+    def unpack_status(self,s, unpack_to=None):
+        if unpack_to is None:
+            unpack_to = self.status
         sidx=0
         sidx +=self.imu.unpack_status((s[sidx:]))
-        self.status['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
-        self.status['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
-        self.status['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
 
         for i in range(4):
-            self.status['cliff_range'][i]=unpack_float_t(s[sidx:])
+            unpack_to['cliff_range'][i]=unpack_float_t(s[sidx:])
             sidx+=4
 
-        self.status['state'] = unpack_uint32_t(s[sidx:])
+        unpack_to['state'] = unpack_uint32_t(s[sidx:])
         sidx += 4
 
-        self.status['at_cliff']=[]
-        self.status['at_cliff'].append((self.status['state'] & self.STATE_AT_CLIFF_0) != 0)
-        self.status['at_cliff'].append((self.status['state'] & self.STATE_AT_CLIFF_1) != 0)
-        self.status['at_cliff'].append((self.status['state'] & self.STATE_AT_CLIFF_2) != 0)
-        self.status['at_cliff'].append((self.status['state'] & self.STATE_AT_CLIFF_3) != 0)
-        self.status['runstop_event'] = (self.status['state'] & self.STATE_RUNSTOP_EVENT) != 0
-        self.status['cliff_event'] = (self.status['state'] & self.STATE_CLIFF_EVENT) != 0
-        self.status['fan_on'] = (self.status['state'] & self.STATE_FAN_ON) != 0
-        self.status['buzzer_on'] = (self.status['state'] & self.STATE_BUZZER_ON) != 0
-        self.status['low_voltage_alert'] = (self.status['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
-        self.status['high_current_alert'] = (self.status['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
-        self.status['over_tilt_alert'] = (self.status['state'] & self.STATE_OVER_TILT_ALERT) != 0
-        self.status['charger_connected'] = (self.status['state'] & self.STATE_CHARGER_CONNECTED) != 0
-        self.status['boot_detected'] = (self.status['state'] & self.STATE_BOOT_DETECTED) != 0
-        self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
-        self.status['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
-        self.status['debug'] = unpack_float_t(s[sidx:]); sidx += 4
+        unpack_to['at_cliff']=[]
+        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_0) != 0)
+        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_1) != 0)
+        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_2) != 0)
+        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_3) != 0)
+        unpack_to['runstop_event'] = (unpack_to['state'] & self.STATE_RUNSTOP_EVENT) != 0
+        unpack_to['cliff_event'] = (unpack_to['state'] & self.STATE_CLIFF_EVENT) != 0
+        unpack_to['fan_on'] = (unpack_to['state'] & self.STATE_FAN_ON) != 0
+        unpack_to['buzzer_on'] = (unpack_to['state'] & self.STATE_BUZZER_ON) != 0
+        unpack_to['low_voltage_alert'] = (unpack_to['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
+        unpack_to['high_current_alert'] = (unpack_to['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
+        unpack_to['over_tilt_alert'] = (unpack_to['state'] & self.STATE_OVER_TILT_ALERT) != 0
+        unpack_to['charger_connected'] = (unpack_to['state'] & self.STATE_CHARGER_CONNECTED) != 0
+        unpack_to['boot_detected'] = (unpack_to['state'] & self.STATE_BOOT_DETECTED) != 0
+        unpack_to['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
+        unpack_to['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
+        unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
         return sidx
 
 # ######################## PIMU PROTOCOL P1 #################################
@@ -651,8 +670,6 @@ class Pimu_Protocol_P1(PimuBase):
         unpack_to['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
         unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
         return sidx
-
-
 
 
 
@@ -713,7 +730,7 @@ class Pimu_Protocol_P2(PimuBase):
         self._trigger = self._trigger | self.TRIGGER_DISABLE_TRACE
         self._dirty_trigger = True
 
-    def unpack_status(self, s, unpack_to=None):
+    def unpack_status(self, s, unpack_to=None): #P2
         if unpack_to is None:
             unpack_to = self.status
 
@@ -752,7 +769,7 @@ class Pimu_Protocol_P2(PimuBase):
         unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
         return sidx
 
-# ######################## PIMU PROTOCOL P2 #################################
+# ######################## PIMU PROTOCOL P3 #################################
 class Pimu_Protocol_P3(PimuBase):
 
 
@@ -844,6 +861,29 @@ class Pimu_Protocol_P3(PimuBase):
             print('Successful load test pull')
         else:
             print('Error RPC_REPLY_LOAD_TEST_PULL', reply[0])
+
+# ######################## PIMU PROTOCOL P4 #################################
+class Pimu_Protocol_P4(PimuBase):
+    def unpack_status(self, s, unpack_to=None):  # P4
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx = 0
+        sidx = sidx + Pimu_Protocol_P2.unpack_status(self, s, unpack_to)
+        self.status['current_charge'] = self.get_current_charge(unpack_float_t(s[sidx:]));sidx += 4
+        # unpack_to['voltage'] = self.get_voltage(unpack_float_t(s[sidx:]));
+        # sidx += 4
+        return sidx
+    # def pack_gains(self, s, sidx):
+    #     sidx = sidx + Stepper_Protocol_P3.pack_gains(self, s, sidx)
+    #     pack_float_t(s, sidx, self.gains['voltage_LPF']);
+    #     sidx += 4
+    #     return sidx
+    #
+    # def unpack_gains(self, s):
+    #     sidx = Stepper_Protocol_P3.unpack_gains(self, s)
+    #     self.gains_flash['voltage_LPF'] = unpack_float_t(s[sidx:]);
+    #     sidx += 4
+    #     return sidx
 # ######################## PIMU #################################
 class Pimu(PimuBase):
     """
@@ -854,7 +894,8 @@ class Pimu(PimuBase):
         # Order in descending order so more recent protocols/methods override less recent
         self.supported_protocols = {'p0': (Pimu_Protocol_P0,), 'p1': (Pimu_Protocol_P1, Pimu_Protocol_P0,),
                                     'p2': (Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
-                                    'p3': (Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,)}
+                                    'p3': (Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
+                                    'p4': (Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,)}
 
     def startup(self, threaded=False):
         """
