@@ -22,3 +22,33 @@ If you want to change something in the docs you can do that, open the file that 
 ./make.sh
 ```
 Now refresh the page in your browser and you will see the changes there.
+
+## Notes
+If you want to hide something in the documentation then you can just type under the method a docstring to make it private, take this example:
+
+```python
+    RPC_SET_COMMAND = 1
+    RPC_REPLY_COMMAND = 2
+    """@private"""
+    RPC_GET_STATUS = 3
+```
+If you generate this it will show the `RPC_SET_COMMAND = 1` and the `RPC_GET_STATUS = 3` but it will hide in the documentation the `RPC_REPLY_COMMAND = 2`. If you create a docstring with this format you will hide the constants, methods and even classes that you don't want them to appear, but be carefull because if you hide something, for example a method in a class, that you are using in different classes within the same code then you are going to hide every method. Take a look at this example from the stepper class to be more clear.
+```python
+    class StepperBase(Device):
+        def push_load_test(self):
+        """@private"""
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+
+    class Stepper_Protocol_P3(StepperBase):
+        def push_load_test(self):
+        """Push a load test payload to the robot's hardware for testing
+        """
+        if not self.hw_valid:
+            return
+        payload = self.transport.get_empty_payload()
+        payload[0] = self.RPC_LOAD_TEST_PUSH
+        payload[1:] = self.load_test_payload
+        self.transport.do_push_rpc_sync(payload, self.rpc_load_test_push_reply)
+```
+I want to hide from my documentation the `push_load_test` method from the `StepperBase` class but I have this same method in the `Stepper_Protocol_P3` class, if I don't want to hide one of them because has valuable information for the user then the solution for this is to write a docstring like the one in the example. With this we will only hide the method that we don't require to appear but leave the one that has information.

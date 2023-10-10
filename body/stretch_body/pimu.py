@@ -27,14 +27,30 @@ class IMUBase(Device):
         self.status={'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'roll':0,'pitch':0,'heading':0,'timestamp':0,'qw':0,'qx':0,'qy':0,'qz':0,'bump':0}
 
     def get_status(self):
+        """Returns a copy of the internal status.
+
+        Returns
+        -------
+        dict:
+            A copy of the internal status dictionary containing IMU status.
+        """
         s=self.status.copy()
         return s
 
     def get_quaternion(self):
+        """Returns the quaternion values representing the IMU's orientation.
+
+        Returns
+        -------
+        list:
+            A list containing the quaternion values.
+        """
         return [self.status['qw'],self.status['qx'],self.status['qy'],self.status['qz']]
     # ####################################################
 
     def pretty_print(self):
+        """Prints a representation of the IMU's status.
+        """
         print('----------IMU -------------')
         print('AX (m/s^2)', self.status['ax'])
         print('AY (m/s^2)', self.status['ay'])
@@ -57,11 +73,24 @@ class IMUBase(Device):
         print('-----------------------')
 
     def unpack_status(self, s):
+        """@private"""
         raise NotImplementedError('This method not supported by IMU for firmware.')
 
 # ######################## IMU PROTOCOL P0 #################################
 class IMU_Protocol_P0(IMUBase):
     def unpack_status(self, s):
+        """Unpacks status information and updated the `self.status` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte array containing packed status information.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         # take in an array of bytes
         # this needs to exactly match the C struct format
         sidx=0
@@ -88,6 +117,18 @@ class IMU_Protocol_P0(IMUBase):
 # ######################## IMU PROTOCOL P1 #################################
 class IMU_Protocol_P1(IMUBase):
     def unpack_status(self, s):
+        """Unpacks status information and updated the `self.status` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte array containing packed status information.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         # take in an array of bytes
         # this needs to exactly match the C struct format
         sidx=0
@@ -124,57 +165,105 @@ class PimuBase(Device):
     API to the Stretch Power and IMU board (Pimu)
     """
     RPC_SET_PIMU_CONFIG = 1
+    """@private"""
     RPC_REPLY_PIMU_CONFIG = 2
+    """@private"""
     RPC_GET_PIMU_STATUS = 3
+    """@private"""
     RPC_REPLY_PIMU_STATUS = 4
+    """@private"""
     RPC_SET_PIMU_TRIGGER = 5
+    """@private"""
     RPC_REPLY_PIMU_TRIGGER = 6
+    """@private"""
     RPC_GET_PIMU_BOARD_INFO = 7
+    """@private"""
     RPC_REPLY_PIMU_BOARD_INFO = 8
+    """@private"""
     RPC_SET_MOTOR_SYNC = 9
+    """@private"""
     RPC_REPLY_MOTOR_SYNC = 10
+    """@private"""
     RPC_READ_TRACE =11
+    """@private"""
     RPC_REPLY_READ_TRACE =12
+    """@private"""
     RPC_GET_PIMU_STATUS_AUX = 13
+    """@private"""
     RPC_REPLY_PIMU_STATUS_AUX = 14
+    """@private"""
     RPC_LOAD_TEST_PULL = 15
+    """@private"""
     RPC_REPLY_LOAD_TEST_PULL = 16
+    """@private"""
     RPC_LOAD_TEST_PUSH = 17
+    """@private"""
     RPC_REPLY_LOAD_TEST_PUSH = 18
+    """@private"""
 
     STATE_AT_CLIFF_0 = 1
+    """@private"""
     STATE_AT_CLIFF_1 = 2
+    """@private"""
     STATE_AT_CLIFF_2 = 4
+    """@private"""
     STATE_AT_CLIFF_3 = 8
+    """@private"""
     STATE_RUNSTOP_EVENT = 16
+    """@private"""
     STATE_CLIFF_EVENT = 32
+    """@private"""
     STATE_FAN_ON = 64
+    """@private"""
     STATE_BUZZER_ON = 128
+    """@private"""
     STATE_LOW_VOLTAGE_ALERT = 256
+    """@private"""
     STATE_OVER_TILT_ALERT = 512
+    """@private"""
     STATE_HIGH_CURRENT_ALERT = 1024
+    """@private"""
     STATE_CHARGER_CONNECTED = 2048
+    """@private"""
     STATE_BOOT_DETECTED = 4096
+    """@private"""
     STATE_IS_TRACE_ON = 8192
+    """@private"""
 
     TRIGGER_BOARD_RESET = 1
+    """@private"""
     TRIGGER_RUNSTOP_RESET = 2
+    """@private"""
     TRIGGER_CLIFF_EVENT_RESET = 4
+    """@private"""
     TRIGGER_BUZZER_ON = 8
+    """@private"""
     TRIGGER_BUZZER_OFF = 16
+    """@private"""
     TRIGGER_FAN_ON = 32
+    """@private"""
     TRIGGER_FAN_OFF = 64
+    """@private"""
     TRIGGER_IMU_RESET = 128
+    """@private"""
     TRIGGER_RUNSTOP_ON = 256
+    """@private"""
     TRIGGER_BEEP = 512
+    """@private"""
     TRIGGER_LIGHTBAR_TEST = 1024
+    """@private"""
     TRIGGER_ENABLE_TRACE= 2048
+    """@private"""
     TRIGGER_DISABLE_TRACE=4096
+    """@private"""
 
 
     TRACE_TYPE_STATUS = 0
+    """@private"""
     TRACE_TYPE_DEBUG = 1
+    """@private"""
     TRACE_TYPE_PRINT = 2
+    """@private"""
 
 
     def __init__(self, event_reset=False, usb=None):
@@ -241,22 +330,35 @@ class PimuBase(Device):
         self.hw_valid = False
 
     def set_config(self,c):
+        """Set the configuration.
+
+        Parameters
+        ----------
+        c : dict.
+            A dictionary containing the configuration settings.
+        """
         self.config=c.copy()
         self._dirty_config = True
 
     def pull_status(self, exiting=False):
+        """Pull the status information from the hardware synchronously
+        """
         if not self.hw_valid:
             return
         payload = arr.array('B', [self.RPC_GET_PIMU_STATUS])
         self.transport.do_pull_rpc_sync(payload, self.rpc_status_reply)
 
     async def pull_status_async(self, exiting=False):
+        """Pull the status information from the hardware asynchronosly
+        """
         if not self.hw_valid:
             return
         payload = arr.array('B', [self.RPC_GET_PIMU_STATUS])
         await self.transport.do_pull_rpc_async(payload, self.rpc_status_reply, exiting=exiting)
 
     async def push_command_async(self, exiting=False):
+        """Push a command to the hardware asynchronously
+        """
         if not self.hw_valid:
             return
         payload = self.transport.get_empty_payload()
@@ -274,6 +376,8 @@ class PimuBase(Device):
             self._dirty_trigger = False
 
     def push_command(self, exiting=False):
+        """Push a command to the hardware synchronously
+        """
         if not self.hw_valid:
             return
         payload = self.transport.get_empty_payload()
@@ -291,6 +395,8 @@ class PimuBase(Device):
             self._dirty_trigger = False
 
     def pretty_print(self):
+        """Pretty print the status information of the Pimu.
+        """
         print('------ Pimu -----')
         print('Voltage',self.status['voltage'])
         print('Current', self.status['current'])
@@ -347,16 +453,27 @@ class PimuBase(Device):
         self._dirty_trigger=True
 
     def trigger_lightbar_test(self):
+        """Trigger a lghtbar test.
+        """
         self._trigger = self._trigger | self.TRIGGER_LIGHTBAR_TEST
         self._dirty_trigger = True
 
     # ####################### Utility functions ####################################################
     def imu_reset(self):
+        """Trigger an IMU reset.
+        """
         self._trigger=self._trigger | self.TRIGGER_IMU_RESET
         self._dirty_trigger=True
 
 
     def is_ready_for_sync(self):
+        """Check if the robot is ready for motor synchronization.
+
+        Returns
+        -------
+        bool:
+            True if it's ready for synchronization, False otberwise.
+        """
         # For RE1.0 robots (hardware_id==0) the runstop and sync line are shared
         # This limits the maximum rate that the motor sync can be triggered
         # For RE2.0 robots the sync rate is limited by the min pulse width (~10ms)
@@ -377,6 +494,8 @@ class PimuBase(Device):
         return True
 
     def trigger_motor_sync(self):
+        """Trigger motor synchronization.
+        """
         #Push out immediately
         if not self.hw_valid:
             return
@@ -386,42 +505,90 @@ class PimuBase(Device):
 
 
     def set_fan_on(self):
+        """Turn the fan on.
+        """
         self._trigger=self._trigger | self.TRIGGER_FAN_ON
         self._dirty_trigger=True
 
     def set_fan_off(self):
+        """Turn the fan off.
+        """
         self._trigger=self._trigger | self.TRIGGER_FAN_OFF
         self._dirty_trigger=True
 
     def set_buzzer_on(self):
+        """Turn the buzzer on.
+        """
         self._trigger=self._trigger | self.TRIGGER_BUZZER_ON
         self._dirty_trigger=True
 
     def set_buzzer_off(self):
+        """Turn the buzzer off.
+        """
         self._trigger=self._trigger | self.TRIGGER_BUZZER_OFF
         self._dirty_trigger=True
 
     def board_reset(self):
+        """Reset the board.
+        """
         self._trigger=self._trigger | self.TRIGGER_BOARD_RESET
         self._dirty_trigger=True
 
     def cliff_event_reset(self):
+        """Reset the cliff event.
+        """
         self._trigger=self._trigger | self.TRIGGER_CLIFF_EVENT_RESET
         self._dirty_trigger=True
 
     # ########### Sensor Calibration #################
     def get_voltage(self,raw):
+        """Convert raw ADC value to voltage.
+
+        Parameters
+        ----------
+        raw : int.
+            The raw value.
+
+        Returns
+        -------
+        float:
+            The voltage in volts.
+        """
         raw_to_V = 20.0/1024 #10bit adc, 0-20V per 0-3.3V reading
         return raw*raw_to_V
 
 
     def get_temp(self,raw):
+        """Convert raw value to temperature in degrees Celsius
+
+        Parameters
+        ----------
+        raw : int.
+            The raw value.
+
+        Returns
+        -------
+        float:
+            The temperature in degrees Celsius.
+        """
         raw_to_mV = 3300/1024.0
         mV = raw*raw_to_mV - 400 #400mV at 0C per spec
         C = mV/19.5 #19.5mV per C per spec
         return C
 
     def get_current(self,raw):
+        """Convert raw value to current in amperes.
+
+        Parameters
+        ----------
+        raw : int.
+            The raw value.
+
+        Returns
+        -------
+        float:
+            The current in amperes.
+        """
         raw_to_mV = 3300 / 1024.0
         mV = raw * raw_to_mV
         mA = mV/.408 # conversion per circuit
@@ -429,6 +596,18 @@ class PimuBase(Device):
     # ################Data Packing #####################
 
     def unpack_board_info(self,s):
+        """Unpack board information from a byte array.
+
+        Parameters
+        ----------
+        s : bytes.
+            The byte array containing board information.
+
+        Returns
+        -------
+        int:
+            The index #### NEED TO CHECK #####
+        """
         sidx=0
         self.board_info['board_variant'] = unpack_string_t(s[sidx:], 20)
         self.board_info['hardware_id'] = 0
@@ -441,6 +620,20 @@ class PimuBase(Device):
         return sidx
 
     def pack_config(self,s,sidx):
+        """Packs configuration data starting at index sidx.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string to which configuration data will be packed.
+        sidx : int.
+            The starting index in the byte string `s`.
+
+        Returns
+        -------
+        int:
+            The index of the next unused byte in the byte string `s` after packing.
+        """
         for i in range(4):
             pack_float_t(s, sidx, self.config['cliff_zero'][i])
             sidx += 4
@@ -473,66 +666,123 @@ class PimuBase(Device):
         return sidx
 
     def pack_trigger(self,s,sidx):
+        """Packs trigger data starting at index sidx.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string to which trigger data will be packed.
+        sidx : int.
+            The starting index in the byte string `s`.
+
+        Returns
+        -------
+        int:
+            The index of the next unused byte in the byte string `s` after packing.
+        """
         pack_uint32_t(s,sidx,self._trigger); sidx+=4
         return sidx
 
     def unpack_status(self,s):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))
 
     def read_firmware_trace(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def rpc_read_firmware_trace_reply(self, reply):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def enable_firmware_trace(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def disable_firmware_trace(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
 
     def pull_status_aux(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))
 
 
     def push_load_test(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def pull_load_test(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
         # ################Transport Callbacks #####################
 
     def rpc_motor_sync_reply(self,reply):
+        """Handle the reply to a motor sync RPC.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the RPC call.
+        """
         if reply[0] != self.RPC_REPLY_MOTOR_SYNC:
             self.logger.warning('Error RPC_REPLY_MOTOR_SYNC', reply[0])
 
     def rpc_config_reply(self,reply):
+        """Handle the reply to a configuration RPC.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the RPC.
+        """
         if reply[0] != self.RPC_REPLY_PIMU_CONFIG:
             self.logger.warning('Error RPC_REPLY_PIMU_CONFIG', reply[0])
 
     def rpc_board_info_reply(self,reply):
+        """Handle the reply to a board information RPC.
+
+        Parameters
+        ----------
+        reply : list
+            The reply received from the RPC.
+        """
         if reply[0] == self.RPC_REPLY_PIMU_BOARD_INFO:
             self.unpack_board_info(reply[1:])
         else:
             self.logger.warning('Error RPC_REPLY_PIMU_BOARD_INFO', reply[0])
 
     def rpc_trigger_reply(self,reply):
+        """Handle the reply to a trigger RPC.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the RPC.
+        """
         if reply[0] != self.RPC_REPLY_PIMU_TRIGGER:
             self.logger.warning('Error RPC_REPLY_PIMU_TRIGGER', reply[0])
         else:
             tt=unpack_uint32_t(reply[1:])
 
     def rpc_status_reply(self,reply):
+        """Handle the reply to a status RPC.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the RPC.
+        """
         if reply[0] == self.RPC_REPLY_PIMU_STATUS:
             self.unpack_status(reply[1:])
         else:
@@ -541,6 +791,13 @@ class PimuBase(Device):
 
     # ################ Sentry #####################
     def get_cpu_temp(self):
+        """Get the CPU temperature.
+
+        Returns
+        -------
+        float:
+            The CPU temperature.
+        """
         #Note, this call can be slow
         cpu_temp = 0
         try:
@@ -552,6 +809,14 @@ class PimuBase(Device):
         return cpu_temp
 
     def step_sentry(self,robot=None):
+        """Step the sentry system for managing CPU temperature using the mobile base fan.
+
+        Notes
+        -----
+        - The function checks the CPU temperature every 10 seconds as it is slow-changing.
+        - The fan will turn on if the CPU temperature exceeds the 'base_fan_on' threshold and has been off for at least 3 seconds.
+        - The fan will turn off if the CPU temperature falls below the 'base_fan_off' threshold and was previously on.
+        """
         if self.hw_valid and self.robot_params['robot_sentry']['base_fan_control']:
             #Manage CPU temp using the mobile base fan
             #See https://www.intel.com/content/www/us/en/support/articles/000005946/intel-nuc.html
@@ -581,6 +846,18 @@ class PimuBase(Device):
 
 class Pimu_Protocol_P0(PimuBase):
     def unpack_status(self,s):
+        """Unpacks status information and updated the `self.status` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte array containing packed status information.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         sidx=0
         sidx +=self.imu.unpack_status((s[sidx:]))
         self.status['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
@@ -616,6 +893,21 @@ class Pimu_Protocol_P0(PimuBase):
 # ######################## PIMU PROTOCOL P1 #################################
 class Pimu_Protocol_P1(PimuBase):
     def unpack_status(self, s, unpack_to=None):
+        """Unpacks status information and updates the `unpack_to` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string containing packed status data.
+        
+        unpack_to : dict, optional.
+            A dictionary to store the unpacked status information, by default None.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         if unpack_to is None:
             unpack_to = self.status
 
@@ -661,6 +953,13 @@ class Pimu_Protocol_P1(PimuBase):
 class Pimu_Protocol_P2(PimuBase):
 
     def read_firmware_trace(self):
+        """Read firmware trace data.
+
+        Returns
+        -------
+        list:
+            A list containing the firmware trace data..
+        """
         self.trace_buf = []
         self.timestamp.reset() #Timestamp holds state, reset within lock to avoid threading issues
         self.n_trace_read=1
@@ -672,6 +971,21 @@ class Pimu_Protocol_P2(PimuBase):
         return self.trace_buf
 
     def unpack_debug_trace(self,s,unpack_to):
+        """Unpacks debug trace data into the `unpack_to` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            The byte string containing debug trace information.
+        
+        unpack_to : dict.
+            A dictionary to store the unpacked information.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         sidx=0
         unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
         unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
@@ -681,6 +995,21 @@ class Pimu_Protocol_P2(PimuBase):
         return sidx
 
     def unpack_print_trace(self,s,unpack_to):
+        """Unpacks and prints trace information into the `unpack_to` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            The byte string containing print trace information.
+        
+        unpack_to : dict.
+            The index indicating the position in the byte array after unpacking.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         sidx=0
         line_len=32
         unpack_to['timestamp']=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
@@ -689,6 +1018,13 @@ class Pimu_Protocol_P2(PimuBase):
         return sidx
 
     def rpc_read_firmware_trace_reply(self, reply):
+        """Process the reply received after reading firmware trace data.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the device.
+        """
         if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
             self.n_trace_read=reply[1]
             self.trace_buf.append({'id': len(self.trace_buf), 'status': {},'debug':{},'print':{}})
@@ -706,14 +1042,33 @@ class Pimu_Protocol_P2(PimuBase):
             self.n_trace_read=0
             self.trace_buf = []
     def enable_firmware_trace(self):
+        """Enable firmware trace on the device.
+        """
         self._trigger = self._trigger | self.TRIGGER_ENABLE_TRACE
         self._dirty_trigger = True
 
     def disable_firmware_trace(self):
+        """Disable firmware trace on the device
+        """
         self._trigger = self._trigger | self.TRIGGER_DISABLE_TRACE
         self._dirty_trigger = True
 
     def unpack_status(self, s, unpack_to=None):
+        """Unpack status information from a byte array.
+
+        Parameters
+        ----------
+        s : bytes.
+            The byte array containing the status information.
+        
+        unpack_to : dict, optional
+            A dictionary to sotre the unpacked status information, by default None
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         if unpack_to is None:
             unpack_to = self.status
 
@@ -762,6 +1117,8 @@ class Pimu_Protocol_P3(PimuBase):
         """
         return True
     def trigger_motor_sync(self):
+        """Trigger motor synchronization on the device.
+        """
         # Push out immediately
         if not self.hw_valid:
             return
@@ -781,6 +1138,13 @@ class Pimu_Protocol_P3(PimuBase):
         self.ts_last_motor_sync = t
 
     def rpc_motor_sync_reply(self,reply):
+        """Handle the reply to the motor synchronization command.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received.
+        """
         if reply[0] != self.RPC_REPLY_MOTOR_SYNC:
             self.logger.warning('Error RPC_REPLY_MOTOR_SYNC', reply[0])
         else:
@@ -788,6 +1152,18 @@ class Pimu_Protocol_P3(PimuBase):
 
 
     def unpack_motor_sync_reply(self, s):
+        """Unpacks motor synchronization data from byte array.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte array containing the motor synchronization data.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         # take in an array of bytes
         # this needs to exactly match the C struct format
         sidx=0
@@ -796,6 +1172,8 @@ class Pimu_Protocol_P3(PimuBase):
         return sidx
 
     def pull_status_aux(self):
+        """Pull auxiliary status information.
+        """
         if not self.hw_valid:
             return
         payload = arr.array('B', [self.RPC_GET_PIMU_STATUS_AUX])
@@ -803,12 +1181,31 @@ class Pimu_Protocol_P3(PimuBase):
 
 
     def rpc_status_aux_reply(self,reply):
+        """Handle the reply to the auxiliary status command.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received.
+        """
         if reply[0] == self.RPC_REPLY_PIMU_STATUS_AUX:
             self.unpack_status_aux(reply[1:])
         else:
             self.logger.warning('Error RPC_REPLY_PIMU_AUX_STATUS', reply[0])
 
     def unpack_status_aux(self, s):
+        """Unpacks auxiliary status data.
+
+        Parameters
+        ----------
+        s : bytes.
+            The byte array containing the auxiliary status data.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         # take in an array of bytes
         # this needs to exactly match the C struct format
         sidx=0
@@ -816,6 +1213,8 @@ class Pimu_Protocol_P3(PimuBase):
         return sidx
 
     def push_load_test(self):
+        """Push a load test payload.
+        """
         if not self.hw_valid:
             return
         payload=self.transport.get_empty_payload()
@@ -824,6 +1223,8 @@ class Pimu_Protocol_P3(PimuBase):
         self.transport.do_push_rpc_sync(payload, self.rpc_load_test_push_reply)
 
     def pull_load_test(self):
+        """Pull a load test payload.
+        """
         if not self.hw_valid:
             return
         payload = arr.array('B',[self.RPC_LOAD_TEST_PULL])
@@ -831,10 +1232,24 @@ class Pimu_Protocol_P3(PimuBase):
 
 
     def rpc_load_test_push_reply(self, reply):
+        """Handle the reply to the load test push command.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received.
+        """
         if reply[0] != self.RPC_REPLY_LOAD_TEST_PUSH:
             print('Error RPC_REPLY_LOAD_TEST_PUSH', reply[0])
 
     def rpc_load_test_pull_reply(self, reply):
+        """Handle the reply to the load test pull command.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received.
+        """
         if reply[0] == self.RPC_REPLY_LOAD_TEST_PULL:
             d = reply[1:]
             for i in range(1024):

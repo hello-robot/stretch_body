@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 14.0.0"/>
+    <meta name="generator" content="pdoc 14.1.0"/>
     <title>stretch_body.hello_utils API documentation</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20role%3D%22img%22%20aria-label%3D%22pdoc%20logo%22%20width%3D%22300%22%20height%3D%22150%22%20viewBox%3D%22-1%200%2060%2030%22%3E%3Ctitle%3Epdoc%3C/title%3E%3Cpath%20d%3D%22M29.621%2021.293c-.011-.273-.214-.475-.511-.481a.5.5%200%200%200-.489.503l-.044%201.393c-.097.551-.695%201.215-1.566%201.704-.577.428-1.306.486-2.193.182-1.426-.617-2.467-1.654-3.304-2.487l-.173-.172a3.43%203.43%200%200%200-.365-.306.49.49%200%200%200-.286-.196c-1.718-1.06-4.931-1.47-7.353.191l-.219.15c-1.707%201.187-3.413%202.131-4.328%201.03-.02-.027-.49-.685-.141-1.763.233-.721.546-2.408.772-4.076.042-.09.067-.187.046-.288.166-1.347.277-2.625.241-3.351%201.378-1.008%202.271-2.586%202.271-4.362%200-.976-.272-1.935-.788-2.774-.057-.094-.122-.18-.184-.268.033-.167.052-.339.052-.516%200-1.477-1.202-2.679-2.679-2.679-.791%200-1.496.352-1.987.9a6.3%206.3%200%200%200-1.001.029c-.492-.564-1.207-.929-2.012-.929-1.477%200-2.679%201.202-2.679%202.679A2.65%202.65%200%200%200%20.97%206.554c-.383.747-.595%201.572-.595%202.41%200%202.311%201.507%204.29%203.635%205.107-.037.699-.147%202.27-.423%203.294l-.137.461c-.622%202.042-2.515%208.257%201.727%2010.643%201.614.908%203.06%201.248%204.317%201.248%202.665%200%204.492-1.524%205.322-2.401%201.476-1.559%202.886-1.854%206.491.82%201.877%201.393%203.514%201.753%204.861%201.068%202.223-1.713%202.811-3.867%203.399-6.374.077-.846.056-1.469.054-1.537zm-4.835%204.313c-.054.305-.156.586-.242.629-.034-.007-.131-.022-.307-.157-.145-.111-.314-.478-.456-.908.221.121.432.25.675.355.115.039.219.051.33.081zm-2.251-1.238c-.05.33-.158.648-.252.694-.022.001-.125-.018-.307-.157-.217-.166-.488-.906-.639-1.573.358.344.754.693%201.198%201.036zm-3.887-2.337c-.006-.116-.018-.231-.041-.342.635.145%201.189.368%201.599.625.097.231.166.481.174.642-.03.049-.055.101-.067.158-.046.013-.128.026-.298.004-.278-.037-.901-.57-1.367-1.087zm-1.127-.497c.116.306.176.625.12.71-.019.014-.117.045-.345.016-.206-.027-.604-.332-.986-.695.41-.051.816-.056%201.211-.031zm-4.535%201.535c.209.22.379.47.358.598-.006.041-.088.138-.351.234-.144.055-.539-.063-.979-.259a11.66%2011.66%200%200%200%20.972-.573zm.983-.664c.359-.237.738-.418%201.126-.554.25.237.479.548.457.694-.006.042-.087.138-.351.235-.174.064-.694-.105-1.232-.375zm-3.381%201.794c-.022.145-.061.29-.149.401-.133.166-.358.248-.69.251h-.002c-.133%200-.306-.26-.45-.621.417.091.854.07%201.291-.031zm-2.066-8.077a4.78%204.78%200%200%201-.775-.584c.172-.115.505-.254.88-.378l-.105.962zm-.331%202.302a10.32%2010.32%200%200%201-.828-.502c.202-.143.576-.328.984-.49l-.156.992zm-.45%202.157l-.701-.403c.214-.115.536-.249.891-.376a11.57%2011.57%200%200%201-.19.779zm-.181%201.716c.064.398.194.702.298.893-.194-.051-.435-.162-.736-.398.061-.119.224-.3.438-.495zM8.87%204.141c0%20.152-.123.276-.276.276s-.275-.124-.275-.276.123-.276.276-.276.275.124.275.276zm-.735-.389a1.15%201.15%200%200%200-.314.783%201.16%201.16%200%200%200%201.162%201.162c.457%200%20.842-.27%201.032-.653.026.117.042.238.042.362a1.68%201.68%200%200%201-1.679%201.679%201.68%201.68%200%200%201-1.679-1.679c0-.843.626-1.535%201.436-1.654zM5.059%205.406A1.68%201.68%200%200%201%203.38%207.085a1.68%201.68%200%200%201-1.679-1.679c0-.037.009-.072.011-.109.21.3.541.508.935.508a1.16%201.16%200%200%200%201.162-1.162%201.14%201.14%200%200%200-.474-.912c.015%200%20.03-.005.045-.005.926.001%201.679.754%201.679%201.68zM3.198%204.141c0%20.152-.123.276-.276.276s-.275-.124-.275-.276.123-.276.276-.276.275.124.275.276zM1.375%208.964c0-.52.103-1.035.288-1.52.466.394%201.06.64%201.717.64%201.144%200%202.116-.725%202.499-1.738.383%201.012%201.355%201.738%202.499%201.738.867%200%201.631-.421%202.121-1.062.307.605.478%201.267.478%201.942%200%202.486-2.153%204.51-4.801%204.51s-4.801-2.023-4.801-4.51zm24.342%2019.349c-.985.498-2.267.168-3.813-.979-3.073-2.281-5.453-3.199-7.813-.705-1.315%201.391-4.163%203.365-8.423.97-3.174-1.786-2.239-6.266-1.261-9.479l.146-.492c.276-1.02.395-2.457.444-3.268a6.11%206.11%200%200%200%201.18.115%206.01%206.01%200%200%200%202.536-.562l-.006.175c-.802.215-1.848.612-2.021%201.25-.079.295.021.601.274.837.219.203.415.364.598.501-.667.304-1.243.698-1.311%201.179-.02.144-.022.507.393.787.213.144.395.26.564.365-1.285.521-1.361.96-1.381%201.126-.018.142-.011.496.427.746l.854.489c-.473.389-.971.914-.999%201.429-.018.278.095.532.316.713.675.556%201.231.721%201.653.721.059%200%20.104-.014.158-.02.207.707.641%201.64%201.513%201.64h.013c.8-.008%201.236-.345%201.462-.626.173-.216.268-.457.325-.692.424.195.93.374%201.372.374.151%200%20.294-.021.423-.068.732-.27.944-.704.993-1.021.009-.061.003-.119.002-.179.266.086.538.147.789.147.15%200%20.294-.021.423-.069.542-.2.797-.489.914-.754.237.147.478.258.704.288.106.014.205.021.296.021.356%200%20.595-.101.767-.229.438.435%201.094.992%201.656%201.067.106.014.205.021.296.021a1.56%201.56%200%200%200%20.323-.035c.17.575.453%201.289.866%201.605.358.273.665.362.914.362a.99.99%200%200%200%20.421-.093%201.03%201.03%200%200%200%20.245-.164c.168.428.39.846.68%201.068.358.273.665.362.913.362a.99.99%200%200%200%20.421-.093c.317-.148.512-.448.639-.762.251.157.495.257.726.257.127%200%20.25-.024.37-.071.427-.17.706-.617.841-1.314.022-.015.047-.022.068-.038.067-.051.133-.104.196-.159-.443%201.486-1.107%202.761-2.086%203.257zM8.66%209.925a.5.5%200%201%200-1%200c0%20.653-.818%201.205-1.787%201.205s-1.787-.552-1.787-1.205a.5.5%200%201%200-1%200c0%201.216%201.25%202.205%202.787%202.205s2.787-.989%202.787-2.205zm4.4%2015.965l-.208.097c-2.661%201.258-4.708%201.436-6.086.527-1.542-1.017-1.88-3.19-1.844-4.198a.4.4%200%200%200-.385-.414c-.242-.029-.406.164-.414.385-.046%201.249.367%203.686%202.202%204.896.708.467%201.547.7%202.51.7%201.248%200%202.706-.392%204.362-1.174l.185-.086a.4.4%200%200%200%20.205-.527c-.089-.204-.326-.291-.527-.206zM9.547%202.292c.093.077.205.114.317.114a.5.5%200%200%200%20.318-.886L8.817.397a.5.5%200%200%200-.703.068.5.5%200%200%200%20.069.703l1.364%201.124zm-7.661-.065c.086%200%20.173-.022.253-.068l1.523-.893a.5.5%200%200%200-.506-.863l-1.523.892a.5.5%200%200%200-.179.685c.094.158.261.247.432.247z%22%20transform%3D%22matrix%28-1%200%200%201%2058%200%29%22%20fill%3D%22%233bb300%22/%3E%3Cpath%20d%3D%22M.3%2021.86V10.18q0-.46.02-.68.04-.22.18-.5.28-.54%201.34-.54%201.06%200%201.42.28.38.26.44.78.76-1.04%202.38-1.04%201.64%200%203.1%201.54%201.46%201.54%201.46%203.58%200%202.04-1.46%203.58-1.44%201.54-3.08%201.54-1.64%200-2.38-.92v4.04q0%20.46-.04.68-.02.22-.18.5-.14.3-.5.42-.36.12-.98.12-.62%200-1-.12-.36-.12-.52-.4-.14-.28-.18-.5-.02-.22-.02-.68zm3.96-9.42q-.46.54-.46%201.18%200%20.64.46%201.18.48.52%201.2.52.74%200%201.24-.52.52-.52.52-1.18%200-.66-.48-1.18-.48-.54-1.26-.54-.76%200-1.22.54zm14.741-8.36q.16-.3.54-.42.38-.12%201-.12.64%200%201.02.12.38.12.52.42.16.3.18.54.04.22.04.68v11.94q0%20.46-.04.7-.02.22-.18.5-.3.54-1.7.54-1.38%200-1.54-.98-.84.96-2.34.96-1.8%200-3.28-1.56-1.48-1.58-1.48-3.66%200-2.1%201.48-3.68%201.5-1.58%203.28-1.58%201.48%200%202.3%201v-4.2q0-.46.02-.68.04-.24.18-.52zm-3.24%2010.86q.52.54%201.26.54.74%200%201.22-.54.5-.54.5-1.18%200-.66-.48-1.22-.46-.56-1.26-.56-.8%200-1.28.56-.48.54-.48%201.2%200%20.66.52%201.2zm7.833-1.2q0-2.4%201.68-3.96%201.68-1.56%203.84-1.56%202.16%200%203.82%201.56%201.66%201.54%201.66%203.94%200%201.66-.86%202.96-.86%201.28-2.1%201.9-1.22.6-2.54.6-1.32%200-2.56-.64-1.24-.66-2.1-1.92-.84-1.28-.84-2.88zm4.18%201.44q.64.48%201.3.48.66%200%201.32-.5.66-.5.66-1.48%200-.98-.62-1.46-.62-.48-1.34-.48-.72%200-1.34.5-.62.5-.62%201.48%200%20.96.64%201.46zm11.412-1.44q0%20.84.56%201.32.56.46%201.18.46.64%200%201.18-.36.56-.38.9-.38.6%200%201.46%201.06.46.58.46%201.04%200%20.76-1.1%201.42-1.14.8-2.8.8-1.86%200-3.58-1.34-.82-.64-1.34-1.7-.52-1.08-.52-2.36%200-1.3.52-2.34.52-1.06%201.34-1.7%201.66-1.32%203.54-1.32.76%200%201.48.22.72.2%201.06.4l.32.2q.36.24.56.38.52.4.52.92%200%20.5-.42%201.14-.72%201.1-1.38%201.1-.38%200-1.08-.44-.36-.34-1.04-.34-.66%200-1.24.48-.58.48-.58%201.34z%22%20fill%3D%22green%22/%3E%3C/svg%3E"/>
 
@@ -218,7 +218,7 @@
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---------------------------------------------------------------------</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="k">def</span> <span class="nf">create_time_string</span><span class="p">(</span><span class="n">time_format</span><span class="o">=</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">):</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>    <span class="sd">&quot;&quot;&quot;Returns current time formatted as `time_format`</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns current time formatted as `time_format`</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">    Parameters</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    ----------</span>
@@ -264,7 +264,7 @@
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
 </span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a><span class="k">def</span> <span class="nf">get_stretch_directory</span><span class="p">(</span><span class="n">sub_directory</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="sd">&quot;&quot;&quot;Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">    Parameters</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">    ----------</span>
@@ -281,7 +281,7 @@
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="k">return</span> <span class="n">full_path</span>
 </span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="k">def</span> <span class="nf">read_fleet_yaml</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">fleet_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="sd">&quot;&quot;&quot;Reads yaml by filename from fleet directory</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads yaml by filename from fleet directory</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
 </span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    Parameters</span>
 </span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">    ----------</span>
@@ -317,7 +317,7 @@
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
 </span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>
 </span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="k">def</span> <span class="nf">overwrite_dict</span><span class="p">(</span><span class="n">overwritee_dict</span><span class="p">,</span> <span class="n">overwriter_dict</span><span class="p">):</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="sd">&quot;&quot;&quot;Merge two dictionaries while overwriting common keys and</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Merge two dictionaries while overwriting common keys and</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">    report errors when values of the same key differ in Python</span>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">    type. The result gets stored in `overwritee_dict`.</span>
 </span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
@@ -350,7 +350,7 @@
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="k">return</span> <span class="n">no_mismatches</span>
 </span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a><span class="k">def</span> <span class="nf">pretty_print_dict</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="sd">&quot;&quot;&quot;Print human readable representation of dictionary to terminal</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Print human readable representation of dictionary to terminal</span>
 </span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="sd">    Parameters</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="sd">    ----------</span>
@@ -370,7 +370,7 @@
 </span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="k">class</span> <span class="nc">LoopStats</span><span class="p">():</span>
-</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>    <span class="sd">&quot;&quot;&quot;Track timing statistics for control loops</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Track timing statistics for control loops</span>
 </span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loop_name</span><span class="p">,</span> <span class="n">target_loop_rate</span><span class="p">):</span>
@@ -470,7 +470,7 @@
 </span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="k">if</span> <span class="n">save</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save</span><span class="p">)</span>
 </span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>
 </span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a>    <span class="k">def</span> <span class="nf">get_loop_sleep_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a><span class="sd">        Returns</span>
 </span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a><span class="sd">        -------</span>
 </span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a><span class="sd">        float : Time to sleep for to hit target loop rate</span>
@@ -486,7 +486,7 @@
 </span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>
 </span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>
 </span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a><span class="k">class</span> <span class="nc">ThreadServiceExit</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a><span class="sd">    Custom exception which is used to trigger the clean exit</span>
 </span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a><span class="sd">    of all running threads and the main program.</span>
 </span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -498,7 +498,7 @@
 </span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>    <span class="k">raise</span> <span class="n">ThreadServiceExit</span>
 </span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>
 </span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="k">def</span> <span class="nf">evaluate_polynomial_at</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>    <span class="sd">&quot;&quot;&quot;Evaluate a quintic polynomial at a given time.</span>
+</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate a quintic polynomial at a given time.</span>
 </span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a>
 </span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a><span class="sd">    Parameters</span>
 </span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a><span class="sd">    ----------</span>
@@ -521,7 +521,7 @@
 </span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>    <span class="k">return</span> <span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">vel</span><span class="p">,</span> <span class="n">accel</span><span class="p">)</span>
 </span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a>
 </span><span id="L-319"><a href="#L-319"><span class="linenos">319</span></a><span class="k">def</span> <span class="nf">is_segment_feasible</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="n">v_des</span><span class="p">,</span> <span class="n">a_des</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
-</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a>    <span class="sd">&quot;&quot;&quot;Determine whether a segment adheres to dynamic limits.</span>
+</span><span id="L-320"><a href="#L-320"><span class="linenos">320</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine whether a segment adheres to dynamic limits.</span>
 </span><span id="L-321"><a href="#L-321"><span class="linenos">321</span></a>
 </span><span id="L-322"><a href="#L-322"><span class="linenos">322</span></a><span class="sd">    Parameters</span>
 </span><span id="L-323"><a href="#L-323"><span class="linenos">323</span></a><span class="sd">    ----------</span>
@@ -561,7 +561,7 @@
 </span><span id="L-357"><a href="#L-357"><span class="linenos">357</span></a>    <span class="k">return</span> <span class="n">success</span><span class="p">,</span> <span class="n">max_v</span><span class="p">,</span> <span class="n">max_a</span>
 </span><span id="L-358"><a href="#L-358"><span class="linenos">358</span></a>
 </span><span id="L-359"><a href="#L-359"><span class="linenos">359</span></a><span class="k">def</span> <span class="nf">generate_quintic_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a>    <span class="sd">&quot;&quot;&quot;Generate quintic polynomial from two points</span>
+</span><span id="L-360"><a href="#L-360"><span class="linenos">360</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate quintic polynomial from two points</span>
 </span><span id="L-361"><a href="#L-361"><span class="linenos">361</span></a>
 </span><span id="L-362"><a href="#L-362"><span class="linenos">362</span></a><span class="sd">    Parameters</span>
 </span><span id="L-363"><a href="#L-363"><span class="linenos">363</span></a><span class="sd">    ----------</span>
@@ -588,7 +588,7 @@
 </span><span id="L-384"><a href="#L-384"><span class="linenos">384</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">duration</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a3</span><span class="p">,</span> <span class="n">a4</span><span class="p">,</span> <span class="n">a5</span><span class="p">]</span>
 </span><span id="L-385"><a href="#L-385"><span class="linenos">385</span></a>
 </span><span id="L-386"><a href="#L-386"><span class="linenos">386</span></a><span class="k">def</span> <span class="nf">generate_cubic_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a>    <span class="sd">&quot;&quot;&quot;Generate cubic polynomial from two points</span>
+</span><span id="L-387"><a href="#L-387"><span class="linenos">387</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate cubic polynomial from two points</span>
 </span><span id="L-388"><a href="#L-388"><span class="linenos">388</span></a>
 </span><span id="L-389"><a href="#L-389"><span class="linenos">389</span></a><span class="sd">    Parameters</span>
 </span><span id="L-390"><a href="#L-390"><span class="linenos">390</span></a><span class="sd">    ----------</span>
@@ -613,7 +613,7 @@
 </span><span id="L-409"><a href="#L-409"><span class="linenos">409</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">duration</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 </span><span id="L-410"><a href="#L-410"><span class="linenos">410</span></a>
 </span><span id="L-411"><a href="#L-411"><span class="linenos">411</span></a><span class="k">def</span> <span class="nf">generate_linear_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a>    <span class="sd">&quot;&quot;&quot;Generate linear polynomial from two points</span>
+</span><span id="L-412"><a href="#L-412"><span class="linenos">412</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate linear polynomial from two points</span>
 </span><span id="L-413"><a href="#L-413"><span class="linenos">413</span></a>
 </span><span id="L-414"><a href="#L-414"><span class="linenos">414</span></a><span class="sd">    Parameters</span>
 </span><span id="L-415"><a href="#L-415"><span class="linenos">415</span></a><span class="sd">    ----------</span>
@@ -636,7 +636,7 @@
 </span><span id="L-432"><a href="#L-432"><span class="linenos">432</span></a>    <span class="k">return</span> <span class="p">[</span><span class="n">duration</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 </span><span id="L-433"><a href="#L-433"><span class="linenos">433</span></a>
 </span><span id="L-434"><a href="#L-434"><span class="linenos">434</span></a><span class="k">def</span> <span class="nf">get_pose_diff</span><span class="p">(</span><span class="n">pose0</span><span class="p">,</span> <span class="n">pose1</span><span class="p">,</span> <span class="n">translation_atol</span><span class="o">=</span><span class="mf">2e-3</span><span class="p">,</span> <span class="n">rotation_atol</span><span class="o">=</span><span class="mf">2e-2</span><span class="p">):</span>
-</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a>    <span class="sd">&quot;&quot;&quot;Return the motion required to get from pose 0 to pose 1.</span>
+</span><span id="L-435"><a href="#L-435"><span class="linenos">435</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the motion required to get from pose 0 to pose 1.</span>
 </span><span id="L-436"><a href="#L-436"><span class="linenos">436</span></a>
 </span><span id="L-437"><a href="#L-437"><span class="linenos">437</span></a><span class="sd">    Assumed that between pose 0 and pose 1, there has only been</span>
 </span><span id="L-438"><a href="#L-438"><span class="linenos">438</span></a><span class="sd">    either a translation or rotation motion.</span>
@@ -689,7 +689,7 @@
 </span><span id="L-485"><a href="#L-485"><span class="linenos">485</span></a>
 </span><span id="L-486"><a href="#L-486"><span class="linenos">486</span></a>
 </span><span id="L-487"><a href="#L-487"><span class="linenos">487</span></a><span class="k">def</span> <span class="nf">check_deprecated_contact_model_base</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span><span class="n">method_name</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="p">,</span><span class="n">contact_thresh</span> <span class="p">):</span>
-</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-488"><a href="#L-488"><span class="linenos">488</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-489"><a href="#L-489"><span class="linenos">489</span></a><span class="sd">    With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)</span>
 </span><span id="L-490"><a href="#L-490"><span class="linenos">490</span></a><span class="sd">    Catch older code that is using the older API and require updating of code</span>
 </span><span id="L-491"><a href="#L-491"><span class="linenos">491</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -715,7 +715,7 @@
 </span><span id="L-511"><a href="#L-511"><span class="linenos">511</span></a>        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 </span><span id="L-512"><a href="#L-512"><span class="linenos">512</span></a>
 </span><span id="L-513"><a href="#L-513"><span class="linenos">513</span></a><span class="k">def</span> <span class="nf">check_deprecated_contact_model_prismatic_joint</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span><span class="n">method_name</span><span class="p">,</span> <span class="n">contact_thresh_pos_N</span><span class="p">,</span><span class="n">contact_thresh_neg_N</span><span class="p">,</span><span class="n">contact_thresh_pos</span><span class="p">,</span><span class="n">contact_thresh_neg</span> <span class="p">):</span>
-</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-514"><a href="#L-514"><span class="linenos">514</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-515"><a href="#L-515"><span class="linenos">515</span></a><span class="sd">    With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)</span>
 </span><span id="L-516"><a href="#L-516"><span class="linenos">516</span></a><span class="sd">    Catch older code that is using the older API and require updating of code</span>
 </span><span id="L-517"><a href="#L-517"><span class="linenos">517</span></a><span class="sd">    For code that was, for example:</span>
@@ -794,7 +794,7 @@
     </div>
     <a class="headerlink" href="#create_time_string"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="create_time_string-17"><a href="#create_time_string-17"><span class="linenos">17</span></a><span class="k">def</span> <span class="nf">create_time_string</span><span class="p">(</span><span class="n">time_format</span><span class="o">=</span><span class="s1">&#39;%Y%m</span><span class="si">%d</span><span class="s1">%H%M%S&#39;</span><span class="p">):</span>
-</span><span id="create_time_string-18"><a href="#create_time_string-18"><span class="linenos">18</span></a>    <span class="sd">&quot;&quot;&quot;Returns current time formatted as `time_format`</span>
+</span><span id="create_time_string-18"><a href="#create_time_string-18"><span class="linenos">18</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns current time formatted as `time_format`</span>
 </span><span id="create_time_string-19"><a href="#create_time_string-19"><span class="linenos">19</span></a>
 </span><span id="create_time_string-20"><a href="#create_time_string-20"><span class="linenos">20</span></a><span class="sd">    Parameters</span>
 </span><span id="create_time_string-21"><a href="#create_time_string-21"><span class="linenos">21</span></a><span class="sd">    ----------</span>
@@ -993,7 +993,7 @@
     </div>
     <a class="headerlink" href="#get_stretch_directory"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_stretch_directory-63"><a href="#get_stretch_directory-63"><span class="linenos">63</span></a><span class="k">def</span> <span class="nf">get_stretch_directory</span><span class="p">(</span><span class="n">sub_directory</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-</span><span id="get_stretch_directory-64"><a href="#get_stretch_directory-64"><span class="linenos">64</span></a>    <span class="sd">&quot;&quot;&quot;Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists</span>
+</span><span id="get_stretch_directory-64"><a href="#get_stretch_directory-64"><span class="linenos">64</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists</span>
 </span><span id="get_stretch_directory-65"><a href="#get_stretch_directory-65"><span class="linenos">65</span></a>
 </span><span id="get_stretch_directory-66"><a href="#get_stretch_directory-66"><span class="linenos">66</span></a><span class="sd">    Parameters</span>
 </span><span id="get_stretch_directory-67"><a href="#get_stretch_directory-67"><span class="linenos">67</span></a><span class="sd">    ----------</span>
@@ -1038,7 +1038,7 @@
     </div>
     <a class="headerlink" href="#read_fleet_yaml"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="read_fleet_yaml-80"><a href="#read_fleet_yaml-80"><span class="linenos"> 80</span></a><span class="k">def</span> <span class="nf">read_fleet_yaml</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">fleet_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="read_fleet_yaml-81"><a href="#read_fleet_yaml-81"><span class="linenos"> 81</span></a>    <span class="sd">&quot;&quot;&quot;Reads yaml by filename from fleet directory</span>
+</span><span id="read_fleet_yaml-81"><a href="#read_fleet_yaml-81"><span class="linenos"> 81</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads yaml by filename from fleet directory</span>
 </span><span id="read_fleet_yaml-82"><a href="#read_fleet_yaml-82"><span class="linenos"> 82</span></a>
 </span><span id="read_fleet_yaml-83"><a href="#read_fleet_yaml-83"><span class="linenos"> 83</span></a><span class="sd">    Parameters</span>
 </span><span id="read_fleet_yaml-84"><a href="#read_fleet_yaml-84"><span class="linenos"> 84</span></a><span class="sd">    ----------</span>
@@ -1117,7 +1117,7 @@
     </div>
     <a class="headerlink" href="#overwrite_dict"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="overwrite_dict-116"><a href="#overwrite_dict-116"><span class="linenos">116</span></a><span class="k">def</span> <span class="nf">overwrite_dict</span><span class="p">(</span><span class="n">overwritee_dict</span><span class="p">,</span> <span class="n">overwriter_dict</span><span class="p">):</span>
-</span><span id="overwrite_dict-117"><a href="#overwrite_dict-117"><span class="linenos">117</span></a>    <span class="sd">&quot;&quot;&quot;Merge two dictionaries while overwriting common keys and</span>
+</span><span id="overwrite_dict-117"><a href="#overwrite_dict-117"><span class="linenos">117</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Merge two dictionaries while overwriting common keys and</span>
 </span><span id="overwrite_dict-118"><a href="#overwrite_dict-118"><span class="linenos">118</span></a><span class="sd">    report errors when values of the same key differ in Python</span>
 </span><span id="overwrite_dict-119"><a href="#overwrite_dict-119"><span class="linenos">119</span></a><span class="sd">    type. The result gets stored in `overwritee_dict`.</span>
 </span><span id="overwrite_dict-120"><a href="#overwrite_dict-120"><span class="linenos">120</span></a>
@@ -1182,7 +1182,7 @@ overwriter_dict : dict
     </div>
     <a class="headerlink" href="#pretty_print_dict"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="pretty_print_dict-149"><a href="#pretty_print_dict-149"><span class="linenos">149</span></a><span class="k">def</span> <span class="nf">pretty_print_dict</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
-</span><span id="pretty_print_dict-150"><a href="#pretty_print_dict-150"><span class="linenos">150</span></a>    <span class="sd">&quot;&quot;&quot;Print human readable representation of dictionary to terminal</span>
+</span><span id="pretty_print_dict-150"><a href="#pretty_print_dict-150"><span class="linenos">150</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Print human readable representation of dictionary to terminal</span>
 </span><span id="pretty_print_dict-151"><a href="#pretty_print_dict-151"><span class="linenos">151</span></a>
 </span><span id="pretty_print_dict-152"><a href="#pretty_print_dict-152"><span class="linenos">152</span></a><span class="sd">    Parameters</span>
 </span><span id="pretty_print_dict-153"><a href="#pretty_print_dict-153"><span class="linenos">153</span></a><span class="sd">    ----------</span>
@@ -1225,7 +1225,7 @@ d : dict
     </div>
     <a class="headerlink" href="#LoopStats"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="LoopStats-169"><a href="#LoopStats-169"><span class="linenos">169</span></a><span class="k">class</span> <span class="nc">LoopStats</span><span class="p">():</span>
-</span><span id="LoopStats-170"><a href="#LoopStats-170"><span class="linenos">170</span></a>    <span class="sd">&quot;&quot;&quot;Track timing statistics for control loops</span>
+</span><span id="LoopStats-170"><a href="#LoopStats-170"><span class="linenos">170</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Track timing statistics for control loops</span>
 </span><span id="LoopStats-171"><a href="#LoopStats-171"><span class="linenos">171</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="LoopStats-172"><a href="#LoopStats-172"><span class="linenos">172</span></a>
 </span><span id="LoopStats-173"><a href="#LoopStats-173"><span class="linenos">173</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loop_name</span><span class="p">,</span> <span class="n">target_loop_rate</span><span class="p">):</span>
@@ -1325,7 +1325,7 @@ d : dict
 </span><span id="LoopStats-267"><a href="#LoopStats-267"><span class="linenos">267</span></a>        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="k">if</span> <span class="n">save</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save</span><span class="p">)</span>
 </span><span id="LoopStats-268"><a href="#LoopStats-268"><span class="linenos">268</span></a>
 </span><span id="LoopStats-269"><a href="#LoopStats-269"><span class="linenos">269</span></a>    <span class="k">def</span> <span class="nf">get_loop_sleep_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="LoopStats-270"><a href="#LoopStats-270"><span class="linenos">270</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="LoopStats-270"><a href="#LoopStats-270"><span class="linenos">270</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LoopStats-271"><a href="#LoopStats-271"><span class="linenos">271</span></a><span class="sd">        Returns</span>
 </span><span id="LoopStats-272"><a href="#LoopStats-272"><span class="linenos">272</span></a><span class="sd">        -------</span>
 </span><span id="LoopStats-273"><a href="#LoopStats-273"><span class="linenos">273</span></a><span class="sd">        float : Time to sleep for to hit target loop rate</span>
@@ -1674,7 +1674,7 @@ d : dict
     </div>
     <a class="headerlink" href="#LoopStats.get_loop_sleep_time"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="LoopStats.get_loop_sleep_time-269"><a href="#LoopStats.get_loop_sleep_time-269"><span class="linenos">269</span></a>    <span class="k">def</span> <span class="nf">get_loop_sleep_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="LoopStats.get_loop_sleep_time-270"><a href="#LoopStats.get_loop_sleep_time-270"><span class="linenos">270</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="LoopStats.get_loop_sleep_time-270"><a href="#LoopStats.get_loop_sleep_time-270"><span class="linenos">270</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="LoopStats.get_loop_sleep_time-271"><a href="#LoopStats.get_loop_sleep_time-271"><span class="linenos">271</span></a><span class="sd">        Returns</span>
 </span><span id="LoopStats.get_loop_sleep_time-272"><a href="#LoopStats.get_loop_sleep_time-272"><span class="linenos">272</span></a><span class="sd">        -------</span>
 </span><span id="LoopStats.get_loop_sleep_time-273"><a href="#LoopStats.get_loop_sleep_time-273"><span class="linenos">273</span></a><span class="sd">        float : Time to sleep for to hit target loop rate</span>
@@ -1726,7 +1726,7 @@ d : dict
     </div>
     <a class="headerlink" href="#ThreadServiceExit"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="ThreadServiceExit-285"><a href="#ThreadServiceExit-285"><span class="linenos">285</span></a><span class="k">class</span> <span class="nc">ThreadServiceExit</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-</span><span id="ThreadServiceExit-286"><a href="#ThreadServiceExit-286"><span class="linenos">286</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="ThreadServiceExit-286"><a href="#ThreadServiceExit-286"><span class="linenos">286</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="ThreadServiceExit-287"><a href="#ThreadServiceExit-287"><span class="linenos">287</span></a><span class="sd">    Custom exception which is used to trigger the clean exit</span>
 </span><span id="ThreadServiceExit-288"><a href="#ThreadServiceExit-288"><span class="linenos">288</span></a><span class="sd">    of all running threads and the main program.</span>
 </span><span id="ThreadServiceExit-289"><a href="#ThreadServiceExit-289"><span class="linenos">289</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -1786,7 +1786,7 @@ of all running threads and the main program.</p>
     </div>
     <a class="headerlink" href="#evaluate_polynomial_at"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="evaluate_polynomial_at-297"><a href="#evaluate_polynomial_at-297"><span class="linenos">297</span></a><span class="k">def</span> <span class="nf">evaluate_polynomial_at</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
-</span><span id="evaluate_polynomial_at-298"><a href="#evaluate_polynomial_at-298"><span class="linenos">298</span></a>    <span class="sd">&quot;&quot;&quot;Evaluate a quintic polynomial at a given time.</span>
+</span><span id="evaluate_polynomial_at-298"><a href="#evaluate_polynomial_at-298"><span class="linenos">298</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaluate a quintic polynomial at a given time.</span>
 </span><span id="evaluate_polynomial_at-299"><a href="#evaluate_polynomial_at-299"><span class="linenos">299</span></a>
 </span><span id="evaluate_polynomial_at-300"><a href="#evaluate_polynomial_at-300"><span class="linenos">300</span></a><span class="sd">    Parameters</span>
 </span><span id="evaluate_polynomial_at-301"><a href="#evaluate_polynomial_at-301"><span class="linenos">301</span></a><span class="sd">    ----------</span>
@@ -1840,7 +1840,7 @@ t : float
     </div>
     <a class="headerlink" href="#is_segment_feasible"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="is_segment_feasible-320"><a href="#is_segment_feasible-320"><span class="linenos">320</span></a><span class="k">def</span> <span class="nf">is_segment_feasible</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="n">v_des</span><span class="p">,</span> <span class="n">a_des</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
-</span><span id="is_segment_feasible-321"><a href="#is_segment_feasible-321"><span class="linenos">321</span></a>    <span class="sd">&quot;&quot;&quot;Determine whether a segment adheres to dynamic limits.</span>
+</span><span id="is_segment_feasible-321"><a href="#is_segment_feasible-321"><span class="linenos">321</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine whether a segment adheres to dynamic limits.</span>
 </span><span id="is_segment_feasible-322"><a href="#is_segment_feasible-322"><span class="linenos">322</span></a>
 </span><span id="is_segment_feasible-323"><a href="#is_segment_feasible-323"><span class="linenos">323</span></a><span class="sd">    Parameters</span>
 </span><span id="is_segment_feasible-324"><a href="#is_segment_feasible-324"><span class="linenos">324</span></a><span class="sd">    ----------</span>
@@ -1921,7 +1921,7 @@ max_a: float
     </div>
     <a class="headerlink" href="#generate_quintic_polynomial"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="generate_quintic_polynomial-360"><a href="#generate_quintic_polynomial-360"><span class="linenos">360</span></a><span class="k">def</span> <span class="nf">generate_quintic_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="generate_quintic_polynomial-361"><a href="#generate_quintic_polynomial-361"><span class="linenos">361</span></a>    <span class="sd">&quot;&quot;&quot;Generate quintic polynomial from two points</span>
+</span><span id="generate_quintic_polynomial-361"><a href="#generate_quintic_polynomial-361"><span class="linenos">361</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate quintic polynomial from two points</span>
 </span><span id="generate_quintic_polynomial-362"><a href="#generate_quintic_polynomial-362"><span class="linenos">362</span></a>
 </span><span id="generate_quintic_polynomial-363"><a href="#generate_quintic_polynomial-363"><span class="linenos">363</span></a><span class="sd">    Parameters</span>
 </span><span id="generate_quintic_polynomial-364"><a href="#generate_quintic_polynomial-364"><span class="linenos">364</span></a><span class="sd">    ----------</span>
@@ -1979,7 +1979,7 @@ f : List(float)
     </div>
     <a class="headerlink" href="#generate_cubic_polynomial"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="generate_cubic_polynomial-387"><a href="#generate_cubic_polynomial-387"><span class="linenos">387</span></a><span class="k">def</span> <span class="nf">generate_cubic_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="generate_cubic_polynomial-388"><a href="#generate_cubic_polynomial-388"><span class="linenos">388</span></a>    <span class="sd">&quot;&quot;&quot;Generate cubic polynomial from two points</span>
+</span><span id="generate_cubic_polynomial-388"><a href="#generate_cubic_polynomial-388"><span class="linenos">388</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate cubic polynomial from two points</span>
 </span><span id="generate_cubic_polynomial-389"><a href="#generate_cubic_polynomial-389"><span class="linenos">389</span></a>
 </span><span id="generate_cubic_polynomial-390"><a href="#generate_cubic_polynomial-390"><span class="linenos">390</span></a><span class="sd">    Parameters</span>
 </span><span id="generate_cubic_polynomial-391"><a href="#generate_cubic_polynomial-391"><span class="linenos">391</span></a><span class="sd">    ----------</span>
@@ -2035,7 +2035,7 @@ f : List(float)
     </div>
     <a class="headerlink" href="#generate_linear_polynomial"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="generate_linear_polynomial-412"><a href="#generate_linear_polynomial-412"><span class="linenos">412</span></a><span class="k">def</span> <span class="nf">generate_linear_polynomial</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-</span><span id="generate_linear_polynomial-413"><a href="#generate_linear_polynomial-413"><span class="linenos">413</span></a>    <span class="sd">&quot;&quot;&quot;Generate linear polynomial from two points</span>
+</span><span id="generate_linear_polynomial-413"><a href="#generate_linear_polynomial-413"><span class="linenos">413</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate linear polynomial from two points</span>
 </span><span id="generate_linear_polynomial-414"><a href="#generate_linear_polynomial-414"><span class="linenos">414</span></a>
 </span><span id="generate_linear_polynomial-415"><a href="#generate_linear_polynomial-415"><span class="linenos">415</span></a><span class="sd">    Parameters</span>
 </span><span id="generate_linear_polynomial-416"><a href="#generate_linear_polynomial-416"><span class="linenos">416</span></a><span class="sd">    ----------</span>
@@ -2089,7 +2089,7 @@ f : List(float)
     </div>
     <a class="headerlink" href="#get_pose_diff"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_pose_diff-435"><a href="#get_pose_diff-435"><span class="linenos">435</span></a><span class="k">def</span> <span class="nf">get_pose_diff</span><span class="p">(</span><span class="n">pose0</span><span class="p">,</span> <span class="n">pose1</span><span class="p">,</span> <span class="n">translation_atol</span><span class="o">=</span><span class="mf">2e-3</span><span class="p">,</span> <span class="n">rotation_atol</span><span class="o">=</span><span class="mf">2e-2</span><span class="p">):</span>
-</span><span id="get_pose_diff-436"><a href="#get_pose_diff-436"><span class="linenos">436</span></a>    <span class="sd">&quot;&quot;&quot;Return the motion required to get from pose 0 to pose 1.</span>
+</span><span id="get_pose_diff-436"><a href="#get_pose_diff-436"><span class="linenos">436</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the motion required to get from pose 0 to pose 1.</span>
 </span><span id="get_pose_diff-437"><a href="#get_pose_diff-437"><span class="linenos">437</span></a>
 </span><span id="get_pose_diff-438"><a href="#get_pose_diff-438"><span class="linenos">438</span></a><span class="sd">    Assumed that between pose 0 and pose 1, there has only been</span>
 </span><span id="get_pose_diff-439"><a href="#get_pose_diff-439"><span class="linenos">439</span></a><span class="sd">    either a translation or rotation motion.</span>
@@ -2191,7 +2191,7 @@ pose1 : Tuple(float, float, float)
     </div>
     <a class="headerlink" href="#check_deprecated_contact_model_base"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="check_deprecated_contact_model_base-488"><a href="#check_deprecated_contact_model_base-488"><span class="linenos">488</span></a><span class="k">def</span> <span class="nf">check_deprecated_contact_model_base</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span><span class="n">method_name</span><span class="p">,</span> <span class="n">contact_thresh_N</span><span class="p">,</span><span class="n">contact_thresh</span> <span class="p">):</span>
-</span><span id="check_deprecated_contact_model_base-489"><a href="#check_deprecated_contact_model_base-489"><span class="linenos">489</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="check_deprecated_contact_model_base-489"><a href="#check_deprecated_contact_model_base-489"><span class="linenos">489</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="check_deprecated_contact_model_base-490"><a href="#check_deprecated_contact_model_base-490"><span class="linenos">490</span></a><span class="sd">    With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)</span>
 </span><span id="check_deprecated_contact_model_base-491"><a href="#check_deprecated_contact_model_base-491"><span class="linenos">491</span></a><span class="sd">    Catch older code that is using the older API and require updating of code</span>
 </span><span id="check_deprecated_contact_model_base-492"><a href="#check_deprecated_contact_model_base-492"><span class="linenos">492</span></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -2236,7 +2236,7 @@ Catch older code that is using the older API and require updating of code</p>
     </div>
     <a class="headerlink" href="#check_deprecated_contact_model_prismatic_joint"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="check_deprecated_contact_model_prismatic_joint-514"><a href="#check_deprecated_contact_model_prismatic_joint-514"><span class="linenos">514</span></a><span class="k">def</span> <span class="nf">check_deprecated_contact_model_prismatic_joint</span><span class="p">(</span><span class="n">joint</span><span class="p">,</span><span class="n">method_name</span><span class="p">,</span> <span class="n">contact_thresh_pos_N</span><span class="p">,</span><span class="n">contact_thresh_neg_N</span><span class="p">,</span><span class="n">contact_thresh_pos</span><span class="p">,</span><span class="n">contact_thresh_neg</span> <span class="p">):</span>
-</span><span id="check_deprecated_contact_model_prismatic_joint-515"><a href="#check_deprecated_contact_model_prismatic_joint-515"><span class="linenos">515</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="check_deprecated_contact_model_prismatic_joint-515"><a href="#check_deprecated_contact_model_prismatic_joint-515"><span class="linenos">515</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="check_deprecated_contact_model_prismatic_joint-516"><a href="#check_deprecated_contact_model_prismatic_joint-516"><span class="linenos">516</span></a><span class="sd">    With RE2 we are transitioning entire stretch fleet to use new API (and effort_pct for the contact model)</span>
 </span><span id="check_deprecated_contact_model_prismatic_joint-517"><a href="#check_deprecated_contact_model_prismatic_joint-517"><span class="linenos">517</span></a><span class="sd">    Catch older code that is using the older API and require updating of code</span>
 </span><span id="check_deprecated_contact_model_prismatic_joint-518"><a href="#check_deprecated_contact_model_prismatic_joint-518"><span class="linenos">518</span></a><span class="sd">    For code that was, for example:</span>

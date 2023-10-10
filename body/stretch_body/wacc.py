@@ -22,28 +22,49 @@ class WaccBase(Device):
     ext_command_cb: Callback to handle custom command data
     """
     RPC_SET_WACC_CONFIG = 1
+    """@private"""
     RPC_REPLY_WACC_CONFIG = 2
+    """@private"""
     RPC_GET_WACC_STATUS = 3
+    """@private"""
     RPC_REPLY_WACC_STATUS = 4
+    """@private"""
     RPC_SET_WACC_COMMAND = 5
+    """@private"""
     RPC_REPLY_WACC_COMMAND = 6
+    """@private"""
     RPC_GET_WACC_BOARD_INFO = 7
+    """@private"""
     RPC_REPLY_WACC_BOARD_INFO = 8
+    """@private"""
     RPC_READ_TRACE =9
+    """@private"""
     RPC_REPLY_READ_TRACE =10
+    """@private"""
     RPC_LOAD_TEST_PUSH = 11
+    """@private"""
     RPC_REPLY_LOAD_TEST_PUSH = 12
+    """@private"""
     RPC_LOAD_TEST_PULL = 13
+    """@private"""
     RPC_REPLY_LOAD_TEST_PULL = 14
+    """@private"""
 
     TRIGGER_BOARD_RESET = 1
+    """@private"""
     TRIGGER_ENABLE_TRACE = 2
+    """@private"""
     TRIGGER_DISABLE_TRACE = 4
+    """@private"""
 
     STATE_IS_TRACE_ON = 1
+    """@private"""
     TRACE_TYPE_STATUS = 0
+    """@private"""
     TRACE_TYPE_DEBUG = 1
+    """@private"""
     TRACE_TYPE_PRINT = 2
+    """@private"""
 
 
     def __init__(self, ext_status_cb=None, ext_command_cb=None, usb=None):
@@ -109,6 +130,13 @@ class WaccBase(Device):
         self._dirty_command = True
 
     def pull_status(self,exiting=False):
+        """Pull the status.
+
+        Parameters
+        ----------
+        exiting : bool, optional
+            Flag indicating if the operation is exiting, by default False
+        """
         if not self.hw_valid:
             return
         # Queue Status RPC
@@ -116,12 +144,26 @@ class WaccBase(Device):
         self.transport.do_pull_rpc_sync(payload, self.rpc_status_reply,exiting=exiting )
 
     async def pull_status_async(self,exiting=False):
+        """Pull the status in an asynchronous way.
+
+        Parameters
+        ----------
+        exiting : bool, optional
+            Flag indicating if the operation is exiting, by default False
+        """
         if not self.hw_valid:
             return
         payload = arr.array('B', [self.RPC_GET_WACC_STATUS])
         await self.transport.do_pull_rpc_async(payload, self.rpc_status_reply, exiting=exiting)
 
     async def push_command_async(self,exiting=False):
+        """Push the command in an asynchronously way.
+
+        Parameters
+        ----------
+        exiting : bool, optional
+            Flag indicating if the operation is exiting, by default False
+        """
         if not self.hw_valid:
             return
         payload = self.transport.get_empty_payload()
@@ -139,6 +181,13 @@ class WaccBase(Device):
             self._dirty_command=False
 
     def push_command(self,exiting=False):
+        """Push the command in a synchronous way.
+
+        Parameters
+        ----------
+        exiting : bool, optional
+            Flag indicating if the operation is exiting, by default False
+        """
         if not self.hw_valid:
             return
         payload = self.transport.get_empty_payload()
@@ -156,6 +205,8 @@ class WaccBase(Device):
             self._dirty_command=False
 
     def pretty_print(self):
+        """Print the status information of the wacc
+        """
         print('------------------------------')
         print('Ax (m/s^2)',self.status['ax'])
         print('Ay (m/s^2)', self.status['ay'])
@@ -175,12 +226,26 @@ class WaccBase(Device):
         print('Transport version:', self.transport.version)
     # ####################### Utility functions ####################################################
     def board_reset(self):
+        """Trigger a board reset.
+        """
         self._command['trigger']=self._command['trigger']| self.TRIGGER_BOARD_RESET
         self._dirty_command=True
 
     # ################Data Packing #####################
 
     def unpack_board_info(self,s):
+        """Unpack board information and updates the `self.board_info`.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string containing packed board information.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         sidx=0
         self.board_info['board_variant'] = unpack_string_t(s[sidx:], 20)
         self.board_info['hardware_id'] = 0
@@ -194,6 +259,21 @@ class WaccBase(Device):
 
 
     def pack_command(self,s,sidx):
+        """Packs command data starting at index sidx.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string to which command data will be packed.
+        
+        sidx : int.
+            The starting index in the byte string `s`.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         if self.ext_command_cb is not None:  # Pack custom data first
             sidx += self.ext_command_cb(s, sidx)
         pack_uint8_t(s, sidx, self._command['d2'])
@@ -205,6 +285,20 @@ class WaccBase(Device):
         return sidx
 
     def pack_config(self,s,sidx):
+        """Packs configuration data starting at index sidx.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string to which configuration data will be packed
+        sidx : int.
+            The starting index in the byte string `s`.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         pack_uint8_t(s, sidx, self.config['accel_range_g'])
         sidx += 1
         pack_float_t(s, sidx, self.config['accel_LPF'])
@@ -220,31 +314,38 @@ class WaccBase(Device):
         return sidx
 
     def unpack_status(self,s,unpack_to=None):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))
 
     def read_firmware_trace(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def rpc_read_firmware_trace_reply(self, reply):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def enable_firmware_trace(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def disable_firmware_trace(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
 
     def push_load_test(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def pull_load_test(self):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
@@ -252,24 +353,53 @@ class WaccBase(Device):
 
 
     def rpc_enable_transport_v1_reply(self, reply):
+        """@private"""
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
     def rpc_board_info_reply(self,reply):
+        """Process the reply to a board info RPC request.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the RPC request
+        """
         if reply[0] == self.RPC_REPLY_WACC_BOARD_INFO:
             self.unpack_board_info(reply[1:])
         else:
             self.logger.warning('Error RPC_REPLY_WACC_BOARD_INFO', reply[0])
 
     def rpc_command_reply(self,reply):
+        """Process the reply to a command RPC request.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the RPC request.
+        """
         if reply[0] != self.RPC_REPLY_WACC_COMMAND:
             self.logger.warning('Error RPC_REPLY_WACC_COMMAND', reply[0])
 
     def rpc_config_reply(self,reply):
+        """Process to reply to a config RPC request.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the RPC request.
+        """
         if reply[0] != self.RPC_REPLY_WACC_CONFIG:
             self.logger.warning('Error RPC_REPLY_WACC_CONFIG', reply[0])
 
     def rpc_status_reply(self,reply):
+        """Process to reply to a status RPC request.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the RPC request.
+        """
         if reply[0] == self.RPC_REPLY_WACC_STATUS:
             self.unpack_status(reply[1:])
         else:
@@ -280,6 +410,21 @@ class WaccBase(Device):
 
 class Wacc_Protocol_P0(WaccBase):
     def unpack_status(self,s,unpack_to=None):
+        """Unpacks status information and updates the `unpack_to` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string containing packed status data.
+        
+        unpack_to : dict, optional.
+            A dictionary to store the unpacked status information, by default None.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         if unpack_to is None:
             unpack_to=self.status
         sidx=0
@@ -303,6 +448,21 @@ class Wacc_Protocol_P0(WaccBase):
 # ######################## Wacc PROTOCOL P1 #################################
 class Wacc_Protocol_P1(WaccBase):
     def unpack_status(self,s,unpack_to=None):
+        """Unpacks status information and updates the `unpack_to` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string containing packed status data.
+        
+        unpack_to : dict, optional.
+            A dictionary to store the unpacked status information, by default None.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         if unpack_to is None:
             unpack_to=self.status
         sidx=0
@@ -325,6 +485,21 @@ class Wacc_Protocol_P1(WaccBase):
 # ######################## Wacc PROTOCOL P1 #################################
 class Wacc_Protocol_P2(WaccBase):
     def unpack_status(self,s,unpack_to=None):
+        """Unpacks status information and updates the `unpack_to` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            A byte string containing packed status data.
+        
+        unpack_to : dict, optional.
+            A dictionary to store the unpacked status information, by default None.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         if unpack_to is None:
             unpack_to=self.status
         sidx=0
@@ -346,6 +521,13 @@ class Wacc_Protocol_P2(WaccBase):
         return sidx
 
     def read_firmware_trace(self):
+        """Read the firmware trace data.
+
+        Returns
+        -------
+        list:
+            A list containing the firmware trace data
+        """
         self.trace_buf = []
         self.timestamp.reset() #Timestamp holds state, reset within lock to avoid threading issues
         self.n_trace_read=1
@@ -358,6 +540,21 @@ class Wacc_Protocol_P2(WaccBase):
 
 
     def unpack_debug_trace(self,s,unpack_to):
+        """Unpacks debug trace data into the `unpack_to` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            The byte string containing debug trace information.
+        
+        unpack_to : dict.
+            A dictionary to store the unpacked information.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         sidx=0
         unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
         unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
@@ -367,6 +564,21 @@ class Wacc_Protocol_P2(WaccBase):
         return sidx
 
     def unpack_print_trace(self,s,unpack_to):
+        """Unpacks and prints trace information into the `unpack_to` dictionary.
+
+        Parameters
+        ----------
+        s : bytes.
+            The byte string containing print trace information.
+        
+        unpack_to : dict.
+            The index indicating the position in the byte array after unpacking.
+
+        Returns
+        -------
+        int:
+            The index indicating the position in the byte array after unpacking.
+        """
         sidx=0
         line_len=32
         unpack_to['timestamp']=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
@@ -375,6 +587,13 @@ class Wacc_Protocol_P2(WaccBase):
         return sidx
 
     def rpc_read_firmware_trace_reply(self, reply):
+        """Handle the RPC reply for reading the firmware trace data.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received from the device, containing trace data and related information.
+        """
         if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
             self.n_trace_read=reply[1]
             self.trace_buf.append({'id': len(self.trace_buf), 'status': {},'debug':{},'print':{}})
@@ -393,15 +612,21 @@ class Wacc_Protocol_P2(WaccBase):
             self.trace_buf = []
 
     def enable_firmware_trace(self):
+        """Enable firmware trace.
+        """
         self._command['trigger']=self._command['trigger']| self.TRIGGER_ENABLE_TRACE
         self._dirty_command = True
 
     def disable_firmware_trace(self):
+        """Disable firmware trace.
+        """
         self._command['trigger']=self._command['trigger']| self.TRIGGER_DISABLE_TRACE
         self._dirty_command = True
 
 class Wacc_Protocol_P3(WaccBase):
     def push_load_test(self):
+        """Push a load test.
+        """
         if not self.hw_valid:
             return
         payload=self.transport.get_empty_payload()
@@ -410,6 +635,8 @@ class Wacc_Protocol_P3(WaccBase):
         self.transport.do_push_rpc_sync(payload, self.rpc_load_test_push_reply)
 
     def pull_load_test(self):
+        """Pull a load test.
+        """
         if not self.hw_valid:
             return
         payload = arr.array('B',[self.RPC_LOAD_TEST_PULL])
@@ -417,10 +644,24 @@ class Wacc_Protocol_P3(WaccBase):
 
 
     def rpc_load_test_push_reply(self, reply):
+        """Handle the RPC reply for pushing a load test.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received, indicating the status of the load test push.
+        """
         if reply[0] != self.RPC_REPLY_LOAD_TEST_PUSH:
             print('Error RPC_REPLY_LOAD_TEST_PUSH', reply[0])
 
     def rpc_load_test_pull_reply(self, reply):
+        """Handle the RPC reply for pulling a load test.
+
+        Parameters
+        ----------
+        reply : list.
+            The reply received, containing load test data.
+        """
         if reply[0] == self.RPC_REPLY_LOAD_TEST_PULL:
             d = reply[1:]
             for i in range(1024):

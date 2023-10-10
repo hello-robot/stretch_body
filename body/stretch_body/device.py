@@ -12,12 +12,27 @@ class DeviceTimestamp:
         self.reset()
 
     def reset(self):
+        """Resets the timestamp related attributes to their initial values.
+        """
         self.timestamp_last = None
         self.timestamp_base = 0
         self.timestamp_first = None
         self.ts_start = time.time()
 
     def set(self, ts): #take a timestamp from a uC in uS and put in terms of system clock
+        """Converts a timestamp from microcontroller in microseconds to system clock units and returns the
+        converted time.
+
+        Parameters
+        ----------
+        ts : int.
+            The timestamp from the microcontroller.
+
+        Returns
+        -------
+        float:
+            The converted timestamp in seconds bases on the system clock.
+        """
         if self.timestamp_last is None:  # First time
             self.timestamp_last = ts
             self.timestamp_first=ts
@@ -59,13 +74,13 @@ class Device:
 
         Parameters
         ----------
-        threaded : bool
-            whether a thread manages hardware polling/pushing in the background
+        threaded : bool.
+            Whether a thread manages hardware polling/pushing in the background
 
         Returns
         -------
-        bool
-            whether the startup procedure succeeded
+        bool:
+            Whether the startup procedure succeeded
         """
         self.thread_active = threaded
         if self.thread_active:
@@ -87,41 +102,54 @@ class Device:
             self.thread.join(1)
 
     def push_command(self):
+        """Push command used for different devices of the robot.
+        """
         pass
 
     def pull_status(self):
+        """Pull status used for different devices of the robot.
+        """
         pass
 
     def home(self,end_pos,to_positive_stop, measuring=False):
+        """Home used for different devices of the robot.
+        """
         pass
 
     def step_sentry(self,robot):
+        """Perform a step in the sentry routine.
+        """
         pass
 
     def pretty_print(self):
+        """Pretty print the parameters.
+        """
         print('----- {0} ------ '.format(self.name))
         hello_utils.pretty_print_dict("params", self.params)
 
     def write_device_params(self,device_name, params,fleet_dir=None):
+        """@private"""
         raise DeprecationWarning('This method has been deprecated since v0.3.0')
 
     def write_configuration_param_to_YAML(self,param_name,value,fleet_dir=None,force_creation=False):
         """
-        Update the robot configuration YAML with a new value
+        Update the robot configuration YAML with a new value.
         """
         self._write_param_to_YAML(param_name,value,filename='stretch_configuration_params.yaml',fleet_dir=fleet_dir,force_creation=force_creation)
 
     def write_user_param_to_YAML(self, param_name, value, fleet_dir=None,force_creation=False):
         """
-        Update the robot configuration YAML with a new value
+        Update the robot configuration YAML with a new value.
         """
         self._write_param_to_YAML(param_name, value, filename='stretch_user_params.yaml', fleet_dir=fleet_dir,force_creation=force_creation)
 
     def _write_param_to_YAML(self,param_name,value,filename,fleet_dir=None,force_creation=False):
         """
-        Update the YAML with a new value
+        Update the YAML with a new value.
+        
         The param_name has the form device.key, or for a nested dictionary, device.key1.key2...
-        For example, write_configuration_param_to_YAML('pimu.config.cliff_zero',100) will set this value to 100 in the YAML
+        
+        For example, write_configuration_param_to_YAML('pimu.config.cliff_zero',100) will set this value to 100 in the YAML.
         """
         cp = hello_utils.read_fleet_yaml(filename, fleet_dir=fleet_dir)
         param_keys=param_name.split('.')

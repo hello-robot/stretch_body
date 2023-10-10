@@ -50,6 +50,8 @@ class DXLHeadStatusThread(threading.Thread):
       trajectory.
     """
     def __init__(self, robot, target_rate_hz=15.0):
+        """This is a status thread that we will need for the robot class
+        """
         threading.Thread.__init__(self, name = self.__class__.__name__)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
@@ -104,6 +106,8 @@ class DXLEndOfArmStatusThread(threading.Thread):
     - The thread can be stopped gracefully by setting the `shutdown_flag`.
     """
     def __init__(self, robot, target_rate_hz=15.0):
+        """This is a status thread that we will need for the robot class
+        """
         threading.Thread.__init__(self, name = self.__class__.__name__)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
@@ -165,6 +169,8 @@ class NonDXLStatusThread(threading.Thread):
     - The thread can be stopped gracefully by setting the `shutdown_flag`.
     """
     def __init__(self, robot, target_rate_hz=25.0):
+        """This is a status thread that we will need for the robot class
+        """
         threading.Thread.__init__(self, name = self.__class__.__name__)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
@@ -238,6 +244,8 @@ class SystemMonitorThread(threading.Thread):
 
     """
     def __init__(self, robot, target_rate_hz=25.0):
+        """This is a thread that we will need for the robot class
+        """
         threading.Thread.__init__(self, name = self.__class__.__name__)
         self.robot=robot
         self.robot_update_rate_hz = target_rate_hz
