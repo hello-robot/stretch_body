@@ -70,17 +70,17 @@ class Device:
     # ########### Primary interface #############
 
     def startup(self, threaded=False):
-        """Starts machinery required to interface with this device
+        """Starts machinery required to interface with this device.
 
         Parameters
         ----------
         threaded : bool.
-            Whether a thread manages hardware polling/pushing in the background
+            Whether a thread manages hardware polling/pushing in the background.
 
         Returns
         -------
         bool:
-            Whether the startup procedure succeeded
+            Whether the startup procedure succeeded.
         """
         self.thread_active = threaded
         if self.thread_active:

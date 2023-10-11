@@ -20,6 +20,16 @@ class DynamixelCommErrorStats(Device):
         self.logger=logger
 
     def add_error(self,rx=True, gsr=False):
+        """Add a communication error.
+
+        Parameters
+        ----------
+        rx : bool, optional.
+            Indicates if the error is a receive (RX) error, by default True.
+        
+        gsr : bool, optional.
+            Indicates if the error is a group sync receive (GSR) error, by default False.
+        """
         t = time.time()
         if type(self.rate_log)==type(None): #First error
             self.rate_log=numpy.array([0.0] * self.n_log)
@@ -40,6 +50,8 @@ class DynamixelCommErrorStats(Device):
             self.pretty_print()
 
     def pretty_print(self):
+        """Display the error statistics.
+        """
         print('---- Dynamixel Comm Errors %s ----'%self.name)
         print('Rate (Hz): %f' % self.status['error_rate_avg_hz'])
         print('Rate (errors per minute): %f'%(self.status['error_rate_avg_hz']*60))
@@ -111,12 +123,15 @@ class DynamixelHelloXL430(Device):
 
     def check_homing_offset(self):
         """
-        Users may incorrectly set the homing offset on a single-turn servo
-        In general on single-turn servos, the homing offset should be zero
-        In some cases it may be non-zero but between -1024 and 1024 (per DXL spec)
+        Users may incorrectly set the homing offset on a single-turn servo.
+        
+        In general on single-turn servos, the homing offset should be zero.
+        
+        In some cases it may be non-zero but between -1024 and 1024 (per DXL spec).
+        
         If it is outside of the valid range it is ignored. However,
-        when the servo is placed in other control modes (eg vel) the reported encoder position start using the offset
-        This can create unexpected behavior
+        when the servo is placed in other control modes (eg vel) the reported encoder position start using the offset.
+        This can create unexpected behavior.
         """
         if not self.params['use_multiturn']:
             self.disable_torque()
@@ -129,46 +144,77 @@ class DynamixelHelloXL430(Device):
 
     def get_soft_motion_limits(self):
         """
-            Return the currently applied soft motion limits: [min, max]
+            Return the currently applied soft motion limits: [min, max].
 
             The soft motion limit restricts joint motion to be <= its physical limits.
 
             There are three types of limits:
-            Hard: The physical limits
-            Collision: Limits set by RobotCollision to avoid collisions
-            User: Limits set by the user software
+            - Hard: The physical limits.
+            - Collision: Limits set by RobotCollision to avoid collisions.
+            - User: Limits set by the user software.
 
             The joint is limited to the most restrictive range of the Hard / Collision/ User values.
             Specifying a value of None for a limit indicates that no constraint exists for that limit type.
             This allows a User limits and Collision limits to coexist.
+            
             For example, a user can temporarily restrict the range of motion beyond the current collision limits.
             Then, by commanding User limits of None, the joint limits will revert back to the collision settings.
         """
         return self.soft_motion_limits['current']
 
     def set_soft_motion_limit_min(self,x,limit_type='user' ):
-        """
-        x: value to set a joints limit to
-        limit_type: 'user' or 'collision'
+        """Set the minimum to soft motion limits.
+
+        Parameters
+        ----------
+        x : float.
+            The new minimum limit value.
+        limit_type : str, optional
+            The type of limit to set, 'user' or 'collision', by default 'user'
         """
         self.soft_motion_limits[limit_type][0]=x
         self.soft_motion_limits['current'][0]=max(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][0],self.soft_motion_limits['hard'][0],self.soft_motion_limits['user'][0]]))
 
 
     def set_soft_motion_limit_max(self,x,limit_type='user' ):
+        """Set the maximum to soft motion limits.
+
+        Parameters
+        ----------
+        x : float.
+            The new minimum limit value.
+        limit_type : str, optional
+            The type of limit to set, 'user' or 'collision', by default 'user'
         """
-        x: value to set a joints limit to
-        limit_type: 'user' or 'collision'
-        """
+        self.soft_m
         self.soft_motion_limits[limit_type][1]=x
         self.soft_motion_limits['current'][1]=min(filter(lambda x: x is not None, [self.soft_motion_limits['collision'][1],self.soft_motion_limits['hard'][1],self.soft_motion_limits['user'][1]]))
 
     # ###################################################
 
     def do_ping(self, verbose=False):
+        """Perform a ping operation.
+
+        Parameters
+        ----------
+        verbose : bool, optional.
+            If True, print information about the ping, by default False.
+
+        Returns
+        -------
+        bool:
+            True if the ping is successfull.
+        """
         return self.motor.do_ping(verbose)
 
     def check_servo_errors(self):
+        """Check for servo errors and provide warnings if detected.
+
+        Returns
+        -------
+        bool:
+            True if no servo errors detected, False if there is an error.
+        """
         if self.status['overload_error']:
             msg = 'WARNING: Servo %s in error state: overload_error. Reboot servo with stretch_robot_dynamixel_reboot.py' % self.name
             self.logger.warning(msg)
@@ -247,6 +293,18 @@ class DynamixelHelloXL430(Device):
             self.hw_valid = False
 
     def pull_status(self,data=None):
+        """Pulls and updates the status information for the servo motor.
+
+        Parameters
+        ----------
+        data : dict, optional.
+            A dictionary containing data for updating status, by default None.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs and the flag is set True.
+        """
         if not self.hw_valid:
             return
 
@@ -361,6 +419,8 @@ class DynamixelHelloXL430(Device):
             self.status['stall_overload'] = False
 
     def mark_zero(self):
+        """Mark the current position of the servo motor to zero.
+        """
         if not self.hw_valid:
             return
         x=self.motor.get_pos()
@@ -369,12 +429,12 @@ class DynamixelHelloXL430(Device):
         self.write_device_params(self.name, self.params)
 
     def wait_until_at_setpoint(self,timeout=15.0):
-        """Polls for moving status to wait until at commanded position goal
+        """Polls for moving status to wait until at commanded position goal.
 
         Returns
         -------
-        bool
-            True if success, False if timeout
+        bool:
+            True if success, False if timeout.
         """
         ts = time.time()
         while time.time() - ts < timeout:
@@ -384,6 +444,8 @@ class DynamixelHelloXL430(Device):
         return False
 
     def pretty_print(self):
+        """Print information of the servo's current status.
+        """
         if not self.hw_valid:
             print('----- HelloXL430 ------ ')
             print('Servo not on bus')
@@ -415,6 +477,24 @@ class DynamixelHelloXL430(Device):
         #self.motor.pretty_print()
 
     def bound_value(self, value, lower_bound, upper_bound):
+        """Bound a value within a specified range.
+
+        Parameters
+        ----------
+        value : float.
+            The value to be bounded.
+        
+        lower_bound : float.
+            The lower bound of the range.
+        
+        upper_bound : float.
+            The upper bound of the range.
+
+        Returns
+        -------
+        float:
+            The bounded value.
+        """
         if value < lower_bound:
             return lower_bound
         elif value > upper_bound:
@@ -423,6 +503,13 @@ class DynamixelHelloXL430(Device):
             return value
 
     def step_sentry(self, robot):
+        """Perform a step senty operation.
+
+        Parameters
+        ----------
+        robot : Robot.
+            The instance associated with the servo.
+        """
         if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:
             is_runstopped = robot.pimu.status['runstop_event']
             if is_runstopped is not self.was_runstopped:
@@ -481,6 +568,20 @@ class DynamixelHelloXL430(Device):
         self.vel_brake_zone_thresh = thresh
 
     def get_dist_to_limits(self,threshold=0.2):
+        """Get the distance to the soft motion limits.
+
+        Parameters
+        ----------
+        threshold : float, optional.
+            A threshold value to determine if the current position is close to the limits, by default 0.2.
+
+        Returns
+        -------
+        tuple:
+            A tuple containing two values: (delta1, delta2).
+            - delta1: The absolute distance between the current position and the lower limit.
+            - delta2: The absolute distance between the current position and the upper limit.
+        """
         current_position = self.status['pos']
         min_position = self.get_soft_motion_limits()[0]
         max_position =self.get_soft_motion_limits()[1]
@@ -495,21 +596,42 @@ class DynamixelHelloXL430(Device):
     # #####################################
 
     def reboot(self):
+        """Reboot the servo motor.
+        """
         if not self.hw_valid:
             return
         self.motor.do_reboot()
 
     def enable_torque(self):
+        """Enable torque for the servo motor.
+        """
         if not self.hw_valid:
             return
         self.motor.enable_torque()
 
     def disable_torque(self):
+        """Disable torque for the servo motor.
+        """
         if not self.hw_valid:
             return
         self.motor.disable_torque()
 
     def move_to_vel(self,v_des,a_des=None):
+        """Move the servo to a desired velocity.
+
+        Parameters
+        ----------
+        v_des : float.
+            The desired velocity.
+        
+        a_des : float, optional.
+            The desired acceleration, by default None.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         nretry = 2
         if not self.hw_valid:
             return
@@ -530,6 +652,21 @@ class DynamixelHelloXL430(Device):
                     raise DynamixelCommError
 
     def set_velocity(self,v_des,a_des=None):
+        """Set the velocity for the servo motor.
+
+        Parameters
+        ----------
+        v_des : float.
+            The desired velocity.
+        
+        a_des : float, optional.
+            The desired acceleration, by default None.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         v = min(self.params['motion']['max']['vel'],abs(v_des))
         v_des = -1*v if v_des<0 else v
         nretry = 2
@@ -599,12 +736,32 @@ class DynamixelHelloXL430(Device):
             self._prev_set_vel_ts = time.time()
 
     def enable_velocity_ctrl(self):
+            """Enable velocity control mode.
+            """
             self.motor.disable_torque()
             self.motor.enable_vel()
             self.motor.enable_torque()
             self.in_vel_mode = True
 
     def move_to(self,x_des, v_des=None, a_des=None):
+        """Move the servo to a desired position.
+
+        Parameters
+        ----------
+        x_des : float.
+            The desired position.
+        
+        v_des : float, optional.
+            The desired velocity, by default None.
+        
+        a_des : float, optional.
+            The desired acceleration, by default None.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         nretry = 2
         if not self.hw_valid:
             return
@@ -635,6 +792,24 @@ class DynamixelHelloXL430(Device):
                     raise DynamixelCommError
 
     def set_motion_params(self,v_des=None,a_des=None, force=False):
+        """Set motion control parameters.
+
+        Parameters
+        ----------
+        v_des : float, optional.
+            The desired velocity, by default None.
+        
+        a_des : float, optional.
+            The desired acceleration, by default None.
+        
+        force : bool, optional.
+            If True, forces an update of motion parameters, by default False.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         try:
             if not self.hw_valid:
                 return
@@ -657,6 +832,24 @@ class DynamixelHelloXL430(Device):
 
 
     def move_by(self,x_des, v_des=None, a_des=None):
+        """Move the servo by a specified position increment.
+
+        Parameters
+        ----------
+        x_des : float.
+            The desired position increment.
+        
+        v_des : float, optional.
+            The desired velocity, by default None.
+        
+        a_des : float, optional.
+            The desired acceleration, by default None.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         if not self.hw_valid:
             return
         if self.in_vel_mode:
@@ -679,6 +872,13 @@ class DynamixelHelloXL430(Device):
                 raise DynamixelCommError
 
     def quick_stop(self):
+        """Quickly stop the servo motor.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         if not self.hw_valid:
             return
         try:
@@ -691,6 +891,13 @@ class DynamixelHelloXL430(Device):
                 raise DynamixelCommError
 
     def enable_pos(self):
+        """Enable position control for the servo motor.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         if not self.hw_valid:
             return
         try:
@@ -709,6 +916,13 @@ class DynamixelHelloXL430(Device):
                 raise DynamixelCommError
 
     def enable_pwm(self):
+        """Enable PWM (Pulse-width modulation) control for the servo motor.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         if not self.hw_valid:
             return
         try:
@@ -723,6 +937,18 @@ class DynamixelHelloXL430(Device):
 
 
     def set_pwm(self,x):
+        """Set the PWM signal for the motor.
+
+        Parameters
+        ----------
+        x : int.
+            The PWM value to set for controlling the motor.
+
+        Raises
+        ------
+        DynamixelCommError:
+            If a communication error occurs flag is set True.
+        """
         if not self.hw_valid:
             return
         try:
@@ -736,9 +962,23 @@ class DynamixelHelloXL430(Device):
     # ######### Waypoint Trajectory Interface ##############################
 
     def is_trajectory_active(self):
+        """Check if the trajectory is currently active.
+
+        Returns
+        -------
+        bool:
+            True if the trajectory is still active, False otherwise.
+        """
         return self._waypoint_ts !=None
 
     def get_trajectory_ts(self):
+        """Get the time since the start of the trajectory.
+
+        Returns
+        -------
+        float:
+            The time in seconds since the start of the trajectory.
+        """
         #Return trajectory execution time
         if self.is_trajectory_active():
             return time.time()-self._waypoint_ts
@@ -748,28 +988,38 @@ class DynamixelHelloXL430(Device):
             return 0
 
     def get_trajectory_time_remaining(self):
+        """Get the remaining time in the trajectory.
+
+        Returns
+        -------
+        float:
+            The time in seconds remaining in the trajectory.
+        """
         if not self.is_trajectory_active():
             return 0
         else:
             return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
 
     def follow_trajectory(self, v_r=None, a_r=None, req_calibration=True, move_to_start_point=True):
-        """Starts executing a waypoint trajectory
+        """Starts executing a waypoint trajectory.
 
         `self.trajectory` must be populated with a valid trajectory before calling
         this method.
 
         Parameters
         ----------
-        v_r : float
-            velocity limit for trajectory in radians per second
-        a_r : float
-            acceleration limit for trajectory in radians per second squared
-        req_calibration : bool
-            whether to allow motion prior to homing
-        move_to_start_point : bool
+        v_r : float.
+            velocity limit for trajectory in radians per second.
+        
+        a_r : float.
+            acceleration limit for trajectory in radians per second squared.
+        
+        req_calibration : bool.
+            whether to allow motion prior to homing.
+        
+        move_to_start_point : bool.
             whether to move to the trajectory's start to avoid a jump, this
-            time to move doesn't count against the trajectory's timeline
+            time to move doesn't count against the trajectory's timeline.
         """
         # check if joint valid, homed, and previous trajectory not executing
         if not self.hw_valid:
@@ -851,7 +1101,7 @@ class DynamixelHelloXL430(Device):
 
 
     def stop_trajectory(self):
-        """Stop waypoint trajectory immediately and resets hardware
+        """Stop waypoint trajectory immediately and resets hardware.
         """
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
         self.trajectory.clear()
@@ -937,6 +1187,30 @@ class DynamixelHelloXL430(Device):
     """
 
     def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0,save_calibration=False,set_homing_offset=True):
+        """Home the servo motor, making the first hardstop as zero position.
+
+        Parameters
+        ----------
+        single_stop : bool, optional.
+            If true perform the home with a single hardstop, by default False.
+        
+        move_to_zero : bool, optional.
+            If True, move the servo to calibrated zero after homing, by default True.
+        
+        delay_at_stop : float, optional.
+            Delay time at each hardstop, by default 0.0.
+        
+        save_calibration : bool, optional.
+            If True, save calibration parameters to YAML, by default False.
+        
+        set_homing_offset : bool, optional.
+            If true, set the homing offset to zero after the first hardstop, by default True.
+
+        Returns
+        -------
+        bool:
+            True if homing is successfull, False otherwise.
+        """
         # Requires at least one hardstop in the pwm_homing[0] direction
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
@@ -1058,55 +1332,211 @@ class DynamixelHelloXL430(Device):
 # ##########################################
 
     def ticks_to_world_rad_per_sec_sec(self,t):
+        """Convert motor ticks to world radians per second squared.
+
+        Parameters
+        ----------
+        t : int.
+            Motor ticks per second squared.
+
+        Returns
+        -------
+        float:
+            World radians per second squared.
+        """
         rps_servo=self.ticks_to_rad_per_sec_sec(t)
         return self.polarity*rps_servo/self.params['gr']
 
     def ticks_to_world_rad_per_sec(self,t):
+        """Convert motor ticks to world radians per second.
+
+        Parameters
+        ----------
+        t : int.
+            Motor ticks per second.
+
+        Returns
+        -------
+        float:
+            World radians per second.
+        """
         rps_servo=self.ticks_to_rad_per_sec(t)
         return self.polarity*rps_servo/self.params['gr']
 
     def ticks_to_world_rad(self,t):
+        """Convert motor ticks to world radians.
+
+        Parameters
+        ----------
+        t : float.
+            Motor ticks.
+
+        Returns
+        -------
+        float:
+            World radians.
+        """
         t=t-self.params['zero_t']
         rad_servo = self.ticks_to_rad(t)
         return (self.polarity*rad_servo/self.params['gr'])
 
     def world_rad_to_ticks(self,r):
+        """Convert world radians to ticks.
+
+        Parameters
+        ----------
+        r : float.
+            World radians.
+
+        Returns
+        -------
+        int:
+            Motor ticks.
+        """
         rad_servo = r*self.params['gr']*self.polarity
         t= self.rad_to_ticks(rad_servo)
         return t+self.params['zero_t']
 
     def world_rad_to_ticks_per_sec(self,r):
+        """Convert world radians to ticks per second.
+
+        Parameters
+        ----------
+        r : float.
+            World radians per second.
+
+        Returns
+        -------
+        int:
+            Motor ticks per second.
+        """
         rad_per_sec_servo = r*self.params['gr']*self.polarity
         t= self.rad_per_sec_to_ticks(rad_per_sec_servo)
         return t
 
     def world_rad_to_ticks_per_sec_sec(self,r):
+        """Convert world radians to ticks per second squared.
+
+        Parameters
+        ----------
+        r : float.
+            World radians per second squared.
+
+        Returns
+        -------
+        int:
+            Motor ticks per second squared.
+        """
         rad_per_sec_sec_servo = r*self.params['gr']*self.polarity
         t= self.rad_per_sec_sec_to_ticks(rad_per_sec_sec_servo)
         return t
 
     def ticks_to_rad(self,t):
+        """Convert motor ticks to radians.
+
+        Parameters
+        ----------
+        t : int.
+            Motor ticks.
+
+        Returns
+        -------
+        float:
+            Radians.
+        """
         return deg_to_rad((360.0 * t / 4096.0))
 
     def rad_to_ticks(self,r):
+        """Convert radians to motor ticks.
+
+        Parameters
+        ----------
+        r : float.
+            Radians.
+
+        Returns
+        -------
+        int:
+            Motor ticks.
+        """
         return int( 4096.0 * rad_to_deg(r) / 360.0)
 
     def ticks_to_rad_per_sec(self,t):
+        """Convert motor ticks per second to radians per second.
+
+        Parameters
+        ----------
+        t : int.
+            Motor ticks per second.
+
+        Returns
+        -------
+        float:
+            Radians per second.
+        """
         rpm= t*0.229
         return deg_to_rad(rpm*360/60.0)
 
     def rad_per_sec_to_ticks(self,r):
+        """Convert radians per second to motor ticks.
+
+        Parameters
+        ----------
+        r : float.
+            Radians per second.
+
+        Returns
+        -------
+        int:
+            Motor ticks per second.
+        """
         rpm=rad_to_deg(r)*60/360.0
         return int(rpm/0.229)
 
     def ticks_to_rad_per_sec_sec(self,t):
+        """Convert motor ticks to radians per second squared.
+
+        Parameters
+        ----------
+        t : int.
+            Motor ticks per second squared.
+
+        Returns
+        -------
+        float:
+            Radians per second squared.
+        """
         rpmm=t*214.577
         return deg_to_rad(rpmm*360/60.0/60.0)
 
     def rad_per_sec_sec_to_ticks(self,r):
+        """Convert radians per second squared to motor ticks.
+
+        Parameters
+        ----------
+        r : float.
+            Radians per second squared.
+
+        Returns
+        -------
+        int:
+            Motor ticks per second squared.
+        """
         rpmm=rad_to_deg(r)*60*60/360.0
         return int(rpmm/214.577)
 
     def ticks_to_pct_load(self,t):
+        """Convert motor ticks to percentage load.
+
+        Parameters
+        ----------
+        t : float.
+            Motor ticks.
+
+        Returns
+        -------
+        float:
+            Percentage load.
+        """
         #-100 to 100.0
         return t/10.24

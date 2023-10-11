@@ -15,9 +15,11 @@ import dynamixel_sdk.group_sync_read as gsr
 
 class DynamixelXChain(Device):
     """
-    This class manages a daisy chain of Dynamixel X-Series servos
-    It allows adding more than one servo at run time
-    It allows manage group reading of status data from servos so as to not overload the control bus
+    This class manages a daisy chain of Dynamixel X-Series servos.
+    
+    It allows adding more than one servo at run time.
+    
+    It allows manage group reading of status data from servos so as to not overload the control bus.
     """
     def __init__(self, usb, name):
         Device.__init__(self, name)
@@ -45,9 +47,28 @@ class DynamixelXChain(Device):
         self.status_mux_id = 0
 
     def add_motor(self,m):
+        """Adds a motor.
+
+        Parameters
+        ----------
+        m : Motor.
+            The motor object to add.
+        """
         self.motors[m.name]=m
 
     def get_motor(self,motor_name):
+        """Retrieves motor by its name.
+
+        Parameters
+        ----------
+        motor_name : str.
+            The name of the motor to retrieve.
+
+        Returns
+        -------
+        Motor or None:
+            The retrieved motor object, None if not found.
+        """
         try:
             return self.motors[motor_name]
         except (AttributeError, KeyError):
@@ -104,26 +125,60 @@ class DynamixelXChain(Device):
         self.hw_valid = False
 
     def is_trajectory_active(self):
+        """Checks if any motor has an active trajectory.
+
+        Returns
+        -------
+        bool:
+            True if any motor has an active trajectory, False otherwise.
+        """
         for motor in self.motors:
             if self.motors[motor].is_trajectory_active():
                 return True
         return False
 
     def follow_trajectory(self, v_r=None, a_r=None, req_calibration=False, move_to_start_point=True):
+        """Initiates following a trajectory.
+
+        Parameters
+        ----------
+        v_r : float, optional.
+            The velocity for the trajectory, by default None.
+        
+        a_r : float, optional.
+            The acceleration for the trajectory, by default None.
+        
+        req_calibration : bool, optional.
+            Wheter calibration is required before following the trajectory, by default False.
+        
+        move_to_start_point : bool, optional.
+            Wheter to move to the trajectory's start point before initiating, by default True.
+
+        Returns
+        -------
+        bool:
+            True if the operation was successfull, False otherwise.
+        """
         success = True
         for motor in self.motors:
             success = success and self.motors[motor].follow_trajectory(v_r, a_r, req_calibration, move_to_start_point)
         return success
 
     def update_trajectory(self):
+        """Updates the trajectory for the motors.
+        """
         for motor in self.motors:
             self.motors[motor].update_trajectory()
 
     def stop_trajectory(self):
+        """Stops the trajectory for all the motors.
+        """
         for motor in self.motors:
             self.motors[motor].stop_trajectory()
 
     def pull_status(self):
+        """Pulls and updates the status information for all the motors.
+        """
         if not self.hw_valid:
             return
         try:
@@ -208,12 +263,26 @@ class DynamixelXChain(Device):
             self.logger.warning('Dynamixel communication error during pull_status on %s: ' % self.name)
 
     def pretty_print(self):
+        """Prints information from the Dynamixel X Chain, including the USB connection and each motor.
+        """
         print('--- Dynamixel X Chain ---')
         print('USB', self.usb)
         for mk in self.motors.keys():
             self.motors[mk].pretty_print()
 
     def sync_read(self, reader):
+        """Performs a synchronized read operation.
+
+        Parameters
+        ----------
+        reader : Reader.
+            An instance used for the syncronized reader.
+
+        Returns
+        -------
+        list:
+            A list of values retrieved from the synchronized read.
+        """
         if not self.hw_valid:
             return None
         with self.pt_lock:
