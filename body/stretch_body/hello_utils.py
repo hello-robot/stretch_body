@@ -561,3 +561,15 @@ def check_file_exists(fn):
     else:
         print(f"Unable to find file: {fn}")
         return False
+
+def to_parabola_transform(x):
+    if x<0:
+        return  -1*(abs(x)**2)
+    else:
+        return x**2
+
+def map_to_range(value, new_min, new_max):
+    # Ensure value is between 0 and 1
+    value = max(0, min(1, value))
+    mapped_value = (value - 0) * (new_max - new_min) / (1 - 0) + new_min
+    return mapped_value
