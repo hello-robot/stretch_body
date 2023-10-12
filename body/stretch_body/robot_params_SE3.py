@@ -1,4 +1,4 @@
-#Robot parameters for Stretch RE2
+#Robot parameters for Stretch 3
 
 # ######################### USER PARAMS ##################################################
 #Template for the generated file: stretch_user_params.yaml
@@ -53,7 +53,7 @@ configuration_params_template={
         'batch_name': 'NA',
         'serial_no': 'NA',
         'd435i':{'serial_no':'NA'},
-        'model_name':'RE2V0'},
+        'model_name':'SE3'},
     'stretch_gripper':{
         'range_t': [0, 8022],
         'zero_t': 5212},
@@ -64,7 +64,7 @@ configuration_params_template={
         'zero_t': 7005}}
 
 # ###################### NOMINAL PARAMS #####################################################
-#Parameters that are common across the RE2 fleet
+#Parameters that are common across the S3 fleet
 nominal_params={
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
@@ -92,8 +92,8 @@ nominal_params={
             'trajectory_max': {
                 'vel_m': 0.4,
                 'accel_m': 0.4},
-        'vel_brakezone_factor': 0.03},
-        'set_safe_velocity': 1},
+                'vel_brakezone_factor': 0.03},
+                'set_safe_velocity': 1},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
         'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
@@ -217,7 +217,7 @@ nominal_params={
                 'vel': 5.0},
             'max': {
                 'accel': 14.0,
-                'vel': 6.0},
+                'vel': 7.0},
             'slow': {
                 'accel': 4.0,
                 'vel': 1.0},
@@ -589,7 +589,7 @@ nominal_params={
               'vel': 2.5},
             'max':{
               'accel': 10,
-              'vel': 3.0},
+              'vel': 6.0},
             'slow':{
               'accel': 1.5,
               'vel': 0.75},
@@ -616,9 +616,5 @@ nominal_params={
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0]},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
-    'lidar': {'usb_name': '/dev/hello-lrf'},
-    'stretch_gamepad':{
-        'enable_fn_button': 0,
-        'function_cmd':'',
-        'press_time_span':5}
+    'lidar': {'usb_name': '/dev/hello-lrf'}
 }

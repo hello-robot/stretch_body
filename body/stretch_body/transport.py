@@ -80,7 +80,7 @@ class SyncTransactionHandler():
         self.empty_frame = arr.array('B', [0] * RPC_MAX_FRAME_SIZE)
         self.status = {'read_error': 0, 'write_error': 0, 'transactions': 0}
         self.version = RPC_TRANSPORT_VERSION_0
-        self.timeout = .2  # Was .05 but on heavy loads can get starved
+        self.timeout = 1 # was .2  # Was .05 but on heavy loads can get starved
         self.packet_marker = 0
         self.lock = lock
         self.dbg_buf = ''
@@ -477,11 +477,13 @@ class AsyncTransactionHandler(SyncTransactionHandler):
                     nu = nu + 1
                     if byte_in == self.packet_marker:
                         crc_ok, nr, decoded_data = framer.decode_data(rx_buffer)  # [:-1])
+                        # self.logger.info(f"AsyncTransaction Wait: {1000*(time.time() - t_start)}ms")
                         return crc_ok, nr, decoded_data
                     else:
                         rx_buffer.append(byte_in)
             else:
                 time.sleep(.00001)
+        self.logger.error(f"Async-Transaction Timeout.")
         return 0, 0, arr.array('B', [])
 
     async def do_rpc(self, push, payload, reply_callback, exiting=False):

@@ -107,16 +107,15 @@ if args.current:
 if args.bump:
     import stretch_body.scope as scope
     s = scope.Scope(yrange=[-1,15],title='Bump')
-    itr=0
+    bump_cnt_last = p.status['bump_event_cnt']
     try:
         while True:
             p.pull_status()
             time.sleep(0.02)
-            itr=itr+1
-            if itr==50:
-                itr=0
+            if p.status['bump_event_cnt']!=bump_cnt_last:
                 p.trigger_beep()
                 p.push_command()
+            bump_cnt_last = p.status['bump_event_cnt']
             print('Bump',p.status['imu']['bump'])
             s.step_display(p.status['imu']['bump'])
     except (SystemExit, KeyboardInterrupt):

@@ -125,7 +125,8 @@ class StepperBase(Device):
                        'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
                        'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
                        'in_safety_event':0,'waiting_on_sync':0,'in_sync_mode':0,'trace_on':0,'ctrl_cycle_cnt':0,
-                       'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,}}
+                       'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,},
+                       'voltage':0}
 
         self.status_aux={'cmd_cnt_rpc':0,'cmd_cnt_exec':0,'cmd_rpc_overflow':0,'sync_irq_cnt':0,'sync_irq_overflow':0}
 
@@ -274,7 +275,7 @@ class StepperBase(Device):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
-    def pretty_print(self):
+    def pretty_print(self): #Base
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
 
@@ -657,11 +658,11 @@ class StepperBase(Device):
         sidx += 20
         return sidx
 
-    def unpack_status(self,s):
+    def unpack_status(self,s,unpack_to=None): #Base
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))
 
-    def unpack_gains(self,s):
+    def unpack_gains(self,s): #Base
         sidx=0
         self.gains_flash['pKp_d'] = unpack_float_t(s[sidx:]);sidx+=4
         self.gains_flash['pKi_d'] = unpack_float_t(s[sidx:]);sidx += 4
@@ -721,7 +722,7 @@ class StepperBase(Device):
         sidx += 1
         return sidx
 
-    def pack_gains(self,s,sidx):
+    def pack_gains(self,s,sidx): #Base
         pack_float_t(s, sidx, self.gains['pKp_d']);sidx += 4
         pack_float_t(s, sidx, self.gains['pKi_d']);sidx += 4
         pack_float_t(s, sidx, self.gains['pKd_d']);sidx += 4
@@ -842,35 +843,37 @@ class StepperBase(Device):
 # ######################## STEPPER PROTOCOL PO #################################
 
 class Stepper_Protocol_P0(StepperBase):
-    def unpack_status(self,s):
+    def unpack_status(self,s,unpack_to=None): #P0
+        if unpack_to is None:
+            unpack_to=self.status
         sidx=0
-        self.status['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
-        self.status['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
-        self.status['current']=self.effort_ticks_to_current(self.status['effort_ticks'])
-        self.status['effort_pct']=self.current_to_effort_pct(self.status['current'])
-        self.status['pos'] = unpack_double_t(s[sidx:]);sidx+=8
-        self.status['vel'] = unpack_float_t(s[sidx:]);sidx+=4
-        self.status['err'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
-        self.status['debug'] = unpack_float_t(s[sidx:]);sidx += 4
-        self.status['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
+        unpack_to['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to['current']=self.effort_ticks_to_current(unpack_to['effort_ticks'])
+        unpack_to['effort_pct']=self.current_to_effort_pct(unpack_to['current'])
+        unpack_to['pos'] = unpack_double_t(s[sidx:]);sidx+=8
+        unpack_to['vel'] = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to['err'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+        unpack_to['debug'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
 
-        self.status['pos_calibrated'] =self.status['diag'] & self.DIAG_POS_CALIBRATED > 0
-        self.status['runstop_on'] =self.status['diag'] & self.DIAG_RUNSTOP_ON > 0
-        self.status['near_pos_setpoint'] =self.status['diag'] & self.DIAG_NEAR_POS_SETPOINT > 0
-        self.status['near_vel_setpoint'] = self.status['diag'] & self.DIAG_NEAR_VEL_SETPOINT > 0
-        self.status['is_moving'] =self.status['diag'] & self.DIAG_IS_MOVING > 0
-        self.status['at_current_limit'] =self.status['diag'] & self.DIAG_AT_CURRENT_LIMIT > 0
-        self.status['is_mg_accelerating'] = self.status['diag'] & self.DIAG_IS_MG_ACCELERATING > 0
-        self.status['is_mg_moving'] =self.status['diag'] & self.DIAG_IS_MG_MOVING > 0
-        self.status['calibration_rcvd'] = self.status['diag'] & self.DIAG_CALIBRATION_RCVD > 0
-        self.status['in_guarded_event'] = self.status['diag'] & self.DIAG_IN_GUARDED_EVENT > 0
-        self.status['in_safety_event'] = self.status['diag'] & self.DIAG_IN_SAFETY_EVENT > 0
-        self.status['waiting_on_sync'] = self.status['diag'] & self.DIAG_WAITING_ON_SYNC > 0
+        unpack_to['pos_calibrated'] =unpack_to['diag'] & self.DIAG_POS_CALIBRATED > 0
+        unpack_to['runstop_on'] =unpack_to['diag'] & self.DIAG_RUNSTOP_ON > 0
+        unpack_to['near_pos_setpoint'] =unpack_to['diag'] & self.DIAG_NEAR_POS_SETPOINT > 0
+        unpack_to['near_vel_setpoint'] = unpack_to['diag'] & self.DIAG_NEAR_VEL_SETPOINT > 0
+        unpack_to['is_moving'] =unpack_to['diag'] & self.DIAG_IS_MOVING > 0
+        unpack_to['at_current_limit'] =unpack_to['diag'] & self.DIAG_AT_CURRENT_LIMIT > 0
+        unpack_to['is_mg_accelerating'] = unpack_to['diag'] & self.DIAG_IS_MG_ACCELERATING > 0
+        unpack_to['is_mg_moving'] =unpack_to['diag'] & self.DIAG_IS_MG_MOVING > 0
+        unpack_to['calibration_rcvd'] = unpack_to['diag'] & self.DIAG_CALIBRATION_RCVD > 0
+        unpack_to['in_guarded_event'] = unpack_to['diag'] & self.DIAG_IN_GUARDED_EVENT > 0
+        unpack_to['in_safety_event'] = unpack_to['diag'] & self.DIAG_IN_SAFETY_EVENT > 0
+        unpack_to['waiting_on_sync'] = unpack_to['diag'] & self.DIAG_WAITING_ON_SYNC > 0
         return sidx
 
-    def pretty_print(self):
+    def pretty_print(self): #P0
         print('-----------')
         print('Mode', self.MODE_NAMES[self.status['mode']])
         print('x_des (rad)', self._command['x_des'], '(deg)',rad_to_deg(self._command['x_des']))
@@ -883,6 +886,8 @@ class Stepper_Protocol_P0(StepperBase):
         print('Effort (Ticks)', self.status['effort_ticks'])
         print('Effort (Pct)',self.status['effort_pct'])
         print('Current (A)', self.status['current'])
+        if self.board_info['hardware_id']>=3:
+            print('Voltage (V)',self.status['voltage'])
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
         print('Guarded Events:', self.status['guarded_event'])
@@ -908,7 +913,7 @@ class Stepper_Protocol_P0(StepperBase):
 # ######################## STEPPER PROTOCOL P1 #################################
 class Stepper_Protocol_P1(StepperBase):
 
-    def unpack_status(self,s,unpack_to=None):
+    def unpack_status(self,s,unpack_to=None): #P1
         if unpack_to is None:
             unpack_to=self.status
         sidx=0
@@ -948,7 +953,7 @@ class Stepper_Protocol_P1(StepperBase):
 
         return sidx
 
-    def pretty_print(self):
+    def pretty_print(self): #P1
         print('-----------')
         print('Mode', self.MODE_NAMES[self.status['mode']])
         print('x_des (rad)', self._command['x_des'], '(deg)',rad_to_deg(self._command['x_des']))
@@ -961,6 +966,8 @@ class Stepper_Protocol_P1(StepperBase):
         print('Effort (Ticks)', self.status['effort_ticks'])
         print('Effort (Pct)', self.status['effort_pct'])
         print('Current (A)', self.status['current'])
+        if self.board_info['hardware_id'] >= 3:
+            print('Voltage (V)', self.status['voltage'])
         print('Error (deg)', rad_to_deg(self.status['err']))
         print('Debug', self.status['debug'])
         print('Guarded Events:', self.status['guarded_event'])
@@ -1152,7 +1159,7 @@ class Stepper_Protocol_P2(StepperBase):
         self._dirty_trigger = True
 
 
-    def unpack_status(self,s,unpack_to=None):
+    def unpack_status(self,s,unpack_to=None): #P2
         if unpack_to is None:
             unpack_to=self.status
         sidx=0
@@ -1280,6 +1287,30 @@ class Stepper_Protocol_P3(StepperBase):
         else:
             print('Error RPC_REPLY_COMMAND', reply[0])
 
+
+# ######################## STEPPER PROTOCOL P4 #################################
+class Stepper_Protocol_P4(StepperBase):
+    def unpack_status(self,s,unpack_to=None): #P4
+        if unpack_to is None:
+            unpack_to=self.status
+        sidx=0
+        sidx=sidx+Stepper_Protocol_P2.unpack_status(self,s,unpack_to)
+        unpack_to['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+        return sidx
+
+    def get_voltage(self,raw):
+        raw_to_V = 20.0/1024 #10bit adc, 0-20V per 0-3.3V reading
+        return raw*raw_to_V
+
+    def pack_gains(self,s,sidx):
+        sidx=sidx+Stepper_Protocol_P3.pack_gains(self,s,sidx)
+        pack_float_t(s, sidx, self.gains['voltage_LPF']);sidx += 4
+        return sidx
+
+    def unpack_gains(self,s):
+        sidx=Stepper_Protocol_P3.unpack_gains(self,s)
+        self.gains_flash['voltage_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
+        return sidx
 # ######################## STEPPER #################################
 class Stepper(StepperBase):
     """
@@ -1291,7 +1322,8 @@ class Stepper(StepperBase):
         self.supported_protocols = {'p0': (Stepper_Protocol_P0,),
                                     'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,),
                                     'p2': (Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,),
-                                    'p3': (Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
+                                    'p3': (Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,),
+                                    'p4': (Stepper_Protocol_P4,Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
     
     def expand_protocol_methods(self, protocol_class):
         for attr_name, attr_value in protocol_class.__dict__.items():
