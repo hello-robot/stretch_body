@@ -67,7 +67,7 @@ class CommandBase:
             # Update the previous_time for the next iteration
             self._prev_set_vel_ts = time.time()
     
-    def command_button_to_motion_rotate(self, direction, robot):
+    def command_button_to_rotation_motion(self, direction, robot):
         v_m = 0
         w_r = direction*self.normal_rotation_vel
         if self.fast_base_mode and self.is_fastbase_safe(robot):
@@ -78,7 +78,7 @@ class CommandBase:
         # Update the previous_time for the next iteration
         self._prev_set_vel_ts = time.time()
 
-    def command_button_to_motion_translate(self, direction, robot):
+    def command_button_to_linear_motion(self, direction, robot):
         v_m = direction*self.normal_linear_vel
         w_r = 0
         if self.fast_base_mode and self.is_fastbase_safe(robot):
@@ -444,7 +444,6 @@ class GamePadTeleop(Device):
         with self.lock:
             self.controller_state = self.gamepad_controller.gamepad_state
             self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
-            self.fn_button_Action(robot)
         
     def _update_state(self, state = None):
         with self.lock:
@@ -453,8 +452,6 @@ class GamePadTeleop(Device):
             else:
                 self.controller_state = state
         self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
-        self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
-        self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
         
     def startup(self, robot = None):
         if self.robot:
@@ -499,16 +496,22 @@ class GamePadTeleop(Device):
         robot.push_command()
         time.sleep(0.5)
 
-    def command_joints(self, robot=None):
-        if self.robot:
-            robot = self.robot
-        # Standard Key Mapping
+    def command_robot_joints(self, robot):
+        """
+        The gamepad stick/buttons states are mapped to robot motion in this method. 
+        A user must modify this method to create cutom gamepad key mapping.
+        """
         
+        if self.controller_state['top_button_pressed']:
+            self.stow_robot(robot)
+
+        # Set control modes flags
+        self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
+        self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
+
         dxl_zero_vel_set_division_factor = 3 
-        # Note: Coninuously commanding velocities to Dxls with ROS2 drivers causes the service callback thread unresponsive because it looks like 
-        # dxl commands create a bottleneck holding the execution thread. This is solved by using a loop division factor that skips dxl commands on
-        # consecutive loops avoiding the above situation.
-        
+        # Note: Coninuously commanding velocities to chained Dxls above 15 Hz might cause thread blocking issues while used in multithreaded executors (E.g. ROS2). Using loop division factor to skip loops.
+
         # Wrist Yaw Control        
         if self.controller_state['right_shoulder_button_pressed']:
             self.wirst_yaw_command.command_button_to_motion(-1,robot)
@@ -564,6 +567,9 @@ class GamePadTeleop(Device):
                 self.gripper.open_gripper(robot)
             elif self.controller_state['bottom_button_pressed']:
                 self.gripper.close_gripper(robot)
+        
+        self.manage_shutdown(robot) # Stows the obot and performs a PC shutdown when the Back/SELECT_BUTTON is long pressed for 2s. Comment to turn off
+        self.manage_fn_button(robot) # Executes the command assigned to the function_cmd param when button X/LEFT_BUTTON is pressed for defined duration. Comment to turn off
                     
     def _update_modes(self):
         self.arm_command.precision_mode = self.precision_mode
@@ -590,24 +596,20 @@ class GamePadTeleop(Device):
             if not robot.is_calibrated() and self.controller_state['start_button_pressed']:
                 robot.home()
             if robot.is_calibrated():
-                if self.controller_state['top_button_pressed']:
-                    self._manage_stow(robot)
+                if self.gamepad_controller.is_gamepad_dongle:
+                    self.command_robot_joints(robot)
                 else:
-                    if self.gamepad_controller.is_gamepad_dongle:
-                        self.command_joints(robot)
-                        self.manage_shutdown(robot)
-                    else:
-                        self._safety_stop(robot)
+                    self._safety_stop(robot)
             else:   
                 if self._i % 100 == 0: 
                     print('press the start button to calibrate the robot')
-            self.fn_button_Action(robot)
             
-    def fn_button_Action(self, robot):      
-        if self.params['enable_fn_button']:
+    def manage_fn_button(self, robot):    
+        if self.params['enable_fn_button']: 
             if self.controller_state['left_button_pressed']:
                 if not self._last_fn_btn_press:
                     self._last_fn_btn_press = time.time()
+
                 if time.time() - self._last_fn_btn_press >= self.fn_button_detect_span:
                     self._last_fn_btn_press = None
                     click.secho(f"Executing Function command: {self.fn_button_command}", fg="green", bold=True)
@@ -631,7 +633,7 @@ class GamePadTeleop(Device):
             self.wrist_pitch_command.command_stick_to_motion(0, robot)
             self.wrist_roll_command.command_stick_to_motion(0, robot)
 
-    def _manage_stow(self, robot):
+    def stow_robot(self, robot):
         if robot.is_calibrated():
             # Reset motion params as fast for xbox
             v = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['vel']
@@ -662,10 +664,6 @@ class GamePadTeleop(Device):
                 os.system(
                     'paplay --device=alsa_output.pci-0000_00_1f.3.analog-stereo /usr/share/sounds/ubuntu/stereo/desktop-logout.ogg')
                 os.system('sudo shutdown now')  # sudoers should be set up to not need a password
-        else:
-            self._last_fn_btn_press = None
-
-
 
     def mainloop(self):
         try:
@@ -676,7 +674,6 @@ class GamePadTeleop(Device):
         except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError):
             self.gamepad_controller.stop()
             self.robot.stop()
-
 
 def execute_command_non_blocking(command):
     try:
