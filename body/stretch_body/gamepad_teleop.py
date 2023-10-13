@@ -96,10 +96,6 @@ class CommandBase:
         arm = robot.arm.status['pos'] < (robot.get_stow_pos('arm') + 0.1) # check if arm pos under stow pose + 0.1 m
         lift = robot.lift.status['pos'] < (robot.get_stow_pos('lift') + 0.05) # check if lift pos is under stow pose + 0.05m
         return arm and lift
-        
-    def _safety_check(self,v_m, w_r):
-        # Do some safety checks and modify vel
-        return v_m, w_r
 
     def _process_stick_to_vel(self, x, y, robot):
         max_linear_vel = self.normal_linear_vel
@@ -114,7 +110,7 @@ class CommandBase:
         w_r = map_to_range(abs(x), 0, max_rotation_vel)
         if x<0:
             w_r = -1*w_r
-        return self._safety_check(v_m, w_r)
+        return v_m, w_r
             
     def _step_precision_rotate(self, xv, robot):
         # Calculate the time elapsed since the last iteration
@@ -191,16 +187,11 @@ class CommandLift:
     def stop_motion(self, robot):
         robot.lift.set_velocity(0, a_m=self.params['motion']['max']['accel_m'])
 
-
-    def _safety_check(self,v_m):
-        # Do some safety checks and modify vel
-        return v_m
-
     def _process_stick_to_vel(self, x):
         v_m = map_to_range(abs(x), 0, self.max_linear_vel)
         if x<0:
             v_m = -1*v_m
-        return self._safety_check(v_m)
+        return v_m
     
     def _step_precision_move(self,xv, robot):
         # Read the current joint position
@@ -275,15 +266,11 @@ class CommandArm:
     def stop_motion(self, robot):
         robot.arm.set_velocity(0, a_m=self.params['motion']['max']['accel_m'])
 
-    def _safety_check(self,v_m):
-        # Do some safety checks and modify vel
-        return v_m
-
     def _process_stick_to_vel(self, x):
         v_m = map_to_range(abs(x), 0, self.max_linear_vel)
         if x<0:
             v_m = -1*v_m
-        return self._safety_check(v_m)
+        return v_m
     
     def _step_precision_move(self,xv, robot):
         # Read the current joint position
@@ -364,18 +351,13 @@ class CommandDxlJoint:
             motor = robot.head.get_joint(self.name)
         
         motor.set_velocity(0,self.params['motion']['max']['accel'])
-
-    def _safety_check(self,v):
-        # Do some safety checks and modify vel
-        return v
     
     def _process_stick_to_vel(self, x):
         x = -1*x
         v = map_to_range(abs(x), 0, self.max_vel)
         if x<0:
             v = -1*v
-
-        return self._safety_check(v)
+        return v
             
 class CommandGripperPosition:
     def __init__(self):
@@ -568,7 +550,7 @@ class GamePadTeleop(Device):
             elif self.controller_state['bottom_button_pressed']:
                 self.gripper.close_gripper(robot)
         
-        self.manage_shutdown(robot) # Stows the obot and performs a PC shutdown when the Back/SELECT_BUTTON is long pressed for 2s. Comment to turn off
+        self.manage_shutdown(robot) # Stows the robot and performs a PC shutdown when the Back/SELECT_BUTTON is long pressed for 2s. Comment to turn off
         self.manage_fn_button(robot) # Executes the command assigned to the function_cmd param when button X/LEFT_BUTTON is pressed for defined duration. Comment to turn off
                     
     def _update_modes(self):
