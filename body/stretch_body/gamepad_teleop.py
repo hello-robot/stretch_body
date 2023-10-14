@@ -6,7 +6,7 @@ from inputs import UnpluggedError
 import stretch_body.robot as rb
 from stretch_body.hello_utils import *
 from stretch_body.robot_params import RobotParams
-from stretch_body.gamepad_command_groups import *
+from stretch_body import gamepad_joints
 import os
 import time
 import threading
@@ -37,12 +37,12 @@ class GamePadTeleop(Device):
         self._last_fn_btn_press = None
         self._last_shutdwon_btn_press = None
             
-        self.base_command = CommandBase()
-        self.lift_command = CommandLift()
-        self.arm_command = CommandArm()
-        self.wirst_yaw_command = CommandDxlJoint('wrist_yaw', max_vel=1.5, acc_type='slow')
-        self.head_pan_command = CommandDxlJoint('head_pan')
-        self.head_tilt_command =  CommandDxlJoint('head_tilt', acc_type='slow')
+        self.base_command = gamepad_joints.CommandBase()
+        self.lift_command = gamepad_joints.CommandLift()
+        self.arm_command = gamepad_joints.CommandArm()
+        self.wirst_yaw_command = gamepad_joints.CommandWristYaw()
+        self.head_pan_command = gamepad_joints.CommandHeadPan()
+        self.head_tilt_command =  gamepad_joints.CommandHeadTilt()
         
         self.gripper = None
         self.wrist_pitch_command = None
@@ -50,10 +50,10 @@ class GamePadTeleop(Device):
         self.is_gamepad_dongle = False
         
         if not self.end_of_arm_tool == 'tool_stretch_gripper' and not self.end_of_arm_tool=='tool_none':
-            self.gripper = CommandGripperPosition()
+            self.gripper = gamepad_joints.CommandGripperPosition()
         if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
-            self.wrist_pitch_command = CommandDxlJoint('wrist_pitch', max_vel=1, acc_type='slow')
-            self.wrist_roll_command = CommandDxlJoint('wrist_roll')
+            self.wrist_pitch_command = gamepad_joints.CommandWristPitch()
+            self.wrist_roll_command = gamepad_joints.CommandWristRoll()
             
         print(f"Key mapped to End-Of-Arm Tool: {self.end_of_arm_tool}")
         self.lock = lock

@@ -1,6 +1,31 @@
 from stretch_body.hello_utils import *
 from stretch_body.robot_params import RobotParams
 
+"""
+The gamepad_joints library provides the abstract motion command classes 
+for each robot joint that can be used to make a motion through an gamepad 
+type inputs (Button presses, Analog Stick motions).
+
+The Gamepad joints command classes primarily uses velocity controls. All the 
+acceleration profiles are dynamically optimized based on the user inputs to 
+provide smooth and responsive robot motions.
+
+A gamepad joint command class will provide the below three main attributs 
+to convert a gamepad input to a appropriate motion:
+
+command_stick_to_motion(x, robot):
+    Supply a float value between -1.0 to 1.0 from a control loop. 
+    The value supplied and it's sign determines the speed of joint motion and direction
+    Use this method to map values from an analog UI elements to a joint motion.
+
+command_button_to_motion(direction, robot)
+    Supply a direction integere either +1 or -1 in a control loop for the joint to move in that direction
+    Use this method to map a boolean button state UI elements to a joint motion.
+    
+stop_motion(robot)
+    Use this method when ever a robot needs to be still with no motion in a control loop.
+"""
+
 class CommandBase:
     def __init__(self):
         self.params = RobotParams().get_params()[1]['base']
@@ -344,6 +369,26 @@ class CommandDxlJoint:
         if x<0:
             v = -1*v
         return v
+
+class CommandWristYaw(CommandDxlJoint):
+    def __init__(self, name='wrist_yaw', max_vel=1.5, acc_type='slow'):
+        super().__init__(name, max_vel, acc_type)
+
+class CommandWristPitch(CommandDxlJoint):
+    def __init__(self, name='wrist_pitch', max_vel=1, acc_type='slow'):
+        super().__init__(name, max_vel, acc_type)
+
+class CommandWristRoll(CommandDxlJoint):
+    def __init__(self, name='wrist_roll', max_vel=None, acc_type=None):
+        super().__init__(name, max_vel, acc_type)
+
+class CommandHeadPan(CommandDxlJoint):
+    def __init__(self, name='head_pan', max_vel=None, acc_type=None):
+        super().__init__(name, max_vel, acc_type)
+
+class CommandHeadTilt(CommandDxlJoint):
+    def __init__(self, name='head_tilt', max_vel=None, acc_type='slow'):
+        super().__init__(name, max_vel, acc_type)
             
 class CommandGripperPosition:
     def __init__(self):
