@@ -15,6 +15,19 @@ import click
 import numpy as np
 import subprocess
 
+"""
+The GamePadTeleop runs the Stretch's main gamepad controller that ships with 
+the robot. The GamePadController is used to listen to the gamepad's inputs 
+(button presses,analog stick, trigger) and convert them into robot motions
+using the gamepad_joint's motion command classes.
+
+The default gamepad controller key mappings can be customized by modifying the
+GamePadTeleop.command_robot_joints() method. 
+
+Aditionally this class provides other robot function through the gamepad to be 
+customized such as manage_shutdown, manage_fn_button() and setting precision mode.
+"""
+
 class GamePadTeleop(Device):
     def __init__(self, robot_instance = True, print_dongle_status = True, lock=None):
         Device.__init__(self, 'stretch_gamepad')
@@ -49,7 +62,7 @@ class GamePadTeleop(Device):
         self.wrist_roll_command = None
         self.is_gamepad_dongle = False
         
-        if not self.end_of_arm_tool == 'tool_stretch_gripper' and not self.end_of_arm_tool=='tool_none':
+        if not self.end_of_arm_tool=='tool_none':
             self.gripper = gamepad_joints.CommandGripperPosition()
         if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
             self.wrist_pitch_command = gamepad_joints.CommandWristPitch()
@@ -124,10 +137,10 @@ class GamePadTeleop(Device):
         The gamepad stick/buttons states are mapped to robot motion in this method. 
         A user must modify this method to create cutom gamepad key mapping.
         The following buttons are pre-assigned to high priority robot functions and should not be used:
-        
         START/start_button_pressed - Press to home robot if not calibrated
         BACK/select_button_pressed - Long press to trigger a shutdown
-        MDDLE RING BUTTON/middle_led_ring_button_pressed - Controller hardware specific
+        MDDLE RING BUTTON/middle_led_ring_button_pressed - Controller hardware specific controls
+        X/left_button_pressed - Function command exection button
         """
         
         if self.controller_state['top_button_pressed']:
@@ -135,11 +148,11 @@ class GamePadTeleop(Device):
 
         # Set control modes flags
         self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
-        self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9
+        self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9 # specific to base motion 
 
         dxl_zero_vel_set_division_factor = 3 
-        # Note: Coninuously commanding velocities to chained Dxls above 15 Hz might cause thread blocking issues while used in multithreaded executors (E.g. ROS2). 
-        # Using a division factor to downscale rate.
+        # Note: Coninuously commanding stop_motion()(set zero velocities) to chained Dxls above 15 Hz might cause thread blocking issues 
+        # while used in multithreaded executors (E.g. ROS2). So using a division factor to downscale the stop_motion() call rate.
 
         # Wrist Yaw Control        
         if self.controller_state['right_shoulder_button_pressed']:

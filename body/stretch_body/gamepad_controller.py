@@ -5,6 +5,10 @@ import threading
 import time
 import click
 
+"""
+The GamePadController is a threading class that polls for the gamepad inputs (gamepad_state) by listening
+to the gamepad's USB dongle plugged into the robot.
+"""
 
 class Stick():
     def __init__(self):
@@ -320,13 +324,13 @@ class GamePadController(threading.Thread):
 
 
 def main():
-    xbox_controller = GamePadController(print_events=True)
-    xbox_controller.start()
+    gamepad_controller = GamePadController(print_events=True)
+    gamepad_controller.start()
     try:
         while True:
-            state = xbox_controller.get_state()
+            state = gamepad_controller.get_state()
             print('------------------------------')
-            print('XBOX CONTROLLER STATE')
+            print('GAMEPAD CONTROLLER STATE')
             for k in state.keys():
                 print(k, ' : ', state[k])
             print('------------------------------')

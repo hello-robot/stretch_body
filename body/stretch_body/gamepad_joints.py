@@ -3,11 +3,11 @@ from stretch_body.robot_params import RobotParams
 
 """
 The gamepad_joints library provides the abstract motion command classes 
-for each robot joint that can be used to make a motion through an gamepad 
-type inputs (Button presses, Analog Stick motions).
+for each robot joint that can be used in a control loop to make a motion through an gamepad 
+type inputs elements (Button presses, Analog Stick motions).
 
 The Gamepad joints command classes primarily uses velocity controls. All the 
-acceleration profiles are dynamically optimized based on the user inputs to 
+acceleration profiles are dynamically optimized based on the user input type to 
 provide smooth and responsive robot motions.
 
 A gamepad joint command class will provide the below three main attributs 
@@ -17,13 +17,17 @@ command_stick_to_motion(x, robot):
     Supply a float value between -1.0 to 1.0 from a control loop. 
     The value supplied and it's sign determines the speed of joint motion and direction
     Use this method to map values from an analog UI elements to a joint motion.
+    Note the base motion class needs an aditional y axis value / x,y axis values for  linear,rotion motion.
 
 command_button_to_motion(direction, robot)
     Supply a direction integere either +1 or -1 in a control loop for the joint to move in that direction
     Use this method to map a boolean button state UI elements to a joint motion.
     
 stop_motion(robot)
-    Use this method when ever a robot needs to be still with no motion in a control loop.
+    Use this method when ever a joints needs to be still with no motion in a control loop.
+
+precision_mode
+    Set this flag to true or false to enable and disable precision mode for each joint.
 """
 
 class CommandBase:
