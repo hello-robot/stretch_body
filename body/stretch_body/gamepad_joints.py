@@ -10,28 +10,34 @@ The Gamepad joints command classes primarily uses velocity controls. All the
 acceleration profiles are dynamically optimized based on the user input type to 
 provide smooth and responsive robot motions.
 
-A gamepad joint command class will provide the below three main attributs 
-to convert a gamepad input to a appropriate motion:
+A gamepad joint command class will provide the below four main attributs 
+to convert a gamepad input to an appropriate motion:
 
-command_stick_to_motion(x, robot):
+command_stick_to_motion()
     Supply a float value between -1.0 to 1.0 from a control loop. 
     The value supplied and it's sign determines the speed of joint motion and direction
     Use this method to map values from an analog UI elements to a joint motion.
     Note the base motion class needs an aditional y axis value / x,y axis values for  linear,rotion motion.
 
-command_button_to_motion(direction, robot)
+command_button_to_motion()
     Supply a direction integere either +1 or -1 in a control loop for the joint to move in that direction
     Use this method to map a boolean button state UI elements to a joint motion.
     
-stop_motion(robot)
+stop_motion()
     Use this method when ever a joints needs to be still with no motion in a control loop.
 
 precision_mode
     Set this flag to true or false to enable and disable precision mode for each joint.
+
+fast_base_mode
+    This flag is specific to base command class. Set this flag True to move the base
+    faster but only allowed when the arm and lift are in safe positions to avoid tipping.
 """
 
 class CommandBase:
     def __init__(self):
+        """Base motion command class
+        """
         self.params = RobotParams().get_params()[1]['base']
         self.dead_zone = 0.0001
         self._prev_set_vel_ts = None
@@ -39,7 +45,7 @@ class CommandBase:
         self.max_rotation_vel = 1.90241 # rad/s
         self.normal_linear_vel = self.params['motion']['default']['vel_m']
         self.normal_rotation_vel = self.max_rotation_vel*0.4
-        self.precision_mode = False
+        self.precision_mode = False 
         self.fast_base_mode = False
         self.acc = self.params['motion']['max']['accel_m']
 
@@ -48,6 +54,13 @@ class CommandBase:
         self.precision_max_rot_vel = 0.08 # rad/s Very precise: 0.04
     
     def command_stick_to_motion(self, x, y, robot):
+        """Convert a stick axis value to robot base's tank driving motion.
+
+        Args:
+            x (float): Range [-1.0,+1.0], control rotation speed
+            y (float): Range [-1.0,+1.0], control linear speed
+            robot (robot.Robot): Valid robot instance
+        """
         if abs(x) < self.dead_zone:
             x = 0
         if abs(y) < self.dead_zone:
@@ -83,6 +96,12 @@ class CommandBase:
             self._prev_set_vel_ts = time.time()
     
     def command_button_to_rotation_motion(self, direction, robot):
+        """Make robot base rotation motion based on a button state.
+
+        Args:
+            direction (int): Direction integer -1 or +1
+            robot (robot.Robot): Valid robot instance
+        """
         v_m = 0
         w_r = direction*self.normal_rotation_vel
         if self.fast_base_mode and self.is_fastbase_safe(robot):
@@ -94,6 +113,12 @@ class CommandBase:
         self._prev_set_vel_ts = time.time()
 
     def command_button_to_linear_motion(self, direction, robot):
+        """Make robot base linear motion based on a button state.
+
+        Args:
+            direction (int): Direction integer -1 or +1
+            robot (robot.Robot): Valid robot instance
+        """
         v_m = direction*self.normal_linear_vel
         w_r = 0
         if self.fast_base_mode and self.is_fastbase_safe(robot):
@@ -105,9 +130,23 @@ class CommandBase:
         self._prev_set_vel_ts = time.time()
     
     def stop_motion(self, robot):
+        """Stop the joint motion. To be used when ever the controller is idle/no-inputs
+        to stop unnecessary robot motion.
+
+        Args:
+            robot (robot.Robot): Valid robot instance
+        """
         robot.base.set_velocity(0, 0, a=self.acc)
 
     def is_fastbase_safe(self, robot):
+        """Check if the base is fast navigation mode safe
+
+        Args:
+            robot (robot.Robot): Valid robot instance
+
+        Returns:
+            bool: True if fast navigation safe
+        """
         arm = robot.arm.status['pos'] < (robot.get_stow_pos('arm') + 0.1) # check if arm pos under stow pose + 0.1 m
         lift = robot.lift.status['pos'] < (robot.get_stow_pos('lift') + 0.05) # check if lift pos is under stow pose + 0.05m
         return arm and lift
@@ -154,6 +193,8 @@ class CommandBase:
             
 class CommandLift:
     def __init__(self):
+        """Lift motion command class.
+        """
         self.params = RobotParams().get_params()[1]['lift']
         self.dead_zone = 0.0001
         self._prev_set_vel_ts = None
@@ -169,6 +210,12 @@ class CommandLift:
         self.stopped_for_prec = False 
     
     def command_stick_to_motion(self, x, robot):
+        """Convert a stick axis value to robot lift motion.
+
+        Args:
+            x (float): Range [-1.0,+1.0], control lift speed
+            robot (robot.Robot): Valid robot instance
+        """
         if abs(x) < self.dead_zone:
             x = 0
         # x = to_parabola_transform(x)
@@ -194,12 +241,24 @@ class CommandLift:
             self._step_precision_move(xv, robot)
     
     def command_button_to_motion(self, direction, robot):
+        """Make lift move based on a button state.
+
+        Args:
+            direction (int): Direction integer -1 or +1
+            robot (robot.Robot): Valid robot instance
+        """
         v_m = direction*self.max_linear_vel
         if self.precision_mode:
             v_m = direction*self.precision_max_vel
         robot.lift.set_velocity(v_m, a_m=self.params['motion']['default']['accel_m'])
     
     def stop_motion(self, robot):
+        """Stop the joint motion. To be used when ever the controller is idle/no-inputs
+        to stop unnecessary robot motion.
+
+        Args:
+            robot (robot.Robot): Valid robot instance
+        """
         robot.lift.set_velocity(0, a_m=self.params['motion']['max']['accel_m'])
 
     def _process_stick_to_vel(self, x):
@@ -236,6 +295,8 @@ class CommandLift:
 
 class CommandArm:
     def __init__(self):
+        """Arm motion command class.
+        """
         self.params = RobotParams().get_params()[1]['arm']
         self.dead_zone = 0.0001
         self._prev_set_vel_ts = None
@@ -250,6 +311,12 @@ class CommandArm:
         self.precision_max_vel = 0.04 # m/s  Very Precise: 0.02 m/s
 
     def command_stick_to_motion(self, x, robot):
+        """Convert a stick axis value to robot arm motion.
+
+        Args:
+            x (float): Range [-1.0,+1.0], control lift speed
+            robot (robot.Robot): Valid robot instance
+        """
         if abs(x) < self.dead_zone:
             x = 0
         # x = to_parabola_transform(x)
@@ -273,12 +340,24 @@ class CommandArm:
             self._step_precision_move(xv, robot)
 
     def command_button_to_motion(self, direction, robot):
+        """Make arm move based on a button state.
+
+        Args:
+            direction (int): Direction integer -1 or +1
+            robot (robot.Robot): Valid robot instance
+        """
         v_m = direction*self.max_linear_vel
         if self.precision_mode:
             v_m = direction*self.precision_max_vel
         robot.arm.set_velocity(v_m, a_m=self.params['motion']['default']['accel_m'])
 
     def stop_motion(self, robot):
+        """Stop the joint motion. To be used when ever the controller is idle/no-inputs
+        to stop unnecessary robot motion.
+
+        Args:
+            robot (robot.Robot): Valid robot instance
+        """
         robot.arm.set_velocity(0, a_m=self.params['motion']['max']['accel_m'])
 
     def _process_stick_to_vel(self, x):
@@ -315,7 +394,16 @@ class CommandArm:
         self._prev_set_vel_ts = time.time()
 
 class CommandDxlJoint:
+    """Abstract motion command class for Dynamixel joints
+    """
     def __init__(self, name, max_vel=None, acc_type=None):
+        """Initiate a Dynamixe joint either a head_* or wrist_* group.
+
+        Args:
+            name (str): Name of the device name
+            max_vel (float, optional): Set a custom max velocity (rad/s)
+            acc_type (str, optional): Set custom acceleration profile (fast,slow,default)
+        """
         self.params = RobotParams().get_params()[1][name]
         self.name = name
         self.dead_zone = 0.001
@@ -329,6 +417,12 @@ class CommandDxlJoint:
         self.precision_scale_down = 0.05
 
     def command_stick_to_motion(self, x, robot):
+        """Convert a stick axis value to dynamixel servo motion.
+
+        Args:
+            x (float): Range [-1.0,+1.0], control servo speed
+            robot (robot.Robot): Valid robot instance
+        """
         if 'wrist' in self.name:
             motor = robot.end_of_arm.get_joint(self.name)
         if 'head' in self.name:
@@ -346,6 +440,12 @@ class CommandDxlJoint:
         self._prev_set_vel_ts = time.time()
 
     def command_button_to_motion(self,direction, robot):
+        """Make servo move based on a button state.
+
+        Args:
+            direction (int): Direction integer -1 or +1
+            robot (robot.Robot): Valid robot instance
+        """
         if 'wrist' in self.name:
             motor = robot.end_of_arm.get_joint(self.name)
         if 'head' in self.name:
@@ -360,6 +460,12 @@ class CommandDxlJoint:
         self._prev_set_vel_ts = time.time()
     
     def stop_motion(self, robot):
+        """Stop the joint motion. To be used when ever the controller is idle/no-inputs
+        to stop unnecessary robot motion.
+
+        Args:
+            robot (robot.Robot): Valid robot instance
+        """
         if 'wrist' in self.name:
             motor = robot.end_of_arm.get_joint(self.name)
         if 'head' in self.name:
@@ -375,26 +481,40 @@ class CommandDxlJoint:
         return v
 
 class CommandWristYaw(CommandDxlJoint):
+    """Wrist Yaw motion command class for Dynamixel joints
+    """
     def __init__(self, name='wrist_yaw', max_vel=1.5, acc_type='slow'):
         super().__init__(name, max_vel, acc_type)
 
 class CommandWristPitch(CommandDxlJoint):
+    """Wrist Pitch motion command class for Dynamixel joints
+    """
     def __init__(self, name='wrist_pitch', max_vel=1, acc_type='slow'):
         super().__init__(name, max_vel, acc_type)
 
 class CommandWristRoll(CommandDxlJoint):
+    """Wrist Roll motion command class for Dynamixel joints
+    """
     def __init__(self, name='wrist_roll', max_vel=None, acc_type=None):
         super().__init__(name, max_vel, acc_type)
 
 class CommandHeadPan(CommandDxlJoint):
+    """Head Pan motion command class for Dynamixel joints
+    """
     def __init__(self, name='head_pan', max_vel=None, acc_type=None):
         super().__init__(name, max_vel, acc_type)
 
 class CommandHeadTilt(CommandDxlJoint):
+    """Head Tilt motion command class for Dynamixel joints
+    """
     def __init__(self, name='head_tilt', max_vel=None, acc_type='slow'):
         super().__init__(name, max_vel, acc_type)
             
 class CommandGripperPosition:
+    """Gripper motion command class for Dynamixel joints
+    For this class only simple open and close methods are provided
+    and expected only to be controlled on a button state.
+    """
     def __init__(self):
         self.name = 'stretch_gripper'
         self.params = RobotParams().get_params()[1][self.name]

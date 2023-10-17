@@ -19,17 +19,25 @@ import subprocess
 The GamePadTeleop runs the Stretch's main gamepad controller that ships with 
 the robot. The GamePadController is used to listen to the gamepad's inputs 
 (button presses,analog stick, trigger) and convert them into robot motions
-using the gamepad_joint's motion command classes.
+using the gamepad_joints library's motion command classes.
 
-The default gamepad controller key mappings can be customized by modifying the
+The default gamepad controller key mappings can be customized by overriding the
 GamePadTeleop.command_robot_joints() method. 
 
 Aditionally this class provides other robot function through the gamepad to be 
-customized such as manage_shutdown, manage_fn_button() and setting precision mode.
+customized such as manage_shutdown(), manage_fn_button() and setting precision_mode.
 """
 
 class GamePadTeleop(Device):
     def __init__(self, robot_instance = True, print_dongle_status = True, lock=None):
+        """
+        Main controller for Stretch's gamepad that ships with the robot.
+
+        Args:
+            robot_instance (bool, optional): Set True if a robot instance is required within the class and not supplied externally.
+            print_dongle_status (bool, optional): Print Dongle status when not plugged into.
+            lock (_thread.lock, optional): Pass on lock object to be used while calling robot instance methods.
+        """
         Device.__init__(self, 'stretch_gamepad')
         self.gamepad_controller = gc.GamePadController(print_dongle_status=print_dongle_status)
         self.precision_mode = False
@@ -72,75 +80,24 @@ class GamePadTeleop(Device):
         self.lock = lock
         if not self.lock:
             self.lock = threading.Lock()
-    
-    def update_gamepad_state(self, robot=None):
-        # Should be added in a loop to asycournously update the keypress inputs and fn action exec
-        if self.robot:
-            robot = self.robot
-        with self.lock:
-            self.controller_state = self.gamepad_controller.gamepad_state
-            self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
-        
-    def _update_state(self, state = None):
-        with self.lock:
-            if state is None:
-                self.controller_state = self.gamepad_controller.gamepad_state
-            else:
-                self.controller_state = state
-        self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
-        
-    def startup(self, robot = None):
-        if self.robot:
-            robot = self.robot
-        self.gamepad_controller.setDaemon(True)
-        self.gamepad_controller.start()
-        if self.robot:
-            if self.robot.startup():
-                self.do_double_beep()
-        else:
-            self.do_double_beep(robot)
-    
-    def do_single_beep(self, robot=None):
-        if self.robot:
-            robot = self.robot
-        robot.pimu.trigger_beep()
-        robot.push_command()
-          
-    def do_double_beep(self, robot = None):
-        if self.robot:
-            robot = self.robot
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
-    
-    def do_four_beep(self, robot = None):
-        if self.robot:
-            robot = self.robot
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
-        robot.pimu.trigger_beep()
-        robot.push_command()
-        time.sleep(0.5)
 
     def command_robot_joints(self, robot):
         """
+        Override this method create custom gamepad mappings.
+
         The gamepad stick/buttons states are mapped to robot motion in this method. 
         A user must modify this method to create cutom gamepad key mapping.
+
         The following buttons are pre-assigned to high priority robot functions and should not be used:
         START/start_button_pressed - Press to home robot if not calibrated
         BACK/select_button_pressed - Long press to trigger a shutdown
         MDDLE RING BUTTON/middle_led_ring_button_pressed - Controller hardware specific controls
         X/left_button_pressed - Function command exection button
+
+        Parameters
+        ----------
+        robot : robot.Robot 
+            Valid robot instance
         """
         
         if self.controller_state['top_button_pressed']:
@@ -212,23 +169,18 @@ class GamePadTeleop(Device):
         
         self.manage_shutdown(robot) # Stows the robot and performs a PC shutdown when the Back/SELECT_BUTTON is long pressed for 2s. Comment to turn off
         self.manage_fn_button(robot) # Executes the command assigned to the function_cmd param when button X/LEFT_BUTTON is pressed for defined duration. Comment to turn off
-                    
-    def _update_modes(self):
-        self.arm_command.precision_mode = self.precision_mode
-        self.lift_command.precision_mode = self.precision_mode
-        self.base_command.precision_mode = self.precision_mode
-        self.base_command.fast_base_mode = self.fast_base_mode
-        self.wirst_yaw_command.precision_mode = self.precision_mode
-        if self.gripper:
-            self.gripper.precision_mode = self.precision_mode
-        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
-            self.wrist_pitch_command.precision_mode = self.precision_mode
-            self.wrist_roll_command.precision_mode = self.precision_mode
-        self.head_pan_command.precision_mode = self.precision_mode
-        self.head_tilt_command.precision_mode = self.precision_mode
-        
+
     def do_motion(self, state = None, robot = None):
-        # Should be added in a loop to do motion
+        """
+        This method should called in the control loop (mainloop())
+    
+        Parameters
+        ----------
+        state : Dict
+            Override the gamepad controller state providing custom state, Checkout method GamePadController.get_state()
+        robot : robot.Robot 
+            Valid robot instance
+        """
         if not robot:
             robot = self.robot
         self._i = self._i + 1 
@@ -245,8 +197,88 @@ class GamePadTeleop(Device):
             else:   
                 if self._i % 100 == 0: 
                     print('press the start button to calibrate the robot')
+
+    def update_gamepad_state(self, robot=None):
+        # Should be added in a loop to asycournously update the keypress inputs and fn action exec
+        if self.robot:
+            robot = self.robot
+        with self.lock:
+            self.controller_state = self.gamepad_controller.gamepad_state
+            self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
+        
+    def _update_state(self, state = None):
+        with self.lock:
+            if state is None:
+                self.controller_state = self.gamepad_controller.gamepad_state
+            else:
+                self.controller_state = state
+        self.is_gamepad_dongle = self.gamepad_controller.is_gamepad_dongle
+        
+    def startup(self, robot = None):
+        """Start the gamepad controller thread and robot thread if required.
+
+        Args:
+            robot (robot.Robot, optional): Valid robot instance if required.
+        """
+        if self.robot:
+            robot = self.robot
+        self.gamepad_controller.setDaemon(True)
+        self.gamepad_controller.start()
+        if self.robot:
+            if self.robot.startup():
+                self.do_double_beep()
+        else:
+            self.do_double_beep(robot)
+    
+    def do_single_beep(self, robot=None):
+        if self.robot:
+            robot = self.robot
+        robot.pimu.trigger_beep()
+        robot.push_command()
+          
+    def do_double_beep(self, robot = None):
+        if self.robot:
+            robot = self.robot
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+    
+    def do_four_beep(self, robot = None):
+        if self.robot:
+            robot = self.robot
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+        robot.pimu.trigger_beep()
+        robot.push_command()
+        time.sleep(0.5)
+                    
+    def _update_modes(self):
+        self.arm_command.precision_mode = self.precision_mode
+        self.lift_command.precision_mode = self.precision_mode
+        self.base_command.precision_mode = self.precision_mode
+        self.base_command.fast_base_mode = self.fast_base_mode
+        self.wirst_yaw_command.precision_mode = self.precision_mode
+        if self.gripper:
+            self.gripper.precision_mode = self.precision_mode
+        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+            self.wrist_pitch_command.precision_mode = self.precision_mode
+            self.wrist_roll_command.precision_mode = self.precision_mode
+        self.head_pan_command.precision_mode = self.precision_mode
+        self.head_tilt_command.precision_mode = self.precision_mode
             
-    def manage_fn_button(self, robot):    
+    def manage_fn_button(self, robot):
+        """Detect function button press (Button X)
+        """    
         if self.params['enable_fn_button']: 
             if self.controller_state['left_button_pressed']:
                 if not self._last_fn_btn_press:
@@ -256,11 +288,11 @@ class GamePadTeleop(Device):
                     self._last_fn_btn_press = None
                     click.secho(f"Executing Function command: {self.fn_button_command}", fg="green", bold=True)
                     self.do_four_beep(robot)
-                    self.execute_fn_cmd()
+                    self._execute_fn_cmd()
             else:
                 self._last_fn_btn_press = None
     
-    def execute_fn_cmd(self):
+    def _execute_fn_cmd(self):
         if self.fn_button_command:
             execute_command_non_blocking(self.fn_button_command)
     
@@ -292,6 +324,11 @@ class GamePadTeleop(Device):
             self.gamepad_controller.join(1)
     
     def manage_shutdown(self, robot):
+        """Detect shutdown button press (Button select)
+
+        Args:
+            robot (robot.Robot): Valid robot instance.
+        """
         if self.controller_state['select_button_pressed']:
             if not self._last_shutdwon_btn_press:
                 self._last_shutdwon_btn_press = time.time()
@@ -308,6 +345,8 @@ class GamePadTeleop(Device):
                 os.system('sudo shutdown now')  # sudoers should be set up to not need a password
 
     def mainloop(self):
+        """Run the main control loop
+        """
         try:
             while True:
                 self.do_motion()
