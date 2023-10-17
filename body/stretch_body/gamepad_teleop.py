@@ -358,8 +358,21 @@ class GamePadTeleop(Device):
 
 def execute_command_non_blocking(command):
     try:
-        # Use subprocess.Popen to start the command in a separate process
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        # Use subprocess.Popen to start the command in a separate process that wont get killed
+        # when the main self process is killed
+        process = subprocess.Popen(
+            command,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            preexec_fn=os.setpgrp  # Detach the child process from the parent
+        )
+        
+        # Optionally, you can save the process ID (PID) for later management if needed
+        with open("/tmp/gamepad_fn_command_process.pid", "w") as pid_file:
+            print(f"Process PID ID saved to `/tmp/gamepad_fn_command_process.pid`")
+            pid_file.write(str(process.pid))
+
     except Exception as e:
         print(f"An error occurred: {e}")
         
