@@ -616,5 +616,9 @@ nominal_params={
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0]},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
-    'lidar': {'usb_name': '/dev/hello-lrf'}
+    'lidar': {'usb_name': '/dev/hello-lrf'},
+    'stretch_gamepad':{
+        'enable_fn_button': 0,
+        'function_cmd':'',
+        'press_time_span':5}
 }
