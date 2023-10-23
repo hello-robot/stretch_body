@@ -10,21 +10,33 @@ import os
 
 class RobotCollisionModel(Device):
     """
-    The RobotCollisionModel  is a base class to provide simple self-collision avoidance
-    Derived (custom) classes should implement the collision logic
+    The RobotCollisionModel  is a base class to provide simple self-collision avoidance.
+    Derived (custom) classes should implement the collision logic.
     It works by defining acceptable joint ranges for the joints based on the current
     kinematic state of the robot.
 
-    A joint soft limit of None denotes that no constraint is placed on motion in that direction
+    A joint soft limit of None denotes that no constraint is placed on motion in that direction.
 
     A custom RobotCollisionModel can be instantiated by declaring the class name / Python module name
-    in the User YAML file
+    in the User YAML file.
     """
     def __init__(self,collision_manager, name):
         Device.__init__(self, name=name)
         self.collision_manager=collision_manager
 
     def step(self, status):
+        """Colission prevention actions.
+
+        Parameters
+        ----------
+        status : dict.
+            A dictionary containing robot status information.
+
+        Returns
+        -------
+        dict:
+            A dictionary with actions for various joints.
+        """
         return {'head_pan': [None,None],
                 'head_tilt': [None,None],
                 'lift': [None,None],
@@ -60,6 +72,8 @@ class RobotCollision(Device):
         self.models_enabled={}
 
     def startup(self):
+        """Initialize the collision models for the robot and enable them.
+        """
         Device.startup(self, threaded=False)
         model_names = []
         if self.params.get('models'):
@@ -73,15 +87,31 @@ class RobotCollision(Device):
             self.models_enabled[m]=self.robot_params[m]['enabled']
 
     def enable_model(self,name):
+        """Enable a specific collision model by name.
+
+        Parameters
+        ----------
+        name : str.
+            The name of the collision model.
+        """
         if name in self.models_enabled:
             self.models_enabled[name]=True
 
     def disable_model(self,name):
+        """Disable a specific collision model by name.
+
+        Parameters
+        ----------
+        name : str.
+            The name of the collision model.
+        """
         if name in self.models_enabled:
             self.models_enabled[name]=False
 
 
     def step(self):
+        """Perform self collision avoidance based on multiple collision models
+        """
         #Compile the list of joints that may be limited
         #Then compute the limits for each from each model
         #Take the most conservative limit for each and pass it to the controller
@@ -143,6 +173,20 @@ class EndOfArmForwardKinematics():
         self.robot_model = urdfpy.URDF.load(urdf_file)
 
     def tool_fk(self,cfg,link):
+        """Calculate the 4x4 transform matrix.
+
+        Parameters
+        ----------
+        cfg : dict.
+            A dictionary of joint positions for the tool.
+        link : str.
+            Name of the link that is after wrist_yaw in the kinematic chain.
+
+        Returns
+        -------
+        Array or None:
+            Returns the 4x4 transform from <link> to link_arm_l0. If the transformation cannot be computed, it returns None.
+        """
         # returns the 4x4 transform from <link> to link_arm_l0
         #cfg: dictionary of joint positions of tool (including wrist yaw). Eg: {'joint_wrist_yaw': 0.1, 'joint_gripper_finger_right': 0.1}
         #link: name of link that is after wrist_yaw in the kinematic chain.Eg 'link_gripper_fingertip_right'

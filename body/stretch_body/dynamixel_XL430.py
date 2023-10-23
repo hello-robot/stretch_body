@@ -26,60 +26,112 @@ import dynamixel_sdk.group_sync_read as gsr
 # Control table address
 #EEPROM
 XL430_ADDR_MODEL_NUMBER = 0
+"""@private"""
 XL430_ADDR_MODEL_INFORMATION = 2
+"""@private"""
 XL430_ADDR_FIRMWARE_VERSION = 6
+"""@private"""
 XL430_ADDR_ID = 7
+"""@private"""
 XL430_ADDR_BAUD_RATE = 8
+"""@private"""
 XL430_ADDR_RETURN_DELAY_TIME = 9
+"""@private"""
 XL430_ADDR_DRIVE_MODE = 10
+"""@private"""
 XL430_ADDR_OPERATING_MODE = 11
+"""@private"""
 XL430_ADDR_SECONDARY_ID = 12
+"""@private"""
 XL430_ADDR_PROTOCOL_VERSION =13
+"""@private"""
 XL430_ADDR_HOMING_OFFSET = 20
+"""@private"""
 XL430_ADDR_MOVING_THRESHOLD =24
+"""@private"""
 XL430_ADDR_TEMPERATURE_LIMIT = 31
+"""@private"""
 XL430_ADDR_MAX_VOLTAGE_LIMIT = 32
+"""@private"""
 XL430_ADDR_MIN_VOLTAGE_LIMIT = 34
+"""@private"""
 XL430_ADDR_PWM_LIMIT = 36
+"""@private"""
 XL430_ADDR_VELOCITY_LIMIT = 44
+"""@private"""
 XL430_ADDR_MAX_POS_LIMIT = 48
+"""@private"""
 XL430_ADDR_MIN_POS_LIMIT = 52
+"""@private"""
 XL430_ADDR_SHUTDOWN = 63
+"""@private"""
 
 #RAM
 XL430_ADDR_TORQUE_ENABLE      = 64
+"""@private"""
 XL430_ADDR_LED = 65
+"""@private"""
 XL430_ADDR_STATUS_RETURN_LEVEL = 68
+"""@private"""
 XL430_ADDR_REGISTERED_INSTRUCTION = 69
+"""@private"""
 XL430_ADDR_HARDWARE_ERROR_STATUS = 70
+"""@private"""
 XL430_ADDR_VELOCITY_I_GAIN = 76
+"""@private"""
 XL430_ADDR_VELOCITY_P_GAIN = 78
+"""@private"""
 XL430_ADDR_POS_D_GAIN = 80
+"""@private"""
 XL430_ADDR_POS_I_GAIN = 82
+"""@private"""
 XL430_ADDR_POS_P_GAIN = 84
+"""@private"""
 XL430_ADDR_FF_2ND_GAIN = 88
+"""@private"""
 XL430_ADDR_FF_1ST_GAIN =90
+"""@private"""
 XL430_ADDR_BUS_WATCHDOG = 98
+"""@private"""
 XL430_ADDR_GOAL_PWM     = 100
+"""@private"""
 XL430_ADDR_GOAL_VEL     = 104
+"""@private"""
 XL430_ADDR_PROFILE_ACCELERATION = 108
+"""@private"""
 XL430_ADDR_PROFILE_VELOCITY = 112
+"""@private"""
 XL430_ADDR_GOAL_POSITION      = 116
+"""@private"""
 XL430_ADDR_REALTIME_TICK = 120
+"""@private"""
 XL430_ADDR_MOVING = 122
+"""@private"""
 XL430_ADDR_MOVING_STATUS=123
+"""@private"""
 XL430_ADDR_PRESENT_PWM = 124
+"""@private"""
 XL430_ADDR_PRESENT_LOAD = 126
+"""@private"""
 XL430_ADDR_PRESENT_VELOCITY =128
+"""@private"""
 XL430_ADDR_PRESENT_POSITION   = 132
+"""@private"""
 XL430_ADDR_VELOCITY_TRAJECTORY = 136
+"""@private"""
 XL430_ADDR_POSITION_TRAJECTORY=140
+"""@private"""
 XL430_ADDR_PRESENT_INPUT_VOLTATE = 144
+"""@private"""
 XL430_ADDR_PRESENT_TEMPERATURE = 146
+"""@private"""
 XL430_ADDR_HELLO_CALIBRATED = 661 #Appropriate Indirect Data 56 to store calibrated flag
+"""@private"""
 
 XM430_ADDR_GOAL_CURRENT = 102
+"""@private"""
 XM430_ADDR_CURRENT_LIMIT = 38
+"""@private"""
 
 COMM_CODES = {
     COMM_SUCCESS: "COMM_SUCCESS",
@@ -92,6 +144,7 @@ COMM_CODES = {
     COMM_RX_CORRUPT: "COMM_RX_CORRUPT",
     COMM_NOT_AVAILABLE: "COMM_NOT_AVAILABLE"
 }
+"""@private"""
 
 BAUD_MAP = {
     9600: 0,
@@ -103,6 +156,7 @@ BAUD_MAP = {
     4000000: 6,
     4500000: 7
 }
+"""@private"""
 
 class DelayedKeyboardInterrupt:
 
@@ -114,6 +168,16 @@ class DelayedKeyboardInterrupt:
             pass
 
     def handler(self, sig, frame):
+        """Signal handler function for capturing a received signal.
+
+        Parameters
+        ----------
+        sig : int.
+            The signal number received.
+        
+        frame : frame object
+            The current stack frame.
+        """
         self.signal_received = (sig, frame)
 
     def __exit__(self, type, value, traceback):
@@ -188,6 +252,13 @@ class DynamixelXL430():
         return -1
 
     def startup(self):
+        """Startup the dynamixel servo.
+
+        Returns
+        -------
+        bool:
+            True if the servo started successfully, False otherwise.
+        """
         if self.hw_valid:
             try:
                 self.enable_torque()
@@ -204,12 +275,16 @@ class DynamixelXL430():
 
 
     def stop(self):
+        """Stop the servo.
+        """
         if self.hw_valid:
             self.hw_valid = False
             self.disable_torque()
             self.port_handler.closePort()
 
     def pretty_print(self):
+        """Print the status of the servo.
+        """
         h = self.get_hardware_error()
         status = {
             'ID:': self.get_id(),
@@ -243,17 +318,19 @@ class DynamixelXL430():
 
         Parameters
         ----------
-        fx : str
-            control table address label
-        dxl_comm_result : int
-            communication result from options `COMM_CODES`
-        dxl_error : int
-            hardware errors sent by the dynamixel
+        fx : str.
+            control table address label.
+        
+        dxl_comm_result : int.
+            communication result from options `COMM_CODES`.
+        
+        dxl_error : int.
+            hardware errors sent by the dynamixel.
 
         Returns
         -------
-        bool
-            True if successful result, False otherwise
+        bool:
+            True if successful result, False otherwise.
         """
         if dxl_comm_result==COMM_SUCCESS:
             self.last_comm_success=True
@@ -267,9 +344,28 @@ class DynamixelXL430():
 
 
     def get_comm_errors(self):
+        """Get the communication error stats for the servo.
+
+        Returns
+        -------
+        dict:
+            A dictionary containing communication error statistics.
+        """
         return self.comm_errors
 
     def read_int32_t(self,addr):
+        """Read a 32 bit from a specified address in the servo memory.
+
+        Parameters
+        ----------
+        addr : int.
+            The memory address where we can read the data.
+
+        Returns
+        -------
+        tuple:
+            A tuple containing 3 things, the read integer, communication result and error status.
+        """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 x, dxl_comm_result, dxl_error = self.packet_handler.read4ByteTxRx(self.port_handler, self.dxl_id, addr)
@@ -277,6 +373,18 @@ class DynamixelXL430():
         return xn, dxl_comm_result, dxl_error
 
     def read_int16_t(self,addr):
+        """Read a 16 bit from the specified address in the servo memory.
+
+        Parameters
+        ----------
+        addr : int.
+            The memory address where we can read the data.
+
+        Returns
+        -------
+        tuple:
+            A tuple containing 3 things, the read integer, communication result and error status.
+        """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 x, dxl_comm_result, dxl_error = self.packet_handler.read2ByteTxRx(self.port_handler, self.dxl_id, addr)
@@ -284,6 +392,18 @@ class DynamixelXL430():
         return xn, dxl_comm_result, dxl_error
 
     def do_ping(self,verbose=True):
+        """Ping the servo motor to check its status and connection.
+
+        Parameters
+        ----------
+        verbose : bool, optional.
+            If True, print information about the ping if Succeded/Failed, by default True.
+
+        Returns
+        -------
+        bool:
+            True if the ping was successfull.
+        """
         if not self.hw_valid:
             return False
         try:
@@ -305,6 +425,13 @@ class DynamixelXL430():
             return False
 
     def get_id(self):
+        """Get the unique ID of the servo motor.
+
+        Returns
+        -------
+        int:
+            The unique ID of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -314,6 +441,13 @@ class DynamixelXL430():
         return p
 
     def set_id(self,id):
+        """Set the unique ID of the servo.
+
+        Parameters
+        ----------
+        id : int.
+            The new ID to assign to the servo.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -326,8 +460,8 @@ class DynamixelXL430():
 
         Returns
         -------
-        int
-            baud rate from `BAUD_MAP` if successful communication, else -1
+        int:
+            baud rate from `BAUD_MAP` if successful communication, else -1.
         """
         if not self.hw_valid:
             return -1
@@ -343,13 +477,13 @@ class DynamixelXL430():
 
         Parameters
         ----------
-        rate : int
-            baud rate option from `BAUD_MAP`
+        rate : int.
+            baud rate option from `BAUD_MAP`.
 
         Returns
         -------
-        bool
-            True if the baud rate was set successfully, else False
+        bool:
+            True if the baud rate was set successfully, else False.
         """
         if not self.hw_valid:
             return -1
@@ -365,6 +499,13 @@ class DynamixelXL430():
 
     #Hello Robot Specific
     def is_calibrated(self):
+        """Check if the servo motor is calibrated.
+
+        Returns
+        -------
+        bool:
+            True if the servo motor is calibrated, False otherwise.
+        """
         if not self.hw_valid:
             return False
         with self.pt_lock:
@@ -375,6 +516,13 @@ class DynamixelXL430():
 
     # Hello Robot Specific
     def set_calibrated(self,x):
+        """Set the calibration status of the servo motor.
+
+        Parameters
+        ----------
+        x : int.
+            If 1, the servo is calibrated, otherwise is not calibrated.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -383,6 +531,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_HELLO_CALIBRATED', dxl_comm_result, dxl_error)
 
     def do_reboot(self):
+        """Reboot the servo motor.
+
+        Returns
+        -------
+        bool:
+            True if the reboot is successfull, False otherwise.
+        """
         if not self.hw_valid:
             return False
         with self.pt_lock:
@@ -396,6 +551,13 @@ class DynamixelXL430():
             return False
 
     def get_shutdown(self):
+        """Get shutdown status.
+
+        Returns
+        -------
+        int:
+            The shutdown status of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -405,6 +567,8 @@ class DynamixelXL430():
         return p
 
     def set_shutdown(self):
+        """Set the shutdown status for the servo.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -413,6 +577,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_SHUTDOWN', dxl_comm_result, dxl_error)
 
     def get_hardware_error(self):
+        """Get the hardware error status of the servo.
+
+        Returns
+        -------
+        float:
+            The hardware error status.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -424,6 +595,8 @@ class DynamixelXL430():
 
 
     def enable_torque(self):
+        """Enable the torque of the servo motor.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -433,6 +606,8 @@ class DynamixelXL430():
 
 
     def disable_torque(self):
+        """Disable the torque of the servo motor.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -441,6 +616,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_TORQUE_ENABLE', dxl_comm_result, dxl_error)
 
     def set_return_delay_time(self,x):
+        """Set the return delay time of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new return delay time value to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -449,6 +631,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_RETURN_DELAY_TIME', dxl_comm_result, dxl_error)
 
     def get_return_delay_time(self):
+        """Get the return delay time for the servo.
+
+        Returns
+        -------
+        float:
+            The return delay time.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -459,6 +648,13 @@ class DynamixelXL430():
         return p
 
     def set_pwm(self,x):
+        """Set the PWM value for the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new PWM value to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -467,12 +663,26 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_GOAL_PWM', dxl_comm_result, dxl_error)
 
     def set_current_limit(self,i):
+        """Set the current limit for the servo motor.
+
+        Parameters
+        ----------
+        i : int.
+            The new current limit value to set.
+        """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_CURRENT_LIMIT, int(i))
         self.handle_comm_result('XM430_ADDR_CURRENT_LIMIT', dxl_comm_result, dxl_error)
 
     def get_current_limit(self):
+        """Get the current limit of the servo.
+
+        Returns
+        -------
+        float:
+            The current limit of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -483,6 +693,8 @@ class DynamixelXL430():
         return p
 
     def enable_multiturn(self):
+        """Enable multiturn mode for the servo.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -491,6 +703,8 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
     def enable_pwm(self):
+        """Enable PWM mode for the servo.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -499,6 +713,8 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
     def enable_pos(self):
+        """Enable position mode for the servo motor.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -507,6 +723,8 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
     def enable_vel(self):
+        """Enable velocity mode for the servo.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -516,12 +734,16 @@ class DynamixelXL430():
 
     # XM Series
     def enable_pos_current(self):
+        """Enable position current mode for the servo.
+        """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 5)
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
     #XM Series
     def enable_current(self):
+        """Enable current mode for the servo.
+        """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 dxl_comm_result, dxl_error =   self.packet_handler.write1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_OPERATING_MODE, 0)
@@ -529,6 +751,13 @@ class DynamixelXL430():
 
 
     def get_operating_mode(self):
+        """Get the operating mode of the servo.
+
+        Returns
+        -------
+        int:
+            The operating mode of the servo motor.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -538,6 +767,13 @@ class DynamixelXL430():
         return p
 
     def get_drive_mode(self):
+        """Get the drive mode for the servo.
+
+        Returns
+        -------
+        int:
+            The drive mode of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -547,6 +783,16 @@ class DynamixelXL430():
         return p
 
     def set_drive_mode(self,vel_based=True, reverse=False):
+        """Set the drive mode of the servo.
+
+        Parameters
+        ----------
+        vel_based : bool, optional.
+            If True, set velocity based drive mode, by default True.
+        
+        reverse : bool, optional.
+            If True, set reverse drive mode, by default False.
+        """
         if not self.hw_valid:
             return
         #defaults to vel_based, not forward at factory
@@ -562,12 +808,26 @@ class DynamixelXL430():
 
     #XM Series
     def set_goal_current(self,i):
+        """Set the goal current for the servo.
+
+        Parameters
+        ----------
+        i : int.
+            The new goal current to set.
+        """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 dxl_comm_result, dxl_error =   self.packet_handler.write2ByteTxRx(self.port_handler, self.dxl_id, XM430_ADDR_GOAL_CURRENT, int(i))
         self.handle_comm_result('XM430_ADDR_GOAL_CURRENT', dxl_comm_result, dxl_error)
 
     def get_goal_current(self):
+        """Get goal current of the servo.
+
+        Returns
+        -------
+        float:
+            The goal current of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -578,6 +838,13 @@ class DynamixelXL430():
         return p
 
     def go_to_pos(self,x):
+        """Move the servo motor to a specified position.
+
+        Parameters
+        ----------
+        x : int.
+            The new position to move to.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -586,6 +853,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_GOAL_POSITION', dxl_comm_result, dxl_error)
 
     def set_vel(self, x):
+        """Set the goal velocity for the servo motor.
+
+        Parameters
+        ----------
+        x : int.
+            The new goal velocity value to get.
+        """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id,
@@ -604,8 +878,8 @@ class DynamixelXL430():
 
         Parameters
         ----------
-        timeout_20msec : int
-            value in range [1, 127] calculates timeout as value * 20 milliseconds (default 1s)
+        timeout_20msec : int.
+            value in range [1, 127] calculates timeout as value * 20 milliseconds (default 1s).
         """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
@@ -628,8 +902,8 @@ class DynamixelXL430():
 
         Returns
         -------
-        bool
-            True if watchdog detected no communication for longer than watchdog timeout
+        bool:
+            True if watchdog detected no communication for longer than watchdog timeout.
         """
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
@@ -638,6 +912,13 @@ class DynamixelXL430():
         return p == 255
 
     def get_pos(self):
+        """Get the current position of the servo.
+
+        Returns
+        -------
+        float:
+            The current position of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -647,6 +928,13 @@ class DynamixelXL430():
         return xn
 
     def get_moving_status(self):
+        """Get the moving status of the servo.
+
+        Returns
+        -------
+        float:
+            The moving status of the servo.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -656,6 +944,13 @@ class DynamixelXL430():
         return p
 
     def get_load(self):
+        """Get the present load of the servo.
+
+        Returns
+        -------
+        float:
+            The load of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -665,6 +960,13 @@ class DynamixelXL430():
         return xn
 
     def get_pwm(self):
+        """Get the PWM  value of the servo.
+
+        Returns
+        -------
+        float:
+            The PWM value of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -674,6 +976,13 @@ class DynamixelXL430():
         return xn
 
     def set_profile_velocity(self,v):
+        """Set the profile velocity of the servo.
+
+        Parameters
+        ----------
+        v : int.
+            The new profile velocity value to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -682,6 +991,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_PROFILE_VELOCITY', dxl_comm_result, dxl_error)
 
     def set_profile_acceleration(self, a):
+        """Set the profile acceleration of the servo.
+
+        Parameters
+        ----------
+        a : int.
+            The new profile acceleration value.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -691,6 +1007,13 @@ class DynamixelXL430():
 
 
     def get_profile_velocity(self):
+        """Get the profile acceleration of the servo.
+
+        Returns
+        -------
+        float:
+            The profile velocity of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -700,6 +1023,13 @@ class DynamixelXL430():
         return v
 
     def get_profile_acceleration(self):
+        """Get the profile acceleration of the servo.
+
+        Returns
+        -------
+        float:
+            The profile acceleration of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -709,6 +1039,13 @@ class DynamixelXL430():
         return a
 
     def get_vel(self):
+        """Get the present velocity of the servo.
+
+        Returns
+        -------
+        float:
+            The present velocity of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -720,6 +1057,13 @@ class DynamixelXL430():
         return v
 
     def get_P_gain(self):
+        """Get the position P gain of the servo.
+
+        Returns
+        -------
+        float:
+            The position P gain of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -729,6 +1073,13 @@ class DynamixelXL430():
         return p
 
     def set_P_gain(self,x):
+        """Set the position P gain of the servo motor.
+
+        Parameters
+        ----------
+        x : int.
+            The new position P gain to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -737,6 +1088,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_POS_P_GAIN', dxl_comm_result, dxl_error)
 
     def get_D_gain(self):
+        """Get the position D gain of the servo
+
+        Returns
+        -------
+        float:
+            The position D gain of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -746,6 +1104,13 @@ class DynamixelXL430():
         return p
 
     def set_D_gain(self,x):
+        """Set the position D gain of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new position D gain to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -754,6 +1119,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_POS_D_GAIN', dxl_comm_result, dxl_error)
 
     def get_I_gain(self):
+        """Get the position I gain of the servo.
+
+        Returns
+        -------
+        float:
+            The position I gain of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -763,6 +1135,13 @@ class DynamixelXL430():
         return p
 
     def set_I_gain(self,x):
+        """Set the position I gain of the servo
+
+        Parameters
+        ----------
+        x : int.
+            The new position I gain to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -771,6 +1150,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_POS_I_GAIN', dxl_comm_result, dxl_error)
 
     def get_vel_I_gain(self):
+        """Get the velocity I gain of the servo.
+
+        Returns
+        -------
+        float:
+            The velocity I gain of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -780,6 +1166,13 @@ class DynamixelXL430():
         return p
 
     def set_vel_I_gain(self,x):
+        """Set the velocity I gain of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new velocity I gain of the servo.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -788,6 +1181,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_VELOCITY_I_GAIN', dxl_comm_result, dxl_error)
 
     def get_vel_P_gain(self):
+        """Get the velocity P gain of the servo.
+
+        Returns
+        -------
+        float:
+            The velocity P gain of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -797,6 +1197,13 @@ class DynamixelXL430():
         return p
 
     def set_vel_P_gain(self,x):
+        """Set the velocity P gain of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new velocity P gain to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -805,6 +1212,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_VELOCITY_P_GAIN', dxl_comm_result, dxl_error)
                 
     def get_temperature_limit(self):
+        """Get the temperature limit of the servo.
+
+        Returns
+        -------
+        float:
+            The temperature limit of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -814,6 +1228,13 @@ class DynamixelXL430():
         return p
 
     def set_temperature_limit(self,x):
+        """Set the temperature limit of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new temperature limit to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -822,6 +1243,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_TEMPERATURE_LIMIT', dxl_comm_result, dxl_error)
 
     def get_max_voltage_limit(self):
+        """Get the max voltage limit of the servo.
+
+        Returns
+        -------
+        float:
+            The max voltage limit of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -831,6 +1259,13 @@ class DynamixelXL430():
         return p
 
     def set_max_voltage_limit(self,x):
+        """Set the max voltage limit of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new max voltage limit to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -839,6 +1274,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_MAX_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
 
     def get_min_voltage_limit(self):
+        """Get the min voltage limit of the servo
+
+        Returns
+        -------
+        float:
+            The min voltage limit.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -848,6 +1290,13 @@ class DynamixelXL430():
         return p
 
     def set_min_voltage_limit(self,x):
+        """Set the min voltage limit
+
+        Parameters
+        ----------
+        x : int.
+            The new min voltage limit to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -856,6 +1305,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_MIN_VOLTAGE_LIMIT', dxl_comm_result, dxl_error)
 
     def get_vel_limit(self):
+        """Get velocity limit of the servo.
+
+        Returns
+        -------
+        float:
+            The velocity limit of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -865,6 +1321,13 @@ class DynamixelXL430():
         return p
 
     def set_vel_limit(self,x):
+        """Set the velocity limit of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new velocity limit to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -873,6 +1336,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_VELOCITY_LIMIT', dxl_comm_result, dxl_error)
 
     def get_max_pos_limit(self):
+        """Get the max position limit of the servo.
+
+        Returns
+        -------
+        float:
+            The max position limit of the servo.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -882,6 +1352,13 @@ class DynamixelXL430():
         return p
 
     def set_max_pos_limit(self,x):
+        """Set the max position limit of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new max position limit to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -890,6 +1367,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_MAX_POS_LIMIT', dxl_comm_result, dxl_error)
 
     def set_min_pos_limit(self,x):
+        """Set the min position limit of the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new min position limit of the servo.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -898,6 +1382,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_MIN_POS_LIMIT', dxl_comm_result, dxl_error)
 
     def get_min_pos_limit(self):
+        """Get the min position limit of the servo.
+
+        Returns
+        -------
+        float:
+            The min position limit.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -907,6 +1398,13 @@ class DynamixelXL430():
         return p
 
     def get_temp(self):
+        """Get the present temperature of the servo.
+
+        Returns
+        -------
+        float:
+            The present temperature.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -916,6 +1414,13 @@ class DynamixelXL430():
         return p
 
     def set_moving_threshold(self,x): #unit of 0.229 rev/min, default 10
+        """Set a moving threshold.
+
+        Parameters
+        ----------
+        x : int.
+            The new moving treshold to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -924,6 +1429,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_MOVING_THRESHOLD', dxl_comm_result, dxl_error)
 
     def get_moving_threshold(self):
+        """Get the moving threshold of the servo.
+
+        Returns
+        -------
+        float:
+            The moving threshold.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -934,6 +1446,13 @@ class DynamixelXL430():
         return p
 
     def set_pwm_limit(self,x): #0(0%) ~ 885(100%
+        """Set a PWM limit for the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new PWM limit to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:
@@ -942,6 +1461,13 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_PWM_LIMIT', dxl_comm_result, dxl_error)
 
     def get_pwm_limit(self):
+        """Get the PWM limit of the servo.
+
+        Returns
+        -------
+        float:
+            The PWM limit.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -951,6 +1477,13 @@ class DynamixelXL430():
         return p
 
     def is_moving(self):
+        """Check if the servo is moving.
+
+        Returns
+        -------
+        int:
+            1 if the servo is moving and 0 if it's not.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -960,6 +1493,13 @@ class DynamixelXL430():
         return p
 
     def zero_position(self,verbose=False):
+        """Zero the position of the servo.
+
+        Parameters
+        ----------
+        verbose : bool, optional
+            If True print debugging information, by default False
+        """
         if not self.hw_valid:
             return
         self.logger.debug('Previous HOMING_OFFSET in EEPROM {0}'.format(self.get_homing_offset()))
@@ -979,6 +1519,13 @@ class DynamixelXL430():
         return
 
     def get_homing_offset(self):
+        """Get the homing offset of the servo.
+
+        Returns
+        -------
+        int:
+            The homing offset value if the hardware os valid, otherwise 0.
+        """
         if not self.hw_valid:
             return 0
         with self.pt_lock:
@@ -988,6 +1535,13 @@ class DynamixelXL430():
         return xn
 
     def set_homing_offset(self,x):
+        """Set the homing offset for the servo.
+
+        Parameters
+        ----------
+        x : int.
+            The new homing offset value to set.
+        """
         if not self.hw_valid:
             return
         with self.pt_lock:

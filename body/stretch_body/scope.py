@@ -27,21 +27,46 @@ class Scope:
         # self.fig.canvas.set_window_title(title)
         self.yrange=yrange
     def step_display(self,new_val):
+        """Update the display with a new value.
+
+        Parameters
+        ----------
+        new_val : float.
+            The new value to be displayed.
+        """
         if self.y is None:
             self.y=[new_val] * self.num_points
         self.y.append(new_val)
         self.y=self.y[1:]
         drawnow(self.make_fig)
     def draw_array(self,v):
+        """Update the display with a new array.
+
+        Parameters
+        ----------
+        v : Array.
+            An array of values to update the display.
+        """
         self.y=v
         drawnow(self.make_fig)
     def make_fig(self):
+        """Create and display a figure.
+        """
         plt.plot(self.y)
         if self.yrange is not None:
             plt.ylim(self.yrange[0], self.yrange[1])
     def close(self):
+        """Close the display.
+        """
         pass
     def savefig(self,filename):
+        """Save the current figure to a file.
+
+        Parameters
+        ----------
+        filename : str.
+            The name of the file to save the figure.
+        """
         plt.savefig(filename)
 
 
@@ -58,33 +83,43 @@ class TrajectoryScope:
 
         Parameters
         ----------
-        x : list(float)
-            Starting x axis waypoints. Generally is time (seconds)
-        y : list(float)
-            Starting y axis waypoints. Generally is joint position (unitless)
-        v : list(float)
-            Starting velocity waypoints for the trajectory
-        yrange : tuple(float, float)
-            Two tuple representing joint limits
-        vrange : tuple(float, float)
-            Two tuple representing joint velocity limits
-        sense_frequency : int
-            Frequency (hz) at which scope measures joint position
-        title : str
-            Title of the scope window
-        xlabel: str
-            Label for the x axis
-        ylable: str
-            Label for the y axis
+        x : list(float).
+            Starting x axis waypoints. Generally is time (seconds).
+        
+        y : list(float).
+            Starting y axis waypoints. Generally is joint position (unitless).
+        
+        v : list(float).
+            Starting velocity waypoints for the trajectory.
+        
+        yrange : tuple(float, float).
+            Two tuple representing joint limits.
+        
+        vrange : tuple(float, float).
+            Two tuple representing joint velocity limits.
+        
+        sense_frequency : int.
+            Frequency (hz) at which scope measures joint position.
+        
+        title : str.
+            Title of the scope window.
+        
+        xlabel: str.
+            Label for the x axis.
+        
+        ylable: str.
+            Label for the y axis.
 
         Attributes
         ----------
-        initx, inity, initv : list(float)
-            initial waypoints for resetting graph
-        sensex, sensey : list(float)
-            used to plot measured joint position over time
-        epsilon : int
-            clicking radius for waypoint
+        initx, inity, initv : list(float).
+            initial waypoints for resetting graph.
+        
+        sensex, sensey : list(float).
+            used to plot measured joint position over time.
+        
+        epsilon : int.
+            clicking radius for waypoint.
         """
         self.x, self.initx = x[:], x[:]
         self.y, self.inity = y[:], y[:]
@@ -138,18 +173,21 @@ class TrajectoryScope:
         self._update(self)
 
     def start(self, exec_func, sense_func, waypoints_change_func, stop_func):
-        """Starts the scope with four callback functions
+        """Starts the scope with four callback functions.
 
         Parameters
         ----------
-        exec_func : func
-            Called when execute button in scope is pressed
-        sense_func : func
-            Called at ``sense_frequency`` to plot joint position
-        waypoints_change_func : func
-            Called with updated waypoints when user changes them
-        stop_func : func
-            Called when stop button in scope is pressed
+        exec_func : func.
+            Called when execute button in scope is pressed.
+        
+        sense_func : func.
+            Called at ``sense_frequency`` to plot joint position.
+        
+        waypoints_change_func : func.
+            Called with updated waypoints when user changes them.
+        
+        stop_func : func.
+            Called when stop button in scope is pressed.
         """
         self.exec_func = exec_func
         self.sense_func = sense_func
@@ -275,8 +313,31 @@ class Scope4:
         # self.fig.canvas.set_window_title(title)
         self.yrange=yrange
     def savefig(self,filename):
+        """Save the figure to a file.
+
+        Parameters
+        ----------
+        filename : str.
+            The name of the file to save the figure.
+        """
         plt.savefig(filename)
     def step_display(self,y1,y2,y3,y4):
+        """Update the display with new values.
+
+        Parameters
+        ----------
+        y1 : float.
+            The new value for the first data series.
+        
+        y2 : float.
+            The new value for the second data series.
+        
+        y3 : float.
+            The new value for the third data series.
+        
+        y4 : float.
+            The new value for the fourth data series.
+        """
         if self.y1 is None:
             self.y1=[y1] * self.num_points
         if self.y2 is None:
@@ -296,6 +357,22 @@ class Scope4:
         drawnow(self.make_fig)
 
     def draw_array(self,y1,y2,y3,y4):
+        """Update the display with arrays of values.
+
+        Parameters
+        ----------
+        y1 : array.
+            First array of values.
+        
+        y2 : array.
+            Second array of values.
+        
+        y3 : array.
+            Third array of values.
+        
+        y4 : array.
+            Fourth array of values.
+        """
         self.y1=  y1[:]
         self.y2 = y2[:]
         self.y3 = y3[:]
@@ -303,6 +380,34 @@ class Scope4:
         drawnow(self.make_fig)
 
     def draw_array_xy(self,x1,x2,x3,x4,y1,y2,y3,y4):
+        """Update the display with arrays of x and y values.
+
+        Parameters
+        ----------
+        x1 : array.
+            An array of x values.
+        
+        x2 : array.
+            An array of x values.
+        
+        x3 : array.
+            An array of x values.
+        
+        x4 : array.
+            An array of x values.
+        
+        y1 : array
+            An array of y values.
+        
+        y2 : array.
+            An array of y values.
+        
+        y3 : array.
+            An array of y values.
+        
+        y4 : array.
+            An array of y values.
+        """
         self.x1 = x1[:]
         self.x2 = x2[:]
         self.x3 = x3[:]
@@ -314,6 +419,8 @@ class Scope4:
         drawnow(self.make_fig_xy)
 
     def make_fig_xy(self):
+        """Create a figure showing data (x, y).
+        """
         plt.plot(self.x1,self.y1)
         plt.plot(self.x2,self.y2)
         plt.plot(self.x3,self.y3)
@@ -322,6 +429,8 @@ class Scope4:
             plt.ylim(self.yrange[0], self.yrange[1])
 
     def make_fig(self):
+        """Create a figure showing data.
+        """
         plt.plot(self.y1)
         plt.plot(self.y2)
         plt.plot(self.y3)
@@ -329,6 +438,8 @@ class Scope4:
         if self.yrange is not None:
             plt.ylim(self.yrange[0], self.yrange[1])
     def close(self):
+        """Close the display.
+        """
         pass
 
 if __name__ == '__main__':

@@ -14,27 +14,63 @@ def print_stretch_re_use():
     print("---------------------------------------------------------------------\n")
 
 def create_time_string(time_format='%Y%m%d%H%M%S'):
-    """Returns current time formatted as `time_format`
+    """Returns current time formatted as `time_format`.
 
     Parameters
     ----------
-    time_format : str
-        Refer https://docs.python.org/3/library/time.html#time.strftime for options
+    time_format : str.
+        Refer https://docs.python.org/3/library/time.html#time.strftime for options.
 
     Returns
     -------
-    str
-        time as string in requested format
+    str:
+        time as string in requested format.
     """
     return time.strftime(time_format)
 
 def deg_to_rad(x):
+    """Convert degrees to radians.
+
+    Parameters
+    ----------
+    x : float.
+        The angle in degrees to be converted.
+
+    Returns
+    -------
+    float:
+        The angle in radians.
+    """
     return math.pi*x/180.0
 
 def rad_to_deg(x):
+    """Convert radians to degrees
+
+    Parameters
+    ----------
+    x : float.
+        The angle in radians to be converted.
+
+    Returns
+    -------
+    float:
+        The angle in degrees.
+    """
     return 180.0*x/math.pi
 
 def confirm(question):
+    """Ask a yes or no question for confirmation.
+
+    Parameters
+    ----------
+    question : str.
+        The question to be presented to the user.
+
+    Returns
+    -------
+    bool:
+        True if the user answer 'y' or False if the user answer 'n'
+    """
     reply = None
     while reply not in ("y", "n"):
         reply = input(question + " (y/n)").lower()
@@ -42,34 +78,72 @@ def confirm(question):
 
 
 def get_display():
+    """Get the value of the Display environment.
+
+    Returns
+    -------
+    str or None:
+        The value of the Display environment or None if not set.
+    """
     return os.environ.get('DISPLAY', None)
 
 def get_fleet_id():
+    """Get the value of HELLO_FLEED_ID environment.
+
+    Returns
+    -------
+    str:
+        The value of the environment.
+    """
     return os.environ['HELLO_FLEET_ID']
 
 def set_fleet_id(id):
+    """Set the value of the Hello Fleet ID environment.
+
+    Parameters
+    ----------
+    id : str.
+        The value to be set for the environment.
+    """
     os.environ['HELLO_FLEET_ID']=id
 
 def get_fleet_directory():
+    """Get the fleet directory path.
+
+    Returns
+    -------
+    str:
+        The path to the fleet directory.
+    """
     return os.environ['HELLO_FLEET_PATH']+'/'+get_fleet_id()+'/'
 
 
 def set_fleet_directory(fleet_path,fleet_id):
+    """Set the fleet ID and the fleet path.
+
+    Parameters
+    ----------
+    fleet_path : str.
+        The path of the fleet directory.
+    
+    fleet_id : str.
+        The value to be set for the fleet ID.
+    """
     os.environ['HELLO_FLEET_ID'] = fleet_id
     os.environ['HELLO_FLEET_PATH'] = fleet_path
 
 
 def get_stretch_directory(sub_directory=''):
-    """Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists
+    """Returns path to stretch_user dir if HELLO_FLEET_PATH env var exists.
 
     Parameters
     ----------
-    sub_directory : str
+    sub_directory : str.
         valid sub_directory within stretch_user/
 
     Returns
     -------
-    str
+    str:
         dirpath to stretch_user/ or dir within it if stretch_user/ exists, else /tmp
     """
     base_path = os.environ.get('HELLO_FLEET_PATH', None)
@@ -77,17 +151,17 @@ def get_stretch_directory(sub_directory=''):
     return full_path
 
 def read_fleet_yaml(f,fleet_dir=None):
-    """Reads yaml by filename from fleet directory
+    """Reads yaml by filename from fleet directory.
 
     Parameters
     ----------
-    f : str
-        filename of the yaml
+    f : str.
+        filename of the yaml.
 
     Returns
     -------
-    dict
-        yaml as dictionary if valid file, else empty dict
+    dict:
+        yaml as dictionary if valid file, else empty dict.
     """
     try:
         if fleet_dir is None:
@@ -102,6 +176,22 @@ def read_fleet_yaml(f,fleet_dir=None):
         return {}
 
 def write_fleet_yaml(fn,rp,fleet_dir=None,header=None):
+    """Write a YAML file in the fleet directory.
+
+    Parameters
+    ----------
+    fn : str.
+        The name of the YAML file to be written.
+    
+    rp : dict.
+        The dictionary to be written to the YAML file.
+    
+    fleet_dir : str or None, optional.
+        The directory path where the file will be saved, if None it uses the directory obtained from the environment variables, by default None.
+    
+    header : str or None, optional.
+        Header text to be written at the beginning of the file, by default None.
+    """
     if fleet_dir is None:
         fleet_dir = get_fleet_directory()
     if fleet_dir[-1]!='/':
@@ -119,14 +209,15 @@ def overwrite_dict(overwritee_dict, overwriter_dict):
 
     Parameters
     ----------
-    overwritee_dict : dict
+    overwritee_dict : dict.
         The dictionary which will be overwritten. Use this as the merged result.
-    overwriter_dict : dict
+    
+    overwriter_dict : dict.
         The dictionary which will overwrite.
 
     Returns
     -------
-    bool
+    bool:
         True if no mismatches were found during the overwrite, False otherwise.
     """
     no_mismatches = True
@@ -146,14 +237,15 @@ def overwrite_dict(overwritee_dict, overwriter_dict):
     return no_mismatches
 
 def pretty_print_dict(title, d):
-    """Print human readable representation of dictionary to terminal
+    """Print human readable representation of dictionary to terminal.
 
     Parameters
     ----------
-    title : str
-        header title under which the dictionary is printed
-    d : dict
-        the dictionary to pretty print
+    title : str.
+        header title under which the dictionary is printed.
+    
+    d : dict.
+        the dictionary to pretty print.
     """
     print('-------- {0} --------'.format(title))
     for k in d.keys():
@@ -166,7 +258,7 @@ def pretty_print_dict(title, d):
 
 
 class LoopStats():
-    """Track timing statistics for control loops
+    """Track timing statistics for control loops.
     """
 
     def __init__(self, loop_name, target_loop_rate):
@@ -193,6 +285,8 @@ class LoopStats():
         self.ts_0=time.time()
 
     def pretty_print(self):
+        """Print timing stats in a readable format.
+        """
         print('--------- TimingStats %s -----------' % self.loop_name)
         print('Target rate (Hz): %.2f' % self.target_loop_rate)
         print('Current rate (Hz): %.2f' % self.status['curr_rate_hz'])
@@ -204,6 +298,8 @@ class LoopStats():
         print('Warnings: %d out of %d' % (self.status['missed_loops'], self.status['num_loops']))
 
     def mark_loop_start(self):
+        """Mark the start of a loop iteration.
+        """
         self.status['num_loops'] += 1
         self.ts_loop_start=time.time()
 
@@ -251,6 +347,8 @@ class LoopStats():
                 self.logger.debug('Missed target loop rate of %.2f Hz for %s. Currently %.2f Hz' % (self.target_loop_rate, self.loop_name, self.status['curr_rate_hz']))
 
     def mark_loop_end(self):
+        """Mark the end of a loop iteration and calculate the execution time.
+        """
         # First two cycles initialize vars / log
         if self.ts_loop_start is None:
             return
@@ -259,6 +357,13 @@ class LoopStats():
 
 
     def generate_rate_histogram(self, save=None):
+        """Generate and display a histogram of loop rates.
+
+        Parameters
+        ----------
+        save : str or None, optional.
+            If provided, the histogram is saved with the filename provided, if None the histogram is displayed, by default None.
+        """
         import matplotlib.pyplot as plt
         fig, axs = plt.subplots(1, 1, sharey=True, tight_layout=True)
         fig.suptitle('Distribution of loop rate (Hz). Target of %.2f ' % self.target_loop_rate)
@@ -269,7 +374,7 @@ class LoopStats():
         """
         Returns
         -------
-        float : Time to sleep for to hit target loop rate
+        float : Time to sleep for to hit target loop rate.
         """
         return max(0.0, self.sleep_time_s)
 
@@ -290,6 +395,18 @@ class ThreadServiceExit(Exception):
 
 #Signal handler, must be set from main thread
 def thread_service_shutdown(signum, frame):
+    """Handle a signal and perform a shutdown.
+
+    Parameters
+    ----------
+    signum : int.
+        The signal number.
+
+    Raises
+    ------
+    ThreadServiceExit
+        Trigger a clean exit of all running threads and the main program
+    """
     print('Caught signal %d' % signum)
     raise ThreadServiceExit
 
@@ -298,16 +415,17 @@ def evaluate_polynomial_at(poly, t):
 
     Parameters
     ----------
-    poly : List(float)
+    poly : List(float).
         Represents a quintic polynomial as a coefficients array [a0, a1, a2, a3, a4, a5].
-        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
-    t : float
-        the time in seconds at which to evaluate the polynomial
+        The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5.
+    
+    t : float.
+        The time in seconds at which to evaluate the polynomial.
 
     Returns
     -------
-    Tuple(float)
-        array with three elements: evaluated position, velocity, and acceleration.
+    Tuple(float).
+        Array with three elements: evaluated position, velocity, and acceleration.
     """
     a = [float(elem) for elem in poly]
     t = float(t)
@@ -321,26 +439,32 @@ def is_segment_feasible(segment, v_des, a_des, t=0.0, inc=0.1):
 
     Parameters
     ----------
-    segment : List
+    segment : List.
         Represents a segment of a waypoint trajectory as a list of length eight,
         structured like [duration_s, a0, a1, a2, a3, a4, a5, segment_id].
-    v_des : float
-        Velocity limit that the segment shouldn't exceed
-    a_des : float
-        Acceleration limit that the segment shouldn't exceed
-    t : float
-        optional, time in seconds at which to begin checking segment
-    inc : float
-        optional, increment in seconds at which the polynomial is evaluated along the segment
+    
+    v_des : float.
+        Velocity limit that the segment shouldn't exceed.
+    
+    a_des : float.
+        Acceleration limit that the segment shouldn't exceed.
+    
+    t : float.
+        optional, time in seconds at which to begin checking segment.
+    
+    inc : float.
+        optional, increment in seconds at which the polynomial is evaluated along the segment.
 
     Returns
     -------
-    success: bool
-        whether the segment is feasible
-    max_v: float
-        Maximum velocity of spline
-    max_a: float
-        Maximum acceleration of spline
+    success: bool.
+        whether the segment is feasible.
+    
+    max_v: float.
+        Maximum velocity of spline.
+    
+    max_a: float.
+        Maximum acceleration of spline.
     """
     v_des = float(v_des)
     a_des = float(a_des)
@@ -357,18 +481,19 @@ def is_segment_feasible(segment, v_des, a_des, t=0.0, inc=0.1):
     return success, max_v, max_a
 
 def generate_quintic_polynomial(i, f):
-    """Generate quintic polynomial from two points
+    """Generate quintic polynomial from two points.
 
     Parameters
     ----------
-    i : List(float)
-        Represents the first waypoint as a list, [time, pos, vel, accel]
-    f : List(float)
-        Represents the second waypoint as a list, [time, pos, vel, accel]
+    i : List(float).
+        Represents the first waypoint as a list, [time, pos, vel, accel].
+    
+    f : List(float).
+        Represents the second waypoint as a list, [time, pos, vel, accel].
 
     Returns
     -------
-    List(float)
+    List(float).
         Represents a quintic polynomial as a coefficients + duration array [duration, a0, a1, a2, a3, a4, a5].
         The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
     """
@@ -384,18 +509,19 @@ def generate_quintic_polynomial(i, f):
     return [duration, a0, a1, a2, a3, a4, a5]
 
 def generate_cubic_polynomial(i, f):
-    """Generate cubic polynomial from two points
+    """Generate cubic polynomial from two points.
 
     Parameters
     ----------
-    i : List(float)
-        Represents the first waypoint as a list, [time, pos, vel]
-    f : List(float)
-        Represents the second waypoint as a list, [time, pos, vel]
+    i : List(float).
+        Represents the first waypoint as a list, [time, pos, vel].
+    
+    f : List(float).
+        Represents the second waypoint as a list, [time, pos, vel].
 
     Returns
     -------
-    List(float)
+    List(float).
         Represents a cubic polynomial as a coefficients + duration array [duration, a0, a1, a2, a3, 0, 0].
         The polynomial is f(t) = a0 + a1*t + a2*t^2 + a3*t^3
     """
@@ -409,18 +535,19 @@ def generate_cubic_polynomial(i, f):
     return [duration, a0, a1, a2, a3, 0, 0]
 
 def generate_linear_polynomial(i, f):
-    """Generate linear polynomial from two points
+    """Generate linear polynomial from two points.
 
     Parameters
     ----------
-    i : List(float)
-        Represents the first waypoint as a list, [time, pos]
-    f : List(float)
-        Represents the second waypoint as a list, [time, pos]
+    i : List(float).
+        Represents the first waypoint as a list, [time, pos].
+    
+    f : List(float).
+        Represents the second waypoint as a list, [time, pos].
 
     Returns
     -------
-    List(float)
+    List(float).
         Represents a linear polynomial as a coefficients + duration array [duration, a0, a1, 0, 0, 0, 0].
         The polynomial is f(t) = a0 + a1*t
     """
@@ -439,14 +566,15 @@ def get_pose_diff(pose0, pose1, translation_atol=2e-3, rotation_atol=2e-2):
 
     Parameters
     ----------
-    pose0 : Tuple(float, float, float)
-        x, y, theta in meters and radians
-    pose1 : Tuple(float, float, float)
-        x, y, theta in meters and radians
+    pose0 : Tuple(float, float, float).
+        x, y, theta in meters and radians.
+    
+    pose1 : Tuple(float, float, float).
+        x, y, theta in meters and radians.
 
     Returns
     -------
-    float, float
+    float, float.
         Tuple (dx, dtheta) of translation and rotation required to
         move from pose0 to pose1
     """
@@ -475,6 +603,21 @@ def get_pose_diff(pose0, pose1, translation_atol=2e-3, rotation_atol=2e-2):
     return 0.0, 0.0
 
 def pseudo_N_to_effort_pct(joint_name,contact_thresh_N):
+    """Convert contact threshold force Newtons to motor effort percentage.
+
+    Parameters
+    ----------
+    joint_name : str.
+        The name of the joint for which the conversion if performed.
+    
+    contact_thresh_N : float.
+        The contact threshold force in Newtons.
+
+    Returns
+    -------
+    float:
+        The motor effort percentage required to reach the contact threshold force.
+    """
     import stretch_body.robot_params
     d = stretch_body.robot_params.RobotParams.get_params()[1] #Get complete param dict
     motor_name = {'arm':'hello-motor-arm', 'lift': 'hello-motor-lift', 'base':'hello-motor-left-wheel'}[joint_name]

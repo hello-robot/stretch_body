@@ -5,16 +5,24 @@ from stretch_body.device import Device
 class RobotMonitor(Device):
     """
     The RobotMonitor class provide system level monitoring of Status data
-    for important events. These events are logged to file (and optionally console)
-    The events to be monitored may be turned on/off/configured via YAML
-    The RobotMonitor is managed by the Robot class
-    It runs at 5Hz
+    for important events. These events are logged to file (and optionally console).
+    
+    The events to be monitored may be turned on/off/configured via YAML.
+    The RobotMonitor is managed by the Robot class.
+    It runs at 5Hz.
     """
     def __init__(self, robot):
         Device.__init__(self, 'robot_monitor')
         self.robot=robot
 
     def startup(self):
+        """Initialize the monitor.
+
+        Returns
+        -------
+        bool:
+            Returns True to indicate a successful startup.
+        """
         Device.startup(self, threaded=False)
         if self.robot.wacc is not None:
             stc=self.robot.wacc.status['single_tap_count']
@@ -36,6 +44,8 @@ class RobotMonitor(Device):
         return True
 
     def step(self):
+        """Perform monitoring based on parameters.
+        """
         if self.params['monitor_voltage']:
             self.monitor_voltage()
         if self.params['monitor_current']:
@@ -58,6 +68,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_base_cliff_event(self):
+        """Monitor for base cliff events and log information when detected.
+        """
         if self.robot.pimu is not None:
             if self.robot.pimu.status['cliff_event'] and  self.monitor_history['monitor_base_cliff_event']==0:
                 self.logger.info("Base cliff event")
@@ -65,6 +77,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_base_bump_event(self):
+        """Monitor for base bump events and log information when detected.
+        """
         if self.robot.pimu is not None:
             if self.robot.pimu.status['bump_event_cnt'] != self.monitor_history['monitor_base_bump_event']:
                 self.logger.info("Base bump event")
@@ -72,6 +86,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_over_tilt_alert(self):
+        """Monitor for over tilt alerts and log information when detected.
+        """
         if self.robot.pimu is not None:
             if self.robot.pimu.status['over_tilt_alert'] and self.monitor_history['monitor_over_tilt_alert'] == 0:
                 self.logger.info("Over Tilt Alert")
@@ -79,6 +95,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_wrist_single_tap(self):
+        """Monitor for wrist single tap events and log information when detected.
+        """
         if self.robot.wacc is not None:
             if self.robot.wacc.status['single_tap_count']!=self.monitor_history['monitor_wrist_single_tap']:
                 self.logger.info("Wrist single tap: %d" % self.robot.wacc.status['single_tap_count'])
@@ -86,6 +104,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_guarded_contact(self):
+        """Monitor for guarded contact events and log information when detected.
+        """
         joints=[self.robot.lift, self.robot.arm]
         mn='monitor_guarded_contact'
         for j in joints:
@@ -99,6 +119,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_dynamixel_flags(self):
+        """Monitor for dynamixel flags and log information when detected.
+        """
         chains=[self.robot.head,self.robot.end_of_arm]
         mn='monitor_dynamixel_flags'
         errs = ['overheating_error', 'overload_error']
@@ -120,6 +142,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_runstop(self):
+        """Monitor for runstop events and log information when detected.
+        """
         if self.robot.status['pimu']['runstop_event'] != self.monitor_history['monitor_runstop']:
             if self.robot.status['pimu']['runstop_event']:
                 self.logger.info("Runstop activated")
@@ -129,6 +153,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_voltage(self):
+        """Monitor robot voltage and log information when low voltage is detected.
+        """
         v=self.robot.pimu.status['voltage']
         if v < self.robot.pimu.config['low_voltage_alert']:
             if v-self.monitor_history['monitor_voltage']<-0.5:#every 0.5V of drop allow to report
@@ -139,6 +165,8 @@ class RobotMonitor(Device):
 
     # ##################################
     def monitor_current(self):
+        """Monitor robot current and log information when high current is detected.
+        """
         i=self.robot.pimu.status['current']
         if i > self.robot.pimu.config['high_current_alert']:
             if i-self.monitor_history['monitor_current']>0.25:#every 0.25A of rise allow to report

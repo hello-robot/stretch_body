@@ -10,7 +10,7 @@ WAYPOINT_ISCLOSE_ATOL = 0.8
 class Waypoint:
 
     def __init__(self, time, position, velocity=None, acceleration=None):
-        """Represents one waypoint in a spline
+        """Represents one waypoint in a spline.
 
         A linear spline is constructed from position waypoints,
         a cubic spline is constructed from position and velocity waypoints, and
@@ -18,14 +18,17 @@ class Waypoint:
 
         Attributes
         ----------
-        time : float
-            time in seconds
-        position : float
-            unitless position
-        velocity : float
-            unitless velocity
-        acceleration : float
-            unitless acceleration
+        time : float.
+            time in seconds.
+        
+        position : float.
+            unitless position.
+        
+        velocity : float.
+            unitless velocity.
+        
+        acceleration : float.
+            unitless acceleration.
         """
         if time is None or position is None:
             raise ValueError("time and position must be defined")
@@ -62,17 +65,17 @@ class Waypoint:
         return np.greater_equal(self.time, other.time)
 
     def apply_transform(self, transform=lambda pos: pos):
-        """Apply a transform to the waypoint, e.g. to convert waypoint into motor space
+        """Apply a transform to the waypoint, e.g. to convert waypoint into motor space.
 
         Parameters
         ----------
-        transform : func or lambda
-            used to transform waypoint
+        transform : func or lambda.
+            Used to transform waypoint.
 
         Returns
         -------
-        Waypoint
-            transformed waypoint in ``Waypoint`` class
+        Waypoint:
+            transformed waypoint in ``Waypoint`` class.
         """
         return Waypoint(self.time, transform(self.position), \
             transform(self.velocity) if self.velocity is not None else None, \
@@ -82,18 +85,21 @@ class Waypoint:
 class SE2Waypoint(Waypoint):
 
     def __init__(self, time, pose, vel_twist=None, accel_twist=None):
-        """Represents one waypoint in a translation/rotation restricted base spline
+        """Represents one waypoint in a translation/rotation restricted base spline.
 
         Attributes
         ----------
-        time : float
-            time in seconds
-        pose : Tuple(float, float, float)
-            unitless pose as tuple (x, y, theta)
-        vel_twist : Tuple(float, float)
-            unitless velocity twist as tuple (translational_velocity, rotational_velocity)
-        accel_twist : Tuple(float, float)
-            unitless acceleration twist as tuple (translational_acceleration, rotational_acceleration)
+        time : float.
+            Time in seconds.
+        
+        pose : Tuple(float, float, float).
+            Unitless pose as tuple (x, y, theta).
+        
+        vel_twist : Tuple(float, float).
+            Unitless velocity twist as tuple (translational_velocity, rotational_velocity).
+        
+        accel_twist : Tuple(float, float).
+            Unitless acceleration twist as tuple (translational_acceleration, rotational_acceleration).
         """
         if len(pose) != 3:
             raise ValueError("pose must be tuple (x, y, theta)")
@@ -118,17 +124,18 @@ class SE2Waypoint(Waypoint):
 class Segment:
 
     def __init__(self, segment_id, duration, a0, a1, a2, a3, a4, a5):
-        """A polynomial segment of a spline
+        """A polynomial segment of a spline.
 
         Coefficients a0-a5 can represent up to a quintic polynomial as
         f(t) = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
 
         Attributes
         ----------
-        segment_id : int
-            The required segment ID for pushing to the hardware
-        duration : float
-            The duration in seconds the polynomial is tracked
+        segment_id : int.
+            The required segment ID for pushing to the hardware.
+        
+        duration : float.
+            The duration in seconds the polynomial is tracked.
         """
         self.segment_id = segment_id
         self.duration = duration
@@ -191,17 +198,17 @@ class Segment:
         return cls.from_array(segment_arr, segment_id=segment_id)
 
     def evaluate_at(self, t):
-        """Evaluates segment at a given time.
+        """Evaluates segment at a given time..
 
         Parameters
         ----------
-        t : float
-            the time in seconds at which to evaluate the polynomial
+        t : float.
+            The time in seconds at which to evaluate the polynomial.
 
         Returns
         -------
-        Tuple(float)
-            tuple with three elements: evaluated position, velocity, and acceleration.
+        Tuple(float):
+            Tuple with three elements: evaluated position, velocity, and acceleration.
         """
         return hu.evaluate_polynomial_at(self.to_array(only_coeffs=True), t)
 
@@ -210,15 +217,16 @@ class Segment:
 
         Parameters
         ----------
-        v_des : float
-            Velocity limit that the segment shouldn't exceed
-        a_des : float
-            Acceleration limit that the segment shouldn't exceed
+        v_des : float.
+            Velocity limit that the segment shouldn't exceed.
+        
+        a_des : float.
+            Acceleration limit that the segment shouldn't exceed.
 
         Returns
         -------
-        bool
-            whether the segment is valid
+        bool:
+            whether the segment is valid.
         """
         success,v_max,a_max=hu.is_segment_feasible(self.to_array(), v_des, a_des)
         return success
@@ -227,7 +235,7 @@ class Segment:
 class Spline:
 
     def __init__(self, init_waypoints=None):
-        """Spline representing class
+        """Spline representing class.
 
         Presents a interface to create splines from waypoints
         and generate polynomial segments. This class should be
@@ -236,13 +244,13 @@ class Spline:
 
         Parameters
         ----------
-        init_waypoints : List(Waypoint)
-            optional, starting list of waypoints e.g. for eval-ing repr
+        init_waypoints : List(Waypoint).
+            Optional, starting list of waypoints e.g. for eval-ing repr.
 
         Attributes
         ----------
-        waypoints : List(Waypoint)
-            a set of waypoints defining the spline
+        waypoints : List(Waypoint).
+            A set of waypoints defining the spline.
         """
         self.waypoints = init_waypoints if init_waypoints != None else []
 
@@ -286,14 +294,17 @@ class Spline:
 
         Parameters
         ----------
-        time : float
-            time in seconds
-        pos : float
-            unitless position
-        vel : float
-            unitless velocity
-        accel : float
-            unitless acceleration
+        time : float.
+            time in seconds.
+        
+        pos : float.
+            unitless position.
+        
+        vel : float.
+            unitless velocity.
+        
+        accel : float.
+            unitless acceleration.
         """
         new_waypoint = Waypoint(time=time, position=pos, velocity=vel, acceleration=accel)
         self.add_waypoint(new_waypoint)
@@ -307,8 +318,8 @@ class Spline:
 
         Parameters
         ----------
-        waypoint : ``Waypoint``
-            with time, position, [velocity, [and acceleration]] attributes set
+        waypoint : ``Waypoint``.
+            With time, position, [velocity, [and acceleration]] attributes set.
         """
         if len(self.waypoints) == 0:
             self.waypoints.append(new_waypoint)
@@ -336,22 +347,23 @@ class Spline:
         return max(0, len(self.waypoints)-1)
 
     def get_segment(self, index, to_motor_rad=lambda pos: pos):
-        """Retrieves a segment in the spline by index
+        """Retrieves a segment in the spline by index.
 
         Num of segments is one less than number of waypoints in
         the trajectory. Index bounds are [-1 * num_seg, num_seg).
 
         Parameters
         ----------
-        index : int
-            index of segment to return
-        to_motor_rad : func or lambda
-            optional, used to convert waypoint into motor space
+        index : int.
+            Index of segment to return.
+        
+        to_motor_rad : func or lambda.
+            Optional, used to convert waypoint into motor space.
 
         Returns
         -------
-        Segment
-            coefficients + duration encapsulated in ``Segment`` class
+        Segment:
+            coefficients + duration encapsulated in ``Segment`` class.
         """
         if index < -1 * len(self.waypoints) + 1 or index >= len(self.waypoints) - 1:
             return None
@@ -366,15 +378,16 @@ class Spline:
 
         Parameters
         ----------
-        t : float
-            time in seconds
-        to_motor_rad : func or lambda
-            optional, used to convert waypoint into motor space
+        t : float.
+            Time in seconds.
+        
+        to_motor_rad : func or lambda.
+            Optional, used to convert waypoint into motor space.
 
         Returns
         -------
-        Tuple(float)
-            tuple with three elements: evaluated position, velocity, and acceleration.
+        Tuple(float):
+            Tuple with three elements: evaluated position, velocity, and acceleration.
         """
         if len(self.waypoints) < 2:
             return
@@ -397,15 +410,16 @@ class Spline:
 
         Parameters
         ----------
-        v_des : float
-            Velocity limit that the spline shouldn't exceed
-        a_des : float
-            Acceleration limit that the spline shouldn't exceed
+        v_des : float.
+            Velocity limit that the spline shouldn't exceed.
+        
+        a_des : float.
+            Acceleration limit that the spline shouldn't exceed.
 
         Returns
         -------
-        Tuple(bool, str)
-            whether the segment is valid, and error message if not
+        Tuple(bool, str):
+            Whether the segment is valid, and error message if not.
         """
         # only check if valid if there are enough waypoints
         if len(self.waypoints) < 2:
@@ -448,14 +462,17 @@ class RevoluteTrajectory(Spline):
 
         Parameters
         ----------
-        t_s : float
-            time in seconds
-        x_r : float
-            position in radians
-        v_r : float
-            velocity in radians per second
-        a_r : float
-            acceleration in radians per second squared
+        t_s : float.
+            time in seconds.
+        
+        x_r : float.
+            position in radians.
+        
+        v_r : float.
+            velocity in radians per second.
+        
+        a_r : float.
+            acceleration in radians per second squared.
         """
         Spline.add(self, t_s, x_r, v_r, a_r)
 
@@ -474,14 +491,17 @@ class PrismaticTrajectory(Spline):
 
         Parameters
         ----------
-        t_s : float
-            time in seconds
-        x_m : float
-            position in meters
-        v_m : float
-            velocity in meters per second
-        a_m : float
-            acceleration in meters per second squared
+        t_s : float.
+            time in seconds.
+        
+        x_m : float.
+            position in meters.
+        
+        v_m : float.
+            velocity in meters per second.
+        
+        a_m : float.
+            acceleration in meters per second squared.
         """
         Spline.add(self, t_s, x_m, v_m, a_m)
 
@@ -489,7 +509,7 @@ class PrismaticTrajectory(Spline):
 class DiffDriveTrajectory(Spline):
 
     def __init__(self, init_waypoints=None):
-        """Differential drive trajectory representing class
+        """Differential drive trajectory representing class.
 
         Presents a interface to create differential drive
         trajectories for the mobile base from `SE2Waypoints`
@@ -500,13 +520,13 @@ class DiffDriveTrajectory(Spline):
 
         Parameters
         ----------
-        init_waypoints : List(SE2Waypoint)
-            optional, starting list of waypoints e.g. for eval-ing repr
+        init_waypoints : List(SE2Waypoint).
+            Optional, starting list of waypoints e.g. for eval-ing repr.
 
         Attributes
         ----------
-        waypoints : List(SE2Waypoint)
-            a set of base waypoints defining the mobile base's trajectory
+        waypoints : List(SE2Waypoint).
+            A set of base waypoints defining the mobile base's trajectory.
         """
         Spline.__init__(self, init_waypoints=init_waypoints)
 
@@ -528,22 +548,29 @@ class DiffDriveTrajectory(Spline):
 
         Parameters
         ----------
-        time : float
-            time in seconds
-        x : float
-            x component of SE2 pose in meters
-        y : float
-            y component of SE2 pose in meters
-        theta : float
-            theta component of SE2 pose in radians
-        translational_vel : float
-            translational velocity component of twist in meters per second
-        rotational_vel : float
-            rotational velocity component of twist in radians per second
-        translational_accel : float
-            translational acceleration component of twist in meters per second squared
-        rotational_accel : float
-            rotational acceleration component of twist in radians per second squared
+        time : float.
+            time in seconds.
+        
+        x : float.
+            x component of SE2 pose in meters.
+        
+        y : float.
+            y component of SE2 pose in meters.
+        
+        theta : float.
+            theta component of SE2 pose in radians.
+        
+        translational_vel : float.
+            translational velocity component of twist in meters per second.
+        
+        rotational_vel : float.
+            rotational velocity component of twist in radians per second.
+        
+        translational_accel : float.
+            translational acceleration component of twist in meters per second squared.
+        
+        rotational_accel : float.
+            rotational acceleration component of twist in radians per second squared.
         """
         new_waypoint = SE2Waypoint(time=time, pose=(x, y, theta),
             vel_twist=(translational_vel, rotational_vel) if translational_vel is not None and rotational_vel is not None else None,
@@ -558,15 +585,16 @@ class DiffDriveTrajectory(Spline):
 
         Parameters
         ----------
-        x : float
-            Translational motion in meters
-        theta : float
-            Rotational motion in radians
+        x : float.
+            Translational motion in meters.
+        
+        theta : float.
+            Rotational motion in radians.
 
         Returns
         -------
-        float, float
-            left and right wheel motion (respectively) in motor units
+        float, float.
+            left and right wheel motion (respectively) in motor units.
         """
         left = right = translate_to_motor_rad(x)
         rot = rotate_to_motor_rad(theta)
@@ -615,28 +643,32 @@ class DiffDriveTrajectory(Spline):
 
     def get_wheel_segments(self, index, translate_to_motor_rad, rotate_to_motor_rad,
                            lwpos=0.0, rwpos=0.0):
-        """Retrieves left/right wheel segments in the trajectory by index
+        """Retrieves left/right wheel segments in the trajectory by index.
 
         Num of segments is one less than number of waypoints in
         the trajectory. Index bounds are [-1 * num_seg, num_seg).
 
         Parameters
         ----------
-        index : int
-            index of segment to return
-        translate_to_motor_rad : func or lambda
-            used to convert se2 waypoints into left motor space
-        rotate_to_motor_rad : func or lambda
-            used to convert se2 waypoints into right motor space
-        lwpos : float
-            used to account for left wheel start of trajectory position in motor space
-        rwpos : float
-            used to account for right wheel start of trajectory position in motor space
+        index : int.
+            Index of segment to return.
+        
+        translate_to_motor_rad : func or lambda.
+            Used to convert se2 waypoints into left motor space.
+        
+        rotate_to_motor_rad : func or lambda.
+            Used to convert se2 waypoints into right motor space.
+        
+        lwpos : float.
+            Used to account for left wheel start of trajectory position in motor space.
+        
+        rwpos : float.
+            Used to account for right wheel start of trajectory position in motor space.
 
         Returns
         -------
-        Tuple(Segment, Segment)
-            left and right wheel coefficients + duration encapsulated within ``Segment`` classes
+        Tuple(Segment, Segment).
+            Left and right wheel coefficients + duration encapsulated within ``Segment`` classes.
         """
         if index < -1 * len(self.waypoints) + 1 or index >= len(self.waypoints) - 1:
             return None
@@ -659,19 +691,22 @@ class DiffDriveTrajectory(Spline):
 
         Parameters
         ----------
-        v_des : float
-            Velocity limit in motor space that the trajectory shouldn't exceed
-        a_des : float
-            Acceleration limit in motor space that the trajectory shouldn't exceed
-        translate_to_motor_rad : func or lambda
-            used to convert se2 waypoints into left motor space
-        rotate_to_motor_rad : func or lambda
-            used to convert se2 waypoints into right motor space
+        v_des : float.
+            Velocity limit in motor space that the trajectory shouldn't exceed.
+        
+        a_des : float.
+            Acceleration limit in motor space that the trajectory shouldn't exceed.
+        
+        translate_to_motor_rad : func or lambda.
+            Used to convert se2 waypoints into left motor space.
+        
+        rotate_to_motor_rad : func or lambda.
+            Used to convert se2 waypoints into right motor space.
 
         Returns
         -------
-        Tuple(bool, str)
-            whether the segment is valid, and error message if not
+        Tuple(bool, str):
+            Whether the segment is valid, and error message if not.
         """
         # only check if valid if there are enough waypoints
 
