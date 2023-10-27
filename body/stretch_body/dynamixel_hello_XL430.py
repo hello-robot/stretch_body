@@ -443,15 +443,15 @@ class DynamixelHelloXL430(Device):
             self.in_vel_brake_zone = False
 
         if self.in_vel_mode:
-            if not self.watchdog_enabled:
-                self.disable_torque()
-                self.motor.enable_watchdog()
-                self.watchdog_enabled = True
-                self.enable_torque()
+            # if not self.watchdog_enabled:
+            #     self.disable_torque()
+            #     self.motor.enable_watchdog()
+            #     self.watchdog_enabled = True
+            #     self.enable_torque()
             
-            # disable watchdog if a set_velocity() command is not passed above 1s
+            # # disable watchdog if a set_velocity() command is not passed above 1s
             if self._prev_set_vel_ts:
-                if time.time() - self._prev_set_vel_ts >=1:
+                if time.time() - self._prev_set_vel_ts >=3:
                     wd_error=self.motor.get_watchdog_error()
                     self.disable_torque()
                     self.motor.disable_watchdog()
@@ -530,6 +530,12 @@ class DynamixelHelloXL430(Device):
                     raise DynamixelCommError
 
     def set_velocity(self,v_des,a_des=None):
+        if not self.watchdog_enabled:
+            self.motor.disable_watchdog()
+            self.disable_torque()
+            self.motor.enable_watchdog()
+            self.watchdog_enabled = True
+            self.enable_torque()
         v = min(self.params['motion']['max']['vel'],abs(v_des))
         v_des = -1*v if v_des<0 else v
         nretry = 2
