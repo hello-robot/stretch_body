@@ -109,7 +109,7 @@ class GamePadTeleop(Device):
         self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
         self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9 # specific to base motion 
 
-        dxl_zero_vel_set_division_factor = 1 
+        dxl_zero_vel_set_division_factor = 3 
         # Note: Coninuously commanding stop_motion()(set zero velocities) to chained Dxls above 15 Hz might cause thread blocking issues 
         # while used in multithreaded executors (E.g. ROS2). So using a division factor to downscale the stop_motion() call rate.
 
@@ -171,7 +171,9 @@ class GamePadTeleop(Device):
         
         self.manage_dexwrist_switch_button(robot,'left_button_pressed') # Switches the D-Pad control to DexWrist or Head on 2s hold.
         self.manage_shutdown(robot) # Stows the robot and performs a PC shutdown when the Back/SELECT_BUTTON is long pressed for 2s. Comment to turn off
-        # self.manage_fn_button(robot,'left_button_pressed') # Executes the command assigned to the function_cmd param when the given button key is pressed for defined duration.
+
+        # Optional custom function button feature / Recommended to use with a non-confliction button key
+        # self.manage_fn_button(robot,'left_button_pressed') # Executes the command assigned to the function_cmd param when the given button key is pressed for a defined duration.
 
     def do_motion(self, state = None, robot = None):
         """

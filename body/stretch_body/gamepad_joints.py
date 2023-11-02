@@ -51,8 +51,8 @@ class CommandBase:
         self.acc = self.params['motion']['max']['accel_m']
 
         # Precision mode params
-        self.precision_max_linear_vel = 0.02 # m/s Very precise: 0.01
-        self.precision_max_rot_vel = 0.08 # rad/s Very precise: 0.04
+        self.precision_max_linear_vel = 0.05 #0.02 m/s Very precise: 0.01
+        self.precision_max_rot_vel = 0.3 #0.08 rad/s Very precise: 0.04
     
     def command_stick_to_motion(self, x, y, robot):
         """Convert a stick axis value to robot base's tank driving motion.
