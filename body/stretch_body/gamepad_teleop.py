@@ -80,6 +80,8 @@ class GamePadTeleop(Device):
         self.lock = lock
         if not self.lock:
             self.lock = threading.Lock()
+        
+        self.dexwrist_ctrl_switch = True
 
     def command_robot_joints(self, robot):
         """
@@ -107,7 +109,7 @@ class GamePadTeleop(Device):
         self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
         self.fast_base_mode = self.controller_state['right_trigger_pulled'] > 0.9 # specific to base motion 
 
-        dxl_zero_vel_set_division_factor = 3 
+        dxl_zero_vel_set_division_factor = 1 
         # Note: Coninuously commanding stop_motion()(set zero velocities) to chained Dxls above 15 Hz might cause thread blocking issues 
         # while used in multithreaded executors (E.g. ROS2). So using a division factor to downscale the stop_motion() call rate.
 
@@ -121,7 +123,7 @@ class GamePadTeleop(Device):
             if self._i % dxl_zero_vel_set_division_factor == 0:
                 self.wirst_yaw_command.stop_motion(robot)
         
-        if not self.end_of_arm_tool == 'tool_stretch_dex_wrist' or (self.end_of_arm_tool == 'tool_stretch_dex_wrist' and self.controller_state['right_stick_button_pressed']):
+        if not self.end_of_arm_tool == 'tool_stretch_dex_wrist' or (self.end_of_arm_tool == 'tool_stretch_dex_wrist' and not self.dexwrist_ctrl_switch):
             # Head Control
             if self.controller_state['top_pad_pressed']:
                 self.head_tilt_command.command_button_to_motion(1,robot)
@@ -139,7 +141,7 @@ class GamePadTeleop(Device):
                 if self._i % dxl_zero_vel_set_division_factor == 0:
                     self.head_pan_command.stop_motion(robot)
                         
-        elif self.end_of_arm_tool == 'tool_stretch_dex_wrist' and not self.controller_state['right_stick_button_pressed']:
+        elif self.end_of_arm_tool == 'tool_stretch_dex_wrist' and self.dexwrist_ctrl_switch:
             # Dex Wrist Control
             if self.controller_state['top_pad_pressed']:
                 self.wrist_pitch_command.command_button_to_motion(1,robot)
@@ -167,8 +169,9 @@ class GamePadTeleop(Device):
             elif self.controller_state['bottom_button_pressed']:
                 self.gripper.close_gripper(robot)
         
+        self.manage_dexwrist_switch_button(robot,'left_button_pressed') # Switches the D-Pad control to DexWrist or Head on 2s hold.
         self.manage_shutdown(robot) # Stows the robot and performs a PC shutdown when the Back/SELECT_BUTTON is long pressed for 2s. Comment to turn off
-        self.manage_fn_button(robot) # Executes the command assigned to the function_cmd param when button X/LEFT_BUTTON is pressed for defined duration. Comment to turn off
+        # self.manage_fn_button(robot,'left_button_pressed') # Executes the command assigned to the function_cmd param when the given button key is pressed for defined duration.
 
     def do_motion(self, state = None, robot = None):
         """
@@ -276,11 +279,32 @@ class GamePadTeleop(Device):
         self.head_pan_command.precision_mode = self.precision_mode
         self.head_tilt_command.precision_mode = self.precision_mode
             
-    def manage_fn_button(self, robot):
-        """Detect function button press (Button X)
+    def manage_dexwrist_switch_button(self, robot, button_key):
+        """Switch the D-Pad between DexWrist and Head Control by a 2s button press
+        """    
+        if self.controller_state[button_key]:
+                
+            if not self._last_fn_btn_press:
+                self._last_fn_btn_press = time.time()
+
+            if time.time() - self._last_fn_btn_press >= 2:
+                self._last_fn_btn_press = None
+                if not self.dexwrist_ctrl_switch:
+                    self.dexwrist_ctrl_switch = True
+                    print("Switch D-Pad to DexWrist Control")
+                    self.do_single_beep(robot)
+                else:
+                    self.dexwrist_ctrl_switch = False
+                    print("Switch D-Pad to Head Control")
+                    self.do_single_beep(robot)
+        else:
+            self._last_fn_btn_press = None
+
+    def manage_fn_button(self, robot, button_key):
+        """Detect function button press
         """    
         if self.params['enable_fn_button']: 
-            if self.controller_state['left_button_pressed']:
+            if self.controller_state[button_key]:
                 if not self._last_fn_btn_press:
                     self._last_fn_btn_press = time.time()
 
