@@ -169,11 +169,12 @@ class GamePadTeleop(Device):
             elif self.controller_state['bottom_button_pressed']:
                 self.gripper.close_gripper(robot)
         
-        self.manage_dexwrist_switch_button(robot,'left_button_pressed') # Switches the D-Pad control to DexWrist or Head on 2s hold.
+        self.manage_dexwrist_switch_button(robot,self.controller_state['left_button_pressed']) # Switches the D-Pad control to DexWrist or Head on 2s hold.
         self.manage_shutdown(robot) # Stows the robot and performs a PC shutdown when the Back/SELECT_BUTTON is long pressed for 2s. Comment to turn off
 
         # Optional custom function button feature / Recommended to use with a non-confliction button key
-        # self.manage_fn_button(robot,'left_button_pressed') # Executes the command assigned to the function_cmd param when the given button key is pressed for a defined duration.
+        # Executes the command assigned to the function_cmd param when the given button key is pressed for a defined duration.
+        # self.manage_fn_button(robot,self.controller_state['left_button_pressed']) 
 
     def do_motion(self, state = None, robot = None):
         """
@@ -281,11 +282,10 @@ class GamePadTeleop(Device):
         self.head_pan_command.precision_mode = self.precision_mode
         self.head_tilt_command.precision_mode = self.precision_mode
             
-    def manage_dexwrist_switch_button(self, robot, button_key):
+    def manage_dexwrist_switch_button(self, robot, button_state):
         """Switch the D-Pad between DexWrist and Head Control by a 2s button press
         """    
-        if self.controller_state[button_key]:
-                
+        if button_state:
             if not self._last_fn_btn_press:
                 self._last_fn_btn_press = time.time()
 
@@ -302,11 +302,11 @@ class GamePadTeleop(Device):
         else:
             self._last_fn_btn_press = None
 
-    def manage_fn_button(self, robot, button_key):
+    def manage_fn_button(self, robot, button_state):
         """Detect function button press
         """    
         if self.params['enable_fn_button']: 
-            if self.controller_state[button_key]:
+            if button_state:
                 if not self._last_fn_btn_press:
                     self._last_fn_btn_press = time.time()
 
