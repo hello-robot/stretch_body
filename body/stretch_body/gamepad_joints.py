@@ -45,6 +45,7 @@ class CommandBase:
         self.max_rotation_vel = 1.90241 # rad/s
         self.normal_linear_vel = self.params['motion']['default']['vel_m']
         self.normal_rotation_vel = self.max_rotation_vel*0.4
+        self.arm_extended_rotation_vel = self.max_rotation_vel*0.2
         self.precision_mode = False 
         self.fast_base_mode = False
         self.acc = self.params['motion']['max']['accel_m']
@@ -157,6 +158,8 @@ class CommandBase:
         if self.fast_base_mode and self.is_fastbase_safe(robot):
             max_linear_vel =  self.max_linear_vel
             max_rotation_vel = self.max_rotation_vel
+        if not robot.arm.status['pos'] < (robot.get_stow_pos('arm') + 0.1):
+            max_rotation_vel = self.arm_extended_rotation_vel
         v_m = map_to_range(abs(y), 0, max_linear_vel)
         if y<0:
             v_m = -1*v_m
