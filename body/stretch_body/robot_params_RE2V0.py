@@ -92,7 +92,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_m': 0.4,
                 'accel_m': 0.4},
-        'vel_brakezone_factor': 0.2},
+        'vel_brakezone_factor': 0.03},
         'set_safe_velocity': 1},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
@@ -181,7 +181,7 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 8.0,
                 'accel_r': 16.0},
-            'vel_brakezone_factor': 1.5},
+            'vel_brakezone_factor': 0.5},
         'set_safe_velocity': 1,
         'pid': [800, 200, 200],
         'pwm_homing': [-300,300],
@@ -297,8 +297,8 @@ nominal_params={
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
             'pKd_d': 65.0,
-            'pKi_d': 0.1,
-            'pKi_limit': 200.0,
+            'pKi_d': 0.01,
+            'pKi_limit': 50.0,
             'pKp_d': 12.0,
             'pLPF': 80.0,
             'voltage_LPF':1.0,
@@ -371,8 +371,8 @@ nominal_params={
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
             'pKd_d': 65.0,
-            'pKi_d': 0.1,
-            'pKi_limit': 200.0,
+            'pKi_d': 0.01,
+            'pKi_limit': 50.0,
             'pKp_d': 12.0,
             'pLPF': 80.0,
             'voltage_LPF':1.0,
@@ -418,7 +418,7 @@ nominal_params={
             'trajectory_max': {
               'accel_m': 0.3,
               'vel_m': 0.15},
-        'vel_brakezone_factor': 0.03},
+        'vel_brakezone_factor': 0.01},
         'set_safe_velocity': 1,
           'pinion_t': 12},
     'pimu':{
@@ -596,7 +596,7 @@ nominal_params={
               'trajectory_max': {
                   'vel_r': 3.0,
                   'accel_r': 3.0},
-            'vel_brakezone_factor': 1},
+            'vel_brakezone_factor': 0.2},
         'set_safe_velocity': 1,
         'pid': [640,0,0],
         'pwm_homing': [-300,300],
@@ -616,5 +616,9 @@ nominal_params={
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0]},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
-    'lidar': {'usb_name': '/dev/hello-lrf'}
+    'lidar': {'usb_name': '/dev/hello-lrf'},
+    'stretch_gamepad':{
+        'enable_fn_button': 0,
+        'function_cmd':'',
+        'press_time_span':5}
 }

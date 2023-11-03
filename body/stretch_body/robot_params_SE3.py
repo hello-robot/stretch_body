@@ -297,8 +297,8 @@ nominal_params={
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
             'pKd_d': 65.0,
-            'pKi_d': 0.1,
-            'pKi_limit': 200.0,
+            'pKi_d': 0.01,
+            'pKi_limit': 50.0,
             'pKp_d': 12.0,
             'pLPF': 80.0,
             'voltage_LPF':1.0,
@@ -371,8 +371,8 @@ nominal_params={
             'i_contact_pos': 3.0,
             'i_safety_feedforward': 0.0,
             'pKd_d': 65.0,
-            'pKi_d': 0.1,
-            'pKi_limit': 200.0,
+            'pKi_d': 0.01,
+            'pKi_limit': 50.0,
             'pKp_d': 12.0,
             'pLPF': 80.0,
             'voltage_LPF':1.0,
@@ -616,5 +616,9 @@ nominal_params={
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0]},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
-    'lidar': {'usb_name': '/dev/hello-lrf'}
+    'lidar': {'usb_name': '/dev/hello-lrf'},
+    'stretch_gamepad':{
+        'enable_fn_button': 0,
+        'function_cmd':'',
+        'press_time_span':5}
 }

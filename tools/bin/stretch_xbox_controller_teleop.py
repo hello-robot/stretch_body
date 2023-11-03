@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import print_function
-import stretch_body.xbox_controller as xc
+import stretch_body.gamepad_controller as gc
 import stretch_body.robot as rb
 from stretch_body.hello_utils import *
 import os
@@ -553,7 +553,7 @@ use_stretch_gripper_mapping = True
 
 def main():
     global use_head_mapping, use_dex_wrist_mapping, use_stretch_gripper_mapping
-    xbox_controller = xc.XboxController()
+    xbox_controller = gc.GamePadController()
     xbox_controller.start()
     check_usb_devices(wait_timeout=5)
     robot = rb.Robot()
