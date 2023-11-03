@@ -140,6 +140,10 @@ class GamePadTeleop(Device):
             else:
                 if self._i % dxl_zero_vel_set_division_factor == 0:
                     self.head_pan_command.stop_motion(robot)
+
+            if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+                self.wrist_pitch_command.stop_motion(robot)
+                self.wrist_roll_command.stop_motion(robot)
                         
         elif self.end_of_arm_tool == 'tool_stretch_dex_wrist' and self.dexwrist_ctrl_switch:
             # Dex Wrist Control
@@ -158,6 +162,10 @@ class GamePadTeleop(Device):
             else:
                 if self._i % dxl_zero_vel_set_division_factor == 0:
                     self.wrist_roll_command.stop_motion(robot)
+
+            self.head_pan_command.stop_motion(robot)
+            self.head_tilt_command.stop_motion(robot)
+
                 
         self.arm_command.command_stick_to_motion(self.controller_state['right_stick_x'],robot)
         self.lift_command.command_stick_to_motion(self.controller_state['right_stick_y'],robot)
