@@ -210,7 +210,7 @@ class CommandLift:
         self.target_position = self.start_pos
         self.precision_kp = 0.5 # Very Precise: 0.5
         self.precision_max_vel = 0.04 # m/s Very Precise: 0.02 m/s
-        self.stopped_for_prec = False 
+        self.stopped_for_precision = False 
     
     def command_stick_to_motion(self, x, robot):
         """Convert a stick axis value to robot lift motion.
@@ -226,22 +226,28 @@ class CommandLift:
         # Standard Mode
         if not self.precision_mode:
             self.start_pos = None
+            self.stopped_for_precision = False
             v_m = self._process_stick_to_vel(x)
             robot.lift.set_velocity(v_m, a_m=self.acc)
             self._prev_set_vel_ts = time.time()
             # print(f"[CommandLift]  X: {x} || v_m: {self.safety_v_m}")
         else:
         # Precision Mode
-            if self.start_pos is None:
-                self.start_pos = robot.lift.status['pos']
-                self.target_position = self.start_pos
-                # TODO: Wait for the velocity to settle to zero
+            if abs(robot.lift.status['vel'])>0.001 and not self.stopped_for_precision:
+                # wait till joint stops before recording the start pos
+                self.stop_motion(robot)
+            else:
+                self.stopped_for_precision = True
+                if self.start_pos is None:
+                    self.start_pos = robot.lift.status['pos']
+                    self.target_position = self.start_pos
             
             r = self.precision_max_vel
             xv = map_to_range(abs(x),0,r)
             if x<0:
                 xv = -1*xv
-            self._step_precision_move(xv, robot)
+            if self.stopped_for_precision:
+                self._step_precision_move(xv, robot)
     
     def command_button_to_motion(self, direction, robot):
         """Make lift move based on a button state.
@@ -312,6 +318,7 @@ class CommandArm:
         self.target_position = self.start_pos
         self.precision_kp = 0.6 # Very Precise: 0.6
         self.precision_max_vel = 0.04 # m/s  Very Precise: 0.02 m/s
+        self.stopped_for_precision = False
 
     def command_stick_to_motion(self, x, robot):
         """Convert a stick axis value to robot arm motion.
@@ -326,21 +333,27 @@ class CommandArm:
         if not self.precision_mode:
         # Standard Mode
             self.start_pos = None
+            self.stopped_for_precision = False
             v_m = self._process_stick_to_vel(x)
             robot.arm.set_velocity(v_m,a_m=self.acc)
             self._prev_set_vel_ts = time.time()
         else:
         # Precision Mode
-            if self.start_pos is None:
-                self.start_pos = robot.arm.status['pos']
-                self.target_position = self.start_pos
-                # TODO: Wait for the velocity to settle to zero
+            if abs(robot.arm.status['vel'])>0.001 and not self.stopped_for_precision:
+                # wait till joint stops before recording the start pos
+                self.stop_motion(robot)
+            else:
+                self.stopped_for_precision = True
+                if self.start_pos is None:
+                    self.start_pos = robot.arm.status['pos']
+                    self.target_position = self.start_pos
                 
             r = self.precision_max_vel
             xv = map_to_range(abs(x),0,r)
             if x<0:
                 xv = -1*xv
-            self._step_precision_move(xv, robot)
+            if self.stopped_for_precision:
+                self._step_precision_move(xv, robot)
 
     def command_button_to_motion(self, direction, robot):
         """Make arm move based on a button state.
