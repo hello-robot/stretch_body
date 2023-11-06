@@ -68,6 +68,7 @@ configuration_params_template={
 nominal_params={
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
+        'use_vel_traj': 1,
         'force_N_per_A': 55.9,  # Legacy
         'chain_pitch': 0.0167,
         'chain_sprocket_teeth': 10,
@@ -97,6 +98,7 @@ nominal_params={
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
         'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
+        'use_vel_traj': 1,
         'force_N_per_A': 21.18,  # Legacy
         'gr': 3.8,
         'motion':{
@@ -309,7 +311,7 @@ nominal_params={
             'vKd_d': 0,
             'vKi_d': 0.005,
             'vKi_limit': 200,
-            'vKp_d': 0.2,
+            'vKp_d': 0.17,
             'vLPF': 30,
             'vTe_d': 50,
             'vel_near_setpoint_d': 3.5,
@@ -383,7 +385,7 @@ nominal_params={
             'vKd_d': 0,
             'vKi_d': 0.005,
             'vKi_limit': 200,
-            'vKp_d': 0.2,
+            'vKp_d': 0.17,
             'vLPF': 30,
             'vTe_d': 50,
             'vel_near_setpoint_d': 3.5,
@@ -395,6 +397,7 @@ nominal_params={
         'rated_current': 2.8},
     'lift':{
         'usb_name': '/dev/hello-motor-lift',
+        'use_vel_traj': 1,
         'force_N_per_A': 75.0,  # Legacy
         'calibration_range_bounds': [1.094, 1.106],
         'contact_models': {
