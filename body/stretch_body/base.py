@@ -333,11 +333,16 @@ class Base(Device):
         i_contact_l, i_contact_r = self.contact_thresh_to_motor_current(is_translate=True,
                                                                         contact_thresh=contact_thresh)
 
-        self.left_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wl_r, a_des=a_mr,
+        if self.params['use_vel_traj']:
+            ctrl_mode =Stepper.MODE_VEL_TRAJ
+        else:
+            ctrl_mode =Stepper.MODE_VEL_PID
+
+        self.left_wheel.set_command(mode=ctrl_mode, v_des=wl_r, a_des=a_mr,
                                     i_feedforward=0,
                                     i_contact_pos=i_contact_l,
                                     i_contact_neg=-1 * i_contact_l)
-        self.right_wheel.set_command(mode=Stepper.MODE_VEL_TRAJ, v_des=wr_r, a_des=a_mr,
+        self.right_wheel.set_command(mode=ctrl_mode, v_des=wr_r, a_des=a_mr,
                                      stiffness=stiffness,
                                      i_feedforward=0,
                                      i_contact_pos=i_contact_r,

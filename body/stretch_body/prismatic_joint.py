@@ -196,7 +196,11 @@ class PrismaticJoint(Device):
                                    i_contact_pos=i_contact_pos,
                                    i_contact_neg=i_contact_neg)
         else:
-            self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
+            if self.params['use_vel_traj']:
+                ctrl_mode = Stepper.MODE_VEL_TRAJ
+            else:
+                ctrl_mode = Stepper.MODE_VEL_PID
+            self.motor.set_command(mode=ctrl_mode,
                                 v_des=v_r,
                                 a_des=a_r,
                                 stiffness=stiffness,
@@ -246,7 +250,13 @@ class PrismaticJoint(Device):
             v_r = self.translate_m_to_motor_rad(v_m)
 
             self.logger.debug(f"Applied safety brakes near limits. reduced set_vel={v_m} m/s")
-            self.motor.set_command(mode=Stepper.MODE_VEL_TRAJ,
+
+            if self.params['use_vel_traj']:
+                ctrl_mode = Stepper.MODE_VEL_TRAJ
+            else:
+                ctrl_mode = Stepper.MODE_VEL_PID
+
+            self.motor.set_command(mode=ctrl_mode,
                                 v_des=v_r,
                                 a_des=a_des,
                                 stiffness=stiffness,
