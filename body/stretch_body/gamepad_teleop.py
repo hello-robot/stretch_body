@@ -82,6 +82,7 @@ class GamePadTeleop(Device):
             self.lock = threading.Lock()
         
         self.dexwrist_ctrl_switch = True
+        self.skip_x_button = False
 
     def command_robot_joints(self, robot):
         """
@@ -101,9 +102,6 @@ class GamePadTeleop(Device):
         robot : robot.Robot 
             Valid robot instance
         """
-        
-        if self.controller_state['top_button_pressed']:
-            self.stow_robot(robot)
 
         # Set control modes flags
         self.precision_mode = self.controller_state['left_trigger_pulled'] > 0.9
@@ -177,7 +175,27 @@ class GamePadTeleop(Device):
             elif self.controller_state['bottom_button_pressed']:
                 self.gripper.close_gripper(robot)
         
-        self.manage_dexwrist_switch_button(robot,self.controller_state['left_button_pressed']) # Switches the D-Pad control to DexWrist or Head on 2s hold.
+        # Switches the D-Pad control to DexWrist or Head on X/left_button press
+        # `dexwrist_ctrl_switch` and `skip_x_button`  are convinience booleans for holding the toggled D-Pad info
+        if self.controller_state['left_button_pressed'] and not self.skip_x_button:
+            if not self.dexwrist_ctrl_switch:
+                self.dexwrist_ctrl_switch = True
+                print("Switch D-Pad to DexWrist Control")
+                self.do_single_beep(robot)
+                self.skip_x_button = True
+            else:
+                self.dexwrist_ctrl_switch = False
+                print("Switch D-Pad to Head Control")
+                self.do_single_beep(robot)
+                self.skip_x_button = True
+        # skip x button press by N cycles after a toggle 
+        if self.skip_x_button:
+            if self._i % 10 == 0:
+                self.skip_x_button = False
+
+            
+
+        self.manage_robot_stow(robot,self.controller_state['top_button_pressed']) # Stow the robot on Y/top_button long 2s press
         self.manage_shutdown(robot) # Stows the robot and performs a PC shutdown when the Back/SELECT_BUTTON is long pressed for 2s. Comment to turn off
 
         # Optional custom function button feature / Recommended to use with a non-confliction button key
@@ -202,6 +220,7 @@ class GamePadTeleop(Device):
         self._update_modes()
         with self.lock:
             if not robot.is_calibrated() and self.controller_state['start_button_pressed']:
+                self.do_single_beep(robot)
                 robot.home()
             if robot.is_calibrated():
                 if self.gamepad_controller.is_gamepad_dongle:
@@ -290,7 +309,7 @@ class GamePadTeleop(Device):
         self.head_pan_command.precision_mode = self.precision_mode
         self.head_tilt_command.precision_mode = self.precision_mode
             
-    def manage_dexwrist_switch_button(self, robot, button_state):
+    def manage_robot_stow(self, robot, button_state):
         """Switch the D-Pad between DexWrist and Head Control by a 2s button press
         """    
         if button_state:
@@ -298,15 +317,9 @@ class GamePadTeleop(Device):
                 self._last_fn_btn_press = time.time()
 
             if time.time() - self._last_fn_btn_press >= 2:
+                self.do_single_beep(robot)
                 self._last_fn_btn_press = None
-                if not self.dexwrist_ctrl_switch:
-                    self.dexwrist_ctrl_switch = True
-                    print("Switch D-Pad to DexWrist Control")
-                    self.do_single_beep(robot)
-                else:
-                    self.dexwrist_ctrl_switch = False
-                    print("Switch D-Pad to Head Control")
-                    self.do_single_beep(robot)
+                self.stow_robot(robot)
         else:
             self._last_fn_btn_press = None
 
