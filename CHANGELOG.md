@@ -1,7 +1,15 @@
 # Changelog
 
 The changes between releases of Stretch Body are documented here.
+## [0.6.2](https://github.com/hello-robot/stretch_body/pull/203) - September 11, 2023
+- Introduces the new set of Gamepad modules to teleop stretch using the provided physical gamepad or any other UI input devices. This gamepad controller primarily uses velocity control.
+- The stretch_gamepad_teleop.py tool is added and we are deprecating the old position control based stretch_xbox_teleop_controller.py
+- The new controller now has a precision mode, allowing users to make fine-grain robot motions.
 
+## [0.6.0](https://github.com/hello-robot/stretch_body/pull/206) - October 7, 2023
+This is the initial productioon release that supports Prince batch.
+- Introduces the P4 firmware protocol support
+- Adds Prince batch params and new pimu IMU support  
 ## [0.5.0](https://github.com/hello-robot/stretch_body/pull/188) - July 11, 2023
 - Introduces the **use_asyncio**  mode that will enable using asynchronous IO call methods to perform robot push/pull commands and RPC transactions with the help of [`asyncio`](https://docs.python.org/3/library/asyncio.html) to speed up the USB device communications. This mode can be toggled back to use the regular non-async IO calls by changing the stretch params `use_asyncio`.
 - By default, the asyncio mode is enabled.
