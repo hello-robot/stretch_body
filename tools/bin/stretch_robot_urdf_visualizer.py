@@ -9,6 +9,7 @@ import warnings
 
 from hello_helpers.gripper_conversion import GripperConversion
 import stretch_body.robot
+import stretch_body.device
 import stretch_body.hello_utils as hu
 
 hu.print_stretch_re_use()
@@ -69,8 +70,9 @@ class URDFVisualizer:
 
 class StretchState:
 
-    def __init__(self, robot, controller_parameters):
+    def __init__(self, robot, tool, controller_parameters):
         self.stretch = robot
+        self.tool = tool
         self.controller_parameters = controller_parameters.copy()
         self.gripper_conversion = GripperConversion()
 
@@ -96,6 +98,13 @@ class StretchState:
 
         wrist_yaw_status = stretch_status['end_of_arm']['wrist_yaw']
         wrist_yaw_rad = wrist_yaw_status['pos']
+
+        if self.tool == 'tool_stretch_dex_wrist':
+            wrist_pitch_status = stretch_status['end_of_arm']['wrist_pitch']
+            wrist_pitch_rad = wrist_pitch_status['pos']
+
+            wrist_roll_status = stretch_status['end_of_arm']['wrist_roll']
+            wrist_roll_rad = wrist_roll_status['pos']
 
         try:
             gripper_status = stretch_status['end_of_arm']['stretch_gripper']
@@ -135,6 +144,9 @@ class StretchState:
             'joint_head_pan': head_pan_rad,
             'joint_head_tilt': head_tilt_rad
         }
+        if self.tool == 'tool_stretch_dex_wrist':
+            configuration['joint_wrist_pitch'] = wrist_pitch_rad
+            configuration['joint_wrist_roll'] = wrist_roll_rad
 
         return configuration
 
@@ -150,6 +162,7 @@ if __name__ == "__main__":
     urdf_path = calibration_dir / 'stretch.urdf'
     controller_params_path = calibration_dir / 'controller_calibration_head.yaml'
     urdf = urdf_loader.URDF.load(str(urdf_path.absolute()))
+    tool = stretch_body.device.Device(req_params=False).robot_params['robot']['tool']
     viz = URDFVisualizer(urdf)
     with open(str(controller_params_path.absolute()), 'r') as f:
         controller_params = yaml.load(f, Loader=yaml.FullLoader)
@@ -169,6 +182,9 @@ if __name__ == "__main__":
             'joint_head_pan': [0.0, -(math.pi / 2.0)],
             'joint_head_tilt': [0.5, -0.5]
         }
+        if tool == 'tool_stretch_dex_wrist':
+            cfg_trajectory['joint_wrist_pitch'] = [-math.pi/2, 0.0]
+            cfg_trajectory['joint_wrist_roll'] = [-math.pi, 0.0]
         urdf.animate(cfg_trajectory=cfg_trajectory, use_collision=args.collision)
     elif args.pose:
         cfg_pose = {
@@ -185,6 +201,9 @@ if __name__ == "__main__":
             'joint_head_pan': -(math.pi / 2.0),
             'joint_head_tilt': -0.5
         }
+        if tool == 'tool_stretch_dex_wrist':
+            cfg_pose['joint_wrist_pitch'] = -math.pi/2
+            cfg_pose['joint_wrist_roll'] = math.pi/4
         urdf.show(cfg=cfg_pose, use_collision=args.collision)
     else:
         r = stretch_body.robot.Robot()
@@ -193,7 +212,7 @@ if __name__ == "__main__":
             print('Exiting because the robot has not been calibrated')
             exit()
 
-        stretch_state = StretchState(r, controller_params)
+        stretch_state = StretchState(r, tool, controller_params)
         viz.show(cfg=stretch_state.get_urdf_configuration(), use_collision=args.collision)
         while viz.viewer.is_active:
             viz.update_pose(cfg=stretch_state.get_urdf_configuration(), use_collision=args.collision)
