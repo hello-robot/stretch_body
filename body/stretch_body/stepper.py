@@ -463,10 +463,10 @@ class StepperBase(Device):
         """
         ts = time.time()
         self.pull_status()
-        while self.status['is_moving'] and time.time() - ts < timeout:
+        while self.status['is_moving_filtered'] and time.time() - ts < timeout:
             time.sleep(0.1)
             self.pull_status()
-        return not self.status['is_moving']
+        return not self.status['is_moving_filtered']
 
     def wait_until_at_setpoint(self,timeout=15.0):
         """

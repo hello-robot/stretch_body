@@ -537,7 +537,10 @@ class PrismaticJoint(Device):
         pass
 
     def wait_until_at_setpoint(self, timeout=15.0):
-        self.motor.wait_until_at_setpoint(timeout)
+        return self.motor.wait_until_at_setpoint(timeout=timeout)
+
+    def wait_while_is_moving(self,timeout=15.0):
+        return self.motor.wait_while_is_moving(timeout=timeout)
 
     def wait_for_contact(self, timeout=5.0):
         ts=time.time()
