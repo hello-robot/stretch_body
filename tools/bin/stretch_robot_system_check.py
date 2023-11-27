@@ -170,6 +170,17 @@ else:
     print(Fore.RED + '[Fail] : No device found')
 # #####################################################
 try: # TODO: remove try/catch after sw check verified to work reliably
+    def is_distribution_okay():
+        ubuntu_str = f'{distro.name()} {distro.version()}'
+        ubuntu_version = distro.version()
+        if ubuntu_version == '18.04':
+            return Fore.RED + f'[Fail] {ubuntu_str} is deprecated'
+        elif ubuntu_version == '20.04':
+            return Fore.GREEN + f'[Pass] {ubuntu_str} is ready'
+        elif ubuntu_version == '22.04':
+            return Fore.GREEN + f'[Pass] {ubuntu_str} is ready'
+        else:
+            return Fore.RED + f'[Fail] {ubuntu_str} is unknown'
     def all_apt_correct():
         apt_expectations = {
             '18.04': {
@@ -189,7 +200,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         apt_list = apt.Cache()
         for pkg, is_install_expected in apt_expectations[distro.version()].items():
             if pkg not in apt_list or is_install_expected != apt_list[pkg].is_installed:
-                return False, f'{pkg} not set-up correctly'
+                return False, f"{pkg} should {'not' if not is_install_expected else ''} be installed"
         return True, ''
     def all_firmware_uptodate():
         def get_fw_version(hello_device):
@@ -303,13 +314,14 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         return True, ros_name, True, '', ws_path
     print(Style.RESET_ALL)
     print ('---- Checking Software ----')
-    # Ubuntu APT
-    apt_ready, apt_err_msg = all_apt_correct()
-    ubuntu_str = f'{distro.name()} {distro.version()}'
-    if apt_ready:
-        print(Fore.GREEN + f'[Pass] {ubuntu_str} is ready')
+    # Ubuntu
+    print(is_distribution_okay())
+    # APT
+    apt_correct, apt_err_msg = all_apt_correct()
+    if apt_correct:
+        print(Fore.GREEN + f'[Pass] All APT pkgs are setup correctly')
     else:
-        print(Fore.YELLOW + f'[Warn] {ubuntu_str} not ready ({apt_err_msg})')
+        print(Fore.YELLOW + f'[Warn] Not all APT pkgs are setup correctly ({apt_err_msg})')
     # Firmware
     fw_uptodate, fw_versions = all_firmware_uptodate()
     if fw_uptodate:
