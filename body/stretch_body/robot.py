@@ -344,6 +344,15 @@ class Robot(Device):
             if (self.pimu.ts_last_motor_sync is None or ( ready and sync_required)):
                 self.pimu.trigger_motor_sync()
 
+    def wait_command(self, timeout=15.0):
+        time.sleep(0.5)
+        base_done = self.base.wait_while_is_moving(timeout=timeout)
+        arm_done = self.arm.wait_while_is_moving(timeout=timeout)
+        lift_done = self.lift.wait_while_is_moving(timeout=timeout)
+        head_done = self.head.wait_until_at_setpoint(timeout=timeout)
+        eoa_done = self.end_of_arm.wait_until_at_setpoint(timeout=timeout)
+        return base_done and arm_done and lift_done and head_done and eoa_done
+
     # ######### Waypoint Trajectory Interface ##############################
 
 

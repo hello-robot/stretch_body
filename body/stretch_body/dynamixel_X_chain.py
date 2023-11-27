@@ -103,6 +103,12 @@ class DynamixelXChain(Device):
             self.motors[motor].stop()
         self.hw_valid = False
 
+    def wait_until_at_setpoint(self, timeout=15.0):
+        at_setpoint = []
+        for motor in self.motors:
+            at_setpoint.append(self.motors[motor].wait_until_at_setpoint(timeout=timeout))
+        return all(at_setpoint)
+
     def is_trajectory_active(self):
         for motor in self.motors:
             if self.motors[motor].is_trajectory_active():

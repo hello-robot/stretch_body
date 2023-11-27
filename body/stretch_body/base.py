@@ -101,10 +101,16 @@ class Base(Device):
             time.sleep(0.01)
         return False
 
+    def wait_while_is_moving(self,timeout=15.0):
+        left_done_moving = self.left_wheel.wait_while_is_moving(timeout=timeout)
+        right_done_moving = self.right_wheel.wait_while_is_moving(timeout=timeout)
+        return left_done_moving and right_done_moving
+
     def wait_until_at_setpoint(self, timeout=15.0):
         #Assume both are in motion. This will exit once both are at setpoints
-        self.left_wheel.wait_until_at_setpoint(timeout)
-        self.right_wheel.wait_until_at_setpoint(timeout)
+        left_at_setpoint = self.left_wheel.wait_until_at_setpoint(timeout)
+        right_at_setpoint = self.right_wheel.wait_until_at_setpoint(timeout)
+        return left_at_setpoint and right_at_setpoint
 
     def contact_thresh_to_motor_current(self,is_translate,contact_thresh):
         """
