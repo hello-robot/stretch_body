@@ -393,7 +393,14 @@ class Robot(Device):
 
     def is_calibrated(self):
         """
-        Returns true if homing-calibration has been run all joints that require it
+        DEPRECATED: replaced by Robot.is_homed()
+        """
+        self.logger.warn('is_calibrated() has been replaced by is_homed()')
+        return self.is_homed()
+
+    def is_homed(self):
+        """
+        Returns true if homing has been run all joints that require it
         """
         ready = self.lift.motor.status['pos_calibrated']
         ready = ready and self.arm.motor.status['pos_calibrated']
