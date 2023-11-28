@@ -5,7 +5,6 @@ import re
 import apt
 import distro
 import pathlib
-import rospkg
 from packaging import version
 import yaml
 import time
@@ -311,6 +310,8 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             return False, pip_versions, pip_editable_locations
         return True, pip_versions, pip_editable_locations
     def all_ros_correct():
+        ros1_distros = ['melodic', 'noetic']
+        ros2_distros = ['humble']
         ros_expectations = {
             'melodic': {
                 'stretch_core': True,
@@ -324,37 +325,53 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                 'respeaker_ros': True,
                 'realsense_gazebo_plugin': True,
             },
-            'galactic': {
+            # 'galactic': { # Deprecated August 2023
+            #     'stretch_core': True,
+            #     'realsense2_camera': True,
+            #     'sllidar_ros2': True,
+            #     'ros2_numpy': True,
+            #     'stretch_moveit_plugins': True,
+            # },
+            'humble': { # rospkg only works on ROS1
                 'stretch_core': True,
                 'realsense2_camera': True,
                 'sllidar_ros2': True,
                 'ros2_numpy': True,
-                'stretch_moveit_plugins': True,
-            },
-            'iron': {
-                'stretch_core': True,
-                'realsense2_camera': True,
-                'sllidar_ros2': True,
-                'ros2_numpy': True,
-                'stretch_moveit_plugins': True,
             }
         }
-        if not os.getenv('ROS_DISTRO'):
+        ros_distro = os.getenv('ROS_DISTRO')
+        if not ros_distro:
             return False, '', False, '', ''
-        ros_name = f'ROS {os.getenv("ROS_DISTRO").capitalize()}'
-        if os.getenv('ROS_DISTRO') not in ros_expectations:
+        ros_name = f'ROS {ros_distro.capitalize()}'
+        if ros_distro not in ros_expectations:
             return False, ros_name, False, '', ''
-        rospack = rospkg.RosPack()
-        rospack_list = rospack.list()
-        for pkg, is_install_expected in ros_expectations[os.getenv('ROS_DISTRO')].items():
-            if is_install_expected != (pkg in rospack_list):
-                return True, ros_name, False, f'{pkg} missing', ''
-        p = rospack.get_path('stretch_core')
-        ws_paths = [str(par.parent) for par in pathlib.Path(p).parents if str(par).endswith('src')]
-        ws_path = ''
-        if len(ws_paths) > 0:
-            ws_path = ws_paths[0].replace(str(pathlib.Path(p).home()), '~')
-        return True, ros_name, True, '', ws_path
+        if ros_distro in ros1_distros:
+            import rospkg
+            rospack = rospkg.RosPack()
+            rospack_list = rospack.list()
+            for pkg, is_install_expected in ros_expectations[ros_distro].items():
+                if is_install_expected != (pkg in rospack_list):
+                    return True, ros_name, False, f"{pkg} should {'not' if not is_install_expected else ''} be installed", ''
+            p = rospack.get_path('stretch_core')
+            ws_paths = [str(par.parent) for par in pathlib.Path(p).parents if str(par).endswith('src')]
+            ws_path = ''
+            if len(ws_paths) > 0:
+                ws_path = ws_paths[0].replace(str(pathlib.Path(p).home()), '~')
+            return True, ros_name, True, '', ws_path
+        elif ros_distro in ros2_distros:
+            from ament_index_python.packages import get_package_share_directory, get_package_prefix
+            for pkg, is_install_expected in ros_expectations[ros_distro].items():
+                try: # use the try/except to catch whether the pkg is installed
+                    get_package_share_directory(pkg)
+                    if not is_install_expected:
+                        return True, ros_name, False, f"{pkg} should not be installed", ''
+                except:
+                    if is_install_expected:
+                        return True, ros_name, False, f"{pkg} should be installed", ''
+            p = get_package_prefix('stretch_core')
+            ws_path = str(pathlib.Path(p).parent.parent / 'src').replace(str(pathlib.Path(p).home()), '~')
+            return True, ros_name, True, '', ws_path
+        return True, ros_name, False, 'Unable to list pkgs for this distribution', ''
     print(Style.RESET_ALL)
     print ('---- Checking Software ----')
     # Ubuntu
@@ -390,7 +407,8 @@ try: # TODO: remove try/catch after sw check verified to work reliably
     if ros_enabled:
         if ros_ready:
             print(Fore.GREEN + f'[Pass] {ros_name} is ready')
-            print(Fore.LIGHTBLUE_EX + f'         Workspace at {ros_ws_path}')
+            if ros_ws_path:
+                print(Fore.LIGHTBLUE_EX + f'         Workspace at {ros_ws_path}')
         else:
             print(Fore.YELLOW + f'[Warn] {ros_name} not ready ({ros_err_msg})')
     else:
