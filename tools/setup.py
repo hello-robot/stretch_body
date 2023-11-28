@@ -28,12 +28,8 @@ setuptools.setup(
     install_requires=['numpy==1.23.2', 'scipy', 'matplotlib==3.5.0', 'ipython', 'pandas', 'sympy', 'nose', 'sh', 'packaging',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'scikit-image', 'open3d', 'pyrealsense2', 'gitpython'
+                      'xmltodict',
                       'pyglet == 1.4.10; python_version < "3.0"', 'trimesh==3.6.38', 'urchin', # urdfpy ==> urchin
                       'pyyaml>=5.1', # required for yaml.FullLoader
                       'hello-robot-stretch-body>=0.4.26']
 )
-
-#classifiers = [
-#    "Programming Language :: Python :: 2",
-#    "License :: OSI Approved :: BSD License",
-#    "Operating System :: OS Independent",
