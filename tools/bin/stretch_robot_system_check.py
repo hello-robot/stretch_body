@@ -172,6 +172,24 @@ else:
     print(Fore.RED + '[Fail] : No device found')
 # #####################################################
 try: # TODO: remove try/catch after sw check verified to work reliably
+    scan_dict = None
+    def find_latest_updates_scan():
+        global scan_dict
+        logpath = pathlib.Path('~/stretch_user/log/updates_logger/').expanduser()
+        if logpath.is_dir():
+            for scan in sorted(logpath.glob('updates_scan.*.yaml'), reverse=True):
+                # filters out scans that are older than 30 days (stale) or newer than 15 days old (gives a buffer for releases to stablize)
+                scan_datetime_str = str(scan).split('.')[1]
+                scan_datetime = datetime.datetime.strptime(scan_datetime_str, '%Y%m%d%H%M%S') # raises ValueError if parsing fails
+                now_datetime = datetime.datetime.now()
+                days15ago_datetime = now_datetime + datetime.timedelta(days=-15)
+                days30ago_datetime = now_datetime + datetime.timedelta(days=-30)
+                if scan_datetime > days30ago_datetime and scan_datetime < days15ago_datetime:
+                    with open(str(scan), 'r') as s:
+                        scan_dict = yaml.load(s, Loader=yaml.FullLoader)
+                        break
+    find_latest_updates_scan()
+
     def is_distribution_okay():
         ubuntu_str = f'{distro.name()} {distro.version()}'
         ubuntu_version = distro.version()
@@ -229,25 +247,13 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             'left-wheel': 'Stepper.v0.0.1p0',
             'right-wheel': 'Stepper.v0.0.1p0',
         }
-        logpath = pathlib.Path('~/stretch_user/log/updates_logger/').expanduser()
-        if logpath.is_dir():
-            for scan in sorted(logpath.glob('updates_scan.*.yaml'), reverse=True):
-                # filters out scans that are older than 30 days (stale) or newer than 15 days old (gives a buffer for releases to stablize)
-                scan_datetime_str = str(scan).split('.')[1]
-                scan_datetime = datetime.datetime.strptime(scan_datetime_str, '%Y%m%d%H%M%S') # raises ValueError if parsing fails
-                now_datetime = datetime.datetime.now()
-                days15ago_datetime = now_datetime + datetime.timedelta(days=-15)
-                days30ago_datetime = now_datetime + datetime.timedelta(days=-30)
-                if scan_datetime > days30ago_datetime and scan_datetime < days15ago_datetime:
-                    with open(str(scan), 'r') as s:
-                        scan_dict = yaml.load(s, Loader=yaml.FullLoader)
-                        latest_fw_versions['pimu'] = scan_dict['firmware']['hello-pimu']
-                        latest_fw_versions['wacc'] = scan_dict['firmware']['hello-wacc']
-                        latest_fw_versions['arm'] = scan_dict['firmware']['hello-motor-arm']
-                        latest_fw_versions['lift'] = scan_dict['firmware']['hello-motor-lift']
-                        latest_fw_versions['right-wheel'] = scan_dict['firmware']['hello-motor-right-wheel']
-                        latest_fw_versions['left-wheel'] = scan_dict['firmware']['hello-motor-left-wheel']
-                        break
+        if scan_dict:
+            latest_fw_versions['pimu'] = scan_dict['firmware']['hello-pimu']
+            latest_fw_versions['wacc'] = scan_dict['firmware']['hello-wacc']
+            latest_fw_versions['arm'] = scan_dict['firmware']['hello-motor-arm']
+            latest_fw_versions['lift'] = scan_dict['firmware']['hello-motor-lift']
+            latest_fw_versions['right-wheel'] = scan_dict['firmware']['hello-motor-right-wheel']
+            latest_fw_versions['left-wheel'] = scan_dict['firmware']['hello-motor-left-wheel']
         latest_fw_versions = {hello_device: f"v{latest_fw_versions[hello_device].split('.v', 1)[1]}" for hello_device in latest_fw_versions}
 
         # check current against latest
@@ -258,12 +264,14 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                 return False, current_fw_versions
         return True, current_fw_versions
     def all_pip_uptodate():
+        # get current pip versions and their optional editable locations
         pip_versions = {
             'hello-robot-stretch-body': None,
             'hello-robot-stretch-body-tools': None,
             'hello-robot-stretch-tool-share': None,
             'hello-robot-stretch-factory': None,
             'hello-robot-stretch-diagnostics': None,
+            'hello-robot-stretch-urdf': None,
         }
         pip_editable_locations = {
             'hello-robot-stretch-body': None,
@@ -271,13 +279,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             'hello-robot-stretch-tool-share': None,
             'hello-robot-stretch-factory': None,
             'hello-robot-stretch-diagnostics': None,
-        }
-        latest_pip_version = {
-            'hello-robot-stretch-body': version.parse('0.4.32'),
-            'hello-robot-stretch-body-tools': version.parse('0.4.16'),
-            'hello-robot-stretch-tool-share': version.parse('0.2.7'),
-            'hello-robot-stretch-factory': version.parse('0.4.6'),
-            'hello-robot-stretch-diagnostics': version.parse('0.0.13'),
+            'hello-robot-stretch-urdf': None,
         }
         for line in sh.pip.list(_iter=True):
             pip_pkg_data = re.split(r'\s+(?=[\d/])', line.strip())
@@ -286,7 +288,21 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                 if len(pip_pkg_data) >= 3:
                     p = pip_pkg_data[2]
                     pip_editable_locations[pip_pkg_data[0]] = p.replace(str(pathlib.Path(p).home()), '~')
-        try:
+
+        # get latest pip versions
+        latest_pip_version = {
+            'hello-robot-stretch-body': version.parse('0.4.32'),
+            'hello-robot-stretch-body-tools': version.parse('0.4.16'),
+            'hello-robot-stretch-tool-share': version.parse('0.2.7'),
+            'hello-robot-stretch-factory': version.parse('0.4.6'),
+            'hello-robot-stretch-diagnostics': version.parse('0.0.13'),
+            'hello-robot-stretch-urdf': version.parse('0.0.11'),
+        }
+        if scan_dict:
+            latest_pip_version = {p: version.parse(scan_dict['pip'][p]) for p in latest_pip_version}
+
+        # check current against latest
+        try: # The try/except catches pip pkgs that aren't installed
             for pip_pkg in pip_versions:
                 p = version.parse(pip_versions[pip_pkg])
                 if p < latest_pip_version[pip_pkg]:
@@ -377,6 +393,8 @@ try: # TODO: remove try/catch after sw check verified to work reliably
     print(Fore.LIGHTBLUE_EX + '         Stretch Factory = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
     bname = 'hello-robot-stretch-diagnostics'
     print(Fore.LIGHTBLUE_EX + '         Stretch Diagnostics = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
+    bname = 'hello-robot-stretch-urdf'
+    print(Fore.LIGHTBLUE_EX + '         Stretch URDF = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
     # ROS
     ros_enabled, ros_name, ros_ready, ros_err_msg, ros_ws_path = all_ros_correct()
     if ros_enabled:
