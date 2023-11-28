@@ -17,6 +17,7 @@ from colorama import Fore, Back, Style
 import argparse
 import stretch_body.hello_utils as hu
 from stretch_body.dynamixel_XL430 import *
+import stretch_body.device
 hu.print_stretch_re_use()
 
 
@@ -440,6 +441,8 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         else:
             print(Fore.YELLOW + '[Warn] No version of ROS enabled')
 except:
-    pass
+    show_sw_exc = stretch_body.device.Device(name='system_check', req_params=False).params.get('show_sw_exc', False)
+    if show_sw_exc:
+        raise
 
 r.stop()
