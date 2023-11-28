@@ -383,18 +383,8 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         print(Fore.GREEN + '[Pass] Python pkgs are up-to-date')
     else:
         print(Fore.YELLOW + '[Warn] Python pkgs not up-to-date')
-    bname = 'hello-robot-stretch-body'
-    print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
-    bname = 'hello-robot-stretch-body-tools'
-    print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
-    bname = 'hello-robot-stretch-tool-share'
-    print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
-    bname = 'hello-robot-stretch-factory'
-    print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
-    bname = 'hello-robot-stretch-diagnostics'
-    print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
-    bname = 'hello-robot-stretch-urdf'
-    print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
+    for bname in ['hello-robot-stretch-body', 'hello-robot-stretch-body-tools', 'hello-robot-stretch-tool-share', 'hello-robot-stretch-factory', 'hello-robot-stretch-diagnostics', 'hello-robot-stretch-urdf']:
+        print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
     # ROS
     ros_enabled, ros_name, ros_ready, ros_err_msg, ros_ws_path = all_ros_correct()
     if ros_enabled:
