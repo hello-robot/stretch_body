@@ -7,7 +7,9 @@ import distro
 import pathlib
 import rospkg
 from packaging import version
+import yaml
 import time
+import datetime
 import stretch_body.robot as robot
 import os, fnmatch
 import subprocess
@@ -203,12 +205,13 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                 return False, f"{pkg} should {'not' if not is_install_expected else ''} be installed"
         return True, ''
     def all_firmware_uptodate():
+        # get current fw versions
         def get_fw_version(hello_device):
             try:
                 return f"v{hello_device.board_info['firmware_version'].split('.v', 1)[1]}"
             except:
                 return 'v0.0.0p-1'
-        fw_versions = {
+        current_fw_versions = {
             'pimu': get_fw_version(r.pimu),
             'wacc': get_fw_version(r.wacc),
             'arm': get_fw_version(r.arm.motor),
@@ -216,20 +219,44 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             'left-wheel': get_fw_version(r.base.left_wheel),
             'right-wheel': get_fw_version(r.base.right_wheel),
         }
-        # as of Jun 25, 2023
+
+        # get latest fw versions
         latest_fw_versions = {
-            'pimu': version.parse('v0.1.0'),
-            'wacc': version.parse('v0.1.0'),
-            'arm': version.parse('v0.1.0'),
-            'lift': version.parse('v0.1.0'),
-            'left-wheel': version.parse('v0.1.0'),
-            'right-wheel': version.parse('v0.1.0'),
+            'pimu': 'Pimu.v0.0.1p0',
+            'wacc': 'Wacc.v0.0.1p0',
+            'arm': 'Stepper.v0.0.1p0',
+            'lift': 'Stepper.v0.0.1p0',
+            'left-wheel': 'Stepper.v0.0.1p0',
+            'right-wheel': 'Stepper.v0.0.1p0',
         }
-        for hello_device in fw_versions:
-            f = version.parse(fw_versions[hello_device].split('p', 1)[0])
-            if f < latest_fw_versions[hello_device]:
-                return False, fw_versions
-        return True, fw_versions
+        logpath = pathlib.Path('~/stretch_user/log/updates_logger/').expanduser()
+        if logpath.is_dir():
+            for scan in sorted(logpath.glob('updates_scan.*.yaml'), reverse=True):
+                # filters out scans that are older than 30 days (stale) or newer than 15 days old (gives a buffer for releases to stablize)
+                scan_datetime_str = str(scan).split('.')[1]
+                scan_datetime = datetime.datetime.strptime(scan_datetime_str, '%Y%m%d%H%M%S') # raises ValueError if parsing fails
+                now_datetime = datetime.datetime.now()
+                days15ago_datetime = now_datetime + datetime.timedelta(days=-15)
+                days30ago_datetime = now_datetime + datetime.timedelta(days=-30)
+                if scan_datetime > days30ago_datetime and scan_datetime < days15ago_datetime:
+                    with open(str(scan), 'r') as s:
+                        scan_dict = yaml.load(s, Loader=yaml.FullLoader)
+                        latest_fw_versions['pimu'] = scan_dict['firmware']['hello-pimu']
+                        latest_fw_versions['wacc'] = scan_dict['firmware']['hello-wacc']
+                        latest_fw_versions['arm'] = scan_dict['firmware']['hello-motor-arm']
+                        latest_fw_versions['lift'] = scan_dict['firmware']['hello-motor-lift']
+                        latest_fw_versions['right-wheel'] = scan_dict['firmware']['hello-motor-right-wheel']
+                        latest_fw_versions['left-wheel'] = scan_dict['firmware']['hello-motor-left-wheel']
+                        break
+        latest_fw_versions = {hello_device: f"v{latest_fw_versions[hello_device].split('.v', 1)[1]}" for hello_device in latest_fw_versions}
+
+        # check current against latest
+        for hello_device in current_fw_versions:
+            currentf = version.parse(current_fw_versions[hello_device].split('p', 1)[0])
+            latestf = version.parse(latest_fw_versions[hello_device].split('p', 1)[0])
+            if currentf < latestf:
+                return False, current_fw_versions
+        return True, current_fw_versions
     def all_pip_uptodate():
         pip_versions = {
             'hello-robot-stretch-body': None,
