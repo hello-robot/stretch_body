@@ -464,19 +464,18 @@ nominal_params={
         'max_mesh_points': 36,
         'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
         'RE2V0': {
+            'lift': [{'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4'}],
+            'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link'}],
+        },
+        'tool_stretch_gripper': {
             'lift': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'},
                      {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
                      {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'},
                      {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'base_link'},
-                     {'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4'}],
-            'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'}],
+                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'base_link'}],
+            'arm': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'}],
             'wrist_yaw': [{'motion_dir': 'pos', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
-                          {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'}],
-
-        },
-        'tool_stretch_gripper': {},
+                          {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'}]},
         'tool_none': {},
     },
     'robot_monitor':{

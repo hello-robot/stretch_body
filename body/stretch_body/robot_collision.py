@@ -160,10 +160,9 @@ class RobotCollisionMgmt(Device):
         cj=self.params[model_name]
         for tt in self.params[tool_name]:
             if tt in cj:
-                cj[tt].append(self.params['tool_name'][tt])
+                cj[tt]+=self.params[tool_name][tt]
             else:
-                cj[tt]=self.params['tool_name'][tt]
-
+                cj[tt]=self.params[tool_name][tt]
 
         for joint_name in cj:
             self.collision_joints[joint_name]=CollisionJoint(joint_name,self.get_joint_motor(joint_name))
