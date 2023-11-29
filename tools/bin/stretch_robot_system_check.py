@@ -312,9 +312,9 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             return False, pip_versions, pip_editable_locations
         return True, pip_versions, pip_editable_locations
     def all_ros_correct():
-        ros1_distros = ['melodic', 'noetic']
-        ros2_distros = ['humble']
-        ros_expectations = {
+        ros1_distros = ['noetic', 'melodic', 'lunar', 'kinetic', 'jade', 'indigo']
+        ros2_distros = ['rolling', 'jazzy', 'iron', 'humble', 'galactic', 'foxy', 'eloquent', 'dashing']
+        ros_expectations = { # the actual set of supported ROS distros
             'melodic': {
                 'stretch_core': True,
                 'realsense2_camera': True,
@@ -334,17 +334,27 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             #     'ros2_numpy': True,
             #     'stretch_moveit_plugins': True,
             # },
-            'humble': { # rospkg only works on ROS1
+            'humble': {
                 'stretch_core': True,
                 'realsense2_camera': True,
                 'sllidar_ros2': True,
                 'ros2_numpy': True,
             }
         }
+        # create ros_distro
         ros_distro = os.getenv('ROS_DISTRO')
         if not ros_distro:
             return False, '', False, '', ''
-        ros_name = f'ROS {ros_distro.capitalize()}'
+
+        # create ros_name
+        if ros_distro in ros1_distros:
+            ros_name = f'ROS {ros_distro.capitalize()}'
+        elif ros_distro in ros2_distros:
+            ros_name = f'ROS2 {ros_distro.capitalize()}'
+        else:
+            ros_name = f'Unknown ROS {ros_distro.capitalize()}'
+
+        # check ros expectations
         if ros_distro not in ros_expectations:
             return False, ros_name, False, '', ''
         if ros_distro in ros1_distros:
