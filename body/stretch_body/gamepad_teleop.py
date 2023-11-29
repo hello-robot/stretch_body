@@ -219,10 +219,10 @@ class GamePadTeleop(Device):
         self._update_state(state)
         self._update_modes()
         with self.lock:
-            if not robot.is_calibrated() and self.controller_state['start_button_pressed']:
+            if not robot.is_homed() and self.controller_state['start_button_pressed']:
                 self.do_single_beep(robot)
                 robot.home()
-            if robot.is_calibrated():
+            if robot.is_homed():
                 if self.gamepad_controller.is_gamepad_dongle:
                     self.command_robot_joints(robot)
                 else:
@@ -355,7 +355,7 @@ class GamePadTeleop(Device):
             self.wrist_roll_command.command_stick_to_motion(0, robot)
 
     def stow_robot(self, robot):
-        if robot.is_calibrated():
+        if robot.is_homed():
             # Reset motion params as fast for xbox
             v = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['vel']
             a = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['accel']

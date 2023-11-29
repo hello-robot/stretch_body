@@ -98,3 +98,10 @@ class EndOfArm(DynamixelXChain):
 
 
 
+    def get_joint_configuration(self,braked=False):
+        """
+        Construct a dictionary of tools current pose (for robot_collision_mgmt)
+        Keys match joint names in URDF
+        Override for specific tools
+        """
+        return {}
