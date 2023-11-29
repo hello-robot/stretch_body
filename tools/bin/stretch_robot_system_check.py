@@ -369,11 +369,12 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             ws_path = ''
             if len(ws_paths) > 0:
                 ws_path = ws_paths[0].replace(str(pathlib.Path(p).home()), '~')
+                ws_path = str(pathlib.Path(ws_path) / 'stretch_ros')
             if pathlib.Path(ws_path).expanduser().is_dir():
                 if scan_dict:
                     latest_stretchros_git_commit = scan_dict['ros']['stretch_ros']
                     if latest_stretchros_git_commit is not None:
-                        repo = git.Repo(str((pathlib.Path(ws_path) / 'stretch_ros').expanduser()))
+                        repo = git.Repo(str(pathlib.Path(ws_path).expanduser()))
                         last200_localstretchros_git_commits = [str(repo.commit(f'HEAD~{i}')) for i in range(100)]
                         if latest_stretchros_git_commit not in last200_localstretchros_git_commits:
                             return True, ros_name, False, 'Stretch ROS not up-to-date', ws_path
@@ -391,12 +392,12 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                     if is_install_expected:
                         return True, ros_name, False, f"{pkg} should be installed", ''
             p = get_package_prefix('stretch_core')
-            ws_path = str(pathlib.Path(p).parent.parent / 'src').replace(str(pathlib.Path(p).home()), '~')
+            ws_path = str(pathlib.Path(p).parent.parent / 'src' / 'stretch_ros2').replace(str(pathlib.Path(p).home()), '~')
             if pathlib.Path(ws_path).expanduser().is_dir():
                 if scan_dict:
                     latest_stretchros_git_commit = scan_dict['ros']['stretch_ros2']
                     if latest_stretchros_git_commit is not None:
-                        repo = git.Repo(str((pathlib.Path(ws_path) / 'stretch_ros2').expanduser()))
+                        repo = git.Repo(str(pathlib.Path(ws_path).expanduser()))
                         last200_localstretchros_git_commits = [str(repo.commit(f'HEAD~{i}')) for i in range(100)]
                         if latest_stretchros_git_commit not in last200_localstretchros_git_commits:
                             return True, ros_name, False, 'Stretch ROS2 not up-to-date', ws_path
