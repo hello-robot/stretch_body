@@ -138,14 +138,6 @@ nominal_params={
             'max_lift_height_m': 0.3,
             'min_wrist_yaw_rad': 2.54},
         'wheel_diameter_m': 0.1016},
-    'collision_arm_camera': {
-        'enabled': 1,
-        'py_class_name': 'CollisionArmCamera',
-        'py_module_name': 'stretch_body.robot_collision_models'},
-    'collision_stretch_gripper': {
-        'enabled': 1,
-        'py_class_name': 'CollisionStretchGripper',
-        'py_module_name': 'stretch_body.robot_collision_models'},
     'dxl_comm_errors': {
         'warn_every_s': 1.0,
         'warn_above_rate': 0.1,
@@ -455,7 +447,7 @@ nominal_params={
             'SystemMonitorThread_Hz': 15.0,
             'SystemMonitorThread_monitor_downrate_int': 2,
             'SystemMonitorThread_trace_downrate_int': 1,
-            'SystemMonitorThread_collision_downrate_int': 5,
+            'SystemMonitorThread_collision_downrate_int': 1,
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
         'tool': 'tool_stretch_gripper',
@@ -471,9 +463,6 @@ nominal_params={
         'use_trace': 0,
         'use_sentry': 1,
         'use_asyncio':1},
-    'robot_collision': {
-        'models': ['collision_arm_camera']
-    },
     'robot_monitor':{
         'monitor_base_bump_event': 1,
         'monitor_base_cliff_event': 1,
@@ -565,8 +554,7 @@ nominal_params={
                 'py_class_name': 'WristYaw',
                 'py_module_name': 'stretch_body.wrist_yaw'
             }
-        },
-        'collision_models': ['collision_stretch_gripper']},
+        }},
     'wacc':{
         'usb_name': '/dev/hello-wacc',
         'config': {
@@ -645,9 +633,6 @@ factory_params_deprecated = {
         "stretch_gripper_overload": 1,
         "wrist_yaw_overload": 1,
         "stepper_is_moving_filter": 1,
-    },
-    "robot_collision": {
-        'models': ['collision_arm_camera']
     },
     'pimu':{'max_sync_rate_hz':20.0},
     "arm": {
@@ -795,18 +780,7 @@ factory_params_deprecated = {
                 'py_class_name': 'WristYaw',
                 'py_module_name': 'stretch_body.wrist_yaw'
             }
-        },
-        'collision_models': ['collision_stretch_gripper']
-    },
-    "collision_arm_camera": {
-        'enabled': 1,
-        'py_class_name': 'CollisionArmCamera',
-        'py_module_name': 'stretch_body.robot_collision_models'
-    },
-    "collision_stretch_gripper": {
-        'enabled': 1,
-        'py_class_name': 'CollisionStretchGripper',
-        'py_module_name': 'stretch_body.robot_collision_models',
+        }
     },
     "logging": {
         "version": 1,

@@ -149,7 +149,7 @@ class SystemMonitorThread(threading.Thread):
         if self.robot.params['use_sentry']:
             if (self.titr % self.sentry_downrate_int) == 0:
                 self.robot._step_sentry()
-        if self.robot.params['use_collision_manager'] and self.robot.is_calibrated():
+        if self.robot.params['use_collision_manager'] and self.robot.is_homed():
             self.robot.collision.step()
         if (self.titr % self.trajectory_downrate_int) == 0:
             self.robot._update_trajectory_non_dynamixel()
@@ -396,6 +396,7 @@ class Robot(Device):
         DEPRECATED: replaced by Robot.is_homed()
         """
         self.logger.warn('is_calibrated() has been replaced by is_homed()')
+        x
         return self.is_homed()
 
     def is_homed(self):
