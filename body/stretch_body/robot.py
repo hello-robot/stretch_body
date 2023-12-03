@@ -6,6 +6,7 @@ import importlib
 import asyncio
 import os
 import sys
+from IPython import get_ipython
 from filelock import FileLock, Timeout
 
 from stretch_body.device import Device
@@ -184,6 +185,8 @@ class Robot(Device):
                 f.write(str(os.getpid()))
         except Timeout:
             print('Another process is already using Stretch. Try running "stretch_free_robot_process.py"')
+            if get_ipython():
+                raise
             sys.exit(1)
 
         self.monitor = RobotMonitor(self)
