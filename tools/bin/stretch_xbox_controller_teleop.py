@@ -479,7 +479,7 @@ def manage_demo(robot):
 # ######################### STOW and CALIBRATION  ########################################
 def manage_stow(robot, controller_state):
     stow_robot = controller_state['top_button_pressed']
-    if stow_robot and robot.is_calibrated():
+    if stow_robot and robot.is_homed():
         # Reset motion params as fast for xbox
         v = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['vel']
         a = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['accel']
@@ -579,7 +579,7 @@ def main():
 
         while True:
             controller_state = xbox_controller.get_state()
-            if not robot.is_calibrated():
+            if not robot.is_homed():
                 manage_calibration(robot, controller_state)
             else:
                 manage_demo_mode(robot, controller_state)
