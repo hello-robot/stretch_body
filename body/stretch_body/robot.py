@@ -88,6 +88,7 @@ class NonDXLStatusThread(threading.Thread):
         self.titr=0
         self.first_status = False
         self.loop = asyncio.new_event_loop()
+        self.loop.add_signal_handler(signal.SIGTERM, self.stop)
         self.running = False
 
     def step(self):
@@ -111,6 +112,10 @@ class NonDXLStatusThread(threading.Thread):
                 self.step()
             self.first_status = True
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
+    
+    def stop(self):
+        print("IAM HANDLED HERE")
+        self.loop.stop()
 
 class SystemMonitorThread(threading.Thread):
     """
