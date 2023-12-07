@@ -588,10 +588,6 @@ nominal_params={
             'wrist_yaw': 3.0
         },
         'devices': {
-            'stretch_gripper': {
-                'py_class_name': 'StretchGripper',
-                'py_module_name': 'stretch_body.stretch_gripper',
-            },
             'wrist_pitch': {
                 'py_class_name': 'WristPitch',
                 'py_module_name': 'stretch_body.wrist_pitch',

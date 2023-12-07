@@ -552,4 +552,4 @@ class CommandGripperPosition:
         robot.end_of_arm.get_joint(self.name).move_by(-pct, self.gripper_vel, self.gripper_accel)
 
     def stop_gripper(self, robot):
-        robot.end_of_arm.get_joint(self.name).quick_stop()
+        pass #robot.end_of_arm.get_joint(self.name).quick_stop()
