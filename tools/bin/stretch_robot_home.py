@@ -80,7 +80,8 @@ def fetch_updates_in_background():
                 'hello-motor-lift': str(fa.get_most_recent_version('hello-motor-lift', None)),
                 'hello-motor-left-wheel': str(fa.get_most_recent_version('hello-motor-left-wheel', None)),
                 'hello-motor-right-wheel': str(fa.get_most_recent_version('hello-motor-right-wheel', None)),
-            }
+            },
+            'version': '0.0',
         }
         print('background: got latest firmware!', time.time() - start, flush=True)
 
