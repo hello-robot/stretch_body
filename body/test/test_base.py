@@ -25,7 +25,7 @@ class TestBase(unittest.TestCase):
         r = stretch_body.robot.Robot()
         r.robot_params['robot_sentry']['base_max_velocity'] = 1 # Enable fast base motion
         self.assertTrue(r.startup())
-        if not r.is_calibrated():
+        if not r.is_homed():
             self.fail("test requires robot to be homed")
 
         r.stow()

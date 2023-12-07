@@ -56,7 +56,7 @@ class TestRobot(unittest.TestCase):
         print('test_endofarmtool_custom_stowing')
         r = stretch_body.robot.Robot()
         self.assertTrue(r.startup())
-        if not r.is_calibrated():
+        if not r.is_homed():
             self.fail("test requires robot to be homed")
 
         # Start with regular stowing
@@ -88,7 +88,7 @@ class TestRobot(unittest.TestCase):
         r = stretch_body.robot.Robot()
         r.params['use_collision_manager'] = True
         self.assertTrue(r.startup())
-        if not r.is_calibrated():
+        if not r.is_homed():
             self.fail("test requires robot to be homed")
 
         upper_limit = 0.1
@@ -112,7 +112,7 @@ class TestRobot(unittest.TestCase):
         print('test_dynamixel_runstop')
         r = stretch_body.robot.Robot()
         self.assertTrue(r.startup())
-        if not r.is_calibrated():
+        if not r.is_homed():
             self.fail("test requires robot to be homed")
 
         # Move robot to starting position
