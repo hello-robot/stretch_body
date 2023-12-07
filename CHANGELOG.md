@@ -2,10 +2,12 @@
 
 The changes between releases of Stretch Body are documented here.
 
-## [unreleased]()
-- Deprecate `robot.is_calibrated()` and introduce `robot.is_homed()` to match homing nomenclature used elsewhere ([PR link](https://github.com/hello-robot/stretch_body/pull/212))
-- Added a `robot.wait_command()` method to easily block process execution until motion is completed ([PR link](https://github.com/hello-robot/stretch_body/pull/211))
+## [0.6.8](https://pypi.org/project/hello-robot-stretch-body/0.6.8/) - December 7, 2023
+- Deprecate `robot.is_calibrated()` and introduce `robot.is_homed()` to match homing nomenclature used elsewhere ([details](https://github.com/hello-robot/stretch_body/pull/212))
+- Added a `robot.wait_command()` method to easily block process execution until motion is completed ([details](https://github.com/hello-robot/stretch_body/pull/211))
 - Added Dex Wrist URDF visualization to the `stretch_robot_urdf_visualizer.py` tool
+- Automatic checking for updates in background while homing + user notification about out-of-date software in `stretch_robot_system_check.py` ([details](https://github.com/hello-robot/stretch_body/pull/213))
+- Add mutex locking on Stretch Body + introduce `stretch_free_robot_process.py` tool ([details](https://github.com/hello-robot/stretch_body/pull/218))
 
 ## [0.6.2](https://github.com/hello-robot/stretch_body/pull/203) - September 11, 2023
 - Introduces the new set of Gamepad modules to teleop stretch using the provided physical gamepad or any other UI input devices. This gamepad controller primarily uses velocity control.
