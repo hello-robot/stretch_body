@@ -371,7 +371,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             ws_path = ''
             if len(ws_paths) > 0:
                 ws_path = ws_paths[0].replace(str(pathlib.Path(p).home()), '~')
-                ws_path = str(pathlib.Path(ws_path) / 'stretch_ros')
+                ws_path = str(pathlib.Path(ws_path) / 'src' / 'stretch_ros')
             if pathlib.Path(ws_path).expanduser().is_dir():
                 if scan_dict:
                     latest_stretchros_git_commit = scan_dict['ros']['stretch_ros']
