@@ -220,7 +220,9 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         }
         apt_list = apt.Cache()
         for pkg, is_install_expected in apt_expectations[distro.version()].items():
-            if pkg not in apt_list or is_install_expected != apt_list[pkg].is_installed:
+            if pkg not in apt_list and is_install_expected:
+                return False, f"{pkg} should be installed"
+            if pkg in apt_list and is_install_expected != apt_list[pkg].is_installed:
                 return False, f"{pkg} should {'not' if not is_install_expected else ''} be installed"
         return True, ''
     def all_firmware_uptodate():
