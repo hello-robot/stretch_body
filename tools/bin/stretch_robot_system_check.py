@@ -173,6 +173,21 @@ else:
     print(Fore.RED + '[Fail] : No device found')
 # #####################################################
 try: # TODO: remove try/catch after sw check verified to work reliably
+    def get_ip():
+        # https://stackoverflow.com/a/28950776
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.254.254.254', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
+
     scan_dict = None
     def find_latest_updates_scan():
         global scan_dict
@@ -382,6 +397,9 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                             return True, ros_name, False, 'Stretch ROS not up-to-date', ws_path
             else:
                 return True, ros_name, False, 'Unable to find workspace', ''
+            ros_ip = os.getenv('ROS_IP')
+            if ros_ip and ros_ip != get_ip():
+                return True, ros_name, False, f'Remote master ROS_IP should be {get_ip()}', ws_path
             return True, ros_name, True, '', ws_path
         elif ros_distro in ros2_distros:
             from ament_index_python.packages import get_package_share_directory, get_package_prefix
