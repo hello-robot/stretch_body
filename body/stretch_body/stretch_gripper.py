@@ -85,3 +85,11 @@ class StretchGripper(DynamixelHelloXL430):
                 if self.status['effort'] < 0: #Only backoff in open direction
                     self.logger.debug('Backoff at stall overload')
                     self.move_by(self.params['stall_backoff'])
+
+class StretchGripper3(StretchGripper):
+    """
+        Wrapper for version 3 (for DW3)
+        Extend/override base class for hardware specific needs
+    """
+    def __init__(self, chain=None, usb=None):
+        StretchGripper.__init__(self, chain, usb,'stretch_gripper_3')
