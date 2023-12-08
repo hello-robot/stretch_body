@@ -250,14 +250,6 @@ class Robot(Device):
         print(f"Caught GLOBAL EXCEPTION: {exec}")
         print("Exiting...")
         self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
-
-    def check_thread_exceptions(self):
-            if len(self.GLOBAL_EXCEPTIONS_LIST):
-                for e in self.GLOBAL_EXCEPTIONS_LIST: 
-                    self.raise_custom_exception(self,exception_type=e['exception']['type'],
-                                                exception_value=e['exception']['value'],
-                                                tb=e['exception']['traceback'])
-                    self.stop()
   
   
     # ###########  Device Methods #############
