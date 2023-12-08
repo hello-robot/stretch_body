@@ -461,8 +461,8 @@ class Robot(Device):
             lift_stowed=True
 
         # Wrist pitch should be lifted up before closing the arm
-        if 'wrist_pitch' in self.end_of_arm.joints:
-            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+        # if 'wrist_pitch' in self.end_of_arm.joints:
+        #     self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
         #Bring in arm before bring down
         print('--------- Stowing Arm ----')
@@ -474,7 +474,7 @@ class Robot(Device):
             time.sleep(0.1)
         self.end_of_arm.stow()
         time.sleep(0.25)
-        self.end_of_arm.stow()
+       # self.end_of_arm.stow()
         #Now bring lift down
         if not lift_stowed:
             print('--------- Stowing Lift ----')
