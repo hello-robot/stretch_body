@@ -1,10 +1,17 @@
 from stretch_body.end_of_arm import EndOfArm
 
+# ############# STRETCH RE1 / RE2 #######################
 class ToolNone(EndOfArm):
+    """
+    Just a WristYaw for RE1 / Stretch 2
+    """
     def __init__(self):
         EndOfArm.__init__(self, name='tool_none')
 
 class ToolStretchGripper(EndOfArm):
+    """
+    Wrist Yaw + standard Stretch Gripper for RE1 / Stretch 2
+    """
     def __init__(self):
         EndOfArm.__init__(self, name='tool_stretch_gripper')
 
@@ -14,6 +21,7 @@ class ToolStretchGripper(EndOfArm):
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
         print('--------- Stowing Gripper ----')
         self.move_to('stretch_gripper', self.params['stow']['stretch_gripper'])
+
 
 class ToolStretchDexWrist(EndOfArm):
     def __init__(self, name='tool_stretch_dex_wrist'):
@@ -32,3 +40,43 @@ class ToolStretchDexWrist(EndOfArm):
         self.motors['wrist_pitch'].move_to(0)
         self.motors['wrist_roll'].move_to(0)
         self.motors['wrist_yaw'].home()
+
+# ##########################################################3#
+class EOA_Wrist_DW3_Tool_NIL(EndOfArmV2):
+    """
+    Wrist Yaw / Pitch / Roll only for version 3 of DexWrist
+    """
+    def __init__(self, name='eoa_wrist_dw3_tool_nil'):
+        EndOfArmV2.__init__(self, name)
+
+    def stow(self):
+        # Fold in wrist and gripper
+        print('--------- Stowing EOA_Wrist_DW3_Tool_NIL ----')
+        self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
+        self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
+        self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
+
+    def home(self):
+        self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
+        self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
+        self.motors['wrist_yaw'].home()
+
+class EOA_Wrist_DW3_Tool_SG3(EndOfArmV2):
+    """
+    Wrist Yaw / Pitch / Roll + Stretch Gripper 3
+    """
+    def __init__(self, name='eoa_wrist_dw3_tool_sg3'):
+        EndOfArmV2.__init__(self, name)
+
+    def stow(self):
+        # Fold in wrist and gripper
+        print('--------- Stowing EOA_Wrist_DW3_Tool_SG3 ----')
+        self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
+        self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
+        self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
+        self.move_to('stretch_gripper3', self.params['stow']['stretch_gripper3'])
+    def home(self):
+        self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
+        self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
+        self.motors['wrist_yaw'].home()
+        self.motors['stretch_gripper3'].home()

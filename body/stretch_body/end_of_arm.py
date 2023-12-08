@@ -2,6 +2,8 @@ from __future__ import print_function
 from stretch_body.dynamixel_X_chain import DynamixelXChain
 import importlib
 from stretch_body.robot_params import RobotParams
+from stretch_body.device import Device
+
 
 class EndOfArm(DynamixelXChain):
     """
@@ -21,6 +23,7 @@ class EndOfArm(DynamixelXChain):
             class_name = self.params['devices'][j]['py_class_name']
             dynamixel_device = getattr(importlib.import_module(module_name), class_name)(chain=self)
             self.add_motor(dynamixel_device)
+
 
     def startup(self, threaded=True):
         return DynamixelXChain.startup(self, threaded=threaded)
@@ -97,4 +100,24 @@ class EndOfArm(DynamixelXChain):
         return False
 
 
+class EndOfArmMotors(Device):
+    def __init__(self,name,end_of_arm):
+        Device.__init__(self, name)
+        self.end_of_arm=end_of_arm
+        self.joints = list(self.params.get('devices', {}).keys())
+        for j in self.joints:
+            module_name = self.params['devices'][j]['py_module_name']
+            class_name = self.params['devices'][j]['py_class_name']
+            dynamixel_device = getattr(importlib.import_module(module_name), class_name)(chain=end_of_arm)
+            self.end_of_arm.add_motor(dynamixel_device)
 
+class EndOfArmV2(EndOfArm):
+    """
+    V2 of the EOA system maintains same API as the original
+    ,but loads params from a 'wrist' and and a 'tool'
+    """
+    def __init__(self, name='end_of_arm', usb=None):
+        DynamixelXChain.__init__(self, usb=usb, name=name)
+        self.wrist = EndOfArmMotors(self.params.get('wrist'), self)
+        self.tool = EndOfArmMotors(self.params.get('tool'), self)
+        self.joints = self.wrist.joints + self.tool.joints
