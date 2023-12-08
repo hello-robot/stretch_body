@@ -53,10 +53,11 @@ configuration_params_template={
         'batch_name': 'NA',
         'serial_no': 'NA',
         'd435i':{'serial_no':'NA'},
+        'd405': {'serial_no': 'NA'},
         'model_name':'SE3'},
-    'stretch_gripper':{
-        'range_t': [0, 8022],
-        'zero_t': 5212},
+    'stretch_gripper_3':{
+        'range_t': [0, 9102],
+        'zero_t': 3279},
     'wacc':{'config':{
         'accel_gravity_scale': 1.0}},
     'wrist_yaw':{
@@ -455,14 +456,16 @@ nominal_params={
             'SystemMonitorThread_collision_downrate_int': 5,
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
-        'tool': 'tool_stretch_gripper',
+        'eoa': 'eoa_wrist_dw3_tool_sg3',
         'use_collision_manager': 0,
         'stow':{
         'arm': 0.0,
         'head_pan': 0.0,
         'head_tilt': 0.0,
         'lift': 0.23,
-        'stretch_gripper': 0,
+        'stretch_gripper_3': 0,
+        'wrist_pitch': 0.0,
+        'wrist_roll': 0.0,
         'wrist_yaw': 3.4},
         'use_monitor': 1,
         'use_trace': 0,
@@ -487,12 +490,14 @@ nominal_params={
         'dynamixel_stop_on_runstop': 1,
         'stretch_gripper_overload': 1,
         'wrist_yaw_overload': 1,
+        'wrist_pitch_overload': 1,
+        'wrist_roll_overload': 1,
         'stepper_is_moving_filter': 1},
     'robot_trace':{
         'n_samples_per_file':100,
         'duration_limit_minutes':10.0
     },
-    'stretch_gripper':{
+    'stretch_gripper_3':{
         'range_pad_t': [100.0, -100.0],
         'flip_encoder_polarity': 0,
         'gr': 1.0,
@@ -505,16 +510,16 @@ nominal_params={
             'trajectory_vel_ctrl_kP':1.5,
             'default':{
               'accel': 10.0,
-              'vel': 4.0},
+              'vel': 6.0},
             'fast':{
               'accel': 10.0,
-              'vel': 6.0},
+              'vel': 8.0},
             'max':{
-              'accel': 12,
-              'vel': 8},
+              'accel': 20,
+              'vel': 20},
             'slow':{
               'accel': 4.0,
-              'vel': 2.0},
+              'vel': 3.0},
             'trajectory_max': {
                 'vel_r': 50.0,
                 'accel_r': 100.0},
@@ -567,6 +572,62 @@ nominal_params={
             }
         },
         'collision_models': ['collision_stretch_gripper']},
+    'eoat_nil':
+        {'devices': {}},
+    'eoat_sg3': {
+        'stretch_gripper_3': {
+            'py_class_name': 'StretchGripper3',
+            'py_module_name': 'stretch_body.stretch_gripper',
+        }},
+    'eoaw_dw3': {
+        'devices': {
+            'wrist_pitch': {
+                'py_class_name': 'WristPitch',
+                'py_module_name': 'stretch_body.wrist_pitch',
+            },
+            'wrist_roll': {
+                'py_class_name': 'WristRoll',
+                'py_module_name': 'stretch_body.wrist_roll',
+            },
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw',
+            }}},
+
+    "eoa_wrist_dw3_tool_sg3": {
+        'py_class_name': 'EOA_Wrist_DW3_Tool_SG3',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud': 115200,
+        'dxl_latency_timer': 64,
+        'wrist': 'eoaw_dw3',
+        'tool': 'eoat_sg3',
+        'stow': {
+            'arm': 0.0,
+            'lift': 0.3,
+            'wrist_pitch': -0.52,
+            'wrist_roll': 0.0,
+            'wrist_yaw': 3.0
+        },
+    },
+    "eoa_wrist_dw3_tool_nil": {
+        'py_class_name': 'EOA_Wrist_DW3_Tool_NIL',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud': 115200,
+        'dxl_latency_timer': 64,
+        'wrist': 'eoaw_dw3',
+        'tool': 'eoat_nil',
+        'stow': {
+            'arm': 0.0,
+            'lift': 0.3,
+            'wrist_pitch': -0.52,
+            'wrist_roll': 0.0,
+            'wrist_yaw': 3.0
+        },
+    },
     'wacc':{
         'usb_name': '/dev/hello-wacc',
         'config': {
@@ -618,6 +679,82 @@ nominal_params={
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0]},
+    "wrist_pitch": {
+        'flip_encoder_polarity': 1,
+        'enable_runstop': 1,
+        'gr': 1.0,
+        'id': 15,
+        'max_voltage_limit': 15,
+        'min_voltage_limit': 11,
+        'motion': {
+            'trajectory_vel_ctrl': 1,
+            'trajectory_vel_ctrl_kP': 1.5,
+            'default': {'accel': 6.0, 'vel': 2.0},
+            'fast': {'accel': 8.0, 'vel': 2.0},
+            'max': {'accel': 10.0, 'vel': 3.0},
+            'slow': {'accel': 4.0, 'vel': 1.0},
+            'trajectory_max': {'accel_r': 16.0, 'vel_r': 8.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
+        'pid': [400, 0, 200],
+        'pwm_homing': [0, 0],
+        'pwm_limit': 885,
+        'range_t': [650, 2048],
+        'req_calibration': 0,
+        'return_delay_time': 0,
+        'stall_backoff': 0.017,
+        'stall_max_effort': 10.0,
+        'stall_max_time': 1.0,
+        'stall_min_vel': 0.1,
+        'temperature_limit': 72,
+        'usb_name': '/dev/hello-dynamixel-wrist',
+        'use_multiturn': 0,
+        'zero_t': 1024,
+        'baud': 115200,
+        'retry_on_comm_failure': 1,
+        'disable_torque_on_stop': 0,
+        'float_on_stop': 1,
+        'current_float_A': -0.13,
+        'current_limit_A': 2.5
+    },
+    "wrist_roll": {
+        'flip_encoder_polarity': 0,
+        'enable_runstop': 1,
+        'gr': 1.0,
+        'id': 16,
+        'max_voltage_limit': 16,
+        'min_voltage_limit': 9,
+        'motion': {
+            'trajectory_vel_ctrl': 1,
+            'trajectory_vel_ctrl_kP': 1.5,
+            'default': {'accel': 8.0, 'vel': 2.0},
+            'fast': {'accel': 10.0, 'vel': 3.0},
+            'max': {'accel': 12, 'vel': 4.5},
+            'slow': {'accel': 4.0, 'vel': 1.0},
+            'trajectory_max': {'accel_r': 16.0, 'vel_r': 8.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
+        'pid': [800, 0, 0],
+        'pwm_homing': [0, 0],
+        'pwm_limit': 885,
+        'range_t': [0, 4095],
+        'req_calibration': 0,
+        'return_delay_time': 0,
+        'stall_backoff': 0.017,
+        'stall_max_effort': 10.0,
+        'stall_max_time': 1.0,
+        'stall_min_vel': 0.1,
+        'temperature_limit': 80,
+        'usb_name': '/dev/hello-dynamixel-wrist',
+        'use_multiturn': 0,
+        'zero_t': 2048,
+        'baud': 115200,
+        'retry_on_comm_failure': 1,
+        'disable_torque_on_stop': 0,
+        'float_on_stop': 1,
+        'current_float_A': 0.02,
+        'current_limit_A': 1.0
+    },
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
     'lidar': {'usb_name': '/dev/hello-lrf'},
     'stretch_gamepad':{
