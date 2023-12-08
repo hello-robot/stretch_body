@@ -6,8 +6,8 @@ class WristRoll(DynamixelHelloXL430):
     """
     API to the Stretch RE1 wrist roll joint
     """
-    def __init__(self, chain=None):
-        DynamixelHelloXL430.__init__(self,'wrist_roll',chain)
+    def __init__(self, chain=None, usb=None, name='wrist_roll'):
+        DynamixelHelloXL430.__init__(self, name, chain, usb)
         self.poses = {'cw_90': hu.deg_to_rad(90.0), 'forward': hu.deg_to_rad(0.0), 'ccw_90': hu.deg_to_rad(-90.0)}
 
     def startup(self, threaded=True):
@@ -16,12 +16,18 @@ class WristRoll(DynamixelHelloXL430):
             self.enable_pos_current_ctrl()  # Default to current limited position control
         return r
 
-    def stop(self):
-        DynamixelHelloXL430.stop(self)
+    def enable_float_mode(self):
+        """
+        Command a small restorative force to center joint around 0
+        """
         #Put joint in float around zero on exit
         if self.hw_valid and self.params['float_on_stop']:
             self.enable_pos_current_ctrl(current_limit=self.params['current_float_A'])
             self.move_to(0.0)
+
+    def stop(self):
+        DynamixelHelloXL430.stop(self)
+        self.enable_float_mode()
 
     def home(self):
         """

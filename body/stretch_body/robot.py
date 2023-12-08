@@ -200,10 +200,14 @@ class Robot(Device):
             self.wacc=wacc.Wacc()
         self.status['wacc']=self.wacc.status
 
-
-        tool_name = self.params['tool']
-        module_name = self.robot_params[tool_name]['py_module_name']
-        class_name = self.robot_params[tool_name]['py_class_name']
+        #Prior to SE3 the end of arm was defined via 'tool'
+        #Migrating to use of 'eoa'
+        if 'eoa' in self.params:
+            eoa_name = self.params['eoa']
+        else:
+            eoa_name= self.params['tool']
+        module_name = self.robot_params[eoa_name]['py_module_name']
+        class_name = self.robot_params[eoa_name]['py_class_name']
         self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
         self.status['end_of_arm'] = self.end_of_arm.status
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}

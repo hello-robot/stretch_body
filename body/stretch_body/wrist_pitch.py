@@ -6,8 +6,8 @@ class WristPitch(DynamixelHelloXL430):
     """
     API to the Stretch RE1 wrist pitch joint
     """
-    def __init__(self, chain=None):
-        DynamixelHelloXL430.__init__(self,'wrist_pitch',chain)
+    def __init__(self, chain=None, usb=None, name='wrist_pitch'):
+        DynamixelHelloXL430.__init__(self, name, chain, usb)
         self.poses = {'up': hu.deg_to_rad(56.0), 'forward': hu.deg_to_rad(0.0), 'down': hu.deg_to_rad(-90.0)}
 
     def startup(self, threaded=True):

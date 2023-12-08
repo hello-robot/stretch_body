@@ -3,6 +3,7 @@ from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 
 
 
+
 class StretchGripper(DynamixelHelloXL430):
     """
     API to the Stretch Gripper
@@ -11,8 +12,8 @@ class StretchGripper(DynamixelHelloXL430):
     The Pct ranges from approximately -100 (fully closed) to approximately +50 (fully open)
     A Pct of zero is the fingertips just touching
     """
-    def __init__(self, chain=None, usb=None):
-        DynamixelHelloXL430.__init__(self, 'stretch_gripper', chain, usb)
+    def __init__(self, chain=None, usb=None,name='stretch_gripper'):
+        DynamixelHelloXL430.__init__(self, name, chain, usb)
         self.status['pos_pct']= 0.0
         self.pct_max_open=self.world_rad_to_pct(self.ticks_to_world_rad(self.params['range_t'][1])) #May be a bit greater than 50 given non-linear calibration
         self.poses = {'zero': 0,
@@ -88,3 +89,11 @@ class StretchGripper(DynamixelHelloXL430):
                     self.logger.debug('Backoff at stall overload')
                     self.move_by(self.params['stall_backoff'])
 
+
+class StretchGripper3(StretchGripper):
+    """
+        Wrapper for version 3 (for DW3)
+        Extend/override base class for hardware specific needs
+    """
+    def __init__(self, chain=None, usb=None):
+        StretchGripper.__init__(self, chain, usb,'stretch_gripper_3')
