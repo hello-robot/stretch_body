@@ -130,14 +130,6 @@ nominal_params={
             'max_lift_height_m': 0.3,
             'min_wrist_yaw_rad': 2.54},
         'wheel_diameter_m': 0.1016},
-    'collision_arm_camera': {
-        'enabled': 1,
-        'py_class_name': 'CollisionArmCamera',
-        'py_module_name': 'stretch_body.robot_collision_models'},
-    'collision_stretch_gripper': {
-        'enabled': 1,
-        'py_class_name': 'CollisionStretchGripper',
-        'py_module_name': 'stretch_body.robot_collision_models'},
     'dxl_comm_errors': {
         'warn_every_s': 1.0,
         'warn_above_rate': 0.1,
@@ -468,9 +460,6 @@ nominal_params={
         'use_trace': 0,
         'use_sentry': 1,
         'use_asyncio':1},
-    'robot_collision': {
-        'models': ['collision_arm_camera']
-    },
     'robot_monitor':{
         'monitor_base_bump_event': 1,
         'monitor_base_cliff_event': 1,
@@ -565,8 +554,7 @@ nominal_params={
                 'py_class_name': 'WristYaw',
                 'py_module_name': 'stretch_body.wrist_yaw'
             }
-        },
-        'collision_models': ['collision_stretch_gripper']},
+        }},
     'wacc':{
         'usb_name': '/dev/hello-wacc',
         'config': {
@@ -660,26 +648,7 @@ nominal_params={
                 'py_class_name': 'WristYaw',
                 'py_module_name': 'stretch_body.wrist_yaw',
             },
-        },
-        'collision_models': ['collision_stretch_dex_wrist_to_self', 'collision_stretch_dex_wrist_to_base']
-    },
-    "collision_stretch_dex_wrist_to_base": {
-        'enabled': 1,
-        'py_class_name': 'CollisionStretchDexWristToBase',
-        'py_module_name': 'stretch_tool_share.stretch_dex_wrist.collision_model',
-        'palm_height': 0.12,
-        'arm_clear_base': 0.086,
-        'base_to_floor_offset': 0.16,
-        'lift_up': 0.37
-    },
-    "collision_stretch_dex_wrist_to_self": {
-        'enabled': 1,
-        'pitch_up_thresh': 0.1,
-        'limit_pitch_up_palm_down': {'pitch': [None, 0.45], 'yaw': [-0.50, 3.14]},
-        'limit_pitch_up_palm_side': {'pitch': [None, 0.45], 'yaw': [-0.50, 3.14]},
-        'limit_pitch_up_palm_up': {'pitch': [None, None], 'yaw': [-0.7, 3.14]},
-        'py_class_name': 'CollisionStretchDexWristToSelf',
-        'py_module_name': 'stretch_tool_share.stretch_dex_wrist.collision_model',
+        }
     },
     "wrist_pitch": {
         'flip_encoder_polarity': 1,
