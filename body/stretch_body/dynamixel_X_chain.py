@@ -54,6 +54,7 @@ class DynamixelXChain(Device):
             return None
 
     def startup(self, threaded=False):
+
         for mk in self.motors.keys():  # Provide nop data in case comm failures
             self.status[mk] = self.motors[mk].status
         if not self.hw_valid:

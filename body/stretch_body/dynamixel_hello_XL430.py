@@ -219,10 +219,8 @@ class DynamixelHelloXL430(Device):
                 self.pull_status()
 
                 if not self.check_servo_errors():
-
                     self.hw_valid = False
                     return False
-
                 return True
             else:
                 self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
@@ -612,6 +610,17 @@ class DynamixelHelloXL430(Device):
             self.motor.enable_vel()
             self.motor.enable_torque()
             self.in_vel_mode = True
+
+    def enable_pos_current_ctrl(self,current_limit=None):
+        #XM series only
+        if self.motor.dxl_model_name=='XM540-W270' or self.motor.dxl_model_name=='XM430-W350':
+            if current_limit is None:
+                current_limit =self.params['current_limit_A']
+            self.motor.disable_torque()
+            self.motor.set_current_limit(self.current_to_ticks(current_limit))
+            self.motor.enable_pos_current()
+            self.enable_torque()
+            self.set_motion_params(force=True)
 
     def move_to(self,x_des, v_des=None, a_des=None):
         if self.was_runstopped:
@@ -1123,3 +1132,11 @@ class DynamixelHelloXL430(Device):
     def ticks_to_pct_load(self,t):
         #-100 to 100.0
         return t/10.24
+
+    def ticks_to_current(self,t):
+        #For XM series. Return Amps
+        return t*2.69/1000.0
+
+    def current_to_ticks(self,i):
+        #For XM series, take Amps
+        return int(i*1000/2.69)
