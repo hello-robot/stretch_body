@@ -1,4 +1,4 @@
-from stretch_body.end_of_arm import EndOfArm
+from stretch_body.end_of_arm import *
 
 # ############# STRETCH RE1 / RE2 #######################
 class ToolNone(EndOfArm):
