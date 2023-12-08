@@ -550,3 +550,7 @@ class CommandGripperPosition:
         if self.precision_mode:
             pct = self.gripper_rotate_pct*0.1
         robot.end_of_arm.get_joint(self.name).move_by(-pct, self.gripper_vel, self.gripper_accel)
+
+    def stop_gripper(self, robot):
+        robot.end_of_arm.get_joint(self.name).quick_stop()
+
