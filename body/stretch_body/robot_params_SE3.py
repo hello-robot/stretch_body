@@ -448,7 +448,7 @@ nominal_params={
             'SystemMonitorThread_collision_downrate_int': 5,
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
-        'tool': 'tool_stretch_dex_wrist_3',
+        'eoa': 'eoa_wrist_dw3_tool_sg3',
         'use_collision_manager': 0,
         'stow':{
         'arm': 0.0,
@@ -678,8 +678,6 @@ nominal_params={
         'current_float_A': -0.13,
         'current_limit_A': 2.5
     },
-    "wrist_pitch_dw2": {},
-    "wrist_pitch_dw3": {},
     "wrist_roll": {
         'flip_encoder_polarity': 0,
         'enable_runstop': 1,

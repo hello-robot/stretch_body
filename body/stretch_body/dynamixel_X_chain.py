@@ -79,7 +79,6 @@ class DynamixelXChain(Device):
                                 raise DynamixelCommError
                 for mk in self.motors.keys():
                     if not self.motors[mk].startup(threaded=False):
-                        print('WAHHH?',mk)
                         raise DynamixelCommError
                     self.status[mk] = self.motors[mk].status
                 self.pull_status()
