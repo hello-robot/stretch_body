@@ -114,10 +114,10 @@ class NonDXLStatusThread(threading.Thread):
             if not self.shutdown_flag.is_set():
                 self.step()
             self.first_status = True
+        self.stop()
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
     
     def stop(self):
-        print("IAM HANDLED HERE")
         self.loop.stop()
 
 class SystemMonitorThread(threading.Thread):
@@ -246,6 +246,7 @@ class Robot(Device):
                 'traceback': args.exc_traceback
                 }
             }
+        self.logger.debug(f"Caught GLOBAL EXCEPTION: {exec}")
         print(f"Caught GLOBAL EXCEPTION: {exec}")
         print("Exiting...")
         self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
