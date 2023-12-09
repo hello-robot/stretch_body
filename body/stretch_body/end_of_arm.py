@@ -99,7 +99,6 @@ class EndOfArm(DynamixelXChain):
                 return True
         return False
 
-
 class EndOfArmMotors(Device):
     def __init__(self,name,end_of_arm):
         Device.__init__(self, name)
@@ -117,6 +116,8 @@ class EndOfArmV2(EndOfArm):
     ,but loads params from a 'wrist' and and a 'tool'
     """
     def __init__(self, name='end_of_arm', usb=None):
+        if usb is None:
+            usb = RobotParams.get_params()[1]['end_of_arm']['usb_name']
         DynamixelXChain.__init__(self, usb=usb, name=name)
         self.wrist = EndOfArmMotors(self.params.get('wrist'), self)
         self.tool = EndOfArmMotors(self.params.get('tool'), self)

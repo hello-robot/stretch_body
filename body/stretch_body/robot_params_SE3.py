@@ -55,7 +55,7 @@ configuration_params_template={
         'd435i':{'serial_no':'NA'},
         'd405': {'serial_no': 'NA'},
         'model_name':'SE3'},
-    'stretch_gripper_3':{
+    'stretch_gripper':{
         'range_t': [0, 9102],
         'zero_t': 3279},
     'wacc':{'config':{
@@ -455,7 +455,7 @@ nominal_params={
         'head_pan': 0.0,
         'head_tilt': 0.0,
         'lift': 0.23,
-        'stretch_gripper_3': 0,
+        'stretch_gripper': 0,
         'wrist_pitch': 0.0,
         'wrist_roll': 0.0,
         'wrist_yaw': 3.4},
@@ -486,7 +486,7 @@ nominal_params={
         'n_samples_per_file':100,
         'duration_limit_minutes':10.0
     },
-    'stretch_gripper_3':{
+    'stretch_gripper':{
         'range_pad_t': [100.0, -100.0],
         'flip_encoder_polarity': 0,
         'gr': 1.0,
@@ -530,43 +530,14 @@ nominal_params={
         'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1},
-    'tool_none': {
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud':115200,
-        'dxl_latency_timer': 64,
-        'py_class_name': 'ToolNone',
-        'py_module_name': 'stretch_body.end_of_arm_tools',
-        'stow': {'wrist_yaw': 3.4},
-        'devices': {
-            'wrist_yaw': {
-                'py_class_name': 'WristYaw',
-                'py_module_name': 'stretch_body.wrist_yaw'}}},
-    'tool_stretch_gripper': {
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud':115200,
-        'dxl_latency_timer': 64,
-        'py_class_name': 'ToolStretchGripper',
-        'py_module_name': 'stretch_body.end_of_arm_tools',
-        'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
-        'devices': {
-            'stretch_gripper': {
-                'py_class_name': 'StretchGripper',
-                'py_module_name': 'stretch_body.stretch_gripper'
-            },
-            'wrist_yaw': {
-                'py_class_name': 'WristYaw',
-                'py_module_name': 'stretch_body.wrist_yaw'
-            }
-        }},
     'eoat_nil':
         {'devices': {}},
     'eoat_sg3': {
-        'stretch_gripper_3': {
-            'py_class_name': 'StretchGripper3',
-            'py_module_name': 'stretch_body.stretch_gripper',
-        }},
+        'devices': {
+            'stretch_gripper': {
+                'py_class_name': 'StretchGripper3',
+                'py_module_name': 'stretch_body.stretch_gripper',
+            }}},
     'eoaw_dw3': {
         'devices': {
             'wrist_pitch': {
@@ -596,7 +567,8 @@ nominal_params={
             'lift': 0.3,
             'wrist_pitch': -0.52,
             'wrist_roll': 0.0,
-            'wrist_yaw': 3.0
+            'wrist_yaw': 3.0,
+            'stretch_gripper':0.0
         },
     },
     "eoa_wrist_dw3_tool_nil": {
@@ -687,7 +659,7 @@ nominal_params={
         'pid': [400, 0, 200],
         'pwm_homing': [0, 0],
         'pwm_limit': 885,
-        'range_t': [650, 2048],
+        'range_t': [730, 2048],
         'req_calibration': 0,
         'return_delay_time': 0,
         'stall_backoff': 0.017,
@@ -725,7 +697,7 @@ nominal_params={
         'pid': [800, 0, 0],
         'pwm_homing': [0, 0],
         'pwm_limit': 885,
-        'range_t': [0, 4095],
+        'range_t': [150, 3950],
         'req_calibration': 0,
         'return_delay_time': 0,
         'stall_backoff': 0.017,

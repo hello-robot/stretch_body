@@ -221,9 +221,15 @@ class Robot(Device):
         self.status['wacc']=self.wacc.status
 
 
-        tool_name = self.params['tool']
-        module_name = self.robot_params[tool_name]['py_module_name']
-        class_name = self.robot_params[tool_name]['py_class_name']
+        #Prior to SE3 the end of arm was defined via 'tool'
+        #Migrating to use of 'eoa'. Override 'tool' if 'eoa' is present
+        if 'eoa' in self.params:
+            self.eoa_name = self.params['eoa']
+        else:
+            self.eoa_name= self.params['tool']
+
+        module_name = self.robot_params[self.eoa_name]['py_module_name']
+        class_name = self.robot_params[self.eoa_name]['py_class_name']
         self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
         self.status['end_of_arm'] = self.end_of_arm.status
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
@@ -461,8 +467,8 @@ class Robot(Device):
             lift_stowed=True
 
         # Wrist pitch should be lifted up before closing the arm
-        # if 'wrist_pitch' in self.end_of_arm.joints:
-        #     self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+        if 'wrist_pitch' in self.end_of_arm.joints:
+            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
         #Bring in arm before bring down
         print('--------- Stowing Arm ----')
@@ -496,6 +502,10 @@ class Robot(Device):
         if self.head is not None:
             print('--------- Homing Head ----')
             self.head.home()
+
+        # Wrist pitch should be lifted up before moving lift
+        if 'wrist_pitch' in self.end_of_arm.joints:
+            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
         # Home the lift
         if self.lift is not None:
