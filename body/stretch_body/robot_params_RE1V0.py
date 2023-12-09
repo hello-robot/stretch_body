@@ -682,7 +682,8 @@ nominal_params={
         'zero_t': 1024,
         'baud': 115200,
         'retry_on_comm_failure': 1,
-        'disable_torque_on_stop': 0
+        'disable_torque_on_stop': 0,
+        'current_float_A': -0.13,
     },
     "wrist_roll": {
         'flip_encoder_polarity': 0,
@@ -717,7 +718,8 @@ nominal_params={
         'zero_t': 2048,
         'baud': 115200,
         'retry_on_comm_failure': 1,
-        'disable_torque_on_stop': 1
+        'disable_torque_on_stop': 1,
+        'current_float_A': 0.02,
     }
 }
 # ###################### OLDER: FACTORY PARAMS #####################################################
