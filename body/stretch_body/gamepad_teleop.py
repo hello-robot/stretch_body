@@ -47,7 +47,15 @@ class GamePadTeleop(Device):
         if robot_instance:
             self.robot = rb.Robot()
         self.controller_state = self.gamepad_controller.gamepad_state
-        self.end_of_arm_tool = RobotParams().get_params()[1]['robot']['tool']
+
+        #Prior to SE3 the end of arm was defined via 'tool'
+        #Migrating to use of 'eoa'. Override 'tool' if 'eoa' is present
+        rp=RobotParams().get_params()[1]
+        if 'eoa' in rp['robot']:
+            self.end_of_arm_tool =rp['robot']['eoa']
+        else:
+            self.end_of_arm_tool =rp['robot']['tool']
+
         self.sleep = 1/50
         self.print_mode = False
         self._i = 0
@@ -70,7 +78,7 @@ class GamePadTeleop(Device):
         self.wrist_roll_command = None
         self.is_gamepad_dongle = False
         
-        if not self.end_of_arm_tool=='tool_none':
+        if self.using_stretch_gripper():
             self.gripper = gamepad_joints.CommandGripperPosition()
         if self.using_dexwrist():
             self.wrist_pitch_command = gamepad_joints.CommandWristPitch()
@@ -84,6 +92,9 @@ class GamePadTeleop(Device):
         self.dexwrist_ctrl_switch = True
         self.skip_x_button = False
 
+    def using_stretch_gripper(self):
+        return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
+            or self.end_of_arm_tool == 'tool_stretch_gripper'
     def using_dexwrist(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
             or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_nil'
@@ -143,7 +154,7 @@ class GamePadTeleop(Device):
                 if self._i % dxl_zero_vel_set_division_factor == 0:
                     self.head_pan_command.stop_motion(robot)
 
-            if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+            if self.using_dexwrist():
                 self.wrist_pitch_command.stop_motion(robot)
                 self.wrist_roll_command.stop_motion(robot)
 
@@ -309,7 +320,7 @@ class GamePadTeleop(Device):
         self.wirst_yaw_command.precision_mode = self.precision_mode
         if self.gripper:
             self.gripper.precision_mode = self.precision_mode
-        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+        if self.using_dexwrist():
             self.wrist_pitch_command.precision_mode = self.precision_mode
             self.wrist_roll_command.precision_mode = self.precision_mode
         self.head_pan_command.precision_mode = self.precision_mode
@@ -356,7 +367,7 @@ class GamePadTeleop(Device):
         self.head_pan_command.command_stick_to_motion(0, robot)
         self.head_tilt_command.command_stick_to_motion(0, robot)
         self.base_command.command_stick_to_motion(0,0, robot)
-        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+        if self.using_dexwrist():
             self.wrist_pitch_command.command_stick_to_motion(0, robot)
             self.wrist_roll_command.command_stick_to_motion(0, robot)
 

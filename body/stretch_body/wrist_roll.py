@@ -26,8 +26,10 @@ class WristRoll(DynamixelHelloXL430):
             self.move_to(0.0)
 
     def stop(self):
-        DynamixelHelloXL430.stop(self)
-        self.enable_float_mode()
+        if self.hw_valid and self.params['float_on_stop']:
+            self.enable_float_mode()
+        else:
+            DynamixelHelloXL430.stop(self)
 
     def home(self):
         """

@@ -37,7 +37,6 @@ class DynamixelXChain(Device):
             self.port_handler = None
             self.hw_valid =False
             self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
-
         self.status={}
         self.motors = {}
         self.readers={}

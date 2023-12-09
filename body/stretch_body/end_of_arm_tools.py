@@ -74,9 +74,9 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArmV2):
         self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
         self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
-        self.move_to('stretch_gripper3', self.params['stow']['stretch_gripper3'])
+        self.move_to('stretch_gripper', self.params['stow']['stretch_gripper'])
     def home(self):
         self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
-        self.motors['stretch_gripper3'].home()
+        self.motors['stretch_gripper'].home()
