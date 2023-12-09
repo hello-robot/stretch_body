@@ -41,6 +41,8 @@ class PrismaticJoint(Device):
         self._prev_set_vel_ts = None
         self.watchdog_enabled = False
         self.total_range = abs(self.params['range_m'][1] - self.params['range_m'][0])
+        self.in_collision_stop = {'pos': False, 'neg': False}
+        self.ts_collision_stop = {'pos': 0, 'neg': 0}
 
     # ###########  Device Methods #############
     def startup(self, threaded=True):
@@ -173,6 +175,13 @@ class PrismaticJoint(Device):
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
                 return
 
+        if self.in_collision_stop['pos'] and v_m>0:
+            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing set_velocity'%('pos',self.name))
+            return
+        elif self.in_collision_stop['neg'] and v_m<0:
+            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing set_velocity'%('neg',self.name))
+            return
+
         v_m=min(self.params['motion']['max']['vel_m'],v_m) if v_m>=0 else max(-1*self.params['motion']['max']['vel_m'],v_m)
         v_r = self.translate_m_to_motor_rad(v_m)
 
@@ -297,6 +306,14 @@ class PrismaticJoint(Device):
             if x_m != old_x_m:
                 self.logger.debug('Clipping move_to({0}) with soft limits {1}'.format(old_x_m, self.soft_motion_limits['current']))
 
+        if self.in_collision_stop['pos'] and self.status['pos']<x_m:
+            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing move_by'%('pos',self.name))
+            return
+
+        if self.in_collision_stop['neg'] and self.status['pos']>x_m:
+            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing move_by'%('neg',self.name))
+            return
+
         if stiffness is not None:
             stiffness = max(0.0, min(1.0, stiffness))
         else:
@@ -351,6 +368,16 @@ class PrismaticJoint(Device):
                 x_m = self.soft_motion_limits['current'][1] - self.status['pos']
             if x_m != old_x_m:
                 self.logger.debug('Clipping {0} + move_by({1}) with soft limits {2}'.format(self.status['pos'], old_x_m, self.soft_motion_limits['current']))
+
+
+        #Handle collision logic
+        if self.in_collision_stop['pos'] and x_m>0:
+            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing move_by'%('pos',self.name))
+            return
+
+        if self.in_collision_stop['neg'] and x_m<0:
+            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing move_by'%('neg',self.name))
+            return
 
         if stiffness is not None:
             stiffness = max(0.0, min(1.0, stiffness))
@@ -550,6 +577,43 @@ class PrismaticJoint(Device):
                 return True
             time.sleep(0.01)
         return False
+
+    def step_collision_avoidance(self,in_collision):
+        """
+        Disable the ability to command motion in the positive or negative direction
+        If the joint is in motion in that direction, force it to stop
+        Parameters
+        ----------
+        in_collision: {'pos': False, 'neg': False},etc
+        """
+
+        if in_collision['pos'] and in_collision['neg']:
+            print('Invalid IN_COLLISION for joint %s'%self.name)
+            return
+
+        for dir in ['pos','neg']:
+            if in_collision[dir] and not self.in_collision_stop[dir]:
+                # Stop current motion
+                self.motor.enable_safety()
+                self.push_command()
+                self.in_collision_stop[dir] = True
+                self.ts_collision_stop[dir]=time.time()
+
+            #Reset if out of collision (at least 1s after collision)
+            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
+                self.in_collision_stop[dir] = False
+
+
+
+    def get_braking_distance(self,acc=None):
+        """Compute distance to brake the joint from the current velocity"""
+        v_curr = self.status['vel']
+        if acc is None:
+            acc=self.params['motion']['max']['accel_m']
+        t_brake = abs(v_curr / acc)  # How long to brake from current speed (s)
+        d_brake = t_brake * v_curr / 2  # How far it will go before breaking (pos/neg)
+        return d_brake
+
 
     def step_sentry(self,robot):
         self.motor.step_sentry(robot)

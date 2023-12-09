@@ -104,6 +104,8 @@ class DynamixelHelloXL430(Device):
             self._prev_set_vel_ts = None
             self.watchdog_enabled = False
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
+            self.in_collision_stop = {'pos': False, 'neg': False}
+            self.ts_collision_stop = {'pos': 0.0, 'neg': 0.0}
         except KeyError:
             self.motor=None
 
@@ -419,6 +421,39 @@ class DynamixelHelloXL430(Device):
             return upper_bound
         else:
             return value
+
+    def step_collision_avoidance(self,in_collision):
+        """
+        Disable the ability to command motion in the positive or negative direction
+        If the joint is in motion in that direction, force it to stop
+        Parameters
+        ----------
+        in_collision: {'pos': False, 'neg': False},etc
+        """
+
+        if in_collision['pos'] and in_collision['neg']:
+            print('Invalid IN_COLLISION for joint %s'%self.name)
+            return
+
+        for dir in ['pos','neg']:
+            if in_collision[dir] and not self.in_collision_stop[dir]:
+                # Stop current motion
+                self.ts_collision_stop[dir] = time.time()
+                self.quick_stop()
+                self.in_collision_stop[dir] = True
+
+            #Reset if out of collision (at least 1s after collision)
+            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
+                self.in_collision_stop[dir] = False
+
+    def get_braking_distance(self,acc=None):
+        """Compute distance to brake the joint from the current velocity"""
+        v_curr = self.status['vel']
+        if acc is None:
+            acc=self.params['motion']['max']['accel']
+        t_brake = abs(v_curr / acc)  # How long to brake from current speed (s)
+        d_brake = t_brake * v_curr / 2  # How far it will go before breaking (pos/neg)
+        return d_brake
 
     def step_sentry(self, robot):
         if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:

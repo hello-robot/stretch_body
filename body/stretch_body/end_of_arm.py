@@ -99,6 +99,14 @@ class EndOfArm(DynamixelXChain):
                 return True
         return False
 
+    def get_joint_configuration(self,braked=False):
+        """
+        Construct a dictionary of tools current pose (for robot_collision_mgmt)
+        Keys match joint names in URDF
+        Override for specific tools
+        """
+        return {}
+
 class EndOfArmMotors(Device):
     def __init__(self,name,end_of_arm):
         Device.__init__(self, name)
