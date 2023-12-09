@@ -7,7 +7,7 @@ user_params_header='#User parameters\n' \
                    '#USE WITH CAUTION. IT IS POSSIBLE TO CAUSE UNSAFE BEHAVIOR OF THE ROBOT \n'
 
 user_params_template={
-    'robot': {'use_collision_manager': 0}} #Include this just as an example
+    'robot': {'use_collision_manager': 1}} #Include this just as an example
 
 # ###################### CONFIGURATION PARAMS #####################################################
 #Template for the generated file: stretch_configuration_params.yaml
@@ -449,7 +449,7 @@ nominal_params={
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
         'eoa': 'eoa_wrist_dw3_tool_sg3',
-        'use_collision_manager': 0,
+        'use_collision_manager': 1,
         'stow':{
         'arm': 0.0,
         'head_pan': 0.0,
@@ -530,6 +530,23 @@ nominal_params={
         'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1},
+    'robot_collision_mgmt': {
+        'max_mesh_points': 36,
+        'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
+        'SE3': {
+            'lift': [{'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4'}],
+            'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link'}],
+        },
+        'eoa_wrist_dw3_tool_nil': {
+            'lift': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'},
+                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
+                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'},
+                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'base_link'},
+                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'base_link'}],
+            'arm': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'}],
+            'wrist_yaw': [{'motion_dir': 'pos', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
+                          {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'}]}
+    },
     'eoat_nil':
         {'devices': {}},
     'eoat_sg3': {
