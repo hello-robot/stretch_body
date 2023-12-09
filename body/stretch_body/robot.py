@@ -261,6 +261,7 @@ class Robot(Device):
         else:
             self.start_event_loop()
 
+        #Always startup to load URDFs now and not while thread is running
         self.collision.startup()
         if not self.params['use_collision_manager']: #Turn it off here but allow user to enable it via SW later
             self.disable_collision_mgmt()
