@@ -18,7 +18,7 @@ from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
 from stretch_body.robot_trace import RobotTrace
-from stretch_body.robot_collision import RobotCollision
+from stretch_body.robot_collision import RobotCollisionMgmt
 
 # #############################################################
 class DXLHeadStatusThread(threading.Thread):
@@ -128,8 +128,6 @@ class SystemMonitorThread(threading.Thread):
         self.collision_downrate_int = int(robot.params['rates']['SystemMonitorThread_collision_downrate_int'])  # Step the monitor at every Nth iteration
         self.trajectory_downrate_int = int(robot.params['rates']['SystemMonitorThread_nondxl_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
 
-        if self.robot.params['use_collision_manager']:
-            self.robot.collision.startup()
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         self.shutdown_flag = threading.Event()
@@ -149,7 +147,7 @@ class SystemMonitorThread(threading.Thread):
         if self.robot.params['use_sentry']:
             if (self.titr % self.sentry_downrate_int) == 0:
                 self.robot._step_sentry()
-        if self.robot.params['use_collision_manager'] and self.robot.is_homed():
+        if self.robot.is_homed():
             self.robot.collision.step()
         if (self.titr % self.trajectory_downrate_int) == 0:
             self.robot._update_trajectory_non_dynamixel()
@@ -171,7 +169,7 @@ class Robot(Device):
         Device.__init__(self, 'robot')
         self.monitor = RobotMonitor(self)
         self.trace = RobotTrace(self)
-        self.collision = RobotCollision(self)
+        self.collision = RobotCollisionMgmt(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
@@ -242,6 +240,10 @@ class Robot(Device):
             self.params['use_asyncio']=0
         else:
             self.start_event_loop()
+
+        self.collision.startup()
+        if not self.params['use_collision_manager']: #Turn it off here but allow user to enable it via SW later
+            self.disable_collision_mgmt()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
@@ -349,6 +351,12 @@ class Robot(Device):
 
             if (self.pimu.ts_last_motor_sync is None or ( ready and sync_required)):
                 self.pimu.trigger_motor_sync()
+
+    def enable_collision_mgmt(self):
+        self.collision.enable()
+
+    def disable_collision_mgmt(self):
+        self.collision.disable()
 
     def wait_command(self, timeout=15.0):
         time.sleep(0.5)

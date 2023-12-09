@@ -447,7 +447,7 @@ nominal_params={
             'SystemMonitorThread_Hz': 15.0,
             'SystemMonitorThread_monitor_downrate_int': 2,
             'SystemMonitorThread_trace_downrate_int': 1,
-            'SystemMonitorThread_collision_downrate_int': 5,
+            'SystemMonitorThread_collision_downrate_int': 1,
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
         'tool': 'tool_stretch_gripper',
