@@ -97,7 +97,7 @@ if robot_devices['hello-dynamixel-wrist']:
             if w.motors[mk].do_ping():
                 print(Fore.GREEN +'[Pass] Ping of: '+mk)
                 if w.motors[mk].params['req_calibration']:
-                    if w.motors[mk].motor.is_calibrated():
+                    if w.motors[mk].motor.is_homed():
                         print(Fore.GREEN + '[Pass] Calibrated: ' + mk)
                     else:
                         print(Fore.RED + '[Fail] Not Calibrated: ' + mk)

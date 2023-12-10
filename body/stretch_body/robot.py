@@ -219,13 +219,7 @@ class Robot(Device):
         self.status['wacc']=self.wacc.status
 
 
-        #Prior to SE3 the end of arm was defined via 'tool'
-        #Migrating to use of 'eoa'. Override 'tool' if 'eoa' is present
-        if 'eoa' in self.params:
-            self.eoa_name = self.params['eoa']
-        else:
-            self.eoa_name= self.params['tool']
-
+        self.eoa_name= self.params['tool']
         module_name = self.robot_params[self.eoa_name]['py_module_name']
         class_name = self.robot_params[self.eoa_name]['py_class_name']
         self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()

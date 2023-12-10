@@ -143,8 +143,8 @@ class RobotCollisionMgmt(Device):
         Device.startup(self, threaded=False)
         pkg = str(importlib_resources.files("stretch_urdf"))  # .local/lib/python3.10/site-packages/stretch_urdf)
         model_name = self.robot.params['model_name']
-        tool_name = self.robot.params['tool']
-        urdf_name = pkg + '/%s/stretch_description_%s_%s.urdf' % (model_name, model_name, tool_name)
+        eoa_name= self.robot.params['tool']
+        urdf_name = pkg + '/%s/stretch_description_%s_%s.urdf' % (model_name, model_name, eoa_name)
         mesh_path = pkg + '/%s/' % (model_name)
 
         try:
@@ -158,11 +158,11 @@ class RobotCollisionMgmt(Device):
         #Include those of standard robot body plus its defined tool
         # EG collision_joints={'lift':[{collision_1},{collision_2...}],'head_pan':[...]}
         cj=self.params[model_name]
-        for tt in self.params[tool_name]:
+        for tt in self.params[eoa_name]:
             if tt in cj:
-                cj[tt]+=self.params[tool_name][tt]
+                cj[tt]+=self.params[eoa_name][tt]
             else:
-                cj[tt]=self.params[tool_name][tt]
+                cj[tt]=self.params[eoa_name][tt]
 
         for joint_name in cj:
             self.collision_joints[joint_name]=CollisionJoint(joint_name,self.get_joint_motor(joint_name))
@@ -180,8 +180,6 @@ class RobotCollisionMgmt(Device):
             return self.robot.lift
         if joint_name=='arm':
             return self.robot.arm
-        if joint_name=='wrist_yaw':
-            return self.robot.end_of_arm.get_joint('wrist_yaw')
         if joint_name=='head_pan':
             return self.robot.head.get_joint('head_pan')
         if joint_name=='head_tilt':
@@ -293,30 +291,23 @@ class RobotCollisionMgmt(Device):
         if braked:
             da=self.params['k_brake_distance']['arm']*self.robot.arm.get_braking_distance()/4.0
             dl=self.params['k_brake_distance']['lift']*self.robot.lift.get_braking_distance()
-            dwy=self.params['k_brake_distance']['wrist_yaw']*self.robot.end_of_arm.get_joint('wrist_yaw').get_braking_distance()
             dhp = self.params['k_brake_distance']['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
             dht = self.params['k_brake_distance']['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
         else:
             da=0.0
             dl=0.0
-            dwy=0.0
             dhp=0.0
             dht=0.0
 
         configuration = {
-            'joint_left_wheel': 0.0,
-            'joint_right_wheel': 0.0,
             'joint_lift': dl+s['lift']['pos'],
             'joint_arm_l0': da+s['arm']['pos']/4.0,
             'joint_arm_l1': da+s['arm']['pos']/4.0,
             'joint_arm_l2': da+s['arm']['pos']/4.0,
             'joint_arm_l3': da+s['arm']['pos']/4.0,
-            'joint_wrist_yaw': dwy+s['end_of_arm']['wrist_yaw']['pos'],
             'joint_head_pan': dhp+s['head']['head_pan']['pos'],
             'joint_head_tilt': dht+s['head']['head_tilt']['pos']
             }
-
-
 
         configuration.update(self.robot.end_of_arm.get_joint_configuration(braked))
         return configuration

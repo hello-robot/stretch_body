@@ -52,13 +52,16 @@ class ToolStretchDexWrist(EndOfArm):
         self.motors['wrist_yaw'].home()
 
 # ##########################################################3#
-class EOA_Wrist_DW3_Tool_NIL(EndOfArmV2):
+class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
     """
     Wrist Yaw / Pitch / Roll only for version 3 of DexWrist
     """
     def __init__(self, name='eoa_wrist_dw3_tool_nil'):
-        EndOfArmV2.__init__(self, name)
-
+        EndOfArm.__init__(self, name)
+        self.urdf_map={
+            'joint_wrist_yaw':'wrist_yaw',
+            'joint_wrist_pitch': 'wrist_pitch',
+            'joint_wrist_roll':'wrist_roll'}
     def stow(self):
         # Fold in wrist and gripper
         print('--------- Stowing EOA_Wrist_DW3_Tool_NIL ----')
@@ -71,12 +74,17 @@ class EOA_Wrist_DW3_Tool_NIL(EndOfArmV2):
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
 
-class EOA_Wrist_DW3_Tool_SG3(EndOfArmV2):
+
+class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
     """
     Wrist Yaw / Pitch / Roll + Stretch Gripper 3
     """
     def __init__(self, name='eoa_wrist_dw3_tool_sg3'):
-        EndOfArmV2.__init__(self, name)
+        EndOfArm.__init__(self, name)
+        self.urdf_map={
+            'joint_wrist_yaw':'wrist_yaw',
+            'joint_wrist_pitch': 'wrist_pitch',
+            'joint_wrist_roll':'wrist_roll'}
 
     def stow(self):
         # Fold in wrist and gripper

@@ -32,6 +32,6 @@ setuptools.setup(
                       'hello-robot-stretch-tool-share>=0.2.6', # defines other Stretch end effectors
                       'hello-robot-stretch-factory>=0.3.5','hello-robot-stretch-body-tools>=0.4.2',
                       'hello-robot-stretch-urdf',
-                      'aioserial', 'meshio','numpy-stl','audioplayer'
+                      'aioserial', 'meshio','numpy-stl','audioplayer', 'pyrender'
                       ]
 )
