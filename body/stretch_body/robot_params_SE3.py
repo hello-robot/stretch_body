@@ -448,7 +448,7 @@ nominal_params={
             'SystemMonitorThread_collision_downrate_int': 5,
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
-        'eoa': 'eoa_wrist_dw3_tool_sg3',
+        'tool': 'eoa_wrist_dw3_tool_sg3',
         'use_collision_manager': 1,
         'stow':{
         'arm': 0.0,
@@ -538,38 +538,12 @@ nominal_params={
             'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link'}],
         },
         'eoa_wrist_dw3_tool_nil': {
-            'lift': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'base_link'}],
-            'arm': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'}],
-            'wrist_yaw': [{'motion_dir': 'pos', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
-                          {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'}]}
+            'lift': [{'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link'},
+                     {'motion_dir': 'neg', 'link_pts': 'link_wrist_roll', 'link_cube': 'base_link'},]},
+        'eoa_wrist_dw3_tool_sg3': {
+            'lift': [{'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link'},
+                     {'motion_dir': 'neg', 'link_pts': 'link_wrist_roll', 'link_cube': 'base_link'},]}
     },
-    'eoat_nil':
-        {'devices': {}},
-    'eoat_sg3': {
-        'devices': {
-            'stretch_gripper': {
-                'py_class_name': 'StretchGripper3',
-                'py_module_name': 'stretch_body.stretch_gripper',
-            }}},
-    'eoaw_dw3': {
-        'devices': {
-            'wrist_pitch': {
-                'py_class_name': 'WristPitch',
-                'py_module_name': 'stretch_body.wrist_pitch',
-            },
-            'wrist_roll': {
-                'py_class_name': 'WristRoll',
-                'py_module_name': 'stretch_body.wrist_roll',
-            },
-            'wrist_yaw': {
-                'py_class_name': 'WristYaw',
-                'py_module_name': 'stretch_body.wrist_yaw',
-            }}},
-
     "eoa_wrist_dw3_tool_sg3": {
         'py_class_name': 'EOA_Wrist_DW3_Tool_SG3',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -577,8 +551,6 @@ nominal_params={
         'retry_on_comm_failure': 1,
         'baud': 115200,
         'dxl_latency_timer': 64,
-        'wrist': 'eoaw_dw3',
-        'tool': 'eoat_sg3',
         'stow': {
             'arm': 0.0,
             'lift': 0.3,
@@ -587,7 +559,25 @@ nominal_params={
             'wrist_yaw': 3.0,
             'stretch_gripper':0.0
         },
-    },
+        'k_brake_distance':{'wrist_pitch':0.0,'wrist_yaw':0.0,'wrist_roll':0.0,'stretch_gripper':0.0},
+        'devices': {
+            'wrist_pitch': {
+                'py_class_name': 'WristPitch',
+                'py_module_name': 'stretch_body.wrist_pitch'
+            },
+            'wrist_roll': {
+                'py_class_name': 'WristRoll',
+                'py_module_name': 'stretch_body.wrist_roll'
+            },
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            },
+            'stretch_gripper': {
+                'py_class_name': 'StretchGripper3',
+                'py_module_name': 'stretch_body.stretch_gripper',
+            }
+    }},
     "eoa_wrist_dw3_tool_nil": {
         'py_class_name': 'EOA_Wrist_DW3_Tool_NIL',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -604,7 +594,20 @@ nominal_params={
             'wrist_roll': 0.0,
             'wrist_yaw': 3.0
         },
-    },
+        'k_brake_distance':{'wrist_pitch':0.0,'wrist_yaw':0.0,'wrist_roll':0.0},
+        'devices': {
+                    'wrist_pitch': {
+                        'py_class_name': 'WristPitch',
+                        'py_module_name': 'stretch_body.wrist_pitch'
+                    },
+                    'wrist_roll': {
+                        'py_class_name': 'WristRoll',
+                        'py_module_name': 'stretch_body.wrist_roll'
+                    },
+                    'wrist_yaw': {
+                        'py_class_name': 'WristYaw',
+                        'py_module_name': 'stretch_body.wrist_yaw'
+                    }}},
     'wacc':{
         'usb_name': '/dev/hello-wacc',
         'config': {

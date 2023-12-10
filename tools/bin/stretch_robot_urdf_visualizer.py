@@ -208,7 +208,7 @@ if __name__ == "__main__":
     else:
         r = stretch_body.robot.Robot()
         r.startup()
-        if not r.is_calibrated():
+        if not r.is_homed():
             print('Exiting because the robot has not been calibrated')
             exit()
 

@@ -48,13 +48,7 @@ class GamePadTeleop(Device):
             self.robot = rb.Robot()
         self.controller_state = self.gamepad_controller.gamepad_state
 
-        #Prior to SE3 the end of arm was defined via 'tool'
-        #Migrating to use of 'eoa'. Override 'tool' if 'eoa' is present
-        rp=RobotParams().get_params()[1]
-        if 'eoa' in rp['robot']:
-            self.end_of_arm_tool =rp['robot']['eoa']
-        else:
-            self.end_of_arm_tool =rp['robot']['tool']
+        self.end_of_arm_tool =RobotParams().get_params()[1]['robot']['tool']
 
         self.sleep = 1/50
         self.print_mode = False
@@ -408,14 +402,19 @@ class GamePadTeleop(Device):
                     'paplay --device=alsa_output.pci-0000_00_1f.3.analog-stereo /usr/share/sounds/ubuntu/stereo/desktop-logout.ogg')
                 os.system('sudo shutdown now')  # sudoers should be set up to not need a password
 
+    def step_mainloop(self,robot=None):
+        if not robot:
+            robot = self.robot
+        self.do_motion(robot=robot)
+        robot.push_command()
+        time.sleep(self.sleep)
+
     def mainloop(self):
         """Run the main control loop
         """
         try:
             while True:
-                self.do_motion()
-                self.robot.push_command()
-                time.sleep(self.sleep)
+                self.step_mainloop()
         except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError):
             self.gamepad_controller.stop()
             self.robot.stop()
