@@ -449,7 +449,7 @@ nominal_params={
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
         'tool': 'eoa_wrist_dw3_tool_sg3',
-        'use_collision_manager': 1,
+        'use_collision_manager': 0,
         'stow':{
         'arm': 0.0,
         'head_pan': 0.0,
@@ -541,8 +541,7 @@ nominal_params={
             'lift': [{'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link'},
                      {'motion_dir': 'neg', 'link_pts': 'link_wrist_roll', 'link_cube': 'base_link'},]},
         'eoa_wrist_dw3_tool_sg3': {
-            'lift': [{'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_wrist_roll', 'link_cube': 'base_link'},]}
+            'wrist_pitch': [{'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0'}]}
     },
     "eoa_wrist_dw3_tool_sg3": {
         'py_class_name': 'EOA_Wrist_DW3_Tool_SG3',
