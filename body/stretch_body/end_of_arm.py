@@ -23,7 +23,7 @@ class EndOfArm(DynamixelXChain):
             class_name = self.params['devices'][j]['py_class_name']
             dynamixel_device = getattr(importlib.import_module(module_name), class_name)(chain=self)
             self.add_motor(dynamixel_device)
-
+        self.urdf_map={} #Override
 
     def startup(self, threaded=True):
         return DynamixelXChain.startup(self, threaded=threaded)
@@ -99,26 +99,21 @@ class EndOfArm(DynamixelXChain):
                 return True
         return False
 
-class EndOfArmMotors(Device):
-    def __init__(self,name,end_of_arm):
-        Device.__init__(self, name)
-        self.end_of_arm=end_of_arm
-        self.joints = list(self.params.get('devices', {}).keys())
-        for j in self.joints:
-            module_name = self.params['devices'][j]['py_module_name']
-            class_name = self.params['devices'][j]['py_class_name']
-            dynamixel_device = getattr(importlib.import_module(module_name), class_name)(chain=end_of_arm)
-            self.end_of_arm.add_motor(dynamixel_device)
+    def get_joint_configuration(self,braked=False):
+        """
+        Construct a dictionary of tools current pose (for robot_collision_mgmt)
+        Keys match joint names in URDF
+        Specific tools should define urdf_map
+        """
+        ret = {}
+        for j in self.urdf_map:
+            jn = self.urdf_map[j]
+            motor = self.get_joint(jn)
+            dx = 0.0
+            if braked:
+                dx = self.params['k_brake_distance'][jn] * motor.get_braking_distance()
+            ret[j] = motor.status['pos'] + dx
+        return ret
 
-class EndOfArmV2(EndOfArm):
-    """
-    V2 of the EOA system maintains same API as the original
-    ,but loads params from a 'wrist' and and a 'tool'
-    """
-    def __init__(self, name='end_of_arm', usb=None):
-        if usb is None:
-            usb = RobotParams.get_params()[1]['end_of_arm']['usb_name']
-        DynamixelXChain.__init__(self, usb=usb, name=name)
-        self.wrist = EndOfArmMotors(self.params.get('wrist'), self)
-        self.tool = EndOfArmMotors(self.params.get('tool'), self)
-        self.joints = self.wrist.joints + self.tool.joints
+
+

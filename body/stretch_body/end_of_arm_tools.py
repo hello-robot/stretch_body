@@ -22,6 +22,16 @@ class ToolStretchGripper(EndOfArm):
         print('--------- Stowing Gripper ----')
         self.move_to('stretch_gripper', self.params['stow']['stretch_gripper'])
 
+    def get_joint_configuration(self,braked=False):
+        """
+        Construct a dictionary of tools current pose (for robot_collision_mgmt)
+        Keys match joint names in URDF
+        """
+        g=self.get_motor('stretch_gripper')
+        _, gripper_finger_rad, _, _ = g.gripper_conversion.status_to_all(g.status)
+        return {
+            'joint_gripper_finger_left': gripper_finger_rad,
+            'joint_gripper_finger_right': gripper_finger_rad}
 
 class ToolStretchDexWrist(EndOfArm):
     def __init__(self, name='tool_stretch_dex_wrist'):
@@ -42,13 +52,16 @@ class ToolStretchDexWrist(EndOfArm):
         self.motors['wrist_yaw'].home()
 
 # ##########################################################3#
-class EOA_Wrist_DW3_Tool_NIL(EndOfArmV2):
+class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
     """
     Wrist Yaw / Pitch / Roll only for version 3 of DexWrist
     """
     def __init__(self, name='eoa_wrist_dw3_tool_nil'):
-        EndOfArmV2.__init__(self, name)
-
+        EndOfArm.__init__(self, name)
+        self.urdf_map={
+            'joint_wrist_yaw':'wrist_yaw',
+            'joint_wrist_pitch': 'wrist_pitch',
+            'joint_wrist_roll':'wrist_roll'}
     def stow(self):
         # Fold in wrist and gripper
         print('--------- Stowing EOA_Wrist_DW3_Tool_NIL ----')
@@ -61,12 +74,17 @@ class EOA_Wrist_DW3_Tool_NIL(EndOfArmV2):
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
 
-class EOA_Wrist_DW3_Tool_SG3(EndOfArmV2):
+
+class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
     """
     Wrist Yaw / Pitch / Roll + Stretch Gripper 3
     """
     def __init__(self, name='eoa_wrist_dw3_tool_sg3'):
-        EndOfArmV2.__init__(self, name)
+        EndOfArm.__init__(self, name)
+        self.urdf_map={
+            'joint_wrist_yaw':'wrist_yaw',
+            'joint_wrist_pitch': 'wrist_pitch',
+            'joint_wrist_roll':'wrist_roll'}
 
     def stow(self):
         # Fold in wrist and gripper
