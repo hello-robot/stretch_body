@@ -101,7 +101,7 @@ nominal_params={
         'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
         'force_N_per_A': 21.18,  # Legacy
         'gr': 3.8,
-        'use_vel_traj': 1,
+        'use_vel_traj': 0,
         'motion':{
             'default':{
                 'accel_m': 0.12,

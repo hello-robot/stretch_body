@@ -534,7 +534,7 @@ class CommandGripperPosition:
     def __init__(self):
         self.name = 'stretch_gripper'
         self.params = RobotParams().get_params()[1][self.name]
-        self.gripper_rotate_pct = 10.0
+        self.gripper_rotate_pct = 60.0
         self.gripper_accel = self.params['motion']['max']['accel']
         self.gripper_vel = self.params['motion']['max']['vel']
         self.precision_mode = False
@@ -542,13 +542,13 @@ class CommandGripperPosition:
     def open_gripper(self, robot):
         pct = self.gripper_rotate_pct
         if self.precision_mode:
-            pct = self.gripper_rotate_pct*0.1
+            pct = self.gripper_rotate_pct*0.05
         robot.end_of_arm.get_joint(self.name).move_by(pct, self.gripper_vel, self.gripper_accel)
         
     def close_gripper(self, robot):
         pct = self.gripper_rotate_pct
         if self.precision_mode:
-            pct = self.gripper_rotate_pct*0.1
+            pct = self.gripper_rotate_pct*0.05
         robot.end_of_arm.get_joint(self.name).move_by(-pct, self.gripper_vel, self.gripper_accel)
 
     def stop_gripper(self, robot):
