@@ -92,48 +92,14 @@
 </span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="c1"># ######### Utilties ##############################</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>
 </span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="nf">motor_rad_to_translate_m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ang</span><span class="p">):</span> <span class="c1">#input in rad, output m</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert motor angle in radians to translation in meters</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">ang</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="sd">        Parameters</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">        ----------</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="sd">        ang : float.</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="sd">            The input angle is in radians.</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">        Returns</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">        -------</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">        float:</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">            The corresponding translation in meters.</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">        </span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="sd">        Notes</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="sd">        -------</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a><span class="sd">        This function calculates the translation in meters from an input angle</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="sd">        in radians, based on the provided parameters.</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">ang</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="k">def</span> <span class="nf">translate_m_to_motor_rad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert translation in meters to motor angle in radians</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">        Parameters</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">        ----------</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">        x : float.</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">            The input translation in meters.</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">        Returns</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">        -------</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="sd">        float:</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="sd">            The corresponding motor angle in radians.</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="sd">        Notes</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a><span class="sd">        -------</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="sd">        This function calculates the motor angle in radians from an input</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a><span class="sd">        translation in meters, based on the provided parameters.</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>        <span class="k">return</span> <span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">end_pos</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">measuring</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>        <span class="k">return</span> <span class="n">PrismaticJoint</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">end_pos</span><span class="o">=</span><span class="n">end_pos</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="n">to_positive_stop</span><span class="p">,</span><span class="n">measuring</span><span class="o">=</span><span class="n">measuring</span><span class="p">)</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="k">def</span> <span class="nf">translate_m_to_motor_rad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="k">return</span> <span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">end_pos</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">measuring</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="k">return</span> <span class="n">PrismaticJoint</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">end_pos</span><span class="o">=</span><span class="n">end_pos</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="n">to_positive_stop</span><span class="p">,</span><span class="n">measuring</span><span class="o">=</span><span class="n">measuring</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -159,48 +125,14 @@
 </span><span id="Arm-18"><a href="#Arm-18"><span class="linenos">18</span></a>    <span class="c1"># ######### Utilties ##############################</span>
 </span><span id="Arm-19"><a href="#Arm-19"><span class="linenos">19</span></a>
 </span><span id="Arm-20"><a href="#Arm-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="nf">motor_rad_to_translate_m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ang</span><span class="p">):</span> <span class="c1">#input in rad, output m</span>
-</span><span id="Arm-21"><a href="#Arm-21"><span class="linenos">21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert motor angle in radians to translation in meters</span>
+</span><span id="Arm-21"><a href="#Arm-21"><span class="linenos">21</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">ang</span>
 </span><span id="Arm-22"><a href="#Arm-22"><span class="linenos">22</span></a>
-</span><span id="Arm-23"><a href="#Arm-23"><span class="linenos">23</span></a><span class="sd">        Parameters</span>
-</span><span id="Arm-24"><a href="#Arm-24"><span class="linenos">24</span></a><span class="sd">        ----------</span>
-</span><span id="Arm-25"><a href="#Arm-25"><span class="linenos">25</span></a><span class="sd">        ang : float.</span>
-</span><span id="Arm-26"><a href="#Arm-26"><span class="linenos">26</span></a><span class="sd">            The input angle is in radians.</span>
-</span><span id="Arm-27"><a href="#Arm-27"><span class="linenos">27</span></a>
-</span><span id="Arm-28"><a href="#Arm-28"><span class="linenos">28</span></a><span class="sd">        Returns</span>
-</span><span id="Arm-29"><a href="#Arm-29"><span class="linenos">29</span></a><span class="sd">        -------</span>
-</span><span id="Arm-30"><a href="#Arm-30"><span class="linenos">30</span></a><span class="sd">        float:</span>
-</span><span id="Arm-31"><a href="#Arm-31"><span class="linenos">31</span></a><span class="sd">            The corresponding translation in meters.</span>
-</span><span id="Arm-32"><a href="#Arm-32"><span class="linenos">32</span></a><span class="sd">        </span>
-</span><span id="Arm-33"><a href="#Arm-33"><span class="linenos">33</span></a><span class="sd">        Notes</span>
-</span><span id="Arm-34"><a href="#Arm-34"><span class="linenos">34</span></a><span class="sd">        -------</span>
-</span><span id="Arm-35"><a href="#Arm-35"><span class="linenos">35</span></a><span class="sd">        This function calculates the translation in meters from an input angle</span>
-</span><span id="Arm-36"><a href="#Arm-36"><span class="linenos">36</span></a><span class="sd">        in radians, based on the provided parameters.</span>
-</span><span id="Arm-37"><a href="#Arm-37"><span class="linenos">37</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Arm-38"><a href="#Arm-38"><span class="linenos">38</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">ang</span>
-</span><span id="Arm-39"><a href="#Arm-39"><span class="linenos">39</span></a>
-</span><span id="Arm-40"><a href="#Arm-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">translate_m_to_motor_rad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span id="Arm-41"><a href="#Arm-41"><span class="linenos">41</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert translation in meters to motor angle in radians</span>
-</span><span id="Arm-42"><a href="#Arm-42"><span class="linenos">42</span></a>
-</span><span id="Arm-43"><a href="#Arm-43"><span class="linenos">43</span></a><span class="sd">        Parameters</span>
-</span><span id="Arm-44"><a href="#Arm-44"><span class="linenos">44</span></a><span class="sd">        ----------</span>
-</span><span id="Arm-45"><a href="#Arm-45"><span class="linenos">45</span></a><span class="sd">        x : float.</span>
-</span><span id="Arm-46"><a href="#Arm-46"><span class="linenos">46</span></a><span class="sd">            The input translation in meters.</span>
-</span><span id="Arm-47"><a href="#Arm-47"><span class="linenos">47</span></a>
-</span><span id="Arm-48"><a href="#Arm-48"><span class="linenos">48</span></a><span class="sd">        Returns</span>
-</span><span id="Arm-49"><a href="#Arm-49"><span class="linenos">49</span></a><span class="sd">        -------</span>
-</span><span id="Arm-50"><a href="#Arm-50"><span class="linenos">50</span></a><span class="sd">        float:</span>
-</span><span id="Arm-51"><a href="#Arm-51"><span class="linenos">51</span></a><span class="sd">            The corresponding motor angle in radians.</span>
-</span><span id="Arm-52"><a href="#Arm-52"><span class="linenos">52</span></a>
-</span><span id="Arm-53"><a href="#Arm-53"><span class="linenos">53</span></a><span class="sd">        Notes</span>
-</span><span id="Arm-54"><a href="#Arm-54"><span class="linenos">54</span></a><span class="sd">        -------</span>
-</span><span id="Arm-55"><a href="#Arm-55"><span class="linenos">55</span></a><span class="sd">        This function calculates the motor angle in radians from an input</span>
-</span><span id="Arm-56"><a href="#Arm-56"><span class="linenos">56</span></a><span class="sd">        translation in meters, based on the provided parameters.</span>
-</span><span id="Arm-57"><a href="#Arm-57"><span class="linenos">57</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Arm-58"><a href="#Arm-58"><span class="linenos">58</span></a>        <span class="k">return</span> <span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span>
-</span><span id="Arm-59"><a href="#Arm-59"><span class="linenos">59</span></a>
-</span><span id="Arm-60"><a href="#Arm-60"><span class="linenos">60</span></a>
-</span><span id="Arm-61"><a href="#Arm-61"><span class="linenos">61</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">end_pos</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">measuring</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Arm-62"><a href="#Arm-62"><span class="linenos">62</span></a>        <span class="k">return</span> <span class="n">PrismaticJoint</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">end_pos</span><span class="o">=</span><span class="n">end_pos</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="n">to_positive_stop</span><span class="p">,</span><span class="n">measuring</span><span class="o">=</span><span class="n">measuring</span><span class="p">)</span>
+</span><span id="Arm-23"><a href="#Arm-23"><span class="linenos">23</span></a>    <span class="k">def</span> <span class="nf">translate_m_to_motor_rad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span id="Arm-24"><a href="#Arm-24"><span class="linenos">24</span></a>        <span class="k">return</span> <span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span>
+</span><span id="Arm-25"><a href="#Arm-25"><span class="linenos">25</span></a>
+</span><span id="Arm-26"><a href="#Arm-26"><span class="linenos">26</span></a>
+</span><span id="Arm-27"><a href="#Arm-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">end_pos</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">measuring</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="Arm-28"><a href="#Arm-28"><span class="linenos">28</span></a>        <span class="k">return</span> <span class="n">PrismaticJoint</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">end_pos</span><span class="o">=</span><span class="n">end_pos</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="n">to_positive_stop</span><span class="p">,</span><span class="n">measuring</span><span class="o">=</span><span class="n">measuring</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -238,45 +170,11 @@
     </div>
     <a class="headerlink" href="#Arm.motor_rad_to_translate_m"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Arm.motor_rad_to_translate_m-20"><a href="#Arm.motor_rad_to_translate_m-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="nf">motor_rad_to_translate_m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ang</span><span class="p">):</span> <span class="c1">#input in rad, output m</span>
-</span><span id="Arm.motor_rad_to_translate_m-21"><a href="#Arm.motor_rad_to_translate_m-21"><span class="linenos">21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert motor angle in radians to translation in meters</span>
-</span><span id="Arm.motor_rad_to_translate_m-22"><a href="#Arm.motor_rad_to_translate_m-22"><span class="linenos">22</span></a>
-</span><span id="Arm.motor_rad_to_translate_m-23"><a href="#Arm.motor_rad_to_translate_m-23"><span class="linenos">23</span></a><span class="sd">        Parameters</span>
-</span><span id="Arm.motor_rad_to_translate_m-24"><a href="#Arm.motor_rad_to_translate_m-24"><span class="linenos">24</span></a><span class="sd">        ----------</span>
-</span><span id="Arm.motor_rad_to_translate_m-25"><a href="#Arm.motor_rad_to_translate_m-25"><span class="linenos">25</span></a><span class="sd">        ang : float.</span>
-</span><span id="Arm.motor_rad_to_translate_m-26"><a href="#Arm.motor_rad_to_translate_m-26"><span class="linenos">26</span></a><span class="sd">            The input angle is in radians.</span>
-</span><span id="Arm.motor_rad_to_translate_m-27"><a href="#Arm.motor_rad_to_translate_m-27"><span class="linenos">27</span></a>
-</span><span id="Arm.motor_rad_to_translate_m-28"><a href="#Arm.motor_rad_to_translate_m-28"><span class="linenos">28</span></a><span class="sd">        Returns</span>
-</span><span id="Arm.motor_rad_to_translate_m-29"><a href="#Arm.motor_rad_to_translate_m-29"><span class="linenos">29</span></a><span class="sd">        -------</span>
-</span><span id="Arm.motor_rad_to_translate_m-30"><a href="#Arm.motor_rad_to_translate_m-30"><span class="linenos">30</span></a><span class="sd">        float:</span>
-</span><span id="Arm.motor_rad_to_translate_m-31"><a href="#Arm.motor_rad_to_translate_m-31"><span class="linenos">31</span></a><span class="sd">            The corresponding translation in meters.</span>
-</span><span id="Arm.motor_rad_to_translate_m-32"><a href="#Arm.motor_rad_to_translate_m-32"><span class="linenos">32</span></a><span class="sd">        </span>
-</span><span id="Arm.motor_rad_to_translate_m-33"><a href="#Arm.motor_rad_to_translate_m-33"><span class="linenos">33</span></a><span class="sd">        Notes</span>
-</span><span id="Arm.motor_rad_to_translate_m-34"><a href="#Arm.motor_rad_to_translate_m-34"><span class="linenos">34</span></a><span class="sd">        -------</span>
-</span><span id="Arm.motor_rad_to_translate_m-35"><a href="#Arm.motor_rad_to_translate_m-35"><span class="linenos">35</span></a><span class="sd">        This function calculates the translation in meters from an input angle</span>
-</span><span id="Arm.motor_rad_to_translate_m-36"><a href="#Arm.motor_rad_to_translate_m-36"><span class="linenos">36</span></a><span class="sd">        in radians, based on the provided parameters.</span>
-</span><span id="Arm.motor_rad_to_translate_m-37"><a href="#Arm.motor_rad_to_translate_m-37"><span class="linenos">37</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Arm.motor_rad_to_translate_m-38"><a href="#Arm.motor_rad_to_translate_m-38"><span class="linenos">38</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">ang</span>
+</span><span id="Arm.motor_rad_to_translate_m-21"><a href="#Arm.motor_rad_to_translate_m-21"><span class="linenos">21</span></a>        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span><span class="o">*</span><span class="n">ang</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Convert motor angle in radians to translation in meters</p>
-
-<h2 id="parameters">Parameters</h2>
-
-<p>ang : float.
-    The input angle is in radians.</p>
-
-<h2 id="returns">Returns</h2>
-
-<p>float:
-    The corresponding translation in meters.</p>
-
-<h2 id="notes">Notes</h2>
-
-<p>This function calculates the translation in meters from an input angle
-in radians, based on the provided parameters.</p>
-</div>
-
+    
 
                             </div>
                             <div id="Arm.translate_m_to_motor_rad" class="classattr">
@@ -290,46 +188,12 @@ in radians, based on the provided parameters.</p>
 
     </div>
     <a class="headerlink" href="#Arm.translate_m_to_motor_rad"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Arm.translate_m_to_motor_rad-40"><a href="#Arm.translate_m_to_motor_rad-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">translate_m_to_motor_rad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span id="Arm.translate_m_to_motor_rad-41"><a href="#Arm.translate_m_to_motor_rad-41"><span class="linenos">41</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert translation in meters to motor angle in radians</span>
-</span><span id="Arm.translate_m_to_motor_rad-42"><a href="#Arm.translate_m_to_motor_rad-42"><span class="linenos">42</span></a>
-</span><span id="Arm.translate_m_to_motor_rad-43"><a href="#Arm.translate_m_to_motor_rad-43"><span class="linenos">43</span></a><span class="sd">        Parameters</span>
-</span><span id="Arm.translate_m_to_motor_rad-44"><a href="#Arm.translate_m_to_motor_rad-44"><span class="linenos">44</span></a><span class="sd">        ----------</span>
-</span><span id="Arm.translate_m_to_motor_rad-45"><a href="#Arm.translate_m_to_motor_rad-45"><span class="linenos">45</span></a><span class="sd">        x : float.</span>
-</span><span id="Arm.translate_m_to_motor_rad-46"><a href="#Arm.translate_m_to_motor_rad-46"><span class="linenos">46</span></a><span class="sd">            The input translation in meters.</span>
-</span><span id="Arm.translate_m_to_motor_rad-47"><a href="#Arm.translate_m_to_motor_rad-47"><span class="linenos">47</span></a>
-</span><span id="Arm.translate_m_to_motor_rad-48"><a href="#Arm.translate_m_to_motor_rad-48"><span class="linenos">48</span></a><span class="sd">        Returns</span>
-</span><span id="Arm.translate_m_to_motor_rad-49"><a href="#Arm.translate_m_to_motor_rad-49"><span class="linenos">49</span></a><span class="sd">        -------</span>
-</span><span id="Arm.translate_m_to_motor_rad-50"><a href="#Arm.translate_m_to_motor_rad-50"><span class="linenos">50</span></a><span class="sd">        float:</span>
-</span><span id="Arm.translate_m_to_motor_rad-51"><a href="#Arm.translate_m_to_motor_rad-51"><span class="linenos">51</span></a><span class="sd">            The corresponding motor angle in radians.</span>
-</span><span id="Arm.translate_m_to_motor_rad-52"><a href="#Arm.translate_m_to_motor_rad-52"><span class="linenos">52</span></a>
-</span><span id="Arm.translate_m_to_motor_rad-53"><a href="#Arm.translate_m_to_motor_rad-53"><span class="linenos">53</span></a><span class="sd">        Notes</span>
-</span><span id="Arm.translate_m_to_motor_rad-54"><a href="#Arm.translate_m_to_motor_rad-54"><span class="linenos">54</span></a><span class="sd">        -------</span>
-</span><span id="Arm.translate_m_to_motor_rad-55"><a href="#Arm.translate_m_to_motor_rad-55"><span class="linenos">55</span></a><span class="sd">        This function calculates the motor angle in radians from an input</span>
-</span><span id="Arm.translate_m_to_motor_rad-56"><a href="#Arm.translate_m_to_motor_rad-56"><span class="linenos">56</span></a><span class="sd">        translation in meters, based on the provided parameters.</span>
-</span><span id="Arm.translate_m_to_motor_rad-57"><a href="#Arm.translate_m_to_motor_rad-57"><span class="linenos">57</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Arm.translate_m_to_motor_rad-58"><a href="#Arm.translate_m_to_motor_rad-58"><span class="linenos">58</span></a>        <span class="k">return</span> <span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Arm.translate_m_to_motor_rad-23"><a href="#Arm.translate_m_to_motor_rad-23"><span class="linenos">23</span></a>    <span class="k">def</span> <span class="nf">translate_m_to_motor_rad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span id="Arm.translate_m_to_motor_rad-24"><a href="#Arm.translate_m_to_motor_rad-24"><span class="linenos">24</span></a>        <span class="k">return</span> <span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_pitch&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;chain_sprocket_teeth&#39;</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;gr_spur&#39;</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Convert translation in meters to motor angle in radians</p>
-
-<h2 id="parameters">Parameters</h2>
-
-<p>x : float.
-    The input translation in meters.</p>
-
-<h2 id="returns">Returns</h2>
-
-<p>float:
-    The corresponding motor angle in radians.</p>
-
-<h2 id="notes">Notes</h2>
-
-<p>This function calculates the motor angle in radians from an input
-translation in meters, based on the provided parameters.</p>
-</div>
-
+    
 
                             </div>
                             <div id="Arm.home" class="classattr">
@@ -343,20 +207,16 @@ translation in meters, based on the provided parameters.</p>
 
     </div>
     <a class="headerlink" href="#Arm.home"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Arm.home-61"><a href="#Arm.home-61"><span class="linenos">61</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">end_pos</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">measuring</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-</span><span id="Arm.home-62"><a href="#Arm.home-62"><span class="linenos">62</span></a>        <span class="k">return</span> <span class="n">PrismaticJoint</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">end_pos</span><span class="o">=</span><span class="n">end_pos</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="n">to_positive_stop</span><span class="p">,</span><span class="n">measuring</span><span class="o">=</span><span class="n">measuring</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Arm.home-27"><a href="#Arm.home-27"><span class="linenos">27</span></a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">end_pos</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">measuring</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="Arm.home-28"><a href="#Arm.home-28"><span class="linenos">28</span></a>        <span class="k">return</span> <span class="n">PrismaticJoint</span><span class="o">.</span><span class="n">home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">end_pos</span><span class="o">=</span><span class="n">end_pos</span><span class="p">,</span><span class="n">to_positive_stop</span><span class="o">=</span><span class="n">to_positive_stop</span><span class="p">,</span><span class="n">measuring</span><span class="o">=</span><span class="n">measuring</span><span class="p">)</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>end_pos: position to end on</p>
-
-<p>to_positive_stop:</p>
-
-<p>-- True: Move to the positive direction stop and mark to range_m[1]</p>
-
-<p>-- False: Move to the negative direction stop and mark to range_m[0]</p>
-
-<p>measuring: After homing to stop, move to opposite stop and report back measured distance
+            <div class="docstring"><p>end_pos: position to end on
+to_positive_stop:
+-- True: Move to the positive direction stop and mark to range_m[1]
+-- False: Move to the negative direction stop and mark to range_m[0]
+measuring: After homing to stop, move to opposite stop and report back measured distance
 return measured range-of-motion if measuring. Return None if not a valide measurement</p>
 </div>
 
@@ -402,7 +262,10 @@ return measured range-of-motion if measuring. Return None if not a valide measur
                 <dd id="Arm.get_trajectory_time_remaining" class="function"><a href="prismatic_joint.html#PrismaticJoint.get_trajectory_time_remaining">get_trajectory_time_remaining</a></dd>
                 <dd id="Arm.update_trajectory" class="function"><a href="prismatic_joint.html#PrismaticJoint.update_trajectory">update_trajectory</a></dd>
                 <dd id="Arm.stop_trajectory" class="function"><a href="prismatic_joint.html#PrismaticJoint.stop_trajectory">stop_trajectory</a></dd>
+                <dd id="Arm.motor_current_to_translate_force" class="function"><a href="prismatic_joint.html#PrismaticJoint.motor_current_to_translate_force">motor_current_to_translate_force</a></dd>
+                <dd id="Arm.translate_force_to_motor_current" class="function"><a href="prismatic_joint.html#PrismaticJoint.translate_force_to_motor_current">translate_force_to_motor_current</a></dd>
                 <dd id="Arm.wait_until_at_setpoint" class="function"><a href="prismatic_joint.html#PrismaticJoint.wait_until_at_setpoint">wait_until_at_setpoint</a></dd>
+                <dd id="Arm.wait_while_is_moving" class="function"><a href="prismatic_joint.html#PrismaticJoint.wait_while_is_moving">wait_while_is_moving</a></dd>
                 <dd id="Arm.wait_for_contact" class="function"><a href="prismatic_joint.html#PrismaticJoint.wait_for_contact">wait_for_contact</a></dd>
                 <dd id="Arm.step_sentry" class="function"><a href="prismatic_joint.html#PrismaticJoint.step_sentry">step_sentry</a></dd>
                 <dd id="Arm.get_dist_to_limits" class="function"><a href="prismatic_joint.html#PrismaticJoint.get_dist_to_limits">get_dist_to_limits</a></dd>
@@ -418,6 +281,7 @@ return measured range-of-motion if measuring. Return None if not a valide measur
                 <dd id="Arm.thread_stats" class="variable"><a href="device.html#Device.thread_stats">thread_stats</a></dd>
                 <dd id="Arm.thread" class="variable"><a href="device.html#Device.thread">thread</a></dd>
                 <dd id="Arm.thread_shutdown_flag" class="variable"><a href="device.html#Device.thread_shutdown_flag">thread_shutdown_flag</a></dd>
+                <dd id="Arm.write_device_params" class="function"><a href="device.html#Device.write_device_params">write_device_params</a></dd>
                 <dd id="Arm.write_configuration_param_to_YAML" class="function"><a href="device.html#Device.write_configuration_param_to_YAML">write_configuration_param_to_YAML</a></dd>
                 <dd id="Arm.write_user_param_to_YAML" class="function"><a href="device.html#Device.write_user_param_to_YAML">write_user_param_to_YAML</a></dd>
 

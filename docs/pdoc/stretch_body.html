@@ -23,17 +23,6 @@
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
-            <h2>Contents</h2>
-            <ul>
-  <li><a href="#stretch-body">Stretch Body</a>
-  <ul>
-    <li><a href="#installing">Installing</a></li>
-    <li><a href="#running-tests">Running tests</a></li>
-    <li><a href="#developing">Developing</a></li>
-    <li><a href="#deploying">Deploying</a></li>
-  </ul></li>
-</ul>
-
 
             <h2>Submodules</h2>
             <ul>
@@ -46,6 +35,9 @@
                     <li><a href="stretch_body/dynamixel_hello_XL430.html">dynamixel_hello_XL430</a></li>
                     <li><a href="stretch_body/end_of_arm.html">end_of_arm</a></li>
                     <li><a href="stretch_body/end_of_arm_tools.html">end_of_arm_tools</a></li>
+                    <li><a href="stretch_body/gamepad_controller.html">gamepad_controller</a></li>
+                    <li><a href="stretch_body/gamepad_joints.html">gamepad_joints</a></li>
+                    <li><a href="stretch_body/gamepad_teleop.html">gamepad_teleop</a></li>
                     <li><a href="stretch_body/head.html">head</a></li>
                     <li><a href="stretch_body/hello_utils.html">hello_utils</a></li>
                     <li><a href="stretch_body/lift.html">lift</a></li>
@@ -58,6 +50,7 @@
                     <li><a href="stretch_body/robot_params.html">robot_params</a></li>
                     <li><a href="stretch_body/robot_params_RE1V0.html">robot_params_RE1V0</a></li>
                     <li><a href="stretch_body/robot_params_RE2V0.html">robot_params_RE2V0</a></li>
+                    <li><a href="stretch_body/robot_params_SE3.html">robot_params_SE3</a></li>
                     <li><a href="stretch_body/robot_trace.html">robot_trace</a></li>
                     <li><a href="stretch_body/scope.html">scope</a></li>
                     <li><a href="stretch_body/stepper.html">stepper</a></li>
@@ -67,7 +60,6 @@
                     <li><a href="stretch_body/version.html">version</a></li>
                     <li><a href="stretch_body/wacc.html">wacc</a></li>
                     <li><a href="stretch_body/wrist_yaw.html">wrist_yaw</a></li>
-                    <li><a href="stretch_body/xbox_controller.html">xbox_controller</a></li>
             </ul>
 
 
@@ -86,79 +78,12 @@
                     <h1 class="modulename">
 stretch_body    </h1>
 
-                        <div class="docstring"><p><img src="../../docs/images/banner.png" width="765"></p>
-
-<h1 id="stretch-body">Stretch Body</h1>
-
-<p>The stretch_body package provides a low level Python API to the Hello Robot Stretch hardware. This package comes pre-installed on Stretch robots. Tutorials for using this package can be found <a href="https://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/">on the docs</a>.</p>
-
-<h2 id="installing">Installing</h2>
-
-<p>This package comes pre-installed on Stretch robots. To install or upgrade to a stable Stretch Body for Python3, run:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>hello-robot-stretch-body
-</code></pre>
-</div>
-
-<p>To install or upgrade to a pre-release of Stretch Body for Python3, run:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>--pre<span class="w"> </span>hello-robot-stretch-body
-</code></pre>
-</div>
-
-<p>Please report feedback on the <a href="https://github.com/hello-robot/stretch_body/issues">Issue Tracker</a> or the <a href="https://forum.hello-robot.com/">Forum</a>.</p>
-
-<h2 id="running-tests">Running tests</h2>
-
-<p>There are a number of unit, functional, and performance tests within the <code>test/</code> folder, separated into test suites by different files. Suites are separated by a device or functionality within Stretch Body that is being tested.</p>
-
-<p>In Python3, run <code>python3 -m unittest test.test_&lt;suite-name&gt;</code>.</p>
-
-<p>For example, to run the <code><a href="stretch_body/robot.html#Robot">stretch_body.robot.Robot</a></code> functional tests, run:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/hello-robot/stretch_body.git
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>stretch_body/body
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>unittest<span class="w"> </span>test.test_robot
-</code></pre>
-</div>
-
-<h2 id="developing">Developing</h2>
-
-<p>The source code for Stretch Body resides within the <code>stretch_body/</code> folder. You can install Stretch Body as "editable", and directly edit the source code to test changes.</p>
-
-<p>In Python3, run <code>python3 -m pip install -e .</code></p>
-
-<p>For example, to test changes to <code><a href="stretch_body/robot.html#Robot">stretch_body.robot.Robot</a></code>, run:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>uninstall<span class="w"> </span>hello-robot-stretch-body<span class="w"> </span><span class="c1"># ensure previous Stretch Body installations are removed</span>
-$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/hello-robot/stretch_body.git
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>stretch_body/body
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-</code></pre>
-</div>
-
-<p>Now, make desired edits to the <a href="./stretch_body/robot.py">stretch_body/body/stretch_body/robot.py</a> file. Software using Stretch Body is now using the modified <code><a href="stretch_body/robot.html#Robot">stretch_body.robot.Robot</a></code> class.</p>
-
-<h2 id="deploying">Deploying</h2>
-
-<p>Increment the version number and run the <code>deploy.sh</code> script. Verify the new release is reflected <a href="https://pypi.org/project/hello-robot-stretch-body/">on PyPI</a>.</p>
-</div>
-
+                
                         <input id="mod-stretch_body-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-stretch_body-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="sd">&lt;img src=&quot;../../docs/images/banner.png&quot; width=&quot;765&quot;&gt;</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="sd">.. include:: ../README.md</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">4</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">5</span></a><span class="c1"># Control submodules to be presented</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">6</span></a><span class="c1"># __all__ = [&quot;arm&quot;, &quot;base&quot;, &quot;device&quot;, &quot;dynamixel_hello_XL430&quot;, &quot;lift&quot;]</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">7</span></a><span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="n">__version__</span>
 </span></pre></div>
 
 

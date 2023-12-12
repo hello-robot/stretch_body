@@ -119,7 +119,7 @@
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span> <span class="nn">stretch_body.device</span> <span class="kn">import</span> <span class="n">Device</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">importlib</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">urdfpy</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span> <span class="nn">urchin</span> <span class="k">as</span> <span class="nn">urdf_loader</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span> <span class="nn">os</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
@@ -171,7 +171,7 @@
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
 </span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="n">Device</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;robot_collision&#39;</span><span class="p">)</span>
 </span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>        <span class="c1">#urdf_file = os.path.join(os.environ[&#39;HELLO_FLEET_PATH&#39;], os.environ[&#39;HELLO_FLEET_ID&#39;],&#39;exported_urdf/stretch.urdf&#39;)</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>        <span class="c1">#self.robot_model = urdfpy.URDF.load(urdf_file) #Kinematic model available if needed</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>        <span class="c1">#self.robot_model = urdf_loader.URDF.load(urdf_file) #Kinematic model available if needed</span>
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">=</span><span class="n">robot</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">=</span><span class="p">[]</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">models_enabled</span><span class="o">=</span><span class="p">{}</span>
@@ -257,7 +257,7 @@
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="n">urdf_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HELLO_FLEET_PATH&#39;</span><span class="p">],</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HELLO_FLEET_ID&#39;</span><span class="p">],</span><span class="s1">&#39;exported_urdf/stretch.urdf&#39;</span><span class="p">)</span>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span> <span class="o">=</span> <span class="n">urdfpy</span><span class="o">.</span><span class="n">URDF</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">urdf_file</span><span class="p">)</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span> <span class="o">=</span> <span class="n">urdf_loader</span><span class="o">.</span><span class="n">URDF</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">urdf_file</span><span class="p">)</span>
 </span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>
 </span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="k">def</span> <span class="nf">tool_fk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cfg</span><span class="p">,</span><span class="n">link</span><span class="p">):</span>
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="c1"># returns the 4x4 transform from &lt;link&gt; to link_arm_l0</span>
@@ -273,7 +273,7 @@
 </span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>        <span class="n">link_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>        <span class="n">link_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span><span class="o">.</span><span class="n">_link_map</span><span class="p">[</span><span class="n">link</span><span class="p">])</span>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>
-</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>        <span class="c1"># This is a modified version of link_fk of urdfpy</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>        <span class="c1"># This is a modified version of link_fk of urdf_loader</span>
 </span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="c1"># That stops FK at the &#39;link_arm_l0&#39; of Stretch</span>
 </span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>        <span class="k">for</span> <span class="n">lnk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span><span class="o">.</span><span class="n">_reverse_topo</span><span class="p">:</span>
 </span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>            <span class="k">if</span> <span class="n">lnk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">link_set</span><span class="p">:</span>
@@ -454,6 +454,7 @@ in the User YAML file</p>
                 <dd id="RobotCollisionModel.home" class="function"><a href="device.html#Device.home">home</a></dd>
                 <dd id="RobotCollisionModel.step_sentry" class="function"><a href="device.html#Device.step_sentry">step_sentry</a></dd>
                 <dd id="RobotCollisionModel.pretty_print" class="function"><a href="device.html#Device.pretty_print">pretty_print</a></dd>
+                <dd id="RobotCollisionModel.write_device_params" class="function"><a href="device.html#Device.write_device_params">write_device_params</a></dd>
                 <dd id="RobotCollisionModel.write_configuration_param_to_YAML" class="function"><a href="device.html#Device.write_configuration_param_to_YAML">write_configuration_param_to_YAML</a></dd>
                 <dd id="RobotCollisionModel.write_user_param_to_YAML" class="function"><a href="device.html#Device.write_user_param_to_YAML">write_user_param_to_YAML</a></dd>
 
@@ -482,7 +483,7 @@ in the User YAML file</p>
 </span><span id="RobotCollision-55"><a href="#RobotCollision-55"><span class="linenos"> 55</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
 </span><span id="RobotCollision-56"><a href="#RobotCollision-56"><span class="linenos"> 56</span></a>        <span class="n">Device</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;robot_collision&#39;</span><span class="p">)</span>
 </span><span id="RobotCollision-57"><a href="#RobotCollision-57"><span class="linenos"> 57</span></a>        <span class="c1">#urdf_file = os.path.join(os.environ[&#39;HELLO_FLEET_PATH&#39;], os.environ[&#39;HELLO_FLEET_ID&#39;],&#39;exported_urdf/stretch.urdf&#39;)</span>
-</span><span id="RobotCollision-58"><a href="#RobotCollision-58"><span class="linenos"> 58</span></a>        <span class="c1">#self.robot_model = urdfpy.URDF.load(urdf_file) #Kinematic model available if needed</span>
+</span><span id="RobotCollision-58"><a href="#RobotCollision-58"><span class="linenos"> 58</span></a>        <span class="c1">#self.robot_model = urdf_loader.URDF.load(urdf_file) #Kinematic model available if needed</span>
 </span><span id="RobotCollision-59"><a href="#RobotCollision-59"><span class="linenos"> 59</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">=</span><span class="n">robot</span>
 </span><span id="RobotCollision-60"><a href="#RobotCollision-60"><span class="linenos"> 60</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">=</span><span class="p">[]</span>
 </span><span id="RobotCollision-61"><a href="#RobotCollision-61"><span class="linenos"> 61</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">models_enabled</span><span class="o">=</span><span class="p">{}</span>
@@ -564,7 +565,7 @@ The RobotCollision class then sets the joint limits for each joint to the most r
             <div class="pdoc-code codehilite"><pre><span></span><span id="RobotCollision.__init__-55"><a href="#RobotCollision.__init__-55"><span class="linenos">55</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">robot</span><span class="p">):</span>
 </span><span id="RobotCollision.__init__-56"><a href="#RobotCollision.__init__-56"><span class="linenos">56</span></a>        <span class="n">Device</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;robot_collision&#39;</span><span class="p">)</span>
 </span><span id="RobotCollision.__init__-57"><a href="#RobotCollision.__init__-57"><span class="linenos">57</span></a>        <span class="c1">#urdf_file = os.path.join(os.environ[&#39;HELLO_FLEET_PATH&#39;], os.environ[&#39;HELLO_FLEET_ID&#39;],&#39;exported_urdf/stretch.urdf&#39;)</span>
-</span><span id="RobotCollision.__init__-58"><a href="#RobotCollision.__init__-58"><span class="linenos">58</span></a>        <span class="c1">#self.robot_model = urdfpy.URDF.load(urdf_file) #Kinematic model available if needed</span>
+</span><span id="RobotCollision.__init__-58"><a href="#RobotCollision.__init__-58"><span class="linenos">58</span></a>        <span class="c1">#self.robot_model = urdf_loader.URDF.load(urdf_file) #Kinematic model available if needed</span>
 </span><span id="RobotCollision.__init__-59"><a href="#RobotCollision.__init__-59"><span class="linenos">59</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot</span><span class="o">=</span><span class="n">robot</span>
 </span><span id="RobotCollision.__init__-60"><a href="#RobotCollision.__init__-60"><span class="linenos">60</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">=</span><span class="p">[]</span>
 </span><span id="RobotCollision.__init__-61"><a href="#RobotCollision.__init__-61"><span class="linenos">61</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">models_enabled</span><span class="o">=</span><span class="p">{}</span>
@@ -637,13 +638,13 @@ The RobotCollision class then sets the joint limits for each joint to the most r
 
 <h2 id="parameters">Parameters</h2>
 
-<p>threaded : bool.
-    Whether a thread manages hardware polling/pushing in the background</p>
+<p>threaded : bool
+    whether a thread manages hardware polling/pushing in the background</p>
 
 <h2 id="returns">Returns</h2>
 
-<p>bool:
-    Whether the startup procedure succeeded</p>
+<p>bool
+    whether the startup procedure succeeded</p>
 </div>
 
 
@@ -757,6 +758,7 @@ The RobotCollision class then sets the joint limits for each joint to the most r
                 <dd id="RobotCollision.home" class="function"><a href="device.html#Device.home">home</a></dd>
                 <dd id="RobotCollision.step_sentry" class="function"><a href="device.html#Device.step_sentry">step_sentry</a></dd>
                 <dd id="RobotCollision.pretty_print" class="function"><a href="device.html#Device.pretty_print">pretty_print</a></dd>
+                <dd id="RobotCollision.write_device_params" class="function"><a href="device.html#Device.write_device_params">write_device_params</a></dd>
                 <dd id="RobotCollision.write_configuration_param_to_YAML" class="function"><a href="device.html#Device.write_configuration_param_to_YAML">write_configuration_param_to_YAML</a></dd>
                 <dd id="RobotCollision.write_user_param_to_YAML" class="function"><a href="device.html#Device.write_user_param_to_YAML">write_user_param_to_YAML</a></dd>
 
@@ -780,7 +782,7 @@ The RobotCollision class then sets the joint limits for each joint to the most r
 </span><span id="EndOfArmForwardKinematics-141"><a href="#EndOfArmForwardKinematics-141"><span class="linenos">141</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="EndOfArmForwardKinematics-142"><a href="#EndOfArmForwardKinematics-142"><span class="linenos">142</span></a>        <span class="n">urdf_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HELLO_FLEET_PATH&#39;</span><span class="p">],</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;HELLO_FLEET_ID&#39;</span><span class="p">],</span><span class="s1">&#39;exported_urdf/stretch.urdf&#39;</span><span class="p">)</span>
 </span><span id="EndOfArmForwardKinematics-143"><a href="#EndOfArmForwardKinematics-143"><span class="linenos">143</span></a>        <span class="n">np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
-</span><span id="EndOfArmForwardKinematics-144"><a href="#EndOfArmForwardKinematics-144"><span class="linenos">144</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span> <span class="o">=</span> <span class="n">urdfpy</span><span class="o">.</span><span class="n">URDF</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">urdf_file</span><span class="p">)</span>
+</span><span id="EndOfArmForwardKinematics-144"><a href="#EndOfArmForwardKinematics-144"><span class="linenos">144</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span> <span class="o">=</span> <span class="n">urdf_loader</span><span class="o">.</span><span class="n">URDF</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">urdf_file</span><span class="p">)</span>
 </span><span id="EndOfArmForwardKinematics-145"><a href="#EndOfArmForwardKinematics-145"><span class="linenos">145</span></a>
 </span><span id="EndOfArmForwardKinematics-146"><a href="#EndOfArmForwardKinematics-146"><span class="linenos">146</span></a>    <span class="k">def</span> <span class="nf">tool_fk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cfg</span><span class="p">,</span><span class="n">link</span><span class="p">):</span>
 </span><span id="EndOfArmForwardKinematics-147"><a href="#EndOfArmForwardKinematics-147"><span class="linenos">147</span></a>        <span class="c1"># returns the 4x4 transform from &lt;link&gt; to link_arm_l0</span>
@@ -796,7 +798,7 @@ The RobotCollision class then sets the joint limits for each joint to the most r
 </span><span id="EndOfArmForwardKinematics-157"><a href="#EndOfArmForwardKinematics-157"><span class="linenos">157</span></a>        <span class="n">link_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 </span><span id="EndOfArmForwardKinematics-158"><a href="#EndOfArmForwardKinematics-158"><span class="linenos">158</span></a>        <span class="n">link_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span><span class="o">.</span><span class="n">_link_map</span><span class="p">[</span><span class="n">link</span><span class="p">])</span>
 </span><span id="EndOfArmForwardKinematics-159"><a href="#EndOfArmForwardKinematics-159"><span class="linenos">159</span></a>
-</span><span id="EndOfArmForwardKinematics-160"><a href="#EndOfArmForwardKinematics-160"><span class="linenos">160</span></a>        <span class="c1"># This is a modified version of link_fk of urdfpy</span>
+</span><span id="EndOfArmForwardKinematics-160"><a href="#EndOfArmForwardKinematics-160"><span class="linenos">160</span></a>        <span class="c1"># This is a modified version of link_fk of urdf_loader</span>
 </span><span id="EndOfArmForwardKinematics-161"><a href="#EndOfArmForwardKinematics-161"><span class="linenos">161</span></a>        <span class="c1"># That stops FK at the &#39;link_arm_l0&#39; of Stretch</span>
 </span><span id="EndOfArmForwardKinematics-162"><a href="#EndOfArmForwardKinematics-162"><span class="linenos">162</span></a>        <span class="k">for</span> <span class="n">lnk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span><span class="o">.</span><span class="n">_reverse_topo</span><span class="p">:</span>
 </span><span id="EndOfArmForwardKinematics-163"><a href="#EndOfArmForwardKinematics-163"><span class="linenos">163</span></a>            <span class="k">if</span> <span class="n">lnk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">link_set</span><span class="p">:</span>
@@ -855,7 +857,7 @@ The RobotCollision class then sets the joint limits for each joint to the most r
 </span><span id="EndOfArmForwardKinematics.tool_fk-157"><a href="#EndOfArmForwardKinematics.tool_fk-157"><span class="linenos">157</span></a>        <span class="n">link_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
 </span><span id="EndOfArmForwardKinematics.tool_fk-158"><a href="#EndOfArmForwardKinematics.tool_fk-158"><span class="linenos">158</span></a>        <span class="n">link_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span><span class="o">.</span><span class="n">_link_map</span><span class="p">[</span><span class="n">link</span><span class="p">])</span>
 </span><span id="EndOfArmForwardKinematics.tool_fk-159"><a href="#EndOfArmForwardKinematics.tool_fk-159"><span class="linenos">159</span></a>
-</span><span id="EndOfArmForwardKinematics.tool_fk-160"><a href="#EndOfArmForwardKinematics.tool_fk-160"><span class="linenos">160</span></a>        <span class="c1"># This is a modified version of link_fk of urdfpy</span>
+</span><span id="EndOfArmForwardKinematics.tool_fk-160"><a href="#EndOfArmForwardKinematics.tool_fk-160"><span class="linenos">160</span></a>        <span class="c1"># This is a modified version of link_fk of urdf_loader</span>
 </span><span id="EndOfArmForwardKinematics.tool_fk-161"><a href="#EndOfArmForwardKinematics.tool_fk-161"><span class="linenos">161</span></a>        <span class="c1"># That stops FK at the &#39;link_arm_l0&#39; of Stretch</span>
 </span><span id="EndOfArmForwardKinematics.tool_fk-162"><a href="#EndOfArmForwardKinematics.tool_fk-162"><span class="linenos">162</span></a>        <span class="k">for</span> <span class="n">lnk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">robot_model</span><span class="o">.</span><span class="n">_reverse_topo</span><span class="p">:</span>
 </span><span id="EndOfArmForwardKinematics.tool_fk-163"><a href="#EndOfArmForwardKinematics.tool_fk-163"><span class="linenos">163</span></a>            <span class="k">if</span> <span class="n">lnk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">link_set</span><span class="p">:</span>

@@ -107,13 +107,11 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>The EndOfArm class allows for an extensible serial chain of Dynamixel X series devices.</p>
-
-<p>It allows the specific type of device to be declared at runtime via the Yaml parameters.</p>
-
-<p>In this way, a user can add their own custom Dynamixel based tools to the robot end-of-arm by
+            <div class="docstring"><p>The EndOfArm class allows for an extensible serial chain of Dynamixel X series devices
+It allows the specific type of device to be declared at runtime via the Yaml parameters
+In this way, a user can add their own custom Dynamixel based tools to the robot end-of-arm by
 simply deriving it from DynamixelHelloXL430 and declaring the class name / Python module name
-in the User YAML file.</p>
+in the User YAML file</p>
 </div>
 
 
@@ -144,6 +142,7 @@ in the User YAML file.</p>
                 <dd id="ToolNone.add_motor" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.add_motor">add_motor</a></dd>
                 <dd id="ToolNone.get_motor" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.get_motor">get_motor</a></dd>
                 <dd id="ToolNone.stop" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.stop">stop</a></dd>
+                <dd id="ToolNone.wait_until_at_setpoint" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.wait_until_at_setpoint">wait_until_at_setpoint</a></dd>
                 <dd id="ToolNone.is_trajectory_active" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.is_trajectory_active">is_trajectory_active</a></dd>
                 <dd id="ToolNone.follow_trajectory" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.follow_trajectory">follow_trajectory</a></dd>
                 <dd id="ToolNone.update_trajectory" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.update_trajectory">update_trajectory</a></dd>
@@ -165,6 +164,7 @@ in the User YAML file.</p>
                 <dd id="ToolNone.thread" class="variable"><a href="device.html#Device.thread">thread</a></dd>
                 <dd id="ToolNone.thread_shutdown_flag" class="variable"><a href="device.html#Device.thread_shutdown_flag">thread_shutdown_flag</a></dd>
                 <dd id="ToolNone.push_command" class="function"><a href="device.html#Device.push_command">push_command</a></dd>
+                <dd id="ToolNone.write_device_params" class="function"><a href="device.html#Device.write_device_params">write_device_params</a></dd>
                 <dd id="ToolNone.write_configuration_param_to_YAML" class="function"><a href="device.html#Device.write_configuration_param_to_YAML">write_configuration_param_to_YAML</a></dd>
                 <dd id="ToolNone.write_user_param_to_YAML" class="function"><a href="device.html#Device.write_user_param_to_YAML">write_user_param_to_YAML</a></dd>
 
@@ -196,13 +196,11 @@ in the User YAML file.</p>
 </span></pre></div>
 
 
-            <div class="docstring"><p>The EndOfArm class allows for an extensible serial chain of Dynamixel X series devices.</p>
-
-<p>It allows the specific type of device to be declared at runtime via the Yaml parameters.</p>
-
-<p>In this way, a user can add their own custom Dynamixel based tools to the robot end-of-arm by
+            <div class="docstring"><p>The EndOfArm class allows for an extensible serial chain of Dynamixel X series devices
+It allows the specific type of device to be declared at runtime via the Yaml parameters
+In this way, a user can add their own custom Dynamixel based tools to the robot end-of-arm by
 simply deriving it from DynamixelHelloXL430 and declaring the class name / Python module name
-in the User YAML file.</p>
+in the User YAML file</p>
 </div>
 
 
@@ -226,9 +224,7 @@ in the User YAML file.</p>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Stow the wrist yaw to a predefined configuration.</p>
-</div>
-
+    
 
                             </div>
                             <div class="inherited">
@@ -257,6 +253,7 @@ in the User YAML file.</p>
                 <dd id="ToolStretchGripper.add_motor" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.add_motor">add_motor</a></dd>
                 <dd id="ToolStretchGripper.get_motor" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.get_motor">get_motor</a></dd>
                 <dd id="ToolStretchGripper.stop" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.stop">stop</a></dd>
+                <dd id="ToolStretchGripper.wait_until_at_setpoint" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.wait_until_at_setpoint">wait_until_at_setpoint</a></dd>
                 <dd id="ToolStretchGripper.is_trajectory_active" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.is_trajectory_active">is_trajectory_active</a></dd>
                 <dd id="ToolStretchGripper.follow_trajectory" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.follow_trajectory">follow_trajectory</a></dd>
                 <dd id="ToolStretchGripper.update_trajectory" class="function"><a href="dynamixel_X_chain.html#DynamixelXChain.update_trajectory">update_trajectory</a></dd>
@@ -278,6 +275,7 @@ in the User YAML file.</p>
                 <dd id="ToolStretchGripper.thread" class="variable"><a href="device.html#Device.thread">thread</a></dd>
                 <dd id="ToolStretchGripper.thread_shutdown_flag" class="variable"><a href="device.html#Device.thread_shutdown_flag">thread_shutdown_flag</a></dd>
                 <dd id="ToolStretchGripper.push_command" class="function"><a href="device.html#Device.push_command">push_command</a></dd>
+                <dd id="ToolStretchGripper.write_device_params" class="function"><a href="device.html#Device.write_device_params">write_device_params</a></dd>
                 <dd id="ToolStretchGripper.write_configuration_param_to_YAML" class="function"><a href="device.html#Device.write_configuration_param_to_YAML">write_configuration_param_to_YAML</a></dd>
                 <dd id="ToolStretchGripper.write_user_param_to_YAML" class="function"><a href="device.html#Device.write_user_param_to_YAML">write_user_param_to_YAML</a></dd>
 

@@ -179,6 +179,15 @@
             <li>
                     <a class="function" href="#check_deprecated_contact_model_prismatic_joint">check_deprecated_contact_model_prismatic_joint</a>
             </li>
+            <li>
+                    <a class="function" href="#check_file_exists">check_file_exists</a>
+            </li>
+            <li>
+                    <a class="function" href="#to_parabola_transform">to_parabola_transform</a>
+            </li>
+            <li>
+                    <a class="function" href="#map_to_range">map_to_range</a>
+            </li>
     </ul>
 
 
@@ -758,6 +767,25 @@
 </span><span id="L-554"><a href="#L-554"><span class="linenos">554</span></a>            <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 </span><span id="L-555"><a href="#L-555"><span class="linenos">555</span></a>            <span class="n">joint</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 </span><span id="L-556"><a href="#L-556"><span class="linenos">556</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-557"><a href="#L-557"><span class="linenos">557</span></a>
+</span><span id="L-558"><a href="#L-558"><span class="linenos">558</span></a><span class="k">def</span> <span class="nf">check_file_exists</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+</span><span id="L-559"><a href="#L-559"><span class="linenos">559</span></a>    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+</span><span id="L-560"><a href="#L-560"><span class="linenos">560</span></a>        <span class="k">return</span> <span class="kc">True</span>
+</span><span id="L-561"><a href="#L-561"><span class="linenos">561</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-562"><a href="#L-562"><span class="linenos">562</span></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to find file: </span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-563"><a href="#L-563"><span class="linenos">563</span></a>        <span class="k">return</span> <span class="kc">False</span>
+</span><span id="L-564"><a href="#L-564"><span class="linenos">564</span></a>
+</span><span id="L-565"><a href="#L-565"><span class="linenos">565</span></a><span class="k">def</span> <span class="nf">to_parabola_transform</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+</span><span id="L-566"><a href="#L-566"><span class="linenos">566</span></a>    <span class="k">if</span> <span class="n">x</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+</span><span id="L-567"><a href="#L-567"><span class="linenos">567</span></a>        <span class="k">return</span>  <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="L-568"><a href="#L-568"><span class="linenos">568</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-569"><a href="#L-569"><span class="linenos">569</span></a>        <span class="k">return</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span>
+</span><span id="L-570"><a href="#L-570"><span class="linenos">570</span></a>
+</span><span id="L-571"><a href="#L-571"><span class="linenos">571</span></a><span class="k">def</span> <span class="nf">map_to_range</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">new_min</span><span class="p">,</span> <span class="n">new_max</span><span class="p">):</span>
+</span><span id="L-572"><a href="#L-572"><span class="linenos">572</span></a>    <span class="c1"># Ensure value is between 0 and 1</span>
+</span><span id="L-573"><a href="#L-573"><span class="linenos">573</span></a>    <span class="n">value</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+</span><span id="L-574"><a href="#L-574"><span class="linenos">574</span></a>    <span class="n">mapped_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">new_max</span> <span class="o">-</span> <span class="n">new_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">new_min</span>
+</span><span id="L-575"><a href="#L-575"><span class="linenos">575</span></a>    <span class="k">return</span> <span class="n">mapped_value</span>
 </span></pre></div>
 
 
@@ -2291,6 +2319,73 @@ Should now be:
         contact_thresh_neg=pseudo_N_to_effort_pct(-30.0))</p>
 </div>
 
+
+                </section>
+                <section id="check_file_exists">
+                            <input id="check_file_exists-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">check_file_exists</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">fn</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="check_file_exists-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#check_file_exists"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="check_file_exists-559"><a href="#check_file_exists-559"><span class="linenos">559</span></a><span class="k">def</span> <span class="nf">check_file_exists</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+</span><span id="check_file_exists-560"><a href="#check_file_exists-560"><span class="linenos">560</span></a>    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+</span><span id="check_file_exists-561"><a href="#check_file_exists-561"><span class="linenos">561</span></a>        <span class="k">return</span> <span class="kc">True</span>
+</span><span id="check_file_exists-562"><a href="#check_file_exists-562"><span class="linenos">562</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="check_file_exists-563"><a href="#check_file_exists-563"><span class="linenos">563</span></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unable to find file: </span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="check_file_exists-564"><a href="#check_file_exists-564"><span class="linenos">564</span></a>        <span class="k">return</span> <span class="kc">False</span>
+</span></pre></div>
+
+
+    
+
+                </section>
+                <section id="to_parabola_transform">
+                            <input id="to_parabola_transform-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">to_parabola_transform</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">x</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="to_parabola_transform-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#to_parabola_transform"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="to_parabola_transform-566"><a href="#to_parabola_transform-566"><span class="linenos">566</span></a><span class="k">def</span> <span class="nf">to_parabola_transform</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+</span><span id="to_parabola_transform-567"><a href="#to_parabola_transform-567"><span class="linenos">567</span></a>    <span class="k">if</span> <span class="n">x</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+</span><span id="to_parabola_transform-568"><a href="#to_parabola_transform-568"><span class="linenos">568</span></a>        <span class="k">return</span>  <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="to_parabola_transform-569"><a href="#to_parabola_transform-569"><span class="linenos">569</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="to_parabola_transform-570"><a href="#to_parabola_transform-570"><span class="linenos">570</span></a>        <span class="k">return</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span>
+</span></pre></div>
+
+
+    
+
+                </section>
+                <section id="map_to_range">
+                            <input id="map_to_range-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">map_to_range</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">value</span>, </span><span class="param"><span class="n">new_min</span>, </span><span class="param"><span class="n">new_max</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="map_to_range-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#map_to_range"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="map_to_range-572"><a href="#map_to_range-572"><span class="linenos">572</span></a><span class="k">def</span> <span class="nf">map_to_range</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">new_min</span><span class="p">,</span> <span class="n">new_max</span><span class="p">):</span>
+</span><span id="map_to_range-573"><a href="#map_to_range-573"><span class="linenos">573</span></a>    <span class="c1"># Ensure value is between 0 and 1</span>
+</span><span id="map_to_range-574"><a href="#map_to_range-574"><span class="linenos">574</span></a>    <span class="n">value</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+</span><span id="map_to_range-575"><a href="#map_to_range-575"><span class="linenos">575</span></a>    <span class="n">mapped_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">new_max</span> <span class="o">-</span> <span class="n">new_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">new_min</span>
+</span><span id="map_to_range-576"><a href="#map_to_range-576"><span class="linenos">576</span></a>    <span class="k">return</span> <span class="n">mapped_value</span>
+</span></pre></div>
+
+
+    
 
                 </section>
     </main>
