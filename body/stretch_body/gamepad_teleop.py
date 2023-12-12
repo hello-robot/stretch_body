@@ -186,6 +186,7 @@ class GamePadTeleop(Device):
             else:
                 self.gripper.stop_gripper(robot)
 
+
         # Switches the D-Pad control to DexWrist or Head on X/left_button press
         # `dexwrist_ctrl_switch` and `skip_x_button`  are convinience booleans for holding the toggled D-Pad info
         if self.controller_state['left_button_pressed'] and not self.skip_x_button:
