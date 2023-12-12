@@ -114,7 +114,11 @@ class NonDXLStatusThread(threading.Thread):
             if not self.shutdown_flag.is_set():
                 self.step()
             self.first_status = True
+        self.stop()
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
+
+    def stop(self):
+        self.loop.stop()
 
 class SystemMonitorThread(threading.Thread):
     """
@@ -225,6 +229,25 @@ class Robot(Device):
         self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
         self.status['end_of_arm'] = self.end_of_arm.status
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
+
+        self.GLOBAL_EXCEPTIONS_LIST = []
+        threading.excepthook = self.custom_excepthook
+
+    def custom_excepthook(self, args):
+        thread_name = args.thread.name
+        exec = {}
+        exec[thread_name] = {
+            'thread': args.thread,
+            'exception': {
+                'type': args.exc_type,
+                'value': args.exc_value,
+                'traceback': args.exc_traceback
+            }
+        }
+        self.logger.debug(f"Caught GLOBAL EXCEPTION: {exec}")
+        print(f"Caught GLOBAL EXCEPTION: {exec}")
+        print("Exiting...")
+        self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
     # ###########  Device Methods #############
 
     def startup(self,start_non_dxl_thread=True,start_dxl_thread=True,start_sys_mon_thread=True):
@@ -578,6 +601,7 @@ class Robot(Device):
             asyncio.set_event_loop(loop)
             loop.run_forever()
         self.event_loop_thread = threading.Thread(target=start_loop, args=(self.async_event_loop,), name='AsyncEvenLoopThread')
+        self.event_loop_thread.setDaemon(True)
         self.event_loop_thread.start()
     
     def stop_event_loop(self):
