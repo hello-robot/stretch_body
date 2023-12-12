@@ -476,6 +476,7 @@ nominal_params={
             'arm': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'}],
             'wrist_yaw': [{'motion_dir': 'pos', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
                           {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'}]},
+        'tool_stretch_dex_wrist': {},
         'tool_none': {},
     },
     'robot_monitor':{
