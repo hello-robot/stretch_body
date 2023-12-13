@@ -4,9 +4,17 @@ from stretch_body.device import Device
 import urchin as urdf_loader
 import meshio
 import numpy as np
-import importlib.resources as importlib_resources
 import time
 from audioplayer import AudioPlayer
+
+try:
+    # works on ubunut 22.04
+    import importlib.resources as importlib_resources
+    str(importlib_resources.files("stretch_body"))
+except AttributeError as e:
+    # works on ubuntu 20.04
+    import importlib_resources
+    str(importlib_resources.files("stretch_body"))
 
 # #######################################################################
 
