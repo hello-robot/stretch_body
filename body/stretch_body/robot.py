@@ -586,17 +586,18 @@ class Robot(Device):
     
     def start_event_loop(self):
         self.async_event_loop = asyncio.new_event_loop()
-        def start_loop(loop):
-            asyncio.set_event_loop(loop)
-            loop.run_forever()
-        self.event_loop_thread = threading.Thread(target=start_loop, args=(self.async_event_loop,), name='AsyncEvenLoopThread')
+        self.event_loop_thread = threading.Thread(target=self._event_loop, name='AsyncEvenLoopThread')
         self.event_loop_thread.setDaemon(True)
         self.event_loop_thread.start()
-    
+        
+    def _event_loop(self):
+            asyncio.set_event_loop(self.async_event_loop)
+            self.async_event_loop.run_forever()
+
     def stop_event_loop(self):
         try:
             if self.event_loop_thread:
-                self.async_event_loop.call_soon_threadsafe(self.async_event_loop.stop())
+                asyncio.run_coroutine_threadsafe(self.async_event_loop.stop())
                 self.event_loop_thread.join()
-        except:
+        except TypeError as e:
             pass
