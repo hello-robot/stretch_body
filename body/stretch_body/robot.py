@@ -22,7 +22,7 @@ from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
 from stretch_body.robot_trace import RobotTrace
-from stretch_body.robot_collision import RobotCollision
+from stretch_body.robot_collision import RobotCollisionMgmt
 
 # #############################################################
 class DXLHeadStatusThread(threading.Thread):
@@ -120,6 +120,9 @@ class NonDXLStatusThread(threading.Thread):
     def stop(self):
         self.loop.stop()
 
+    def stop(self):
+        self.loop.stop()
+
 class SystemMonitorThread(threading.Thread):
     """
     This thread runs at 25Hz.
@@ -136,8 +139,6 @@ class SystemMonitorThread(threading.Thread):
         self.collision_downrate_int = int(robot.params['rates']['SystemMonitorThread_collision_downrate_int'])  # Step the monitor at every Nth iteration
         self.trajectory_downrate_int = int(robot.params['rates']['SystemMonitorThread_nondxl_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
 
-        if self.robot.params['use_collision_manager']:
-            self.robot.collision.startup()
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         self.shutdown_flag = threading.Event()
@@ -195,7 +196,7 @@ class Robot(Device):
 
         self.monitor = RobotMonitor(self)
         self.trace = RobotTrace(self)
-        self.collision = RobotCollision(self)
+        self.collision = RobotCollisionMgmt(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
@@ -225,9 +226,9 @@ class Robot(Device):
         self.status['wacc']=self.wacc.status
 
 
-        tool_name = self.params['tool']
-        module_name = self.robot_params[tool_name]['py_module_name']
-        class_name = self.robot_params[tool_name]['py_class_name']
+        self.eoa_name= self.params['tool']
+        module_name = self.robot_params[self.eoa_name]['py_module_name']
+        class_name = self.robot_params[self.eoa_name]['py_class_name']
         self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
         self.status['end_of_arm'] = self.end_of_arm.status
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
@@ -235,7 +236,8 @@ class Robot(Device):
         self.GLOBAL_EXCEPTIONS_LIST = []
         threading.excepthook = self.custom_excepthook
 
-    def custom_excepthook(self,args):
+
+    def custom_excepthook(self, args):
         thread_name = args.thread.name
         exec = {}
         exec[thread_name] = {
@@ -244,14 +246,14 @@ class Robot(Device):
                 'type': args.exc_type,
                 'value': args.exc_value,
                 'traceback': args.exc_traceback
-                }
             }
+        }
         self.logger.debug(f"Caught GLOBAL EXCEPTION: {exec}")
         print(f"Caught GLOBAL EXCEPTION: {exec}")
         print("Exiting...")
         self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
   
-  
+ 
     # ###########  Device Methods #############
 
     def startup(self,start_non_dxl_thread=True,start_dxl_thread=True,start_sys_mon_thread=True):
@@ -281,6 +283,11 @@ class Robot(Device):
             self.params['use_asyncio']=0
         else:
             self.start_event_loop()
+
+        #Always startup to load URDFs now and not while thread is running
+        self.collision.startup()
+        if not self.params['use_collision_manager']: #Turn it off here but allow user to enable it via SW later
+            self.disable_collision_mgmt()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
@@ -389,6 +396,12 @@ class Robot(Device):
 
             if (self.pimu.ts_last_motor_sync is None or ( ready and sync_required)):
                 self.pimu.trigger_motor_sync()
+
+    def enable_collision_mgmt(self):
+        self.collision.enable()
+
+    def disable_collision_mgmt(self):
+        self.collision.disable()
 
     def wait_command(self, timeout=15.0):
         time.sleep(0.5)
@@ -499,7 +512,7 @@ class Robot(Device):
             time.sleep(0.1)
         self.end_of_arm.stow()
         time.sleep(0.25)
-        self.end_of_arm.stow()
+       # self.end_of_arm.stow()
         #Now bring lift down
         if not lift_stowed:
             print('--------- Stowing Lift ----')
@@ -521,6 +534,10 @@ class Robot(Device):
         if self.head is not None:
             print('--------- Homing Head ----')
             self.head.home()
+
+        # Wrist pitch should be lifted up before moving lift
+        if 'wrist_pitch' in self.end_of_arm.joints:
+            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
         # Home the lift
         if self.lift is not None:

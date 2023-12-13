@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 from inputs import DeviceManager, UnpluggedError, GamepadLED, SystemLED
 import threading
@@ -324,7 +324,7 @@ class GamePadController(threading.Thread):
 
 
 def main():
-    gamepad_controller = GamePadController(print_events=True)
+    gamepad_controller = GamePadController(print_events=False)
     gamepad_controller.start()
     try:
         while True:

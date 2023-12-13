@@ -47,7 +47,9 @@ class GamePadTeleop(Device):
         if robot_instance:
             self.robot = rb.Robot()
         self.controller_state = self.gamepad_controller.gamepad_state
-        self.end_of_arm_tool = RobotParams().get_params()[1]['robot']['tool']
+
+        self.end_of_arm_tool =RobotParams().get_params()[1]['robot']['tool']
+
         self.sleep = 1/50
         self.print_mode = False
         self._i = 0
@@ -70,9 +72,9 @@ class GamePadTeleop(Device):
         self.wrist_roll_command = None
         self.is_gamepad_dongle = False
         
-        if not self.end_of_arm_tool=='tool_none':
+        if self.using_stretch_gripper():
             self.gripper = gamepad_joints.CommandGripperPosition()
-        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+        if self.using_dexwrist():
             self.wrist_pitch_command = gamepad_joints.CommandWristPitch()
             self.wrist_roll_command = gamepad_joints.CommandWristRoll()
             
@@ -83,6 +85,13 @@ class GamePadTeleop(Device):
         
         self.dexwrist_ctrl_switch = True
         self.skip_x_button = False
+
+    def using_stretch_gripper(self):
+        return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
+            or self.end_of_arm_tool == 'tool_stretch_gripper'
+    def using_dexwrist(self):
+        return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
+            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_nil'
 
     def command_robot_joints(self, robot):
         """
@@ -121,7 +130,7 @@ class GamePadTeleop(Device):
             if self._i % dxl_zero_vel_set_division_factor == 0:
                 self.wirst_yaw_command.stop_motion(robot)
         
-        if not self.end_of_arm_tool == 'tool_stretch_dex_wrist' or (self.end_of_arm_tool == 'tool_stretch_dex_wrist' and not self.dexwrist_ctrl_switch):
+        if not self.using_dexwrist() or (self.using_dexwrist() and not self.dexwrist_ctrl_switch):
             # Head Control
             if self.controller_state['top_pad_pressed']:
                 self.head_tilt_command.command_button_to_motion(1,robot)
@@ -139,12 +148,12 @@ class GamePadTeleop(Device):
                 if self._i % dxl_zero_vel_set_division_factor == 0:
                     self.head_pan_command.stop_motion(robot)
 
-            if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+            if self.using_dexwrist():
                 self.wrist_pitch_command.stop_motion(robot)
                 self.wrist_roll_command.stop_motion(robot)
-                        
-        elif self.end_of_arm_tool == 'tool_stretch_dex_wrist' and self.dexwrist_ctrl_switch:
-            # Dex Wrist Control
+
+        elif self.using_dexwrist() and self.dexwrist_ctrl_switch:
+                # Dex Wrist Control
             if self.controller_state['top_pad_pressed']:
                 self.wrist_pitch_command.command_button_to_motion(1,robot)
             elif self.controller_state['bottom_pad_pressed']:
@@ -174,7 +183,10 @@ class GamePadTeleop(Device):
                 self.gripper.open_gripper(robot)
             elif self.controller_state['bottom_button_pressed']:
                 self.gripper.close_gripper(robot)
-        
+            else:
+                self.gripper.stop_gripper(robot)
+
+
         # Switches the D-Pad control to DexWrist or Head on X/left_button press
         # `dexwrist_ctrl_switch` and `skip_x_button`  are convinience booleans for holding the toggled D-Pad info
         if self.controller_state['left_button_pressed'] and not self.skip_x_button:
@@ -303,7 +315,7 @@ class GamePadTeleop(Device):
         self.wirst_yaw_command.precision_mode = self.precision_mode
         if self.gripper:
             self.gripper.precision_mode = self.precision_mode
-        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+        if self.using_dexwrist():
             self.wrist_pitch_command.precision_mode = self.precision_mode
             self.wrist_roll_command.precision_mode = self.precision_mode
         self.head_pan_command.precision_mode = self.precision_mode
@@ -350,7 +362,7 @@ class GamePadTeleop(Device):
         self.head_pan_command.command_stick_to_motion(0, robot)
         self.head_tilt_command.command_stick_to_motion(0, robot)
         self.base_command.command_stick_to_motion(0,0, robot)
-        if self.end_of_arm_tool == 'tool_stretch_dex_wrist':
+        if self.using_dexwrist():
             self.wrist_pitch_command.command_stick_to_motion(0, robot)
             self.wrist_roll_command.command_stick_to_motion(0, robot)
 
@@ -391,14 +403,19 @@ class GamePadTeleop(Device):
                     'paplay --device=alsa_output.pci-0000_00_1f.3.analog-stereo /usr/share/sounds/ubuntu/stereo/desktop-logout.ogg')
                 os.system('sudo shutdown now')  # sudoers should be set up to not need a password
 
+    def step_mainloop(self,robot=None):
+        if not robot:
+            robot = self.robot
+        self.do_motion(robot=robot)
+        robot.push_command()
+        time.sleep(self.sleep)
+
     def mainloop(self):
         """Run the main control loop
         """
         try:
             while True:
-                self.do_motion()
-                self.robot.push_command()
-                time.sleep(self.sleep)
+                self.step_mainloop()
         except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError):
             self.gamepad_controller.stop()
             self.robot.stop()
