@@ -97,10 +97,10 @@ if robot_devices['hello-dynamixel-wrist']:
             if w.motors[mk].do_ping():
                 print(Fore.GREEN +'[Pass] Ping of: '+mk)
                 if w.motors[mk].params['req_calibration']:
-                    if w.motors[mk].motor.is_homed():
-                        print(Fore.GREEN + '[Pass] Calibrated: ' + mk)
+                    if w.motors[mk].motor.is_calibrated():
+                        print(Fore.GREEN + '[Pass] Homed: ' + mk)
                     else:
-                        print(Fore.RED + '[Fail] Not Calibrated: ' + mk)
+                        print(Fore.RED + '[Fail] Not Homed: ' + mk)
             else:
                 print(Fore.RED + '[Fail] Ping of: ' + mk)
             print(Style.RESET_ALL)
@@ -150,7 +150,7 @@ if robot_devices['hello-motor-arm']:
     print('---- Checking hello-motor-arm ----')
     m = r.arm.motor
     val_is_not('Position',m.status['pos'], vnot=0)
-    val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
+    val_is_not('Position Homed', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)
 
 # #####################################################
@@ -159,7 +159,7 @@ if robot_devices['hello-motor-lift']:
     print('---- Checking hello-motor-lift ----')
     m = r.lift.motor
     val_is_not('Position',m.status['pos'], vnot=0)
-    val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
+    val_is_not('Position Homed', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)
 
 # #####################################################
