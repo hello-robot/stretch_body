@@ -551,6 +551,7 @@ use_dex_wrist_mapping = False
 use_stretch_gripper_mapping = True
 
 
+
 def main():
     global use_head_mapping, use_dex_wrist_mapping, use_stretch_gripper_mapping
     xbox_controller = gc.GamePadController()
@@ -565,12 +566,17 @@ def main():
             use_stretch_gripper_mapping = False
             use_dex_wrist_mapping = False
 
-        if robot.end_of_arm.name == 'tool_stretch_gripper':
+        elif robot.end_of_arm.name == 'tool_stretch_gripper':
             use_head_mapping = True
             use_stretch_gripper_mapping = True
             use_dex_wrist_mapping = False
 
-        if robot.end_of_arm.name == 'tool_stretch_dex_wrist':
+        elif robot.end_of_arm.name == 'eoa_wrist_dw3_tool_nil':
+            use_head_mapping = False
+            use_stretch_gripper_mapping = False
+            use_dex_wrist_mapping = True
+
+        elif robot.end_of_arm.name == 'tool_stretch_dex_wrist' or robot.end_of_arm.name == 'eoa_wrist_dw3_tool_sg3':
             use_head_mapping = False
             use_stretch_gripper_mapping = True
             use_dex_wrist_mapping = True

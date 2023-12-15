@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 from stretch_body.hello_utils import *
 import sys
-import stretch_body.wrist_yaw as wrist_yaw
-import stretch_body.wrist_pitch as wrist_pitch
-import stretch_body.wrist_roll as wrist_roll
+import stretch_body.robot as robot
 import argparse
 print_stretch_re_use()
 
@@ -16,22 +14,21 @@ group.add_argument("--roll", help="Jog roll joint",action="store_true")
 args, _ = parser.parse_known_args()
 
 
-
+r=robot.Robot()
+r.startup()
 w=None
-
 if args.yaw:
     print("Controlling Yaw Joint")
-    w=wrist_yaw.WristYaw()
-    w.startup()
+    w=r.end_of_arm.get_joint('wrist_yaw')
     poses = {'zero': 0, 'X': deg_to_rad(90), 'Y': deg_to_rad(-45)}
 elif args.pitch:
     print("Controlling Pitch Joint")
-    w=wrist_pitch.WristPitch()
+    w=r.end_of_arm.get_joint('wrist_pitch')
     w.startup()
     poses = {'zero': 0, 'X': deg_to_rad(55), 'Y': deg_to_rad(-90)}
 elif args.roll:
     print("Controlling Roll Joint")
-    w = wrist_roll.WristRoll()
+    w=r.end_of_arm.get_joint('wrist_roll')
     w.startup()
     poses = {'zero': 0, 'X': deg_to_rad(90), 'Y': deg_to_rad(-90)}
 
@@ -102,7 +99,6 @@ if w is not None:
                 step_interaction()
             except (ValueError):
                 print('Bad input...')
-            w.pull_status()
     except (ThreadServiceExit, KeyboardInterrupt):
-        w.stop()
+        r.stop()
 

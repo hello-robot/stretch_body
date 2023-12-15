@@ -504,8 +504,8 @@ nominal_params={
               'accel': 10.0,
               'vel': 8.0},
             'max':{
-              'accel': 20,
-              'vel': 20},
+              'accel': 15.0,
+              'vel': 10.0},
             'slow':{
               'accel': 4.0,
               'vel': 3.0},
@@ -533,10 +533,11 @@ nominal_params={
     'robot_collision_mgmt': {
         'max_mesh_points': 36,
         'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
-        'SE3': {
+        'SE3x': {
             'lift': [{'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4'}],
             'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link'}],
         },
+        'SE3': {},
         'eoa_wrist_dw3_tool_nil': {
             'lift': [{'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link'},
                      {'motion_dir': 'neg', 'link_pts': 'link_wrist_roll', 'link_cube': 'base_link'},]},
@@ -558,7 +559,7 @@ nominal_params={
             'wrist_yaw': 3.0,
             'stretch_gripper':0.0
         },
-        'k_brake_distance':{'wrist_pitch':0.0,'wrist_yaw':0.0,'wrist_roll':0.0,'stretch_gripper':0.0},
+        'k_brake_distance':{'wrist_pitch':0.5,'wrist_yaw':0.0,'wrist_roll':0.0,'stretch_gripper':0.0},
         'devices': {
             'wrist_pitch': {
                 'py_class_name': 'WristPitch',

@@ -87,12 +87,14 @@ class CollisionPair:
             print('Dropping monitor of collision pair %s'%self.name_id)
 
     def pretty_print(self):
-        print('Collision pair: %s'%self.name_id)
+        print('-------- Collision Pair %s ----------------'%self.name_id.upper())
+        print('In collision',self.in_collision)
+        print('Was in collision',self.was_in_collision)
         print('Is Valid',self.is_valid)
-        print('--Link Cube--')
-        self.link_cube.pretty_print()
-        print('--Link Pts--')
-        self.link_pts.pretty_print()
+        # print('--Link Cube--')
+        # self.link_cube.pretty_print()
+        # print('--Link Pts--')
+        # self.link_pts.pretty_print()
     def get_name_id(self):
         return self.name_id
 
@@ -218,18 +220,18 @@ class RobotCollisionMgmt(Device):
         for link_name in self.collision_links:
             self.collision_links[link_name].was_in_collision =self.collision_links[link_name].in_collision
             self.collision_links[link_name].in_collision=False
-
         for joint_name in self.collision_joints:
             self.collision_joints[joint_name].active_collisions=[]
             self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
             self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False}
 
-        # Test for collision between cube pairs
+        # Test for collision between point / cube pairs
         for pair_name in self.collision_pairs:
             cp=self.collision_pairs[pair_name]
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
                 cp.in_collision=self.check_pts_in_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
+                #cp.pretty_print()
                 if cp.in_collision:
                     cj = self.collision_joints[cp.joint_name]
                     cj.active_collisions.append(cp.get_name_id()) #Add collision to joint
@@ -238,17 +240,22 @@ class RobotCollisionMgmt(Device):
                 self.collision_links[cp.link_cube.name].in_collision=self.collision_links[cp.link_cube.name].in_collision or cp.in_collision
                 self.collision_links[cp.link_pts.name].in_collision =self.collision_links[cp.link_pts.name].in_collision or cp.in_collision
 
-        #Update collision avoidance
+            # Beep on new collision
+            # Note: subtle issue. Playing the beep can take a variable amount of time depending on sys resources
+            # Call it after we do the step_collision_avoidance so that the stop controller can be triggered as close to
+            # Collision detection as possible (otherwise the longer time can allow a collision in worst case conditions)
+            for pair_name in self.collision_pairs:
+                if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[
+                    pair_name].in_collision:
+                    print('-----------------------------------')
+                    print('New collision', pair_name)
+                    self.beep.play(block=False)
+
+        #Finally, update the collision state for each joint
         for joint_name in self.collision_joints:
             self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
 
-        #Beep on new collision
-        #Note: subtle issue. Playing the beep can take a variable amount of time depending on sys resources
-        #Call it after we do the step_collision_avoidance so that the stop controller can be triggered as close to
-        #Collision detection as possible (otherwise the longer time can allow a collision in worst case conditions)
-        for pair_name in self.collision_pairs:
-            if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
-                self.beep.play(block=False)
+
 
     def is_link_in_collsion(self,link_name):
         if self.urdf is None:
