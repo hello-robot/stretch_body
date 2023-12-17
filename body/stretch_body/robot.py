@@ -120,6 +120,9 @@ class NonDXLStatusThread(threading.Thread):
     def stop(self):
         self.loop.stop()
 
+    def stop(self):
+        self.loop.stop()
+
 class SystemMonitorThread(threading.Thread):
     """
     This thread runs at 25Hz.
@@ -155,7 +158,7 @@ class SystemMonitorThread(threading.Thread):
         if self.robot.params['use_sentry']:
             if (self.titr % self.sentry_downrate_int) == 0:
                 self.robot._step_sentry()
-        if self.robot.params['use_collision_manager'] and self.robot.is_homed():
+        if self.robot.is_homed():
             self.robot.collision.step()
         if (self.titr % self.trajectory_downrate_int) == 0:
             self.robot._update_trajectory_non_dynamixel()
@@ -228,7 +231,6 @@ class Robot(Device):
         self.dxl_head_thread = None
         self.event_loop_thread = None
 
-
         self.eoa_name= self.params['tool']
         module_name = self.robot_params[self.eoa_name]['py_module_name']
         class_name = self.robot_params[self.eoa_name]['py_class_name']
@@ -239,7 +241,7 @@ class Robot(Device):
         self.GLOBAL_EXCEPTIONS_LIST = []
         threading.excepthook = self.custom_excepthook
 
-
+        
     def custom_excepthook(self, args):
         thread_name = args.thread.name
         exec = {}
@@ -255,8 +257,7 @@ class Robot(Device):
         print(f"Caught GLOBAL EXCEPTION: {exec}")
         print("Exiting...")
         self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
-  
- 
+
     # ###########  Device Methods #############
 
     def startup(self,start_non_dxl_thread=True,start_dxl_thread=True,start_sys_mon_thread=True):

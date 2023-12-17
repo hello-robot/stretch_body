@@ -41,7 +41,11 @@ nominal_system_params={
                     "datefmt": "%m/%d/%Y %H:%M:%S"
                 }
             }
-        }}
+        },
+    "system_check": {
+            "show_sw_exc": False
+        },
+}
 
 class RobotParams:
     """Build the parameter dictionary that is available as stretch_body.Device().robot_params.
