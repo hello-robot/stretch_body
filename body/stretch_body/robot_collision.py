@@ -5,7 +5,7 @@ import urchin as urdf_loader
 import meshio
 import numpy as np
 import time
-from audioplayer import AudioPlayer
+import chime
 
 try:
     # works on ubunut 22.04
@@ -137,7 +137,7 @@ class RobotCollisionMgmt(Device):
         self.collision_joints = {}
         self.collision_links = {}
         self.collision_pairs = {}
-        self.beep=AudioPlayer('/usr/share/sounds/ubuntu/stereo/message.ogg')
+        chime.theme('big-sur')
         self.running=True
 
     def pretty_print(self):
@@ -241,15 +241,10 @@ class RobotCollisionMgmt(Device):
                 self.collision_links[cp.link_pts.name].in_collision =self.collision_links[cp.link_pts.name].in_collision or cp.in_collision
 
             # Beep on new collision
-            # Note: subtle issue. Playing the beep can take a variable amount of time depending on sys resources
-            # Call it after we do the step_collision_avoidance so that the stop controller can be triggered as close to
-            # Collision detection as possible (otherwise the longer time can allow a collision in worst case conditions)
             for pair_name in self.collision_pairs:
                 if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[
                     pair_name].in_collision:
-                    print('-----------------------------------')
-                    print('New collision', pair_name)
-                    self.beep.play(block=False)
+                    chime.warning()
 
         #Finally, update the collision state for each joint
         for joint_name in self.collision_joints:

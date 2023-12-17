@@ -437,8 +437,8 @@ class DynamixelHelloXL430(Device):
             return
 
 
-        print('Pos (ticks) %f |  Vel (ticks) %f | Pos (deg) %f | Vel (deg/s) %f | Vel max (deg/s) %f'%(self.status['pos_ticks'],self.status['vel_ticks'],rad_to_deg(self.status['pos']),
-                                                                                  rad_to_deg(self.status['vel']),rad_to_deg(self.params['motion']['max']['vel'])))
+        # print('Pos (ticks) %f |  Vel (ticks) %f | Pos (deg) %f | Vel (deg/s) %f | Vel max (deg/s) %f'%(self.status['pos_ticks'],self.status['vel_ticks'],rad_to_deg(self.status['pos']),
+        #                                                                           rad_to_deg(self.status['vel']),rad_to_deg(self.params['motion']['max']['vel'])))
         for dir in ['pos','neg']:
             if in_collision[dir] and not self.in_collision_stop[dir]:
                 print('New Stop!',in_collision,time.time()-self.ts_startup)
@@ -454,8 +454,10 @@ class DynamixelHelloXL430(Device):
                 print('Reset',time.time()-self.ts_startup)
                 self.in_collision_stop[dir] = False
 
-        if in_collision['pos']:
-            print("InCollisionStop",self.in_collision_stop['pos'],time.time()-self.ts_startup,self.ts_collision_stop['pos']-self.ts_startup)
+        # if in_collision['pos']:
+        #     print("InCollisionStop",self.in_collision_stop['pos'],time.time()-self.ts_startup,self.ts_collision_stop['pos']-self.ts_startup)
+#if in_collision['pos']:
+        #     print("InCollisionStop",self.in_collision_stop['pos'],time.time()-self.ts_startup,self.ts_collision_stop['pos']-self.ts_startup)
 
     def get_braking_distance(self,acc=None):
         """Compute distance to brake the joint from the current velocity"""
@@ -579,18 +581,15 @@ class DynamixelHelloXL430(Device):
             self.enable_torque()
         v = min(self.params['motion']['max']['vel'],abs(v_des))
 
-
         if self.in_collision_stop['pos'] and v_des>0:
-            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing set_velocity'%('pos',self.name))
+            self.logger.warning('set_velocity in collision . Motion disabled in direction %s for %s. Not executing set_velocity'%('pos',self.name))
             return
 
         if self.in_collision_stop['neg'] and v_des<0:
-            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing set_velocity'%('neg',self.name))
+            self.logger.warning('set_velocity in collision. Motion disabled in direction %s for %s. Not executing set_velocity'%('neg',self.name))
             return
 
         v_des = -1*v if v_des<0 else v
-
-
 
         nretry = 2
         if not self.hw_valid:
@@ -693,11 +692,11 @@ class DynamixelHelloXL430(Device):
             return
 
         if self.in_collision_stop['pos'] and self.status['pos']<x_des:
-            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing move_to'%('pos',self.name))
+            self.logger.warning('move_to in collision. Motion disabled in direction %s for %s. Not executing move_to'%('pos',self.name))
             return
 
         if self.in_collision_stop['neg'] and self.status['pos']>x_des:
-            self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing move_to'%('neg',self.name))
+            self.logger.warning('move_to in collision. Motion disabled in direction %s for %s. Not executing move_to'%('neg',self.name))
             return
 
         if self.in_vel_mode:
@@ -722,7 +721,25 @@ class DynamixelHelloXL430(Device):
                 if self.bubble_up_comm_exception:
                     raise DynamixelCommError
 
-    def set_motion_params(self,v_des=None,a_des=None, force=False):
+
+
+
+    def set_motion_accel(self,a_des=None,force=False):
+        try:
+            if not self.hw_valid:
+                return
+            a_des = abs(a_des) if a_des is not None else self.params['motion']['default']['accel']
+            a_des = min(self.params['motion']['max']['accel'], a_des)
+            if a_des != self.a_des or force:
+                self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(a_des)))
+                self.a_des = a_des
+        except (termios.error, DynamixelCommError):
+            self.logger.warning('Dynamixel communication error during set_motion_accel on: %s' % self.name)
+            self.comm_errors.add_error(rx=False, gsr=False)
+            if self.bubble_up_comm_exception:
+                raise DynamixelCommError
+
+    def set_motion_vel(self,v_des=None,force=False):
         try:
             if not self.hw_valid:
                 return
@@ -731,17 +748,15 @@ class DynamixelHelloXL430(Device):
             if v_des != self.v_des or force:
                 self.motor.set_profile_velocity(abs(self.world_rad_to_ticks_per_sec(v_des)))
                 self.v_des = v_des
-
-            a_des = abs(a_des) if a_des is not None else self.params['motion']['default']['accel']
-            a_des = min(self.params['motion']['max']['accel'], a_des)
-            if a_des != self.a_des or force:
-                self.motor.set_profile_acceleration(abs(self.world_rad_to_ticks_per_sec_sec(a_des)))
-                self.a_des = a_des
         except (termios.error, DynamixelCommError):
-            self.logger.warning('Dynamixel communication error during set_motion_params on: %s' % self.name)
+            self.logger.warning('Dynamixel communication error during set_motion_accel on: %s' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
             if self.bubble_up_comm_exception:
                 raise DynamixelCommError
+
+    def set_motion_params(self,v_des=None,a_des=None, force=False):
+        self.set_motion_accel(a_des,force)
+        self.set_motion_vel(v_des,force)
 
 
     def move_by(self,x_des, v_des=None, a_des=None):
@@ -762,13 +777,13 @@ class DynamixelHelloXL430(Device):
 
                     if self.in_collision_stop['pos'] and self.status['pos'] < cx + x_des:
                         self.logger.warning(
-                            'In collision. Motion disabled in direction %s for %s. Not executing move_by' % (
+                            'move_by in collision. Motion disabled in direction %s for %s. Not executing move_by' % (
                             'pos', self.name))
                         return
 
                     if self.in_collision_stop['neg'] and self.status['pos'] > cx + x_des:
                         self.logger.warning(
-                            'In collision. Motion disabled in direction %s for %s. Not executing move_by' % (
+                            'move_by in collision. Motion disabled in direction %s for %s. Not executing move_by' % (
                             'neg', self.name))
                         return
                     self.move_to(cx + x_des, v_des, a_des)
@@ -786,7 +801,6 @@ class DynamixelHelloXL430(Device):
         try:
             self.motor.disable_torque()
             self.motor.enable_torque()
-            #self.move_to_vel(0)
         except (termios.error, DynamixelCommError):
             self.logger.warning('Dynamixel communication error during quick_stop on %s: ' % self.name)
             self.comm_errors.add_error(rx=False, gsr=False)
