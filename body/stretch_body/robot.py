@@ -120,9 +120,6 @@ class NonDXLStatusThread(threading.Thread):
     def stop(self):
         self.loop.stop()
 
-    def stop(self):
-        self.loop.stop()
-
 class SystemMonitorThread(threading.Thread):
     """
     This thread runs at 25Hz.
@@ -225,6 +222,12 @@ class Robot(Device):
             self.wacc=wacc.Wacc()
         self.status['wacc']=self.wacc.status
 
+        self.non_dxl_thread = None
+        self.dxl_end_of_arm_thread = None
+        self.sys_thread = None
+        self.dxl_head_thread = None
+        self.event_loop_thread = None
+
 
         self.eoa_name= self.params['tool']
         module_name = self.robot_params[self.eoa_name]['py_module_name']
@@ -324,18 +327,22 @@ class Robot(Device):
         """
         self.logger.debug('---- Shutting down robot ----')
         self._file_lock.release()
-        if self.non_dxl_thread.running:
-            self.non_dxl_thread.shutdown_flag.set()
-            self.non_dxl_thread.join(1)
-        if self.dxl_head_thread.running:
-            self.dxl_head_thread.shutdown_flag.set()
-            self.dxl_head_thread.join(1)
-        if self.dxl_end_of_arm_thread.running:
-            self.dxl_end_of_arm_thread.shutdown_flag.set()
-            self.dxl_end_of_arm_thread.join(1)
-        if self.sys_thread.running:
-            self.sys_thread.shutdown_flag.set()
-            self.sys_thread.join(1)
+        if self.non_dxl_thread:
+            if self.non_dxl_thread.running:
+                self.non_dxl_thread.shutdown_flag.set()
+                self.non_dxl_thread.join(1)
+        if self.dxl_head_thread:
+            if self.dxl_head_thread.running:
+                self.dxl_head_thread.shutdown_flag.set()
+                self.dxl_head_thread.join(1)
+        if self.dxl_end_of_arm_thread:
+            if self.dxl_end_of_arm_thread.running:
+                self.dxl_end_of_arm_thread.shutdown_flag.set()
+                self.dxl_end_of_arm_thread.join(1)
+        if self.sys_thread:
+            if self.sys_thread.running:
+                self.sys_thread.shutdown_flag.set()
+                self.sys_thread.join(1)
         for k in self.devices:
             if self.devices[k] is not None:
                 self.logger.debug('Shutting down %s'%k)
