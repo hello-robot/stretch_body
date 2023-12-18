@@ -25,11 +25,11 @@ class WristRoll(DynamixelHelloXL430):
             self.enable_pos_current_ctrl(current_limit=self.params['current_float_A'])
             self.move_to(0.0)
 
-    def stop(self):
+    def stop(self,close_port=True):
         if self.hw_valid and self.params['float_on_stop']:
             self.enable_float_mode()
         else:
-            DynamixelHelloXL430.stop(self)
+            DynamixelHelloXL430.stop(close_port)
 
     def home(self):
         """

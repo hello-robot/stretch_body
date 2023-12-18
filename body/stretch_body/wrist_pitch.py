@@ -16,11 +16,11 @@ class WristPitch(DynamixelHelloXL430):
             self.enable_pos_current_ctrl() #Default to current limited position control
         return r
 
-    def stop(self):
+    def stop(self,close_port=True):
         if self.hw_valid and self.params['float_on_stop']:
             self.enable_float_mode()
         else:
-            DynamixelHelloXL430.stop(self)
+            DynamixelHelloXL430.stop(self,close_port)
 
     def home(self):
         """

@@ -108,7 +108,7 @@ class DynamixelXChain(Device):
             self.motors[motor]._waypoint_ts = None
             self.motors[motor]._waypoint_vel = None
             self.motors[motor]._waypoint_accel = None
-            self.motors[motor].stop()
+            self.motors[motor].stop(close_port=False)
         self.port_handler.closePort()
         self.hw_valid = False
 
