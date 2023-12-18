@@ -441,7 +441,7 @@ class DynamixelHelloXL430(Device):
         #                                                                           rad_to_deg(self.status['vel']),rad_to_deg(self.params['motion']['max']['vel'])))
         for dir in ['pos','neg']:
             if in_collision[dir] and not self.in_collision_stop[dir]:
-                print('New Stop!',in_collision,time.time()-self.ts_startup)
+                print('New Stop!',self.name,in_collision,time.time()-self.ts_startup)
                 #print('At position',self.status['pos_ticks'])
                 #print('At velocity',self.status['vel_ticks'])
                 # Stop current motion

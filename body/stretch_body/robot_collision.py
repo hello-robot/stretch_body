@@ -137,7 +137,7 @@ class RobotCollisionMgmt(Device):
         self.collision_joints = {}
         self.collision_links = {}
         self.collision_pairs = {}
-        chime.theme('big-sur')
+        chime.theme('material')#'big-sur')
         self.running=True
 
     def pretty_print(self):
