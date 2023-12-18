@@ -167,12 +167,14 @@ class RobotCollisionMgmt(Device):
         #Build dict of potential collisions_pairs for each joint
         #Include those of standard robot body plus its defined tool
         # EG collision_joints={'lift':[{collision_1},{collision_2...}],'head_pan':[...]}
-        cj=self.params[model_name]
-        for tt in self.params[eoa_name]:
+        cj=self.params[model_name]['joints']
+        eoa_cj=self.robot.end_of_arm.params['collision_mgmt']['joints']
+
+        for tt in eoa_cj:
             if tt in cj:
-                cj[tt]+=self.params[eoa_name][tt]
+                cj[tt]+=eoa_cj[tt]
             else:
-                cj[tt]=self.params[eoa_name][tt]
+                cj[tt]=eoa_cj[tt]
 
         for joint_name in cj:
             self.collision_joints[joint_name]=CollisionJoint(joint_name,self.get_joint_motor(joint_name))
@@ -298,11 +300,12 @@ class RobotCollisionMgmt(Device):
         """
         s = self.robot.get_status()
 
+        kbd = self.params[self.robot.params['model_name']]['k_brake_distance']
         if braked:
-            da=self.params['k_brake_distance']['arm']*self.robot.arm.get_braking_distance()/4.0
-            dl=self.params['k_brake_distance']['lift']*self.robot.lift.get_braking_distance()
-            dhp = self.params['k_brake_distance']['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
-            dht = self.params['k_brake_distance']['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
+            da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
+            dl=kbd['lift']*self.robot.lift.get_braking_distance()
+            dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
+            dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
         else:
             da=0.0
             dl=0.0

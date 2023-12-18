@@ -102,6 +102,10 @@ class NonDXLStatusThread(threading.Thread):
                 self.robot.pimu.pull_status_async()))
         else:
             self.robot._pull_status_non_dynamixel()
+        if self.robot.is_homed():
+            ts=time.time()
+            self.robot.collision.step()
+            print('Collision DT (ms) %f'%((time.time()-ts)*1000))
         self.stats.mark_loop_end()
     def run(self):
         self.running=True
@@ -151,8 +155,8 @@ class SystemMonitorThread(threading.Thread):
         if self.robot.params['use_sentry']:
             if (self.titr % self.sentry_downrate_int) == 0:
                 self.robot._step_sentry()
-        if self.robot.is_homed():
-            self.robot.collision.step()
+        # if self.robot.is_homed():
+        #     self.robot.collision.step()
         if (self.titr % self.trajectory_downrate_int) == 0:
             self.robot._update_trajectory_non_dynamixel()
         self.stats.mark_loop_end()
@@ -211,7 +215,7 @@ class Robot(Device):
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
 
         self.GLOBAL_EXCEPTIONS_LIST = []
-        threading.excepthook = self.custom_excepthook
+        #threading.excepthook = self.custom_excepthook
 
     def custom_excepthook(self, args):
         thread_name = args.thread.name
