@@ -5,7 +5,7 @@ import urchin as urdf_loader
 import meshio
 import numpy as np
 import time
-import chime
+#import chime
 
 try:
     # works on ubunut 22.04
@@ -137,7 +137,7 @@ class RobotCollisionMgmt(Device):
         self.collision_joints = {}
         self.collision_links = {}
         self.collision_pairs = {}
-        chime.theme('material')#'big-sur')
+        #chime.theme('big-sur') #'material')#
         self.running=True
 
     def pretty_print(self):
@@ -244,9 +244,9 @@ class RobotCollisionMgmt(Device):
 
             # Beep on new collision
             for pair_name in self.collision_pairs:
-                if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[
-                    pair_name].in_collision:
-                    chime.warning()
+                if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
+                    print('\a')
+                    #chime.warning()
 
         #Finally, update the collision state for each joint
         for joint_name in self.collision_joints:
