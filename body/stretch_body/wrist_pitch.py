@@ -43,6 +43,8 @@ class WristPitch(DynamixelHelloXL430):
         When the joint is straight down it will float back to straight up
         Useful for human-interaction
         """
+        if self.in_vel_mode:
+            self.enable_pos()
         i=self.motor.get_current()
         self.disable_torque()
         self.motor.enable_current()
