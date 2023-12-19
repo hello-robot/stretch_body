@@ -1,11 +1,18 @@
+#!/usr/bin/env python3
+
 import cv2
 import pyrealsense2 as rs
 import numpy as np
 from threading import Thread
 import time
 import sys
-from stretch_body import gamepad_teleop
 import os
+import stretch_body.hello_utils as hu
+
+hu.print_stretch_re_use()
+
+print('cv2.__version__ =', cv2.__version__)
+print('sys.version =', sys.version)
 
 D405_COLOR_SIZE = [640, 480]
 D405_DEPTH_SIZE = [640, 480]
@@ -59,29 +66,11 @@ color_image_d435i=None
 depth_image_d435i=None
 image_uvc = None
 
-def setup_realsense_camera(serial_number, color_size, depth_size, fps):
-    pipeline = rs.pipeline()
-    config = rs.config()
 
-    if serial_number:
-        config.enable_device(serial_number)
-
-    config.enable_stream(rs.stream.color, color_size[0], color_size[1], rs.format.bgr8, fps)
-    config.enable_stream(rs.stream.depth, depth_size[0], depth_size[1], rs.format.z16, fps)
-
-    profile = pipeline.start(config)
-    return pipeline
-
-def setup_uvc_camera(device_index, size, fps):
-    cap = cv2.VideoCapture(device_index)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
-    cap.set(cv2.CAP_PROP_FPS, fps)
-    return cap
 
 def d405_stream():
     global stop_stream, color_image_d405, depth_image_d405
-    pipeline_d405 = setup_realsense_camera(serial_number=d405_serial,
+    pipeline_d405 = hu.setup_realsense_camera(serial_number=d405_serial,
                                            color_size=D405_COLOR_SIZE,
                                             depth_size=D405_DEPTH_SIZE,
                                             fps=D405_FPS)
@@ -98,7 +87,7 @@ def d405_stream():
 
 def d435i_stream():
     global stop_stream, color_image_d435i, depth_image_d435i
-    pipeline_d435i = setup_realsense_camera(serial_number=d435i_serial,
+    pipeline_d435i = hu.setup_realsense_camera(serial_number=d435i_serial,
                                             color_size=D435I_COLOR_SIZE,
                                             depth_size=D435I_DEPTH_SIZE,
                                             fps=D435I_FPS)
@@ -115,7 +104,7 @@ def d435i_stream():
 
 def uvc_cam_stream():
     global stop_stream, image_uvc
-    uvc_camera = setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS)
+    uvc_camera = hu.setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS)
     
     while not stop_stream:
         try:
@@ -124,12 +113,8 @@ def uvc_cam_stream():
             print(f"Error UVC Cam: {e}")
     uvc_camera.release()
 
-def stream_cameras_thread(config):
+def main(config):
     global stop_stream, color_image_d405, depth_image_d405, color_image_d435i, depth_image_d435i, image_uvc
-
-    teleop = gamepad_teleop.GamePadTeleop()
-    teleop.startup()
-    last_rb_push_ts = time.time()
 
     d405=config['d405']
     d435i=config['d435i']
@@ -160,12 +145,6 @@ def stream_cameras_thread(config):
         if image_uvc is not None:
             cv2.imshow('UVC Head Camera', image_uvc)
 
-        # run gamepad teleop at 1/30 sleep cycle
-        if time.time() - last_rb_push_ts >=1/30:
-            teleop.do_motion()
-            teleop.robot.push_command()
-            last_rb_push_ts = time.time()
-
         if cv2.waitKey(1) & 0xFF == ord('q'):
             # Release resources
             stop_stream = True
@@ -174,24 +153,30 @@ def stream_cameras_thread(config):
             d435i_thread.join()
             uvc_thread.join()
             cv2.destroyAllWindows()
-            teleop.gamepad_controller.stop()
-            teleop.robot.stop()
-            break
 
 if __name__ == "__main__":
+
+    print("Found the following Video Devices:")
+    video_devices = hu.get_video_devices()
+    for devices in video_devices:
+        print(f"{devices}")
+        for d in video_devices[devices]:
+            print(f"\t\t{d}")
+
     config = {'d405' : False,
               'd435i' : False,
-              'uvc' : False}
+                'uvc' : False}
+    
     if len(sys.argv) >= 2:
         for i in range(1,len(sys.argv)):
             user_input = sys.argv[i]
             config[user_input] = True
-        stream_cameras_thread(config)
+        main(config)
     else:
         config = {'d405' : True,
                 'd435i' : True,
                 'uvc' : True}
-        stream_cameras_thread(config)
+        main(config)
         
 
     
