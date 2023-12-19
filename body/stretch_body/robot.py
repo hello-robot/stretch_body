@@ -120,9 +120,6 @@ class NonDXLStatusThread(threading.Thread):
     def stop(self):
         self.loop.stop()
 
-    def stop(self):
-        self.loop.stop()
-
 class SystemMonitorThread(threading.Thread):
     """
     This thread runs at 25Hz.

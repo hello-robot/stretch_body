@@ -6,6 +6,7 @@ from inputs import UnpluggedError
 import stretch_body.robot as rb
 from stretch_body.hello_utils import *
 from stretch_body.robot_params import RobotParams
+from stretch_body.dynamixel_hello_XL430 import DynamixelCommError
 from stretch_body import gamepad_joints
 import os
 import time
@@ -416,7 +417,7 @@ class GamePadTeleop(Device):
         try:
             while True:
                 self.step_mainloop()
-        except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError):
+        except (ThreadServiceExit, KeyboardInterrupt, SystemExit, UnpluggedError, DynamixelCommError):
             self.gamepad_controller.stop()
             self.robot.stop()
 
