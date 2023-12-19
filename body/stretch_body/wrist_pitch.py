@@ -1,6 +1,6 @@
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 import stretch_body.hello_utils as hu
-
+import time
 
 class WristPitch(DynamixelHelloXL430):
     """
@@ -43,8 +43,6 @@ class WristPitch(DynamixelHelloXL430):
         When the joint is straight down it will float back to straight up
         Useful for human-interaction
         """
-        if self.in_vel_mode:
-            self.enable_pos()
         i=self.motor.get_current()
         self.disable_torque()
         self.motor.enable_current()
