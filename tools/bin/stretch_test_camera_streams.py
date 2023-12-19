@@ -3,16 +3,12 @@
 import cv2
 import pyrealsense2 as rs
 import numpy as np
-from threading import Thread
+from threading import Thread, Lock
 import time
 import sys
 import os
 import stretch_body.hello_utils as hu
-
-hu.print_stretch_re_use()
-
-print('cv2.__version__ =', cv2.__version__)
-print('sys.version =', sys.version)
+import argparse
 
 D405_COLOR_SIZE = [640, 480]
 D405_DEPTH_SIZE = [640, 480]
@@ -25,8 +21,8 @@ D435I_FPS = 30
 UVC_COLOR_SIZE = [1280, 720] # [3840,2880] [1920, 1080] [1280, 720] [640, 480]
 UVC_FPS = 30
 
-UVC_VIDEO_INDEX = 6
-UVC_VIDEO_FORMAT = 'MJPG' # MJPG YUYV
+UVC_VIDEO_INDEX = '/dev/hello-navigation-camera'
+UVC_VIDEO_FORMAT = 'MJPG' # YUYV
 
 # More UVC Video capture properties here:
 # https://docs.opencv.org/3.4/d4/d15/group__videoio__flags__base.html
@@ -36,11 +32,6 @@ UVC_VIDEO_FORMAT = 'MJPG' # MJPG YUYV
 # 
 # Setting Video formates using v4l2
 # http://trac.gateworks.com/wiki/linux/v4l2
-
-
-# Set video format
-cmd = f"v4l2-ctl --device /dev/video{UVC_VIDEO_INDEX} --set-fmt-video=pixelformat={UVC_VIDEO_FORMAT},width={UVC_COLOR_SIZE[0]},height={UVC_COLOR_SIZE[1]}"
-os.system(cmd)
 
 
 realsense_ctx = rs.context() 
@@ -65,7 +56,7 @@ image_uvc = None
 
 
 def d405_stream():
-    global stop_stream, color_image_d405, depth_image_d405
+    global stop_stream, color_image_d405, depth_image_d405, lock
     print(f"\nD405 Stream Settings:\n D405_COLOR_SIZE={D405_COLOR_SIZE}\n D405_DEPTH_SIZE={D405_DEPTH_SIZE}\n FPS={D405_FPS}")
     pipeline_d405 = hu.setup_realsense_camera(serial_number=d405_serial,
                                            color_size=D405_COLOR_SIZE,
@@ -75,15 +66,16 @@ def d405_stream():
         try:
             frames_d405 = pipeline_d405.wait_for_frames()
             color_frame_d405 = frames_d405.get_color_frame()
-            color_image_d405 = np.asanyarray(color_frame_d405.get_data())
             depth_frame_d405 = frames_d405.get_depth_frame()
+            color_image_d405 = np.asanyarray(color_frame_d405.get_data())
             depth_image_d405 = np.asanyarray(depth_frame_d405.get_data())
+
         except Exception as e:
             print(f"Error D405: {e}")
     pipeline_d405.stop()
 
 def d435i_stream():
-    global stop_stream, color_image_d435i, depth_image_d435i
+    global stop_stream, color_image_d435i, depth_image_d435i, lock
     print(f"D435i Stream Settings:\n D435I_COLOR_SIZE={D435I_COLOR_SIZE}\n D435I_DEPTH_SIZE={D435I_DEPTH_SIZE}\n FPS={D435I_FPS}")
     pipeline_d435i = hu.setup_realsense_camera(serial_number=d435i_serial,
                                             color_size=D435I_COLOR_SIZE,
@@ -93,17 +85,21 @@ def d435i_stream():
         try:
             frames_d435i = pipeline_d435i.wait_for_frames()
             color_frame_d435i = frames_d435i.get_color_frame()
-            color_image_d435i = np.asanyarray(color_frame_d435i.get_data())
             depth_frame_d435i = frames_d435i.get_depth_frame()
+            color_image_d435i = np.asanyarray(color_frame_d435i.get_data())
             depth_image_d435i = np.asanyarray(depth_frame_d435i.get_data())
         except Exception as e:
             print(f"Error D435i: {e}")
     pipeline_d435i.stop()
 
-def uvc_cam_stream():
-    global stop_stream, image_uvc
-    print(f"UVC Nav Camera Stream Settings:\n UVC_COLOR_SIZE={UVC_COLOR_SIZE}\n FPS={UVC_FPS}")
-    uvc_camera = hu.setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS)
+def uvc_cam_stream(video_path=None):
+    global stop_stream, image_uvc, lock
+    if video_path is None:
+        print(f"Navigation Camera Stream Settings:\n UVC_COLOR_SIZE={UVC_COLOR_SIZE}\n FPS={UVC_FPS}")
+        uvc_camera = hu.setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS)
+    else:
+        print(f"USB Camera Stream ({video_path}) Settings:\n UVC_COLOR_SIZE=Default\n FPS=Default")
+        uvc_camera = hu.setup_uvc_camera(video_path)
     
     while not stop_stream:
         try:
@@ -112,12 +108,28 @@ def uvc_cam_stream():
             print(f"Error UVC Cam: {e}")
     uvc_camera.release()
 
+def print_video_devices_list():
+    print("Found the following Video Devices:")
+    video_devices = hu.get_video_devices()
+    for devices in video_devices:
+        print(f"{devices}")
+        for d in video_devices[devices]:
+            print(f"\t\t{d}")
+
+
 def main(config):
     global stop_stream, color_image_d405, depth_image_d405, color_image_d435i, depth_image_d435i, image_uvc
 
+    print('cv2.__version__ =', cv2.__version__)
+    print('sys.version =', sys.version)
+
+    print_video_devices_list()
+
     d405=config['d405']
     d435i=config['d435i']
-    uvc=config['uvc']
+    uvc=config['navigation']
+    video_path = config['usb_cam']
+
     if d405:
         d405_thread = Thread(target=d405_stream)
         d405_thread.daemon =True
@@ -128,60 +140,95 @@ def main(config):
         d435i_thread.daemon =True
         d435i_thread.start()
     
-    if uvc:
-        uvc_thread = Thread(target=uvc_cam_stream)
+    if uvc or video_path:
+        uvc_thread = Thread(target=uvc_cam_stream,args=(video_path,))
         uvc_thread.daemon =True
         uvc_thread.start()
 
     time.sleep(3)
 
-    while True:
+    while not stop_stream:
         try:
             if color_image_d405 is not None:
                 cv2.imshow('D405 Color', color_image_d405)
             if depth_image_d405 is not None:
                 cv2.imshow('D405 Depth', depth_image_d405)
             if color_image_d435i is not None:
-                cv2.imshow('D435i Color', color_image_d435i)
+                cv2.imshow('D435i Color', cv2.rotate(color_image_d435i, cv2.ROTATE_90_CLOCKWISE))
             if depth_image_d435i is not None:
-                cv2.imshow('D435i Depth', depth_image_d435i)
+                cv2.imshow('D435i Depth', cv2.rotate(depth_image_d435i, cv2.ROTATE_90_CLOCKWISE))
             if image_uvc is not None:
-                cv2.imshow('UVC Head Camera', image_uvc)
+                # Change navigation camera orientation
+                if uvc:
+                    cv2.imshow('Navigation Head Camera', cv2.rotate(image_uvc, cv2.ROTATE_90_CLOCKWISE))
+                if video_path is not None:
+                    cv2.imshow('Navigation Head Camera',image_uvc)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 # Release resources
                 stop_stream = True
-                time.sleep(0.2)
-                d405_thread.join()
-                d435i_thread.join()
-                uvc_thread.join()
                 cv2.destroyAllWindows()
         except (KeyboardInterrupt,SystemExit):
-            break
+            stop_stream = True
+    time.sleep(0.2)
+    if d405:
+        d405_thread.join()
+    if d435i:
+        d435i_thread.join()
+    if uvc or video_path:
+        uvc_thread.join()
+    sys.exit()
 
-if __name__ == "__main__":
 
-    print("Found the following Video Devices:")
-    video_devices = hu.get_video_devices()
-    for devices in video_devices:
-        print(f"{devices}")
-        for d in video_devices[devices]:
-            print(f"\t\t{d}")
 
-    config = {'d405' : False,
-              'd435i' : False,
-                'uvc' : False}
-    
-    if len(sys.argv) >= 2:
-        for i in range(1,len(sys.argv)):
-            user_input = sys.argv[i]
-            config[user_input] = True
-        main(config)
-    else:
-        config = {'d405' : True,
-                'd435i' : True,
-                'uvc' : True}
-        main(config)
+hu.print_stretch_re_use()
+
+
+
+
+parser = argparse.ArgumentParser(description="This tool will start streaming videos feeds"
+                                             "from D435i, D405 and Navigation Camera")
+parser.add_argument('--d435i', help='Streams D435i streams only',action="store_true")
+parser.add_argument('--d405', help='Streams d405 streams only',action="store_true")
+parser.add_argument('--navigation', help='Streams navigation camera stream only',action="store_true")
+parser.add_argument('--usb_cam', type=str,help='Porvide an usb video device camera path. E.g. --usb_cam /dev/video4')
+parser.add_argument('--list', help='List all the enumerated Video devices',action="store_true")
+args = vars(parser.parse_args())
+
+
+
+config = {'d405' : False,
+            'd435i' : False,
+            'navigation' : False,
+            'usb_cam': None}
+
+if args['list']:
+    print_video_devices_list()
+
+if args['d405']:
+    config['d405'] = True
+    main(config)
+
+if args['d435i']:
+    config['d435i'] = True
+    main(config)
+
+if args['navigation']:
+    config['navigation'] = True
+    main(config)
+
+if args['usb_cam']:
+    config['usb_cam'] = args['usb_cam']
+    main(config)
+
+config = {'d405' : True,
+        'd435i' : True,
+        'navigation' : True,
+        'usb_cam': None}
+main(config)
+
+
+
         
 
     

@@ -618,12 +618,17 @@ def setup_realsense_camera(serial_number, color_size, depth_size, fps):
     profile = pipeline.start(config)
     return pipeline
 
-def setup_uvc_camera(device_index, size, fps):
+def setup_uvc_camera(device_index, size=None, fps=None, format = None):
     """
     Returns Opencv capture object of the UVC video divice
     """
     cap = cv2.VideoCapture(device_index)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
-    cap.set(cv2.CAP_PROP_FPS, fps)
+    if format:
+        fourcc_value = cv2.VideoWriter_fourcc(*f'{format}')
+        cap.set(cv2.CAP_PROP_FOURCC, fourcc_value)
+    if size:
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
+    if fps:
+        cap.set(cv2.CAP_PROP_FPS, fps)
     return cap
