@@ -62,7 +62,7 @@ configuration_params_template={
         'accel_gravity_scale': 1.0}},
     'wrist_yaw':{
         'range_t': [0,9340],
-        'zero_t': 7005}}
+        'zero_t': 7136}}
 
 # ###################### NOMINAL PARAMS #####################################################
 #Parameters that are common across the S3 fleet
