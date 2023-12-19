@@ -251,8 +251,6 @@ class Robot(Device):
             }
         }
         self.logger.debug(f"Caught GLOBAL EXCEPTION: {exec}")
-        print(f"Caught GLOBAL EXCEPTION: {exec}")
-        print("Exiting...")
         self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
 
     # ###########  Device Methods #############
