@@ -2,6 +2,7 @@ from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.device import Device
 from stretch_body.robot_params import RobotParams
+from stretch_body.grpper_conversion import GripperConversion
 
 
 
@@ -20,6 +21,7 @@ class StretchGripper(DynamixelHelloXL430):
         self.poses = {'zero': 0,
                       'open': self.pct_max_open,
                       'close': -100}
+        self.gripper_conversion = GripperConversion(self.params['gripper_conversion_name'])
 
     def startup(self, threaded=True):
         return DynamixelHelloXL430.startup(self, threaded=threaded)
@@ -99,3 +101,4 @@ class StretchGripper3(StretchGripper):
     """
     def __init__(self, chain=None, usb=None):
         StretchGripper.__init__(self, chain, usb,'stretch_gripper')
+        self.gripper_conversion = GripperConversion(self.params['gripper_conversion_name'])
