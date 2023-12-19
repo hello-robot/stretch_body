@@ -56,10 +56,7 @@ d405_serial = connected_devices['Intel RealSense D405']
 d435i_serial = connected_devices['Intel RealSense D435I']
 
 
-
-
 stop_stream = False
-
 color_image_d405 = None
 depth_image_d405=None
 color_image_d435i=None
@@ -67,9 +64,9 @@ depth_image_d435i=None
 image_uvc = None
 
 
-
 def d405_stream():
     global stop_stream, color_image_d405, depth_image_d405
+    print(f"\nD405 Stream Settings:\n D405_COLOR_SIZE={D405_COLOR_SIZE}\n D405_DEPTH_SIZE={D405_DEPTH_SIZE}\n FPS={D405_FPS}")
     pipeline_d405 = hu.setup_realsense_camera(serial_number=d405_serial,
                                            color_size=D405_COLOR_SIZE,
                                             depth_size=D405_DEPTH_SIZE,
@@ -87,6 +84,7 @@ def d405_stream():
 
 def d435i_stream():
     global stop_stream, color_image_d435i, depth_image_d435i
+    print(f"D435i Stream Settings:\n D435I_COLOR_SIZE={D435I_COLOR_SIZE}\n D435I_DEPTH_SIZE={D435I_DEPTH_SIZE}\n FPS={D435I_FPS}")
     pipeline_d435i = hu.setup_realsense_camera(serial_number=d435i_serial,
                                             color_size=D435I_COLOR_SIZE,
                                             depth_size=D435I_DEPTH_SIZE,
@@ -104,6 +102,7 @@ def d435i_stream():
 
 def uvc_cam_stream():
     global stop_stream, image_uvc
+    print(f"UVC Nav Camera Stream Settings:\n UVC_COLOR_SIZE={UVC_COLOR_SIZE}\n FPS={UVC_FPS}")
     uvc_camera = hu.setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS)
     
     while not stop_stream:
@@ -121,38 +120,44 @@ def main(config):
     uvc=config['uvc']
     if d405:
         d405_thread = Thread(target=d405_stream)
+        d405_thread.daemon =True
         d405_thread.start()
 
     if d435i:
         d435i_thread = Thread(target=d435i_stream)
+        d435i_thread.daemon =True
         d435i_thread.start()
     
     if uvc:
         uvc_thread = Thread(target=uvc_cam_stream)
+        uvc_thread.daemon =True
         uvc_thread.start()
 
     time.sleep(3)
 
     while True:
-        if color_image_d405 is not None:
-            cv2.imshow('D405 Color', color_image_d405)
-        if depth_image_d405 is not None:
-            cv2.imshow('D405 Depth', depth_image_d405)
-        if color_image_d435i is not None:
-            cv2.imshow('D435i Color', color_image_d435i)
-        if depth_image_d435i is not None:
-            cv2.imshow('D435i Depth', depth_image_d435i)
-        if image_uvc is not None:
-            cv2.imshow('UVC Head Camera', image_uvc)
+        try:
+            if color_image_d405 is not None:
+                cv2.imshow('D405 Color', color_image_d405)
+            if depth_image_d405 is not None:
+                cv2.imshow('D405 Depth', depth_image_d405)
+            if color_image_d435i is not None:
+                cv2.imshow('D435i Color', color_image_d435i)
+            if depth_image_d435i is not None:
+                cv2.imshow('D435i Depth', depth_image_d435i)
+            if image_uvc is not None:
+                cv2.imshow('UVC Head Camera', image_uvc)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            # Release resources
-            stop_stream = True
-            time.sleep(0.2)
-            d405_thread.join()
-            d435i_thread.join()
-            uvc_thread.join()
-            cv2.destroyAllWindows()
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                # Release resources
+                stop_stream = True
+                time.sleep(0.2)
+                d405_thread.join()
+                d435i_thread.join()
+                uvc_thread.join()
+                cv2.destroyAllWindows()
+        except (KeyboardInterrupt,SystemExit):
+            break
 
 if __name__ == "__main__":
 
