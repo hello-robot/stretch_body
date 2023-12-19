@@ -106,6 +106,7 @@ class DynamixelHelloXL430(Device):
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
             self.in_collision_stop = {'pos': False, 'neg': False}
             self.ts_collision_stop = {'pos': 0.0, 'neg': 0.0}
+            self.pos_current_ctrl_on_startup = False
         except KeyError:
             self.motor=None
 
@@ -224,6 +225,8 @@ class DynamixelHelloXL430(Device):
                 if not self.check_servo_errors():
                     self.hw_valid = False
                     return False
+                if self.pos_current_ctrl_on_startup:
+                    self.enable_pos_current_ctrl()
                 return True
             else:
                 self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
