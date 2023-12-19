@@ -3,6 +3,7 @@ from stretch_body.dynamixel_X_chain import DynamixelXChain
 import importlib
 from stretch_body.robot_params import RobotParams
 from stretch_body.device import Device
+from stretch_body.hello_utils import nan_value_check
 
 
 class EndOfArm(DynamixelXChain):
@@ -50,6 +51,8 @@ class EndOfArm(DynamixelXChain):
         v_r: velocity for trapezoidal motion profile (rad/s).
         a_r: acceleration for trapezoidal motion profile (rad/s^2)
         """
+        if nan_value_check(x_r,self.logger):
+            return
         with  self.pt_lock:
             self.motors[joint].move_to(x_r, v_r, a_r)
 
@@ -60,6 +63,8 @@ class EndOfArm(DynamixelXChain):
         v_r: velocity for trapezoidal motion profile (rad/s).
         a_r: acceleration for trapezoidal motion profile (rad/s^2)
         """
+        if nan_value_check(x_r,self.logger):
+            return
         with self.pt_lock:
             self.motors[joint].move_by(x_r, v_r, a_r)
 

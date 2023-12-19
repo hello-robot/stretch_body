@@ -560,6 +560,8 @@ class DynamixelHelloXL430(Device):
     def set_velocity(self,v_des,a_des=None):
         if self.was_runstopped:
             return
+        if nan_value_check(v_des,self.logger):
+            return
         if not self.watchdog_enabled:
             self.motor.disable_watchdog()
             self.disable_torque()
@@ -660,6 +662,8 @@ class DynamixelHelloXL430(Device):
     def move_to(self,x_des, v_des=None, a_des=None):
         if self.was_runstopped:
             return
+        if nan_value_check(x_des,self.logger):
+            return
         nretry = 2
         if not self.hw_valid:
             return
@@ -713,6 +717,8 @@ class DynamixelHelloXL430(Device):
 
     def move_by(self,x_des, v_des=None, a_des=None):
         if self.was_runstopped:
+            return
+        if nan_value_check(x_des,self.logger):
             return
         if not self.hw_valid:
             return

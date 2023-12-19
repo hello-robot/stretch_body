@@ -573,3 +573,12 @@ def map_to_range(value, new_min, new_max):
     value = max(0, min(1, value))
     mapped_value = (value - 0) * (new_max - new_min) / (1 - 0) + new_min
     return mapped_value
+
+
+def nan_value_check(val,logger,msg = None):
+    if math.isnan(val):
+        if logger:
+            if msg is None:
+                logger.warning(f"Received 'NaN' command values. Skipping the command execution.")
+            else:
+                logger.warning(msg)
