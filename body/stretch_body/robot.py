@@ -250,7 +250,6 @@ class Robot(Device):
                 'traceback': args.exc_traceback
             }
         }
-        self.stop()
         self.logger.debug(f"Caught GLOBAL EXCEPTION: {exec}")
         print(f"Caught GLOBAL EXCEPTION: {exec}")
         print("Exiting...")
