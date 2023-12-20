@@ -494,6 +494,7 @@ nominal_params={
         'max_voltage_limit': 15,
         'min_grip_strength': -125,
         'min_voltage_limit': 11,
+        'gripper_conversion':'stretch_gripper_3_conversion',
         'motion':{
             'trajectory_vel_ctrl':1,
             'trajectory_vel_ctrl_kP':1.5,

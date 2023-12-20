@@ -64,9 +64,13 @@ class GripperConversion(Device):
         finger_rad = self.aperture_to_finger_rad(aperture_m)
         return finger_rad
 
-    def status_to_all(self, gripper_status):
+    def get_status(self, gripper_status):
         aperture_m = self.robotis_to_aperture(gripper_status['pos_pct'])
         finger_rad = self.aperture_to_finger_rad(aperture_m)
         finger_effort = gripper_status['effort']
         finger_vel = (self.robotis_to_aperture_slope * gripper_status['vel'])/2.0
-        return aperture_m, finger_rad, finger_effort, finger_vel
+        sts = {'aperture_m':aperture_m,
+               'finger_rad':finger_rad,
+               'finger_effort':finger_effort,
+               'finger_vel':finger_vel}
+        return sts
