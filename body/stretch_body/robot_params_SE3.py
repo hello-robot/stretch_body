@@ -538,12 +538,12 @@ nominal_params={
             'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
             'joints':{
                 'lift': [
-                    {'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4'},
-                    {'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link'}],
-                'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link'},
-                        {'motion_dir': 'neg', 'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link'},]}},
+                    {'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'},
+                    {'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'},
+                    {'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as':'pts'},
+                    {'motion_dir': 'neg', 'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as':'pts'}],
+                'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link','detect_as':'pts'},
+                        {'motion_dir': 'neg', 'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as':'pts'}]}},
     },
     "eoa_wrist_dw3_tool_sg3": {
         'py_class_name': 'EOA_Wrist_DW3_Tool_SG3',
@@ -563,7 +563,7 @@ nominal_params={
         'collision_mgmt': {
             'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25, 'stretch_gripper': 0.0},
             'joints': {
-                'wrist_pitch': [{'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'}]}},
+                'wrist_pitch': [{'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link','detect_as':'edges'},]}},
         'collision_mgmt2': {
             'k_brake_distance':{'wrist_pitch':0.25,'wrist_yaw':0.25,'wrist_roll':0.25,'stretch_gripper':0.0},
             'joints':{

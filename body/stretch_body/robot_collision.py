@@ -18,6 +18,110 @@ except AttributeError as e:
 
 # #######################################################################
 
+def line_box_sat_intersection(line_point1, line_point2, aabb_min, aabb_max):
+    """
+    Checks if a line segment intersects an AABB using the Separating Axis Theorem (SAT).
+
+    Args:
+        line_point1: np.array of shape (3,). First point of the line segment.
+        line_point2: np.array of shape (3,). Second point of the line segment.
+        aabb_min: np.array of shape (3,). Minimum corner of the AABB.
+        aabb_max: np.array of shape (3,). Maximum corner of the AABB.
+
+    Returns:
+        bool: True if the line intersects the AABB, False otherwise.
+    """
+
+    line_dir = line_point2 - line_point1
+
+    # Check separating axes along AABB's edges
+    for i in range(3):
+        # Project line segment onto axis
+        line_proj = np.dot(line_point1, np.eye(3)[i]) + np.dot(line_dir, np.eye(3)[i])
+        aabb_proj = np.array([aabb_min[i], aabb_max[i]])
+
+        # Check for overlap
+        if not (np.min(line_proj) <= np.max(aabb_proj) and np.max(line_proj) >= np.min(aabb_proj)):
+            return False  # No overlap on this axis
+
+    # Check separating axes along line direction
+    line_axis = line_dir / np.linalg.norm(line_dir)
+    aabb_proj = np.dot(aabb_min, line_axis), np.dot(aabb_max, line_axis)
+    line_proj = np.dot(line_point1, line_axis), np.dot(line_point1 + line_dir, line_axis)
+
+    # Check for overlap
+    if not (np.min(line_proj) <= np.max(aabb_proj) and np.max(line_proj) >= np.min(aabb_proj)):
+        return False  # No overlap on the line axis
+
+    return True  # No separating axis found, intersection exists
+
+
+def check_pts_in_cube(cube, pts):
+    """
+    Check if any of the 'points lie inside the cube
+    Parameters
+    ----------
+    cube: Array of points of cube (8x4)
+    pts: Array of points to check
+
+    Returns
+    -------
+    True/False
+    """
+    xmax = max(cube[:, 0])
+    xmin = min(cube[:, 0])
+    ymax = max(cube[:, 1])
+    ymin = min(cube[:, 1])
+    zmax = max(cube[:, 2])
+    zmin = min(cube[:, 2])
+
+    for p in pts:
+        inside = p[0] <= xmax and p[0] >= xmin and p[1] <= ymax and p[1] >= ymin and p[2] <= zmax and p[2] >= zmin
+        if inside:
+            return True
+    return False
+
+def check_edges_in_cube(cube,edge_cube):
+
+    aabb_min=np.array([min(cube[:, 0]),min(cube[:, 1]),min(cube[:, 2])],dtype=np.float32)
+    aabb_max = np.array([max(cube[:, 0]),max(cube[:, 1]),max(cube[:, 2])],dtype=np.float32)
+
+    xmax = max(edge_cube[:, 0])
+    xmin = min(edge_cube[:, 0])
+    ymax = max(edge_cube[:, 1])
+    ymin = min(edge_cube[:, 1])
+    zmax = max(edge_cube[:, 2])
+    zmin = min(edge_cube[:, 2])
+
+    edges=np.array([
+        [[xmin, ymin, zmin],[xmin, ymin, zmax]],
+        [[xmin, ymin, zmin], [xmin, ymax, zmin]],
+        [[xmin, ymax, zmax], [xmin, ymin, zmax]],
+        [[xmin, ymax, zmax], [xmin, ymax, zmin]],
+
+        [[xmax, ymin, zmin], [xmin, ymin, zmax]],
+        [[xmax, ymin, zmin], [xmin, ymax, zmax]],
+        [[xmax, ymax, zmax], [xmin, ymin, zmax]],
+        [[xmax, ymax, zmax], [xmin, ymax, zmin]],
+
+        [[xmin, ymin, zmin], [xmax, ymin, zmin]],
+        [[xmin, ymin, zmax], [xmax, ymin, zmax]],
+        [[xmin, ymax, zmin], [xmax, ymax, zmin]],
+        [[xmin, ymax, zmin], [xmax, ymax, zmin]]],dtype=np.float32)
+
+    for e in edges:
+        if line_box_sat_intersection(e[0],e[1], aabb_min, aabb_max):
+            print("COLLISION")
+            print('E0',e[0])
+            print('E1', e[1])
+            print('Cube',cube)
+            print('Edge Cube',edge_cube)
+            print('AABB_MIN',aabb_min)
+            print('AABB_MAX', aabb_max)
+            return True
+    return False
+
+# #######################################################################
 
 class CollisionLink:
     def __init__(self,link_name,urdf,mesh_path,max_mesh_points):
@@ -29,7 +133,7 @@ class CollisionLink:
         self.points = np.hstack((pts, np.ones([pts.shape[0], 1], dtype=np.float32)))  # One extend to Nx4 array
         self.in_collision= False
         self.was_in_collision = False
-        self.is_xyz_cube=self.check_xyz_cube(self.points)
+        self.is_aabb=self.check_AABB(self.points)
         self.is_valid=True
         if pts.shape[0] > max_mesh_points:
             print('Incorrect size of points for link:', link_name, pts.shape)
@@ -42,15 +146,15 @@ class CollisionLink:
 
     def pretty_print(self):
         print('-- CollisionLink %s --'%self.name)
-        print('XYZ Cube',self.is_xyz_cube)
+        print('AABB Cube',self.is_aabb)
         print('Is Valid', self.is_valid)
         print('In collision',self.in_collision)
         print('Was in collision',self.was_in_collision)
         print('Mesh size',self.points.shape)
 
-    def check_xyz_cube(self,pts):
+    def check_AABB(self,pts):
         """
-        Check if points are aligned (roughly) to xyz and form a cube
+        Check if points are axis aligned (roughly) and form a rectangular parallelpiped (eg AABB)
 
         Parameters
         ----------
@@ -74,15 +178,16 @@ class CollisionLink:
         return True
 
 class CollisionPair:
-    def __init__(self, link_pts,link_cube,motion_dir,joint_name):
+    def __init__(self, link_pts,link_cube,motion_dir,joint_name,detect_as):
         self.in_collision=False
         self.was_in_collision=False
         self.link_cube=link_cube
         self.link_pts=link_pts
         self.motion_dir=motion_dir
         self.joint_name=joint_name
+        self.detect_as=detect_as
         self.name_id='J_%s_LP_%s_LC_%s_DR_%s'%(joint_name,link_pts.name,link_cube.name,motion_dir)
-        self.is_valid=self.link_cube.is_valid and self.link_pts.is_valid and self.link_cube.is_xyz_cube
+        self.is_valid=self.link_cube.is_valid and self.link_pts.is_valid and self.link_cube.is_aabb
         if not self.is_valid:
             print('Dropping monitor of collision pair %s'%self.name_id)
 
@@ -125,7 +230,7 @@ class RobotCollisionMgmt(Device):
         It utilizes the Collision mesh for collision estimation.
         Given the Cartesian structure of Stretch we simplify the collision detection in order to achieve real-time speeds.
         We simplify the problem by assuming:
-        * One of the collision meshes ("cube") is a cube that is aligned with gravity (XYZ)
+        * One of the collision meshes ("cube") is a cube that is aligned with XYZ axis (eg AABB)
         * The other collision mesh ("pts") is simple shape of just a few points (eg, a cube, trapezoid, etc)<max_mesh_points
 
         The params define which links we want to monitor collisions between.
@@ -183,7 +288,7 @@ class RobotCollisionMgmt(Device):
                     self.collision_links[cp['link_pts']]=CollisionLink(cp['link_pts'],self.urdf,mesh_path,self.params['max_mesh_points'])
                 if cp['link_cube'] not in self.collision_links:
                     self.collision_links[cp['link_cube']]=CollisionLink(cp['link_cube'],self.urdf,mesh_path,self.params['max_mesh_points'])
-                p=CollisionPair(self.collision_links[cp['link_pts']],self.collision_links[cp['link_cube']],cp['motion_dir'],joint_name)
+                p=CollisionPair(self.collision_links[cp['link_pts']],self.collision_links[cp['link_cube']],cp['motion_dir'],joint_name,cp['detect_as'])
                 self.collision_pairs[p.get_name_id()]=p
                 self.collision_joints[joint_name].add_collision_pair(p)
 
@@ -227,13 +332,20 @@ class RobotCollisionMgmt(Device):
             self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
             self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False}
 
-        # Test for collision between point / cube pairs
+        # Test for collisions
         for pair_name in self.collision_pairs:
             cp=self.collision_pairs[pair_name]
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
-                cp.in_collision=self.check_pts_in_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
-                #cp.pretty_print()
+                if cp.detect_as=='pts':
+                    cp.in_collision=check_pts_in_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
+                elif cp.detect_as=='edges':
+                    cp.in_collision = check_edges_in_cube(cube=cp.link_cube.pose, edge_cube=cp.link_pts.pose)
+                    if cp.in_collision:
+                        print('EDGE COLL!')
+                else:
+                    cp.in_collision =False
+                    #cp.pretty_print()
                 if cp.in_collision:
                     cj = self.collision_joints[cp.joint_name]
                     cj.active_collisions.append(cp.get_name_id()) #Add collision to joint
@@ -270,29 +382,6 @@ class RobotCollisionMgmt(Device):
         except KeyError: #Not all links will be monitored
             return False
 
-    def check_pts_in_cube(self,cube, pts):
-        """
-        Check if any of the 'from' points lie inside the 'into' cube
-        Parameters
-        ----------
-        cube_into: Array of points of cube (8x4)
-        pts_from: Array of points to check
-
-        Returns
-        -------
-        True/False
-        """
-        xmax = max(cube[:, 0])
-        xmin = min(cube[:, 0])
-        ymax = max(cube[:, 1])
-        ymin = min(cube[:, 1])
-        zmax = max(cube[:, 2])
-        zmin = min(cube[:, 2])
-        for p in pts:
-            inside = p[0] <= xmax and p[0] >= xmin and p[1] <= ymax and p[1] >= ymin and p[2] <= zmax and p[2] >= zmin
-            if inside:
-                return True
-        return False
 
     def get_joint_configuration(self,braked=False):
         """
