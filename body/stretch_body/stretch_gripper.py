@@ -10,7 +10,9 @@ class StretchGripper(DynamixelHelloXL430):
     API to the Stretch Gripper
     The StretchGripper motion is non-linear w.r.t to motor motion due to its design
     As such, the position of the gripper is represented at as unit-less value, 'pct'
-    The Pct ranges from approximately -100 (fully closed) to approximately +50 (fully open)
+    The Pct ranges from approximately -100 (fully closed) to approximately +50 to +200 (fully open)
+    The fully open value (self.pct_max_open) is dependent on mechanical design of the gripper
+    which changes depending on the robot generation (RE1, RE2, SE3, etc)
     A Pct of zero is the fingertips just touching
     """
     def __init__(self, chain=None, usb=None, name='stretch_gripper'):
@@ -25,7 +27,7 @@ class StretchGripper(DynamixelHelloXL430):
         return DynamixelHelloXL430.startup(self, threaded=threaded)
 
     def home(self,move_to_zero=True):
-        DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero,delay_at_stop=3.0)
+        DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero,delay_at_stop=2.25)
 
     def pretty_print(self):
         print('--- StretchGripper ----')

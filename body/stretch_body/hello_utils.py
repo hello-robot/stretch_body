@@ -12,7 +12,7 @@ import pyrealsense2 as rs
 import cv2
 
 def print_stretch_re_use():
-    print("For use with S T R E T C H (R) RESEARCH EDITION from Hello Robot Inc.")
+    print("For use with S T R E T C H (R) from Hello Robot Inc.")
     print("---------------------------------------------------------------------\n")
 
 def create_time_string(time_format='%Y%m%d%H%M%S'):
