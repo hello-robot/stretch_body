@@ -24,6 +24,8 @@ class GripperConversion(Device):
         # scale_finger_length = 0.9
         # scale_finger_length * 0.19011
         # = 0.171099
+
+        # TODO: Add Aruco marker based conversions support here ?
         
         self.finger_length_m = self.params['finger_length_m'] #0.171
 
