@@ -201,6 +201,7 @@ config = {'d405' : False,
 
 if args['list']:
     print_video_devices_list()
+    sys.exit()
 
 if args['d405']:
     config['d405'] = True
