@@ -43,10 +43,6 @@ for i in range(len(realsense_ctx.devices)):
     connected_devices[camera_name] = camera_serial
 
 
-d405_serial = connected_devices['Intel RealSense D405']
-d435i_serial = connected_devices['Intel RealSense D435I']
-
-
 stop_stream = False
 color_image_d405 = None
 depth_image_d405=None
@@ -57,6 +53,12 @@ image_uvc = None
 
 def d405_stream():
     global stop_stream, color_image_d405, depth_image_d405, lock
+    try:
+        d405_serial = connected_devices['Intel RealSense D405']
+    except KeyError:
+        print("Unable to find Realsense D405...")
+        return None
+    
     print(f"\nD405 Stream Settings:\n D405_COLOR_SIZE={D405_COLOR_SIZE}\n D405_DEPTH_SIZE={D405_DEPTH_SIZE}\n FPS={D405_FPS}")
     pipeline_d405 = hu.setup_realsense_camera(serial_number=d405_serial,
                                            color_size=D405_COLOR_SIZE,
@@ -76,6 +78,11 @@ def d405_stream():
 
 def d435i_stream():
     global stop_stream, color_image_d435i, depth_image_d435i, lock
+    try:
+        d435i_serial = connected_devices['Intel RealSense D435I']
+    except KeyError:
+        print("Unable to find Realsense D435i...")
+        return None
     print(f"D435i Stream Settings:\n D435I_COLOR_SIZE={D435I_COLOR_SIZE}\n D435I_DEPTH_SIZE={D435I_DEPTH_SIZE}\n FPS={D435I_FPS}")
     pipeline_d435i = hu.setup_realsense_camera(serial_number=d435i_serial,
                                             color_size=D435I_COLOR_SIZE,
@@ -95,9 +102,15 @@ def d435i_stream():
 def uvc_cam_stream(video_path=None):
     global stop_stream, image_uvc
     if video_path is None:
+        if not os.path.exists('/dev/hello-navigation-camera'):
+            print("Unable to Find device: /dev/hello-navigation-camera")
+            return None
         print(f"Navigation Camera Stream Settings:\n UVC_COLOR_SIZE={UVC_COLOR_SIZE}\n FPS={UVC_FPS}")
         uvc_camera = hu.setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS, UVC_VIDEO_FORMAT)
     else:
+        if not os.path.exists(video_path):
+            print(f"Unable to Find device: {video_path}")
+            return None
         print(f"USB Camera Stream ({video_path}) Settings:\n UVC_COLOR_SIZE=Unset\n FPS=Unset")
         uvc_camera = hu.setup_uvc_camera(video_path)
     
