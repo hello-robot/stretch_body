@@ -189,8 +189,8 @@ parser = argparse.ArgumentParser(description="This tool will start streaming vid
 parser.add_argument('--d435i', help='Streams D435i streams only',action="store_true")
 parser.add_argument('--d405', help='Streams d405 streams only',action="store_true")
 parser.add_argument('--navigation', help='Streams navigation camera stream only',action="store_true")
-parser.add_argument('--usb_cam_port', type=str,help='Strea from usb video device in given port. E.g. --usb_cam_port /dev/video4')
-parser.add_argument('--usb_cam_name', type=str,help='Porvide an usb video device camera path. E.g. --usb_cam_name Arducam')
+parser.add_argument('--usb_cam_port', type=str,help='Stream from usb video device in given port. E.g. --usb_cam_port /dev/video4')
+parser.add_argument('--usb_cam_name', type=str,help='Stream from usb video with a camera name. E.g. --usb_cam_name Arducam')
 parser.add_argument('--list', help='List all the enumerated Video devices',action="store_true")
 args = vars(parser.parse_args())
 
