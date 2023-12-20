@@ -116,7 +116,7 @@ class NonDXLStatusThread(threading.Thread):
             self.first_status = True
         self.stop()
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
-
+    
     def stop(self):
         self.loop.stop()
 
@@ -222,6 +222,11 @@ class Robot(Device):
             self.wacc=wacc.Wacc()
         self.status['wacc']=self.wacc.status
 
+        self.non_dxl_thread = None
+        self.dxl_end_of_arm_thread = None
+        self.sys_thread = None
+        self.dxl_head_thread = None
+        self.event_loop_thread = None
 
         self.eoa_name= self.params['tool']
         module_name = self.robot_params[self.eoa_name]['py_module_name']
@@ -233,6 +238,7 @@ class Robot(Device):
         self.GLOBAL_EXCEPTIONS_LIST = []
         threading.excepthook = self.custom_excepthook
 
+        
     def custom_excepthook(self, args):
         thread_name = args.thread.name
         exec = {}
@@ -245,9 +251,8 @@ class Robot(Device):
             }
         }
         self.logger.debug(f"Caught GLOBAL EXCEPTION: {exec}")
-        print(f"Caught GLOBAL EXCEPTION: {exec}")
-        print("Exiting...")
         self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
+
     # ###########  Device Methods #############
 
     def startup(self,start_non_dxl_thread=True,start_dxl_thread=True,start_sys_mon_thread=True):
@@ -318,18 +323,22 @@ class Robot(Device):
         """
         self.logger.debug('---- Shutting down robot ----')
         self._file_lock.release()
-        if self.non_dxl_thread.running:
-            self.non_dxl_thread.shutdown_flag.set()
-            self.non_dxl_thread.join(1)
-        if self.dxl_head_thread.running:
-            self.dxl_head_thread.shutdown_flag.set()
-            self.dxl_head_thread.join(1)
-        if self.dxl_end_of_arm_thread.running:
-            self.dxl_end_of_arm_thread.shutdown_flag.set()
-            self.dxl_end_of_arm_thread.join(1)
-        if self.sys_thread.running:
-            self.sys_thread.shutdown_flag.set()
-            self.sys_thread.join(1)
+        if self.non_dxl_thread:
+            if self.non_dxl_thread.running:
+                self.non_dxl_thread.shutdown_flag.set()
+                self.non_dxl_thread.join(1)
+        if self.dxl_head_thread:
+            if self.dxl_head_thread.running:
+                self.dxl_head_thread.shutdown_flag.set()
+                self.dxl_head_thread.join(1)
+        if self.dxl_end_of_arm_thread:
+            if self.dxl_end_of_arm_thread.running:
+                self.dxl_end_of_arm_thread.shutdown_flag.set()
+                self.dxl_end_of_arm_thread.join(1)
+        if self.sys_thread:
+            if self.sys_thread.running:
+                self.sys_thread.shutdown_flag.set()
+                self.sys_thread.join(1)
         for k in self.devices:
             if self.devices[k] is not None:
                 self.logger.debug('Shutting down %s'%k)
@@ -597,17 +606,18 @@ class Robot(Device):
     
     def start_event_loop(self):
         self.async_event_loop = asyncio.new_event_loop()
-        def start_loop(loop):
-            asyncio.set_event_loop(loop)
-            loop.run_forever()
-        self.event_loop_thread = threading.Thread(target=start_loop, args=(self.async_event_loop,), name='AsyncEvenLoopThread')
+        self.event_loop_thread = threading.Thread(target=self._event_loop, name='AsyncEvenLoopThread')
         self.event_loop_thread.setDaemon(True)
         self.event_loop_thread.start()
-    
+        
+    def _event_loop(self):
+            asyncio.set_event_loop(self.async_event_loop)
+            self.async_event_loop.run_forever()
+
     def stop_event_loop(self):
         try:
             if self.event_loop_thread:
-                self.async_event_loop.call_soon_threadsafe(self.async_event_loop.stop())
+                asyncio.run_coroutine_threadsafe(self.async_event_loop.stop())
                 self.event_loop_thread.join()
-        except:
+        except TypeError as e:
             pass

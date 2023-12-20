@@ -138,7 +138,7 @@ class DynamixelXL430():
     """
     Wrapping of Dynamixel X-Series interface
     """
-    def __init__(self, dxl_id, usb, port_handler=None, pt_lock=None, baud=57600, logger=logging.getLogger()):
+    def __init__(self, dxl_id, usb, port_handler=None, pt_lock=None, baud=115200, logger=logging.getLogger()):
         self.dxl_id = dxl_id
         self.usb = usb
         self.comm_errors = 0
@@ -148,21 +148,24 @@ class DynamixelXL430():
         self.dxl_model_name=''
         # Make access to portHandler threadsafe
         self.pt_lock = threading.RLock() if pt_lock is None else pt_lock
+        self.hw_valid = False
 
         # Allow sharing of port handler across multiple servos
-        self.packet_handler=None
+        self.port_handler = port_handler
+        self.packet_handler= None
+    
+    def create_port_handler(self):
         try:
-            if port_handler is None:
-                self.port_handler = prh.PortHandler(usb)
+            if self.port_handler is None or not self.port_handler.is_open:
+                self.port_handler = prh.PortHandler(self.usb)
                 self.port_handler.openPort()
-                self.port_handler.setBaudRate(baud)
+                self.port_handler.setBaudRate(self.baud)
             else:
-                self.port_handler = port_handler
+                self.port_handler = self.port_handler
             self.packet_handler = pch.PacketHandler(2.0)
         except serial.SerialException as e:
             self.logger.error("Dynamixel SerialException({1}): {2}".format(self.usb,e.errno, e.strerror))
         self.hw_valid = self.packet_handler is not None
-
 
     @staticmethod
     def identify_baud_rate(dxl_id, usb):
@@ -195,6 +198,7 @@ class DynamixelXL430():
         return -1
 
     def startup(self):
+        self.create_port_handler()
         if self.hw_valid:
             try:
                 self.enable_torque()
@@ -210,11 +214,13 @@ class DynamixelXL430():
         return False
 
 
-    def stop(self):
+    def stop(self, close_port=True, disable_torque=False):
         if self.hw_valid:
             self.hw_valid = False
-            self.disable_torque()
-            self.port_handler.closePort()
+            if disable_torque:
+                self.disable_torque()
+            if close_port:
+                self.port_handler.closePort()
 
     def pretty_print(self):
         h = self.get_hardware_error()

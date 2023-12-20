@@ -1,6 +1,6 @@
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 import stretch_body.hello_utils as hu
-
+import time
 
 class WristPitch(DynamixelHelloXL430):
     """
@@ -9,18 +9,13 @@ class WristPitch(DynamixelHelloXL430):
     def __init__(self, chain=None, usb=None, name='wrist_pitch'):
         DynamixelHelloXL430.__init__(self, name, chain, usb)
         self.poses = {'up': hu.deg_to_rad(56.0), 'forward': hu.deg_to_rad(0.0), 'down': hu.deg_to_rad(-90.0)}
+        self.pos_current_ctrl_on_startup = True
 
-    def startup(self, threaded=True):
-        r= DynamixelHelloXL430.startup(self, threaded=threaded)
-        if r:
-            self.enable_pos_current_ctrl() #Default to current limited position control
-        return r
-
-    def stop(self):
+    def stop(self,close_port=True):
         if self.hw_valid and self.params['float_on_stop']:
             self.enable_float_mode()
         else:
-            DynamixelHelloXL430.stop(self)
+            DynamixelHelloXL430.stop(self,close_port)
 
     def home(self):
         """

@@ -106,6 +106,7 @@ class DynamixelHelloXL430(Device):
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
             self.in_collision_stop = {'pos': False, 'neg': False}
             self.ts_collision_stop = {'pos': 0.0, 'neg': 0.0}
+            self.pos_current_ctrl_on_startup = False
         except KeyError:
             self.motor=None
 
@@ -189,6 +190,7 @@ class DynamixelHelloXL430(Device):
             return False
         Device.startup(self, threaded=threaded)
         try:
+            self.motor.startup()
             if self.motor.do_ping(verbose=False):
                 self.hw_valid = True
                 self.motor.disable_torque()
@@ -223,6 +225,8 @@ class DynamixelHelloXL430(Device):
                 if not self.check_servo_errors():
                     self.hw_valid = False
                     return False
+                if self.pos_current_ctrl_on_startup:
+                    self.enable_pos_current_ctrl()
                 return True
             else:
                 self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
@@ -238,12 +242,13 @@ class DynamixelHelloXL430(Device):
         self.pull_status()
         self.update_trajectory()
 
-    def stop(self):
+    def stop(self, close_port=True):
         Device.stop(self)
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
         if self.hw_valid:
             if self.params['disable_torque_on_stop']:
                 self.disable_torque()
+            self.motor.stop(close_port)
             self.hw_valid = False
 
     def pull_status(self,data=None):

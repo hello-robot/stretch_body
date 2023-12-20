@@ -25,18 +25,10 @@ class DynamixelXChain(Device):
         self.pt_lock = threading.RLock()
         self.thread_rate_hz = 15.0
 
-        try:
-            prh.LATENCY_TIMER = self.params['dxl_latency_timer']
-            self.port_handler = prh.PortHandler(usb)
-            self.port_handler.openPort()
-            self.port_handler.setBaudRate(int(self.params['baud']))
-            self.packet_handler = pch.PacketHandler(2.0)
-            self.hw_valid = True
-        except serial.SerialException as e:
-            self.packet_handler = None
-            self.port_handler = None
-            self.hw_valid =False
-            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
+        self.packet_handler = None
+        self.port_handler = None
+        self.hw_valid = False
+
         self.status={}
         self.motors = {}
         self.readers={}
@@ -51,12 +43,27 @@ class DynamixelXChain(Device):
             return self.motors[motor_name]
         except (AttributeError, KeyError):
             return None
+    
+    def create_port_handler(self):
+        try:
+            prh.LATENCY_TIMER = self.params['dxl_latency_timer']
+            self.port_handler = prh.PortHandler(self.usb)
+            self.port_handler.openPort()
+            self.port_handler.setBaudRate(int(self.params['baud']))
+            self.packet_handler = pch.PacketHandler(2.0)
+            self.hw_valid = True
+        except serial.SerialException as e:
+            self.packet_handler = None
+            self.port_handler = None
+            self.hw_valid =False
+            self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
 
     def startup(self, threaded=False):
-
+        self.create_port_handler()
         for mk in self.motors.keys():  # Provide nop data in case comm failures
             self.status[mk] = self.motors[mk].status
         if not self.hw_valid:
+            print("HW Not Valid")
             return False
         if len(self.motors.keys()):
             try:
@@ -81,7 +88,8 @@ class DynamixelXChain(Device):
                         raise DynamixelCommError
                     self.status[mk] = self.motors[mk].status
                 self.pull_status()
-            except DynamixelCommError:
+            except DynamixelCommError as e:
+                print(f"Dnamixel Com error: {e}")
                 self.comm_errors.add_error(rx=True,gsr=True)
                 self.hw_valid = False
                 return False
@@ -100,7 +108,8 @@ class DynamixelXChain(Device):
             self.motors[motor]._waypoint_ts = None
             self.motors[motor]._waypoint_vel = None
             self.motors[motor]._waypoint_accel = None
-            self.motors[motor].stop()
+            self.motors[motor].stop(close_port=False)
+        self.port_handler.closePort()
         self.hw_valid = False
 
     def wait_until_at_setpoint(self, timeout=15.0):
