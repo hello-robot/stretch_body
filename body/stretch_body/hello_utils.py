@@ -632,3 +632,17 @@ def setup_uvc_camera(device_index, size=None, fps=None, format = None):
     if fps:
         cap.set(cv2.CAP_PROP_FPS, fps)
     return cap
+
+def get_video_device_port(camera_name):
+    """
+    Returns the video device port based on the given camera name match
+    """
+    camera_devices = get_video_devices()
+    camera_device = None
+    for k,v in camera_devices.items():
+        if camera_name in k:
+            camera_device = v[0]
+            print(f"Found Camera={k} at port={camera_device} ")
+            return camera_device
+    print('ERROR: Did not find the specified camera_name = ' + str(camera_name))
+    return  camera_device

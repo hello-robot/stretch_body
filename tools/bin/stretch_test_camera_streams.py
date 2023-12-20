@@ -93,12 +93,12 @@ def d435i_stream():
     pipeline_d435i.stop()
 
 def uvc_cam_stream(video_path=None):
-    global stop_stream, image_uvc, lock
+    global stop_stream, image_uvc
     if video_path is None:
         print(f"Navigation Camera Stream Settings:\n UVC_COLOR_SIZE={UVC_COLOR_SIZE}\n FPS={UVC_FPS}")
-        uvc_camera = hu.setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS)
+        uvc_camera = hu.setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS, UVC_VIDEO_FORMAT)
     else:
-        print(f"USB Camera Stream ({video_path}) Settings:\n UVC_COLOR_SIZE=Default\n FPS=Default")
+        print(f"USB Camera Stream ({video_path}) Settings:\n UVC_COLOR_SIZE=Unset\n FPS=Unset")
         uvc_camera = hu.setup_uvc_camera(video_path)
     
     while not stop_stream:
@@ -122,8 +122,6 @@ def main(config):
 
     print('cv2.__version__ =', cv2.__version__)
     print('sys.version =', sys.version)
-
-    print_video_devices_list()
 
     d405=config['d405']
     d435i=config['d435i']
@@ -162,7 +160,7 @@ def main(config):
                 if uvc:
                     cv2.imshow('Navigation Head Camera', cv2.rotate(image_uvc, cv2.ROTATE_90_CLOCKWISE))
                 if video_path is not None:
-                    cv2.imshow('Navigation Head Camera',image_uvc)
+                    cv2.imshow('USB Camera',image_uvc)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 # Release resources
@@ -187,15 +185,14 @@ hu.print_stretch_re_use()
 
 
 parser = argparse.ArgumentParser(description="This tool will start streaming videos feeds"
-                                             "from D435i, D405 and Navigation Camera")
+                                             " from D435i, D405 and Navigation Camera")
 parser.add_argument('--d435i', help='Streams D435i streams only',action="store_true")
 parser.add_argument('--d405', help='Streams d405 streams only',action="store_true")
 parser.add_argument('--navigation', help='Streams navigation camera stream only',action="store_true")
-parser.add_argument('--usb_cam', type=str,help='Porvide an usb video device camera path. E.g. --usb_cam /dev/video4')
+parser.add_argument('--usb_cam_port', type=str,help='Strea from usb video device in given port. E.g. --usb_cam_port /dev/video4')
+parser.add_argument('--usb_cam_name', type=str,help='Porvide an usb video device camera path. E.g. --usb_cam_name Arducam')
 parser.add_argument('--list', help='List all the enumerated Video devices',action="store_true")
 args = vars(parser.parse_args())
-
-
 
 config = {'d405' : False,
             'd435i' : False,
@@ -217,14 +214,19 @@ if args['navigation']:
     config['navigation'] = True
     main(config)
 
-if args['usb_cam']:
-    config['usb_cam'] = args['usb_cam']
+if args['usb_cam_port']:
+    config['usb_cam'] = args['usb_cam_port']
+    main(config)
+
+if args['usb_cam_name']:
+    config['usb_cam'] = hu.get_video_device_port(args['usb_cam_name'])
     main(config)
 
 config = {'d405' : True,
         'd435i' : True,
         'navigation' : True,
         'usb_cam': None}
+
 main(config)
 
 
