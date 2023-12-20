@@ -533,7 +533,7 @@ nominal_params={
 
 
     'robot_collision_mgmt': {
-        'max_mesh_points': 36,
+        'max_mesh_points': 48,
         'SE3': {
             'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
             'joints':{
@@ -561,6 +561,10 @@ nominal_params={
             'stretch_gripper':0.0
         },
         'collision_mgmt': {
+            'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25, 'stretch_gripper': 0.0},
+            'joints': {
+                'wrist_pitch': [{'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'}]}},
+        'collision_mgmt2': {
             'k_brake_distance':{'wrist_pitch':0.25,'wrist_yaw':0.25,'wrist_roll':0.25,'stretch_gripper':0.0},
             'joints':{
                 'lift':[

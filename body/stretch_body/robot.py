@@ -103,9 +103,9 @@ class NonDXLStatusThread(threading.Thread):
         else:
             self.robot._pull_status_non_dynamixel()
         if self.robot.is_homed():
-            ts=time.time()
+            #ts=time.time()
             self.robot.collision.step()
-            print('Collision DT (ms) %f'%((time.time()-ts)*1000))
+            #print('Collision DT (ms) %f'%((time.time()-ts)*1000))
         self.stats.mark_loop_end()
     def run(self):
         self.running=True
