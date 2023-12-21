@@ -8,6 +8,7 @@ import os
 import sys
 from IPython import get_ipython
 from filelock import FileLock, Timeout
+import traceback
 
 from stretch_body.device import Device
 import stretch_body.base as base
@@ -250,7 +251,17 @@ class Robot(Device):
                 'traceback': args.exc_traceback
             }
         }
-        self.logger.debug(f"Caught GLOBAL EXCEPTION: {exec}")
+
+        # Filter RuntimeError
+        if exec[thread_name]['exception']['type'] == RuntimeError:
+            pass
+        else:
+            print(f"Caught Exception in Thread: {thread_name}")
+            traceback.print_exception(args.exc_value)
+
+        self.logger.debug(f"Caught Exception in Thread: {thread_name}")
+        self.logger.debug(traceback.format_exception(args.exc_value))
+
         self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
 
     # ###########  Device Methods #############
