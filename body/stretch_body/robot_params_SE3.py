@@ -536,15 +536,14 @@ nominal_params={
         'max_mesh_points': 48,
         'SE3': {
             'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
+            'collision_pairs':{'link_head_tilt_TO_link_arm_l4':{'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'},
+                               'link_arm_l0_TO_base_link':{'link_pts': 'link_arm_l0', 'link_cube': 'base_link','detect_as':'pts'}},
+
             'joints':{
-                'lift': [
-                    {'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'},
-                    {'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as':'pts'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as':'pts'}],
-                'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link','detect_as':'pts'},
-                        {'motion_dir': 'neg', 'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as':'pts'}]}},
-    },
+                'lift': [{'motion_dir': 'pos', 'collision_pair': 'link_head_tilt_TO_link_arm_l4'},
+                         {'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}],
+                'arm': [{'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}]}
+    }},
     "eoa_wrist_dw3_tool_sg3": {
         'py_class_name': 'EOA_Wrist_DW3_Tool_SG3',
         'py_module_name': 'stretch_body.end_of_arm_tools',
@@ -560,28 +559,30 @@ nominal_params={
             'wrist_yaw': 3.0,
             'stretch_gripper':0.0
         },
-        'collision_mgmt': {
-            'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25, 'stretch_gripper': 0.0},
-            'joints': {
-                'wrist_pitch': [{'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link','detect_as':'edges'},]}},
-        'collision_mgmt2': {
-            'k_brake_distance':{'wrist_pitch':0.25,'wrist_yaw':0.25,'wrist_roll':0.25,'stretch_gripper':0.0},
-            'joints':{
-                'lift':[
-                    {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'base_link'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'base_link'}],
-                'wrist_pitch': [
-                    {'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0'},
-                    {'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l1'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'base_link'},
-                    {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'}],
-                'wrist_yaw': [{'motion_dir': 'neg', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0'},
-                          {'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l1'}],
-                'wrist_roll': [{'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0'},
-                           {'motion_dir': 'neg', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l1'}]}
-        },
+        'collision_mgmt': {'joints':{},'collision_pairs':{},'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25, 'stretch_gripper': 0.0}},
+            # {'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link', 'detect_as': 'pts'},
+            # {'motion_dir': 'neg', 'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link', 'detect_as': 'pts'}],
+        #     'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25, 'stretch_gripper': 0.0},
+        #     'joints': {
+        #         'wrist_pitch': [{'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link','detect_as':'edges'},]}},
+        # 'collision_mgmt2': {
+        #     'k_brake_distance':{'wrist_pitch':0.25,'wrist_yaw':0.25,'wrist_roll':0.25,'stretch_gripper':0.0},
+        #     'joints':{
+        #         'lift':[
+        #             {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
+        #             {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'},
+        #             {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'base_link'},
+        #             {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'base_link'}],
+        #         'wrist_pitch': [
+        #             {'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0'},
+        #             {'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l1'},
+        #             {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'base_link'},
+        #             {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'}],
+        #         'wrist_yaw': [{'motion_dir': 'neg', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0'},
+        #                   {'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l1'}],
+        #         'wrist_roll': [{'motion_dir': 'pos', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0'},
+        #                   {'motion_dir': 'neg', 'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l1'}]}
+
         'devices': {
             'wrist_pitch': {
                 'py_class_name': 'WristPitch',

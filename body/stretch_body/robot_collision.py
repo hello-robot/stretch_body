@@ -56,7 +56,7 @@ def line_box_sat_intersection(line_point1, line_point2, aabb_min, aabb_max):
     return True  # No separating axis found, intersection exists
 
 
-def check_pts_in_cube(cube, pts):
+def check_pts_in_AABB_cube(cube, pts):
     """
     Check if any of the 'points lie inside the cube
     Parameters
@@ -81,43 +81,16 @@ def check_pts_in_cube(cube, pts):
             return True
     return False
 
-def check_edges_in_cube(cube,edge_cube):
-
+def check_ppd_edges_in_cube(cube,cube_edge,edge_indices):
+    if len(edge_indices)!=12:
+        print('Invalid PPD provided to check_ppd_edges_in_cube')
+        return False
     aabb_min=np.array([min(cube[:, 0]),min(cube[:, 1]),min(cube[:, 2])],dtype=np.float32)
     aabb_max = np.array([max(cube[:, 0]),max(cube[:, 1]),max(cube[:, 2])],dtype=np.float32)
-
-    xmax = max(edge_cube[:, 0])
-    xmin = min(edge_cube[:, 0])
-    ymax = max(edge_cube[:, 1])
-    ymin = min(edge_cube[:, 1])
-    zmax = max(edge_cube[:, 2])
-    zmin = min(edge_cube[:, 2])
-
-    edges=np.array([
-        [[xmin, ymin, zmin],[xmin, ymin, zmax]],
-        [[xmin, ymin, zmin], [xmin, ymax, zmin]],
-        [[xmin, ymax, zmax], [xmin, ymin, zmax]],
-        [[xmin, ymax, zmax], [xmin, ymax, zmin]],
-
-        [[xmax, ymin, zmin], [xmin, ymin, zmax]],
-        [[xmax, ymin, zmin], [xmin, ymax, zmax]],
-        [[xmax, ymax, zmax], [xmin, ymin, zmax]],
-        [[xmax, ymax, zmax], [xmin, ymax, zmin]],
-
-        [[xmin, ymin, zmin], [xmax, ymin, zmin]],
-        [[xmin, ymin, zmax], [xmax, ymin, zmax]],
-        [[xmin, ymax, zmin], [xmax, ymax, zmin]],
-        [[xmin, ymax, zmin], [xmax, ymax, zmin]]],dtype=np.float32)
-
-    for e in edges:
-        if line_box_sat_intersection(e[0],e[1], aabb_min, aabb_max):
-            print("COLLISION")
-            print('E0',e[0])
-            print('E1', e[1])
-            print('Cube',cube)
-            print('Edge Cube',edge_cube)
-            print('AABB_MIN',aabb_min)
-            print('AABB_MAX', aabb_max)
+    for ei in edge_indices:
+        e0=cube_edge[ei][0][0:3]
+        e1=cube_edge[ei][1][0:3]
+        if line_box_sat_intersection(e0,e1, aabb_min, aabb_max):
             return True
     return False
 
@@ -140,6 +113,11 @@ class CollisionLink:
             print('Ignoring collision link %s' % link_name)
             self.is_valid=False
         self.pose=None
+        self.edge_indices_ppd=self.find_edge_indices_PPD()
+
+
+    def is_ppd(self):
+        return self.points.shape[0]==8
 
     def set_pose(self,p):
         self.pose=p
@@ -151,6 +129,29 @@ class CollisionLink:
         print('In collision',self.in_collision)
         print('Was in collision',self.was_in_collision)
         print('Mesh size',self.points.shape)
+
+    def find_edge_indices_PPD(self):
+        """
+        Return the indices for each edge assuming the link is a parallelpiped (PPD)
+        """
+        px=self.points.shape[0]
+        # if not self.is_ppd():
+        #     return np.array([])
+        idx=[]
+        lens=[]
+        #Toss out really short edge as is a mesh file artifact
+        eps=.000001
+        for i in range(px):
+            for j in range(i+1,px):
+                ll = np.linalg.norm(self.points[i] - self.points[j])
+                if ll>eps:
+                    idx.append([i,j])
+                    lens.append(ll)
+        #return 12 shortest lengths of all possible combinations
+
+        q= np.array(idx)[np.argsort(np.array(lens))][0:12]
+        lens.sort()
+        return q
 
     def check_AABB(self,pts):
         """
@@ -178,15 +179,13 @@ class CollisionLink:
         return True
 
 class CollisionPair:
-    def __init__(self, link_pts,link_cube,motion_dir,joint_name,detect_as):
+    def __init__(self, name,link_pts,link_cube,detect_as):
         self.in_collision=False
         self.was_in_collision=False
         self.link_cube=link_cube
         self.link_pts=link_pts
-        self.motion_dir=motion_dir
-        self.joint_name=joint_name
         self.detect_as=detect_as
-        self.name_id='J_%s_LP_%s_LC_%s_DR_%s'%(joint_name,link_pts.name,link_cube.name,motion_dir)
+        self.name=name
         self.is_valid=self.link_cube.is_valid and self.link_pts.is_valid and self.link_cube.is_aabb
         if not self.is_valid:
             print('Dropping monitor of collision pair %s'%self.name_id)
@@ -200,8 +199,7 @@ class CollisionPair:
         # self.link_cube.pretty_print()
         # print('--Link Pts--')
         # self.link_pts.pretty_print()
-    def get_name_id(self):
-        return self.name_id
+
 
 class CollisionJoint:
     def __init__(self, joint_name,motor):
@@ -209,14 +207,17 @@ class CollisionJoint:
         self.motor=motor
         self.active_collisions=[]
         self.collision_pairs=[]
+        self.collision_dirs={}
         self.in_collision={'pos':False,'neg':False}
         self.was_in_collision = {'pos': False, 'neg': False}
-    def add_collision_pair(self,cp):
-        self.collision_pairs.append(cp)
+    def add_collision_pair(self,motion_dir, collision_pair):
+        self.collision_pairs.append(collision_pair)
+        self.collision_dirs[collision_pair.name]=motion_dir
     def pretty_print(self):
         print('-------Collision Joint: %s-----------------'%self.name)
         for cp in self.collision_pairs:
             cp.pretty_print()
+            print('Motion dir: %s'%self.collision_dirs[cp.name])
         print('--Active Collisions--')
         print(self.active_collisions)
         for ac in self.active_collisions:
@@ -269,28 +270,41 @@ class RobotCollisionMgmt(Device):
             self.urdf = None
             return
 
-        #Build dict of potential collisions_pairs for each joint
+        #Construct collision pairs
+        cp_dict = self.params[model_name]['collision_pairs']
+        cp_dict.update(self.robot.end_of_arm.params['collision_mgmt']['collision_pairs'])
+
+        for cp_name in cp_dict:
+            cp=cp_dict[cp_name] #Eg {'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'}
+            if cp['link_pts'] not in self.collision_links:
+                self.collision_links[cp['link_pts']] = CollisionLink(cp['link_pts'], self.urdf, mesh_path,
+                                                                     self.params['max_mesh_points'])
+            if cp['link_cube'] not in self.collision_links:
+                self.collision_links[cp['link_cube']] = CollisionLink(cp['link_cube'], self.urdf, mesh_path,
+                                                                      self.params['max_mesh_points'])
+            self.collision_pairs[cp_name] = CollisionPair(name=cp_name,
+                                                          link_pts=self.collision_links[cp['link_pts']],
+                                                          link_cube=self.collision_links[cp['link_cube']],
+                                                          detect_as=cp['detect_as'])
+
+        #Assign collision pairs to each joint
         #Include those of standard robot body plus its defined tool
         # EG collision_joints={'lift':[{collision_1},{collision_2...}],'head_pan':[...]}
-        cj=self.params[model_name]['joints']
-        eoa_cj=self.robot.end_of_arm.params['collision_mgmt']['joints']
+        cj_dict=self.params[model_name]['joints']
+        eoa_cj_dict=self.robot.end_of_arm.params['collision_mgmt']['joints']
 
-        for tt in eoa_cj:
-            if tt in cj:
-                cj[tt]+=eoa_cj[tt]
+        for tt in eoa_cj_dict:
+            if tt in cj_dict:
+                cj_dict[tt]+=eoa_cj_dict[tt]
             else:
-                cj[tt]=eoa_cj[tt]
+                cj_dict[tt]=eoa_cj_dict[tt]
 
-        for joint_name in cj:
+        for joint_name in cj_dict:
             self.collision_joints[joint_name]=CollisionJoint(joint_name,self.get_joint_motor(joint_name))
-            for cp in cj[joint_name]: #eg cp={'motion_dir': 'neg', 'link_pts': 'link_lift', 'link_cube': 'base_link'}
-                if cp['link_pts'] not in self.collision_links:
-                    self.collision_links[cp['link_pts']]=CollisionLink(cp['link_pts'],self.urdf,mesh_path,self.params['max_mesh_points'])
-                if cp['link_cube'] not in self.collision_links:
-                    self.collision_links[cp['link_cube']]=CollisionLink(cp['link_cube'],self.urdf,mesh_path,self.params['max_mesh_points'])
-                p=CollisionPair(self.collision_links[cp['link_pts']],self.collision_links[cp['link_cube']],cp['motion_dir'],joint_name,cp['detect_as'])
-                self.collision_pairs[p.get_name_id()]=p
-                self.collision_joints[joint_name].add_collision_pair(p)
+            cp_list = cj_dict[joint_name]
+            for cp in cp_list: #eg cp={'motion_dir': 'pos', 'collision_pair': 'link_head_tilt_TO_link_arm_l4'}
+                self.collision_joints[joint_name].add_collision_pair(motion_dir=cp['motion_dir'],
+                                                                     collision_pair=self.collision_pairs[cp['collision_pair']])
 
     def get_joint_motor(self,joint_name):
         if joint_name=='lift':
@@ -332,24 +346,26 @@ class RobotCollisionMgmt(Device):
             self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
             self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False}
 
-        # Test for collisions
+        # Test for collisions across all collision pairs
         for pair_name in self.collision_pairs:
             cp=self.collision_pairs[pair_name]
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
                 if cp.detect_as=='pts':
-                    cp.in_collision=check_pts_in_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
+                    cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
-                    cp.in_collision = check_edges_in_cube(cube=cp.link_cube.pose, edge_cube=cp.link_pts.pose)
-                    if cp.in_collision:
-                        print('EDGE COLL!')
+                    cp.in_collision = check_ppd_edges_in_cube(cube=cp.link_cube.pose, cube_edge=cp.link_pts.pose,edge_indices=cp.link_pts.edge_indices_ppd)
                 else:
                     cp.in_collision =False
                     #cp.pretty_print()
+
+        #Now update joint state
+        for joint_name in self.collision_joints:
+            cj = self.collision_joints[joint_name]
+            for cp in cj.collision_pairs:
                 if cp.in_collision:
-                    cj = self.collision_joints[cp.joint_name]
-                    cj.active_collisions.append(cp.get_name_id()) #Add collision to joint
-                    cj.in_collision[cp.motion_dir] = True
+                    cj.active_collisions.append(cp.name) #Add collision to joint
+                    cj.in_collision[cj.collision_dirs[cp.name]] = True
                 #Propogate to links
                 self.collision_links[cp.link_cube.name].in_collision=self.collision_links[cp.link_cube.name].in_collision or cp.in_collision
                 self.collision_links[cp.link_pts.name].in_collision =self.collision_links[cp.link_pts.name].in_collision or cp.in_collision
