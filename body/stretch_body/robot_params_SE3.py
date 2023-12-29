@@ -494,6 +494,7 @@ nominal_params={
         'max_voltage_limit': 15,
         'min_grip_strength': -125,
         'min_voltage_limit': 11,
+        'gripper_conversion':'stretch_gripper_3_conversion',
         'motion':{
             'trajectory_vel_ctrl':1,
             'trajectory_vel_ctrl_kP':1.5,
@@ -734,6 +735,18 @@ nominal_params={
         'current_float_A': 0.02,
         'current_limit_A': 1.0
     },
+    'stretch_gripper_3_conversion': {'finger_length_m':0.171,
+                                      'open_aperture_m':0.09,
+                                      'closed_aperture_m':0.0,
+                                      'open_robotis':70.0,
+                                      'closed_robotis':0.0},
+                                      
+    'stretch_gripper_conversion': {'finger_length_m':0.171,
+                                      'open_aperture_m':0.09,
+                                      'closed_aperture_m':0.0,
+                                      'open_robotis':70.0,
+                                      'closed_robotis':0.0},
+
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
     'lidar': {'usb_name': '/dev/hello-lrf'},
     'stretch_gamepad':{

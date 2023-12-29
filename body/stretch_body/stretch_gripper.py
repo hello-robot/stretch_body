@@ -2,6 +2,7 @@ from __future__ import print_function
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.device import Device
 from stretch_body.robot_params import RobotParams
+from stretch_body.gripper_conversion import GripperConversion
 
 
 
@@ -22,6 +23,11 @@ class StretchGripper(DynamixelHelloXL430):
         self.poses = {'zero': 0,
                       'open': self.pct_max_open,
                       'close': -100}
+        self.status['gripper_conversion'] = {'aperture_m':0.0,
+                                             'finger_rad':0.0,
+                                             'finger_effort':0.0,
+                                             'finger_vel':0.0}
+        self.gripper_conversion = GripperConversion(self.params['gripper_conversion'])
 
     def startup(self, threaded=True):
         return DynamixelHelloXL430.startup(self, threaded=threaded)
@@ -64,6 +70,7 @@ class StretchGripper(DynamixelHelloXL430):
     def pull_status(self,data=None):
         DynamixelHelloXL430.pull_status(self,data)
         self.status['pos_pct']=self.world_rad_to_pct(self.status['pos'])
+        self.status['gripper_conversion']=self.gripper_conversion.get_status(self.status)
 
     def pct_to_world_rad(self,pct):
         pct_to_tick = -1 * ((self.params['zero_t'] - self.params['range_t'][0]) / 100.0)
