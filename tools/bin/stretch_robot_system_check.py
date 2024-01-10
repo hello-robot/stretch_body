@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
-from __future__ import print_function
+
+import os
 import sh
 import re
 import apt
 import git
-import distro
-import pathlib
-from packaging import version
 import yaml
-import time
+import distro
+import fnmatch
+import pathlib
 import datetime
-import stretch_body.robot as robot
-import os, fnmatch
-import subprocess
-from colorama import Fore, Back, Style
 import argparse
-import stretch_body.hello_utils as hu
-from stretch_body.dynamixel_XL430 import *
+from packaging import version
+from colorama import Fore, Back, Style
+
+import pyrealsense2 as rs
 import stretch_body.device
+import stretch_body.robot as robot
+import stretch_body.hello_utils as hu
+
 hu.print_stretch_re_use()
-
-
 parser=argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
 args=parser.parse_args()
 
@@ -28,80 +27,21 @@ args=parser.parse_args()
 def val_in_range(val_name, val,vmin, vmax):
     p=val <=vmax and val>=vmin
     if p:
-        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
+        return True, f"{val_name} = {val:.2f}"
     else:
-        print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val)+ ' out of range ' +str(vmin) + ' to ' + str(vmax))
+        return False, f"{val_name} = {val:.2f} out of range {vmin} to {vmax}"
 
-def val_in_range_warn(val_name, val,vmin, vmax, hint=""):
-    p=val <=vmax and val>=vmin
-    if p:
-        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
-    else:
-        print(Fore.YELLOW +'[Warn] ' + val_name + ' = ' +str(val)+ ' out of range ' +str(vmin) + ' to ' + str(vmax) + hint)
-
-def val_is_not(val_name, val,vnot):
-    if val is not vnot:
-        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
-    else:
-        print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val))
-
-#Turn off logging so get a clean output
+# Turn off logging so get a clean output
 import logging
 logging.getLogger('sh').setLevel(logging.CRITICAL)
-#logging.disable(logging.CRITICAL)
+
+# get robot model
+stretch_model = stretch_body.device.Device(name='robot', req_params=False).params.get('model_name', '')
+
+# create robot instance
 r=robot.Robot()
 r.startup()
 
-# #####################################################
-robot_devices = {
-    'hello-wacc': True,
-    'hello-motor-left-wheel': True,
-    'hello-pimu': True,
-    'hello-lrf': True,
-    'hello-dynamixel-head': True,
-    'hello-dynamixel-wrist': True,
-    'hello-motor-arm': True,
-    'hello-motor-right-wheel': True,
-    'hello-motor-lift': True,
-    'hello-respeaker': True,
-}
-
-print(Style.RESET_ALL)
-if robot_devices['hello-pimu']:
-    print('---- Checking Pimu ----')
-    p=r.pimu
-    val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
-    val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert'])
-    val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40)
-    val_in_range_warn('Cliff-0',p.status['cliff_range'][0], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
-    val_in_range_warn('Cliff-1',p.status['cliff_range'][1], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
-    val_in_range_warn('Cliff-2',p.status['cliff_range'][2], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
-    val_in_range_warn('Cliff-3',p.status['cliff_range'][3], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
-    val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5)
-    val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12)
-    val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-wacc']:
-    print('---- Checking Wacc ----')
-    w=r.wacc
-    val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-print ('---- Checking for Intel D435i ----')
-cmd = "lsusb -d 8086:0b3a"
-returned_value = subprocess.call(cmd,shell=True)  # returns the exit code in unix
-if returned_value==0:
-    print(Fore.GREEN + '[Pass] : Device found ')
-else:
-    print(Fore.RED + '[Fail] : No device found')
 # #####################################################
 def is_comms_ready():
     # Establish what USB devices we expect to see
@@ -117,9 +57,8 @@ def is_comms_ready():
         'hello-motor-lift': False,
         'hello-respeaker': False,
     }
-    stretch_model = stretch_body.device.Device(name='robot', req_params=False).params.get('model_name', '')
     if stretch_model == "SE3":
-        usb_device_seen['hello-navigation-camera'] = True # TODO: change to False
+        usb_device_seen['hello-navigation-camera'] = False
 
     # Mark which USB devices we actually see
     listOfFiles = os.listdir('/dev')
@@ -159,7 +98,44 @@ def are_actuators_ready():
 
     return True, ""
 def are_sensors_ready():
-    return True, ""
+    # Establish which Realsense cameras we expect to see
+    rs_camera_seen = {
+        'D435': False,
+    }
+    if stretch_model == "SE3":
+        rs_camera_seen['D405'] = False
+
+    # Mark which Realsense cameras we actually see
+    cameras = [{'name': device.get_info(rs.camera_info.name), 'serial_number': device.get_info(rs.camera_info.serial_number)}
+        for device in rs.context().devices]
+    for cam in cameras:
+        for seen in rs_camera_seen:
+            if seen in cam['name']:
+                rs_camera_seen[seen]=True
+
+    # Return error if not all realsense cameras seen
+    for s in rs_camera_seen:
+        if not rs_camera_seen[s]:
+            return False, False, f"missing {s} camera"
+
+    # Check pimu and wacc
+    p=r.pimu
+    w=r.wacc
+    checks = [
+        val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5),
+        val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert']),
+        val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40),
+        val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5),
+        val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12),
+        val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12),
+        val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0),
+    ]
+    for c in checks:
+        check_succeeded, check_msg = c
+        if not check_succeeded:
+            return True, False, check_msg
+
+    return True, True, ""
 print(Style.RESET_ALL)
 print ('---- Checking Hardware ----')
 comms_ready, comms_err_msg = is_comms_ready()
@@ -172,9 +148,12 @@ if actuators_ready:
     print(Fore.GREEN + '[Pass] Actuators are ready')
 else:
     print(Fore.RED + f'[Fail] Actuators not ready ({actuators_err_msg})')
-sensors_ready, sensors_err_msg = are_sensors_ready()
+sensors_ready, sensors_total, sensors_err_msg = are_sensors_ready()
 if sensors_ready:
-    print(Fore.GREEN + '[Pass] Sensors are ready')
+    if sensors_total:
+        print(Fore.GREEN + '[Pass] Sensors are ready')
+    else:
+        print(Fore.YELLOW + f'[Warn] Sensors not ready ({sensors_err_msg})')
 else:
     print(Fore.RED + f'[Fail] Sensors not ready ({sensors_err_msg})')
 # #####################################################
