@@ -14,6 +14,7 @@ import argparse
 from packaging import version
 from colorama import Fore, Back, Style
 
+import rplidar
 import pyrealsense2 as rs
 import stretch_body.device
 import stretch_body.robot as robot
@@ -23,7 +24,7 @@ hu.print_stretch_re_use()
 parser=argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
 args=parser.parse_args()
 
-# #####################################################
+# ###################   SETUP    ######################
 def val_in_range(val_name, val,vmin, vmax):
     p=val <=vmax and val>=vmin
     if p:
@@ -34,6 +35,7 @@ def val_in_range(val_name, val,vmin, vmax):
 # Turn off logging so get a clean output
 import logging
 logging.getLogger('sh').setLevel(logging.CRITICAL)
+logging.getLogger('rplidar').setLevel(logging.CRITICAL)
 
 # get robot model
 stretch_model = stretch_body.device.Device(name='robot', req_params=False).params.get('model_name', '')
@@ -42,7 +44,7 @@ stretch_model = stretch_body.device.Device(name='robot', req_params=False).param
 r=robot.Robot()
 r.startup()
 
-# #####################################################
+# ###################  HARDWARE  ######################
 def is_comms_ready():
     # Establish what USB devices we expect to see
     usb_device_seen = {
@@ -118,6 +120,17 @@ def are_sensors_ready():
         if not rs_camera_seen[s]:
             return False, False, f"missing {s} camera"
 
+    # Check for lidar
+    try:
+        lidar_dev = stretch_body.device.Device('lidar')
+        lidar_usb = lidar_dev.params['usb_name']
+        lidar = rplidar.RPLidar(lidar_usb, baudrate=115200)
+        lidar.stop_motor()
+    except rplidar.RPLidarException:
+        return False, False, "missing lidar"
+
+    # TODO: Check for microphone array
+
     # Check pimu and wacc
     p=r.pimu
     w=r.wacc
@@ -156,7 +169,8 @@ if sensors_ready:
         print(Fore.YELLOW + f'[Warn] Sensors not ready ({sensors_err_msg})')
 else:
     print(Fore.RED + f'[Fail] Sensors not ready ({sensors_err_msg})')
-# #####################################################
+
+# ###################  SOFTWARE  ######################
 try: # TODO: remove try/catch after sw check verified to work reliably
     def get_ip():
         # https://stackoverflow.com/a/28950776
