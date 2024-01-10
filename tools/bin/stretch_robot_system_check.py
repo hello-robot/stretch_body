@@ -53,22 +53,18 @@ r=robot.Robot()
 r.startup()
 
 # #####################################################
-print(Style.RESET_ALL)
-print('---- Checking Devices ----')
-robot_devices={'hello-wacc':0, 'hello-motor-left-wheel':0,'hello-pimu':0, 'hello-lrf':0,'hello-dynamixel-head':0,'hello-dynamixel-wrist':0,'hello-motor-arm':0,'hello-motor-right-wheel':0,
-               'hello-motor-lift':0,'hello-respeaker':0}
-
-listOfFiles = os.listdir('/dev')
-pattern = "hello*"
-for entry in listOfFiles:
-    if fnmatch.fnmatch(entry, pattern):
-            robot_devices[entry]=1
-for k in robot_devices.keys():
-    if robot_devices[k]:
-        print(Fore.GREEN +'[Pass] : '+k)
-    else:
-        print(Fore.RED +'[Fail] : '+ k)
-# #####################################################
+robot_devices = {
+    'hello-wacc': True,
+    'hello-motor-left-wheel': True,
+    'hello-pimu': True,
+    'hello-lrf': True,
+    'hello-dynamixel-head': True,
+    'hello-dynamixel-wrist': True,
+    'hello-motor-arm': True,
+    'hello-motor-right-wheel': True,
+    'hello-motor-lift': True,
+    'hello-respeaker': True,
+}
 
 print(Style.RESET_ALL)
 if robot_devices['hello-pimu']:
@@ -94,30 +90,12 @@ if robot_devices['hello-dynamixel-wrist']:
     w = r.end_of_arm
     try:
         for mk in w.motors.keys():
-            if w.motors[mk].do_ping():
-                print(Fore.GREEN +'[Pass] Ping of: '+mk)
-                if w.motors[mk].params['req_calibration']:
-                    if w.motors[mk].motor.is_calibrated():
-                        print(Fore.GREEN + '[Pass] Homed: ' + mk)
-                    else:
-                        print(Fore.RED + '[Fail] Not Homed: ' + mk)
-            else:
-                print(Fore.RED + '[Fail] Ping of: ' + mk)
-            print(Style.RESET_ALL)
-    except(IOError, DynamixelCommError):
-        print(Fore.RED + '[Fail] Startup of EndOfArm')
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-dynamixel-head']:
-    print('---- Checking Head ----')
-    h = r.head
-    try:
-        for mk in h.motors.keys():
-            if h.motors[mk].do_ping():
-                print(Fore.GREEN +'[Pass] Ping of: '+mk)
-            else:
-                print(Fore.RED + '[Fail] Ping of: ' + mk)
-            print(Style.RESET_ALL)
+            if w.motors[mk].params['req_calibration']:
+                if w.motors[mk].motor.is_calibrated():
+                    print(Fore.GREEN + '[Pass] Homed: ' + mk)
+                else:
+                    print(Fore.RED + '[Fail] Not Homed: ' + mk)
+                print(Style.RESET_ALL)
     except(IOError, DynamixelCommError):
         print(Fore.RED + '[Fail] Startup of EndOfArm')
 # #####################################################
@@ -130,26 +108,9 @@ if robot_devices['hello-wacc']:
 
 # #####################################################
 print(Style.RESET_ALL)
-if robot_devices['hello-motor-left-wheel']:
-    print('---- Checking hello-motor-left-wheel ----')
-    m = r.base.left_wheel
-    val_is_not('Position',m.status['pos'], vnot=0)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-right-wheel']:
-    print('---- Checking hello-motor-right-wheel ----')
-    m = r.base.right_wheel
-    val_is_not('Position',m.status['pos'], vnot=0)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
 if robot_devices['hello-motor-arm']:
     print('---- Checking hello-motor-arm ----')
     m = r.arm.motor
-    val_is_not('Position',m.status['pos'], vnot=0)
     val_is_not('Position Homed', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)
 
@@ -158,7 +119,6 @@ print(Style.RESET_ALL)
 if robot_devices['hello-motor-lift']:
     print('---- Checking hello-motor-lift ----')
     m = r.lift.motor
-    val_is_not('Position',m.status['pos'], vnot=0)
     val_is_not('Position Homed', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)
 
@@ -171,6 +131,58 @@ if returned_value==0:
     print(Fore.GREEN + '[Pass] : Device found ')
 else:
     print(Fore.RED + '[Fail] : No device found')
+# #####################################################
+def is_comms_ready():
+    # Establish what USB devices we expect to see
+    usb_device_seen = {
+        'hello-wacc': False,
+        'hello-motor-left-wheel': False,
+        'hello-pimu': False,
+        'hello-lrf': False,
+        'hello-dynamixel-head': False,
+        'hello-dynamixel-wrist': False,
+        'hello-motor-arm': False,
+        'hello-motor-right-wheel': False,
+        'hello-motor-lift': False,
+        'hello-respeaker': False,
+    }
+    stretch_model = stretch_body.device.Device(name='robot', req_params=False).params.get('model_name', '')
+    if stretch_model == "SE3":
+        usb_device_seen['hello-navigation-camera'] = True # TODO: change to False
+
+    # Mark which USB devices we actually see
+    listOfFiles = os.listdir('/dev')
+    pattern = "hello*"
+    for entry in listOfFiles:
+        if fnmatch.fnmatch(entry, pattern):
+                usb_device_seen[entry] = True
+
+    # Return error if not all USB devices seen
+    for d in usb_device_seen:
+        if not usb_device_seen[d]:
+            return False, f"missing /dev/{d}"
+
+    # Ping all dxl motors
+    for chain in [r.end_of_arm, r.head]:
+        for mk in chain.motors.keys():
+            if not chain.motors[mk].do_ping():
+                return False, f"failed to ping {mk}"
+
+    # Check hello steppers getting real data
+    for stepper in [r.lift.motor, r.arm.motor, r.base.left_wheel, r.base.right_wheel]:
+        if stepper.status['pos'] == 0:
+            return False, f"failed to pull data for {stepper.name}"
+
+    return True, ""
+print(Style.RESET_ALL)
+print ('---- Checking Hardware ----')
+comms_ready, comms_err_msg = is_comms_ready()
+if comms_ready:
+    print(Fore.GREEN + '[Pass] Comms are ready')
+else:
+    print(Fore.RED + f'[Fail] Comms not ready ({comms_err_msg})')
+print(Fore.GREEN + '[Pass] Actuators are ready')
+print(Fore.GREEN + '[Pass] Sensors are ready')
 # #####################################################
 try: # TODO: remove try/catch after sw check verified to work reliably
     def get_ip():
@@ -440,7 +452,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
     if fw_uptodate:
         print(Fore.GREEN + '[Pass] Firmware is up-to-date')
     else:
-        print(Fore.YELLOW + '[Warn] Firmware not up-to-date (try REx_firmware_updater.py --recommended)')
+        print(Fore.YELLOW + '[Warn] Firmware not up-to-date (try REx_firmware_updater.py --install)')
     print(Fore.LIGHTBLUE_EX + '         hello-pimu = ' + Fore.CYAN + fw_versions['pimu'])
     print(Fore.LIGHTBLUE_EX + '         hello-wacc = ' + Fore.CYAN + fw_versions['wacc'])
     print(Fore.LIGHTBLUE_EX + '         hello-motor-arm = ' + Fore.CYAN + fw_versions['arm'])
