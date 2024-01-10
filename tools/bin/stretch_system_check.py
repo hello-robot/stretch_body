@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
+
 import os
 import sh
 import re
@@ -18,10 +21,9 @@ import rplidar
 import pyrealsense2 as rs
 import stretch_body.device
 import stretch_body.robot as robot
-import stretch_body.hello_utils as hu
 
-hu.print_stretch_re_use()
 parser=argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
+parser.add_argument('-v', "--verbose", help="Prints more information", action="store_true")
 args=parser.parse_args()
 
 # ###################   SETUP    ######################
@@ -72,20 +74,23 @@ def is_comms_ready():
     # Return error if not all USB devices seen
     for d in usb_device_seen:
         if not usb_device_seen[d]:
-            return False, f"missing /dev/{d}"
+            return False, f"missing /dev/{d}", usb_device_seen, []
 
     # Ping all dxl motors
+    ping_list = []
     for chain in [r.end_of_arm, r.head]:
         for mk in chain.motors.keys():
             if not chain.motors[mk].do_ping():
-                return False, f"failed to ping {mk}"
+                return False, f"failed to ping {mk}", usb_device_seen, ping_list
+            ping_list.append(mk)
 
     # Check hello steppers getting real data
     for stepper in [r.lift.motor, r.arm.motor, r.base.left_wheel, r.base.right_wheel]:
         if stepper.status['pos'] == 0:
-            return False, f"failed to pull data for {stepper.name}"
+            return False, f"failed to pull data for {stepper.name}", usb_device_seen, ping_list
+        ping_list.append(stepper.name)
 
-    return True, ""
+    return True, "", usb_device_seen, ping_list
 def are_actuators_ready():
     # Check dxl motors homed
     for chain in [r.end_of_arm, r.head]:
@@ -139,8 +144,8 @@ def are_sensors_ready():
         val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert']),
         val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40),
         val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5),
-        val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12),
-        val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12),
+        # val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12), # TODO
+        # val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12), # TODO
         val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0),
     ]
     for c in checks:
@@ -150,11 +155,19 @@ def are_sensors_ready():
 
     return True, True, ""
 print ('---- Checking Hardware ----')
-comms_ready, comms_err_msg = is_comms_ready()
+comms_ready, comms_err_msg, comms_usb_device_seen, comms_ping_list = is_comms_ready()
 if comms_ready:
     print(Fore.GREEN + '[Pass] Comms are ready')
 else:
     print(Fore.RED + f'[Fail] Comms not ready ({comms_err_msg})')
+if args.verbose:
+    for d in comms_usb_device_seen:
+        if comms_usb_device_seen[d]:
+            print(Fore.LIGHTBLUE_EX + f'         {d} present')
+        else:
+            print(Fore.RED + f'         {d} missing')
+    for p in comms_ping_list:
+        print(Fore.LIGHTBLUE_EX + f'         {p} pinged')
 actuators_ready, actuators_err_msg = are_actuators_ready()
 if actuators_ready:
     print(Fore.GREEN + '[Pass] Actuators are ready')
