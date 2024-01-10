@@ -87,6 +87,9 @@ class GamePadTeleop(Device):
         self.dexwrist_ctrl_switch = True
         self.skip_x_button = False
 
+        self.left_stick_button_fn = None
+        self.right_stick_button_fn = None
+
     def using_stretch_gripper(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
             or self.end_of_arm_tool == 'tool_stretch_gripper'
@@ -214,6 +217,8 @@ class GamePadTeleop(Device):
         # Optional custom function button feature / Recommended to use with a non-confliction button key
         # Executes the command assigned to the function_cmd param when the given button key is pressed for a defined duration.
         # self.manage_fn_button(robot,self.controller_state['left_button_pressed']) 
+        self.manage_left_stick_fn_button(self.controller_state['left_stick_button_pressed'])
+        self.manage_right_stick_fn_button(self.controller_state['right_stick_button_pressed'])
 
     def do_motion(self, state = None, robot = None):
         """
@@ -335,6 +340,40 @@ class GamePadTeleop(Device):
                 self.stow_robot(robot)
         else:
             self._last_fn_btn_press = None
+
+    def manage_left_stick_fn_button(self, button_state):
+        """Trigger custom user function for left stick
+        """
+        if self.left_stick_button_fn == None:
+            return
+
+        if button_state:
+            if not self._last_left_stick_fn_btn_press:
+                self._last_left_stick_fn_btn_press = time.time()
+
+            if time.time() - self._last_left_stick_fn_btn_press >= self.fn_button_detect_span:
+                click.secho("Executing Left Stick Custom Function", fg="green", bold=True)
+                self.left_stick_button_fn()
+                self._last_left_stick_fn_btn_press = None
+        else:
+            self._last_left_stick_fn_btn_press = None
+
+    def manage_right_stick_fn_button(self, button_state):
+        """Trigger custom user function for right stick
+        """
+        if self.right_stick_button_fn == None:
+            return
+
+        if button_state:
+            if not self._last_right_stick_fn_btn_press:
+                self._last_right_stick_fn_btn_press = time.time()
+
+            if time.time() - self._last_right_stick_fn_btn_press >= self.fn_button_detect_span:
+                click.secho("Executing right Stick Custom Function", fg="green", bold=True)
+                self.right_stick_button_fn()
+                self._last_right_stick_fn_btn_press = None
+        else:
+            self._last_right_stick_fn_btn_press = None
 
     def manage_fn_button(self, robot, button_state):
         """Detect function button press
