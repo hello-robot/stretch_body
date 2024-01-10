@@ -149,7 +149,6 @@ def are_sensors_ready():
             return True, False, check_msg
 
     return True, True, ""
-print(Style.RESET_ALL)
 print ('---- Checking Hardware ----')
 comms_ready, comms_err_msg = is_comms_ready()
 if comms_ready:
