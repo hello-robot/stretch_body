@@ -85,41 +85,12 @@ if robot_devices['hello-pimu']:
 # #####################################################
 print(Style.RESET_ALL)
 
-if robot_devices['hello-dynamixel-wrist']:
-    print('---- Checking EndOfArm ----')
-    w = r.end_of_arm
-    try:
-        for mk in w.motors.keys():
-            if w.motors[mk].params['req_calibration']:
-                if w.motors[mk].motor.is_calibrated():
-                    print(Fore.GREEN + '[Pass] Homed: ' + mk)
-                else:
-                    print(Fore.RED + '[Fail] Not Homed: ' + mk)
-                print(Style.RESET_ALL)
-    except(IOError, DynamixelCommError):
-        print(Fore.RED + '[Fail] Startup of EndOfArm')
 # #####################################################
 print(Style.RESET_ALL)
 if robot_devices['hello-wacc']:
     print('---- Checking Wacc ----')
     w=r.wacc
     val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-arm']:
-    print('---- Checking hello-motor-arm ----')
-    m = r.arm.motor
-    val_is_not('Position Homed', m.status['pos_calibrated'], vnot=False)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-lift']:
-    print('---- Checking hello-motor-lift ----')
-    m = r.lift.motor
-    val_is_not('Position Homed', m.status['pos_calibrated'], vnot=False)
     print(Style.RESET_ALL)
 
 # #####################################################
@@ -174,6 +145,21 @@ def is_comms_ready():
             return False, f"failed to pull data for {stepper.name}"
 
     return True, ""
+def are_actuators_ready():
+    # Check dxl motors homed
+    for chain in [r.end_of_arm, r.head]:
+        for mk in chain.motors.keys():
+            if chain.motors[mk].params['req_calibration'] and not chain.motors[mk].motor.is_calibrated():
+                return False, "robot not homed"
+
+    # Check hello steppers homed
+    for stepper in [r.lift.motor, r.arm.motor]:
+        if not stepper.status['pos_calibrated']:
+            return False, "robot not homed"
+
+    return True, ""
+def are_sensors_ready():
+    return True, ""
 print(Style.RESET_ALL)
 print ('---- Checking Hardware ----')
 comms_ready, comms_err_msg = is_comms_ready()
@@ -181,8 +167,16 @@ if comms_ready:
     print(Fore.GREEN + '[Pass] Comms are ready')
 else:
     print(Fore.RED + f'[Fail] Comms not ready ({comms_err_msg})')
-print(Fore.GREEN + '[Pass] Actuators are ready')
-print(Fore.GREEN + '[Pass] Sensors are ready')
+actuators_ready, actuators_err_msg = are_actuators_ready()
+if actuators_ready:
+    print(Fore.GREEN + '[Pass] Actuators are ready')
+else:
+    print(Fore.RED + f'[Fail] Actuators not ready ({actuators_err_msg})')
+sensors_ready, sensors_err_msg = are_sensors_ready()
+if sensors_ready:
+    print(Fore.GREEN + '[Pass] Sensors are ready')
+else:
+    print(Fore.RED + f'[Fail] Sensors not ready ({sensors_err_msg})')
 # #####################################################
 try: # TODO: remove try/catch after sw check verified to work reliably
     def get_ip():
