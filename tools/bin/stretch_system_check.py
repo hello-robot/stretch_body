@@ -39,8 +39,20 @@ import logging
 logging.getLogger('sh').setLevel(logging.CRITICAL)
 logging.getLogger('rplidar').setLevel(logging.CRITICAL)
 
-# get robot model
-stretch_model = stretch_body.device.Device(name='robot', req_params=False).params.get('model_name', '')
+# print robot info
+device = stretch_body.device.Device(name='robot', req_params=False)
+stretch_serial_no = device.params.get('serial_no', '')
+stretch_model = device.params.get('model_name', '')
+stretch_batch = device.params.get('batch_name', '')
+if stretch_model == "SE3":
+    print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch 3')
+elif stretch_model == "RE2V0":
+    print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch 2')
+elif stretch_model == "RE1V0":
+    print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch RE1')
+if args.verbose:
+    print(Fore.LIGHTBLUE_EX + 'Batch = ' + Fore.CYAN + stretch_batch)
+print(Fore.LIGHTBLUE_EX + 'Serial Number = ' + Fore.CYAN + stretch_serial_no)
 
 # create robot instance
 r=robot.Robot()
@@ -154,6 +166,7 @@ def are_sensors_ready():
             return True, False, check_msg
 
     return True, True, ""
+print(Style.RESET_ALL)
 print ('---- Checking Hardware ----')
 comms_ready, comms_err_msg, comms_usb_device_seen, comms_ping_list = is_comms_ready()
 if comms_ready:
