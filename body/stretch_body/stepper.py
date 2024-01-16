@@ -663,7 +663,9 @@ class StepperBase(Device):
         self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
         self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]
         sidx += 20
-        self.board_info['stepper_type'] = self.get_stepper_type(unpack_uint8_t(s[sidx:]));sidx += 1
+
+        if int(self.board_info['protocol_version'].strip('p')) >= 5:
+            self.board_info['stepper_type'] = self.get_stepper_type(unpack_uint8_t(s[sidx:]));sidx += 1
         return sidx
 
     def unpack_status(self,s,unpack_to=None): #Base
