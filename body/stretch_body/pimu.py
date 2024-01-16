@@ -102,9 +102,12 @@ class IMU(IMUBase):
     def __init__(self):
         IMUBase.__init__(self)
         # Order in descending order so more recent protocols/methods override less recent
-        self.supported_protocols = {'p0': (IMU_Protocol_P0,), 'p1': (IMU_Protocol_P1,IMU_Protocol_P0,),
-                                    'p2': (IMU_Protocol_P1,IMU_Protocol_P0,),'p3': (IMU_Protocol_P1,IMU_Protocol_P0,),
-                                    'p4': (IMU_Protocol_P1,IMU_Protocol_P0,)}
+        self.supported_protocols = {'p0': (IMU_Protocol_P0,), 
+                                    'p1': (IMU_Protocol_P1,IMU_Protocol_P0,),
+                                    'p2': (IMU_Protocol_P1,IMU_Protocol_P0,),
+                                    'p3': (IMU_Protocol_P1,IMU_Protocol_P0,),
+                                    'p4': (IMU_Protocol_P1,IMU_Protocol_P0,),
+                                    'p5': (IMU_Protocol_P1,IMU_Protocol_P0,)}
 
 # ##################################################################################
 class PimuBase(Device):
@@ -144,6 +147,7 @@ class PimuBase(Device):
     STATE_CHARGER_CONNECTED = 2048
     STATE_BOOT_DETECTED = 4096
     STATE_IS_TRACE_ON = 8192
+    STATE_IS_CHARGER_CHARGING = 16384
 
     TRIGGER_BOARD_RESET = 1
     TRIGGER_RUNSTOP_RESET = 2
@@ -181,7 +185,7 @@ class PimuBase(Device):
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'trace_on':0,
                        'motor_sync_rate': 0, 'motor_sync_cnt': 0, 'motor_sync_queues': 0, 'motor_sync_drop': 0,
-                       'transport': self.transport.status, 'current_charge':0}
+                       'transport': self.transport.status, 'current_charge':0, 'charger_is_charging':False}
 
         self.status_zero=self.status.copy()
         self.status_aux = {'foo': 0}
@@ -870,20 +874,17 @@ class Pimu_Protocol_P4(PimuBase):
         sidx = 0
         sidx = sidx + Pimu_Protocol_P2.unpack_status(self, s, unpack_to)
         self.status['current_charge'] = self.get_current_charge(unpack_float_t(s[sidx:]));sidx += 4
-        # unpack_to['voltage'] = self.get_voltage(unpack_float_t(s[sidx:]));
-        # sidx += 4
         return sidx
-    # def pack_gains(self, s, sidx):
-    #     sidx = sidx + Stepper_Protocol_P3.pack_gains(self, s, sidx)
-    #     pack_float_t(s, sidx, self.gains['voltage_LPF']);
-    #     sidx += 4
-    #     return sidx
-    #
-    # def unpack_gains(self, s):
-    #     sidx = Stepper_Protocol_P3.unpack_gains(self, s)
-    #     self.gains_flash['voltage_LPF'] = unpack_float_t(s[sidx:]);
-    #     sidx += 4
-    #     return sidx
+
+# ######################## PIMU PROTOCOL P5 #################################
+class Pimu_Protocol_P5(PimuBase):
+    def unpack_status(self, s, unpack_to=None):  # P5
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx = 0
+        sidx = sidx + Pimu_Protocol_P4.unpack_status(self, s, unpack_to)
+        unpack_to['charger_is_charging'] = (unpack_to['state'] & self.STATE_IS_CHARGER_CHARGING) != 0
+        return sidx
 # ######################## PIMU #################################
 class Pimu(PimuBase):
     """
@@ -895,7 +896,8 @@ class Pimu(PimuBase):
         self.supported_protocols = {'p0': (Pimu_Protocol_P0,), 'p1': (Pimu_Protocol_P1, Pimu_Protocol_P0,),
                                     'p2': (Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
                                     'p3': (Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
-                                    'p4': (Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,)}
+                                    'p4': (Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
+                                    'p5': (Pimu_Protocol_P5, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,)}
 
     def startup(self, threaded=False):
         """
