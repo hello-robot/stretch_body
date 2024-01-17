@@ -593,6 +593,7 @@ class PrismaticJoint(Device):
 
         for dir in ['pos','neg']:
             if in_collision[dir] and not self.in_collision_stop[dir]:
+                print('New collision',self.name)
                 # Stop current motion
                 self.motor.enable_safety()
                 self.push_command()

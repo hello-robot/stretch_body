@@ -87,9 +87,15 @@ def check_ppd_edges_in_cube(cube,cube_edge,edge_indices):
         return False
     aabb_min=np.array([min(cube[:, 0]),min(cube[:, 1]),min(cube[:, 2])],dtype=np.float32)
     aabb_max = np.array([max(cube[:, 0]),max(cube[:, 1]),max(cube[:, 2])],dtype=np.float32)
+    print('EE',cube_edge)
     for ei in edge_indices:
         e0=cube_edge[ei][0][0:3]
         e1=cube_edge[ei][1][0:3]
+        print('----',ei)
+        print('e0',e0)
+        print('e1', e1)
+        print('aabb_min', aabb_min)
+        print('aabb_max', aabb_max)
         if line_box_sat_intersection(e0,e1, aabb_min, aabb_max):
             return True
     return False
@@ -134,13 +140,26 @@ class CollisionLink:
         """
         Return the indices for each edge assuming the link is a parallelpiped (PPD)
         """
+
+        triangles=self.mesh.cells_dict['triangle']
+
+        for t in triangles:
+            idx_pairs=[[0,1],[0,2],[1,2]]
+            edge_lens=[]
+            for ii in idx_pairs:
+                edge_lens.append(np.linalg.norm(self.points[ii[0]]-self.points[ii[2]]))
+            exterior_edges = np.array(idx_pairs)[np.argsort(np.array(edge_lens))][0:2] #indices of two shortest legs of triangle
+
+
+
+
         px=self.points.shape[0]
         # if not self.is_ppd():
         #     return np.array([])
         idx=[]
         lens=[]
         #Toss out really short edge as is a mesh file artifact
-        eps=.000001
+
         for i in range(px):
             for j in range(i+1,px):
                 ll = np.linalg.norm(self.points[i] - self.points[j])
@@ -148,9 +167,9 @@ class CollisionLink:
                     idx.append([i,j])
                     lens.append(ll)
         #return 12 shortest lengths of all possible combinations
-
         q= np.array(idx)[np.argsort(np.array(lens))][0:12]
         lens.sort()
+        print('LENS',lens)
         return q
 
     def check_AABB(self,pts):
@@ -354,10 +373,21 @@ class RobotCollisionMgmt(Device):
                 if cp.detect_as=='pts':
                     cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
+                    print('Checking', cp.name)
                     cp.in_collision = check_ppd_edges_in_cube(cube=cp.link_cube.pose, cube_edge=cp.link_pts.pose,edge_indices=cp.link_pts.edge_indices_ppd)
                 else:
                     cp.in_collision =False
                     #cp.pretty_print()
+
+                #Propogate to links
+                self.collision_links[cp.link_cube.name].in_collision=self.collision_links[cp.link_cube.name].in_collision or cp.in_collision
+                self.collision_links[cp.link_pts.name].in_collision =self.collision_links[cp.link_pts.name].in_collision or cp.in_collision
+
+                # Beep on new collision
+                if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
+                    print('New collision pair event: %s'%pair_name)
+                    print('\a')
+                    #chime.warning()
 
         #Now update joint state
         for joint_name in self.collision_joints:
@@ -366,18 +396,7 @@ class RobotCollisionMgmt(Device):
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
                     cj.in_collision[cj.collision_dirs[cp.name]] = True
-                #Propogate to links
-                self.collision_links[cp.link_cube.name].in_collision=self.collision_links[cp.link_cube.name].in_collision or cp.in_collision
-                self.collision_links[cp.link_pts.name].in_collision =self.collision_links[cp.link_pts.name].in_collision or cp.in_collision
-
-            # Beep on new collision
-            for pair_name in self.collision_pairs:
-                if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
-                    print('\a')
-                    #chime.warning()
-
-        #Finally, update the collision state for each joint
-        for joint_name in self.collision_joints:
+            #Finally, update the collision state for each joint
             self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
 
 
