@@ -549,9 +549,13 @@ class Robot(Device):
             print('--------- Homing Head ----')
             self.head.home()
 
-        # Wrist pitch should be lifted up before moving lift
-        if 'wrist_pitch' in self.end_of_arm.joints:
-            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+        # Wrist pitch should be angled somewhere in between the lift leaving
+        # the base of its range and before it reaches the top of its range.
+        def _angle_pitch():
+            time.sleep(1) # wait 1 sec to leave bottom of lift's range
+            if 'wrist_pitch' in self.end_of_arm.joints:
+                self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+        threading.Thread(target=_angle_pitch).start()
 
         # Home the lift
         if self.lift is not None:
