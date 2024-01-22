@@ -318,11 +318,16 @@ class DynamixelHelloXL430(Device):
                 return
         else:
             x = data['x']
+            pos_valid = x != None
             v = data['v']
+            vel_valid = v != None
             eff = data['eff']
+            eff_valid = eff != None
             temp = data['temp']
+            temp_valid = temp != None
             ts = data['ts']
             err = data['err']
+            err_valid = err != None
 
         #Now update status dictionary
         if pos_valid:
