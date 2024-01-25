@@ -253,7 +253,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
                 'librealsense2': True,
             },
             '22.04': {
-                'ros-iron-librealsense2': False,
+                'ros-humble-librealsense2': False,
                 'librealsense2': True,
             }
         }
