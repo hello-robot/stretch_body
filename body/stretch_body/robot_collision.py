@@ -5,7 +5,7 @@ import urchin as urdf_loader
 import meshio
 import numpy as np
 import time
-from audioplayer import AudioPlayer
+import playsound
 
 try:
     # works on ubunut 22.04
@@ -135,7 +135,6 @@ class RobotCollisionMgmt(Device):
         self.collision_joints = {}
         self.collision_links = {}
         self.collision_pairs = {}
-        self.beep=AudioPlayer('/usr/share/sounds/ubuntu/stereo/message.ogg')
         self.running=True
 
     def pretty_print(self):
@@ -248,7 +247,7 @@ class RobotCollisionMgmt(Device):
         #Collision detection as possible (otherwise the longer time can allow a collision in worst case conditions)
         for pair_name in self.collision_pairs:
             if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
-                self.beep.play(block=False)
+                playsound.playsound('/usr/share/sounds/ubuntu/stereo/message.ogg', block=False)
 
     def is_link_in_collsion(self,link_name):
         if self.urdf is None:
