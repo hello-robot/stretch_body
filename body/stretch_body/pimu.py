@@ -893,11 +893,12 @@ class Pimu(PimuBase):
     def __init__(self, event_reset=False, usb=None):
         PimuBase.__init__(self, event_reset,usb)
         # Order in descending order so more recent protocols/methods override less recent
-        self.supported_protocols = {'p0': (Pimu_Protocol_P0,), 'p1': (Pimu_Protocol_P1, Pimu_Protocol_P0,),
+        self.supported_protocols = {'p0': (Pimu_Protocol_P0,),
+                                    'p1': (Pimu_Protocol_P1, Pimu_Protocol_P0,),
                                     'p2': (Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
                                     'p3': (Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
                                     'p4': (Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
-                                    'p5': (Pimu_Protocol_P5, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,)}
+                                    'p5': (Pimu_Protocol_P5, Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,)}
 
     def startup(self, threaded=False):
         """
