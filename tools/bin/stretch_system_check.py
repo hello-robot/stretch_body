@@ -344,14 +344,13 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             latest_pip_version = {p: version.parse(scan_dict['pip'].get(p, '0.0.0')) for p in latest_pip_version}
 
         # check current against latest
-        try: # The try/except catches pip pkgs that aren't installed
-            for pip_pkg in pip_versions:
-                p = version.parse(pip_versions[pip_pkg])
-                if p < latest_pip_version[pip_pkg]:
-                    return False, pip_versions, pip_editable_locations
-        except:
-            return False, pip_versions, pip_editable_locations
-        return True, pip_versions, pip_editable_locations
+        for pip_pkg in pip_versions:
+            if pip_versions[pip_pkg] is None:
+                return False, f"run pip3 install -U {pip_pkg}", pip_versions, pip_editable_locations
+            p = version.parse(pip_versions[pip_pkg])
+            if p < latest_pip_version[pip_pkg]:
+                return False, f"run pip3 install -U {pip_pkg}", pip_versions, pip_editable_locations
+        return True, "", pip_versions, pip_editable_locations
     def all_ros_correct():
         ros1_distros = ['noetic', 'melodic', 'lunar', 'kinetic', 'jade', 'indigo']
         ros2_distros = ['rolling', 'jazzy', 'iron', 'humble', 'galactic', 'foxy', 'eloquent', 'dashing']
@@ -464,7 +463,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
     if fw_uptodate:
         print(Fore.GREEN + '[Pass] Firmware is up-to-date')
     else:
-        print(Fore.YELLOW + '[Warn] Firmware not up-to-date (try REx_firmware_updater.py --install)')
+        print(Fore.YELLOW + '[Warn] Firmware not up-to-date (run REx_firmware_updater.py --install)')
     print(Fore.LIGHTBLUE_EX + '         hello-pimu = ' + Fore.CYAN + fw_versions['pimu'])
     print(Fore.LIGHTBLUE_EX + '         hello-wacc = ' + Fore.CYAN + fw_versions['wacc'])
     print(Fore.LIGHTBLUE_EX + '         hello-motor-arm = ' + Fore.CYAN + fw_versions['arm'])
@@ -472,11 +471,11 @@ try: # TODO: remove try/catch after sw check verified to work reliably
     print(Fore.LIGHTBLUE_EX + '         hello-motor-left-wheel = ' + Fore.CYAN + fw_versions['left-wheel'])
     print(Fore.LIGHTBLUE_EX + '         hello-motor-right-wheel = ' + Fore.CYAN + fw_versions['right-wheel'])
     # Python
-    pip_uptodate, pip_versions, pip_editable_locations = all_pip_uptodate()
+    pip_uptodate, pip_err_msg, pip_versions, pip_editable_locations = all_pip_uptodate()
     if pip_uptodate:
         print(Fore.GREEN + '[Pass] Python pkgs are up-to-date')
     else:
-        print(Fore.YELLOW + '[Warn] Python pkgs not up-to-date')
+        print(Fore.YELLOW + f'[Warn] Python pkgs not up-to-date ({pip_err_msg})')
     for bname in ['hello-robot-stretch-body', 'hello-robot-stretch-body-tools', 'hello-robot-stretch-tool-share', 'hello-robot-stretch-factory', 'hello-robot-stretch-diagnostics', 'hello-robot-stretch-urdf']:
         print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
     # ROS
