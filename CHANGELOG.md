@@ -2,6 +2,14 @@
 
 The changes between releases of Stretch Body are documented here.
 
+## [0.7.0](https://pypi.org/project/hello-robot-stretch-body/0.7.0/) - January 25, 2023
+ - Introduces P5 firmware protocol support
+ - Revamped system check tool
+ - Revamped wrist/tool management system
+ - Started development on a self collision avoidance system
+ - Utilities and CLI to introspect UVC cameras
+ - Support for Dex Wrist 3
+
 ## [0.6.8](https://pypi.org/project/hello-robot-stretch-body/0.6.8/) - December 7, 2023
 - Deprecate `robot.is_calibrated()` and introduce `robot.is_homed()` to match homing nomenclature used elsewhere ([details](https://github.com/hello-robot/stretch_body/pull/212))
 - Added a `robot.wait_command()` method to easily block process execution until motion is completed ([details](https://github.com/hello-robot/stretch_body/pull/211))
