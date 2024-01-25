@@ -857,10 +857,11 @@ class StepperBase(Device):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
     def get_stepper_type(self, raw):
-        mt = [None, 'hello-motor-left-wheel','hello-motor-right-wheel', 'hello-motor-arm', 'hello-motor-lift']
-        for i in range (0,len(mt)):
-            if raw == i:
-                return mt[i]
+        try:
+            mt = [None, 'hello-motor-left-wheel','hello-motor-right-wheel', 'hello-motor-arm', 'hello-motor-lift']
+            return mt[raw]
+        except IndexError:
+            return None
 
 # ######################## STEPPER PROTOCOL PO #################################
 
@@ -1345,7 +1346,7 @@ class Stepper_Protocol_P5(StepperBase):
             if motor_type == mt[i]:
                 motor_type = i
                 break
-        if isinstance(motor_type, str) or motor_type > 4:
+        if not isinstance(motor_type, int) or (motor_type < 0 or motor_type > 4):
             print("Error Unrecoginzed Stepper Motor Type")
             return
         payload = self.transport.get_empty_payload()
