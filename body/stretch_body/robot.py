@@ -8,6 +8,7 @@ import os
 import sys
 from IPython import get_ipython
 from filelock import FileLock, Timeout
+import traceback
 
 from stretch_body.device import Device
 import stretch_body.base as base
@@ -22,7 +23,7 @@ from serial import SerialException
 
 from stretch_body.robot_monitor import RobotMonitor
 from stretch_body.robot_trace import RobotTrace
-from stretch_body.robot_collision import RobotCollision
+from stretch_body.robot_collision import RobotCollisionMgmt
 
 # #############################################################
 class DXLHeadStatusThread(threading.Thread):
@@ -114,7 +115,11 @@ class NonDXLStatusThread(threading.Thread):
             if not self.shutdown_flag.is_set():
                 self.step()
             self.first_status = True
+        self.stop()
         self.robot.logger.debug('Shutting down NonDXLStatusThread')
+    
+    def stop(self):
+        self.loop.stop()
 
 class SystemMonitorThread(threading.Thread):
     """
@@ -132,8 +137,6 @@ class SystemMonitorThread(threading.Thread):
         self.collision_downrate_int = int(robot.params['rates']['SystemMonitorThread_collision_downrate_int'])  # Step the monitor at every Nth iteration
         self.trajectory_downrate_int = int(robot.params['rates']['SystemMonitorThread_nondxl_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
 
-        if self.robot.params['use_collision_manager']:
-            self.robot.collision.startup()
         if self.robot.params['use_monitor']:
             self.robot.monitor.startup()
         self.shutdown_flag = threading.Event()
@@ -153,7 +156,7 @@ class SystemMonitorThread(threading.Thread):
         if self.robot.params['use_sentry']:
             if (self.titr % self.sentry_downrate_int) == 0:
                 self.robot._step_sentry()
-        if self.robot.params['use_collision_manager'] and self.robot.is_homed():
+        if self.robot.is_homed():
             self.robot.collision.step()
         if (self.titr % self.trajectory_downrate_int) == 0:
             self.robot._update_trajectory_non_dynamixel()
@@ -191,7 +194,7 @@ class Robot(Device):
 
         self.monitor = RobotMonitor(self)
         self.trace = RobotTrace(self)
-        self.collision = RobotCollision(self)
+        self.collision = RobotCollisionMgmt(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
@@ -220,13 +223,47 @@ class Robot(Device):
             self.wacc=wacc.Wacc()
         self.status['wacc']=self.wacc.status
 
+        self.non_dxl_thread = None
+        self.dxl_end_of_arm_thread = None
+        self.sys_thread = None
+        self.dxl_head_thread = None
+        self.event_loop_thread = None
 
-        tool_name = self.params['tool']
-        module_name = self.robot_params[tool_name]['py_module_name']
-        class_name = self.robot_params[tool_name]['py_class_name']
+        self.eoa_name= self.params['tool']
+        module_name = self.robot_params[self.eoa_name]['py_module_name']
+        class_name = self.robot_params[self.eoa_name]['py_class_name']
         self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
         self.status['end_of_arm'] = self.end_of_arm.status
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
+
+        self.GLOBAL_EXCEPTIONS_LIST = []
+        threading.excepthook = self.custom_excepthook
+
+        
+    def custom_excepthook(self, args):
+        thread_name = args.thread.name
+        exec = {}
+        exec[thread_name] = {
+            'thread': args.thread,
+            'exception': {
+                'type': args.exc_type,
+                'value': args.exc_value,
+                'traceback': args.exc_traceback
+            }
+        }
+
+        # Filter RuntimeError
+        if exec[thread_name]['exception']['type'] == RuntimeError:
+            pass
+        else:
+            print(f"Caught Exception in Thread: {thread_name}")
+            traceback.print_exception(args.exc_value)
+
+        self.logger.debug(f"Caught Exception in Thread: {thread_name}")
+        self.logger.debug(traceback.format_exception(args.exc_value))
+
+        self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
+
     # ###########  Device Methods #############
 
     def startup(self,start_non_dxl_thread=True,start_dxl_thread=True,start_sys_mon_thread=True):
@@ -256,6 +293,11 @@ class Robot(Device):
             self.params['use_asyncio']=0
         else:
             self.start_event_loop()
+
+        #Always startup to load URDFs now and not while thread is running
+        self.collision.startup()
+        if not self.params['use_collision_manager']: #Turn it off here but allow user to enable it via SW later
+            self.disable_collision_mgmt()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
@@ -292,18 +334,22 @@ class Robot(Device):
         """
         self.logger.debug('---- Shutting down robot ----')
         self._file_lock.release()
-        if self.non_dxl_thread.running:
-            self.non_dxl_thread.shutdown_flag.set()
-            self.non_dxl_thread.join(1)
-        if self.dxl_head_thread.running:
-            self.dxl_head_thread.shutdown_flag.set()
-            self.dxl_head_thread.join(1)
-        if self.dxl_end_of_arm_thread.running:
-            self.dxl_end_of_arm_thread.shutdown_flag.set()
-            self.dxl_end_of_arm_thread.join(1)
-        if self.sys_thread.running:
-            self.sys_thread.shutdown_flag.set()
-            self.sys_thread.join(1)
+        if self.non_dxl_thread:
+            if self.non_dxl_thread.running:
+                self.non_dxl_thread.shutdown_flag.set()
+                self.non_dxl_thread.join(1)
+        if self.dxl_head_thread:
+            if self.dxl_head_thread.running:
+                self.dxl_head_thread.shutdown_flag.set()
+                self.dxl_head_thread.join(1)
+        if self.dxl_end_of_arm_thread:
+            if self.dxl_end_of_arm_thread.running:
+                self.dxl_end_of_arm_thread.shutdown_flag.set()
+                self.dxl_end_of_arm_thread.join(1)
+        if self.sys_thread:
+            if self.sys_thread.running:
+                self.sys_thread.shutdown_flag.set()
+                self.sys_thread.join(1)
         for k in self.devices:
             if self.devices[k] is not None:
                 self.logger.debug('Shutting down %s'%k)
@@ -364,6 +410,12 @@ class Robot(Device):
 
             if (self.pimu.ts_last_motor_sync is None or ( ready and sync_required)):
                 self.pimu.trigger_motor_sync()
+
+    def enable_collision_mgmt(self):
+        self.collision.enable()
+
+    def disable_collision_mgmt(self):
+        self.collision.disable()
 
     def wait_command(self, timeout=15.0):
         time.sleep(0.5)
@@ -474,7 +526,7 @@ class Robot(Device):
             time.sleep(0.1)
         self.end_of_arm.stow()
         time.sleep(0.25)
-        self.end_of_arm.stow()
+       # self.end_of_arm.stow()
         #Now bring lift down
         if not lift_stowed:
             print('--------- Stowing Lift ----')
@@ -496,6 +548,14 @@ class Robot(Device):
         if self.head is not None:
             print('--------- Homing Head ----')
             self.head.home()
+
+        # Wrist pitch should be angled somewhere in between the lift leaving
+        # the base of its range and before it reaches the top of its range.
+        def _angle_pitch():
+            time.sleep(1) # wait 1 sec to leave bottom of lift's range
+            if 'wrist_pitch' in self.end_of_arm.joints:
+                self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+        threading.Thread(target=_angle_pitch).start()
 
         # Home the lift
         if self.lift is not None:
@@ -561,16 +621,18 @@ class Robot(Device):
     
     def start_event_loop(self):
         self.async_event_loop = asyncio.new_event_loop()
-        def start_loop(loop):
-            asyncio.set_event_loop(loop)
-            loop.run_forever()
-        self.event_loop_thread = threading.Thread(target=start_loop, args=(self.async_event_loop,), name='AsyncEvenLoopThread')
+        self.event_loop_thread = threading.Thread(target=self._event_loop, name='AsyncEvenLoopThread')
+        self.event_loop_thread.setDaemon(True)
         self.event_loop_thread.start()
-    
+        
+    def _event_loop(self):
+            asyncio.set_event_loop(self.async_event_loop)
+            self.async_event_loop.run_forever()
+
     def stop_event_loop(self):
         try:
             if self.event_loop_thread:
-                self.async_event_loop.call_soon_threadsafe(self.async_event_loop.stop())
+                asyncio.run_coroutine_threadsafe(self.async_event_loop.stop())
                 self.event_loop_thread.join()
-        except:
+        except TypeError as e:
             pass

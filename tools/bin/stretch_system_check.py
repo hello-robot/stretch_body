@@ -1,177 +1,201 @@
 #!/usr/bin/env python3
-from __future__ import print_function
+
+import stretch_body.hello_utils as hu
+hu.print_stretch_re_use()
+
+import os
 import sh
 import re
 import apt
 import git
-import distro
-import pathlib
-from packaging import version
 import yaml
-import time
+import distro
+import fnmatch
+import pathlib
 import datetime
-import stretch_body.robot as robot
-import os, fnmatch
-import subprocess
-from colorama import Fore, Back, Style
 import argparse
-import stretch_body.hello_utils as hu
-from stretch_body.dynamixel_XL430 import *
-import stretch_body.device
-hu.print_stretch_re_use()
+from packaging import version
+from colorama import Fore, Back, Style
 
+import rplidar
+import pyrealsense2 as rs
+import stretch_body.device
+import stretch_body.robot as robot
 
 parser=argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
+parser.add_argument('-v', "--verbose", help="Prints more information", action="store_true")
 args=parser.parse_args()
 
-# #####################################################
+# ###################   SETUP    ######################
 def val_in_range(val_name, val,vmin, vmax):
     p=val <=vmax and val>=vmin
     if p:
-        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
+        return True, f"{val_name} = {val:.2f}"
     else:
-        print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val)+ ' out of range ' +str(vmin) + ' to ' + str(vmax))
+        return False, f"{val_name} = {val:.2f} out of range {vmin} to {vmax}"
 
-def val_in_range_warn(val_name, val,vmin, vmax, hint=""):
-    p=val <=vmax and val>=vmin
-    if p:
-        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
-    else:
-        print(Fore.YELLOW +'[Warn] ' + val_name + ' = ' +str(val)+ ' out of range ' +str(vmin) + ' to ' + str(vmax) + hint)
-
-def val_is_not(val_name, val,vnot):
-    if val is not vnot:
-        print(Fore.GREEN +'[Pass] ' + val_name + ' = ' + str(val))
-    else:
-        print(Fore.RED +'[Fail] ' + val_name + ' = ' +str(val))
-
-#Turn off logging so get a clean output
+# Turn off logging so get a clean output
 import logging
 logging.getLogger('sh').setLevel(logging.CRITICAL)
-#logging.disable(logging.CRITICAL)
+logging.getLogger('rplidar').setLevel(logging.CRITICAL)
+
+# print robot info
+device = stretch_body.device.Device(name='robot', req_params=False)
+stretch_serial_no = device.params.get('serial_no', '')
+stretch_model = device.params.get('model_name', '')
+stretch_batch = device.params.get('batch_name', '')
+if stretch_model == "SE3":
+    print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch 3')
+elif stretch_model == "RE2V0":
+    print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch 2')
+elif stretch_model == "RE1V0":
+    print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch RE1')
+if args.verbose:
+    print(Fore.LIGHTBLUE_EX + 'Batch = ' + Fore.CYAN + stretch_batch)
+print(Fore.LIGHTBLUE_EX + 'Serial Number = ' + Fore.CYAN + stretch_serial_no)
+
+# create robot instance
 r=robot.Robot()
 r.startup()
 
-# #####################################################
-print(Style.RESET_ALL)
-print('---- Checking Devices ----')
-robot_devices={'hello-wacc':0, 'hello-motor-left-wheel':0,'hello-pimu':0, 'hello-lrf':0,'hello-dynamixel-head':0,'hello-dynamixel-wrist':0,'hello-motor-arm':0,'hello-motor-right-wheel':0,
-               'hello-motor-lift':0,'hello-respeaker':0}
+# ###################  HARDWARE  ######################
+def is_comms_ready():
+    # Establish what USB devices we expect to see
+    usb_device_seen = {
+        'hello-wacc': False,
+        'hello-motor-left-wheel': False,
+        'hello-pimu': False,
+        'hello-lrf': False,
+        'hello-dynamixel-head': False,
+        'hello-dynamixel-wrist': False,
+        'hello-motor-arm': False,
+        'hello-motor-right-wheel': False,
+        'hello-motor-lift': False,
+        'hello-respeaker': False,
+    }
+    if stretch_model == "SE3":
+        usb_device_seen['hello-navigation-camera'] = False
 
-listOfFiles = os.listdir('/dev')
-pattern = "hello*"
-for entry in listOfFiles:
-    if fnmatch.fnmatch(entry, pattern):
-            robot_devices[entry]=1
-for k in robot_devices.keys():
-    if robot_devices[k]:
-        print(Fore.GREEN +'[Pass] : '+k)
-    else:
-        print(Fore.RED +'[Fail] : '+ k)
-# #####################################################
+    # Mark which USB devices we actually see
+    listOfFiles = os.listdir('/dev')
+    pattern = "hello*"
+    for entry in listOfFiles:
+        if fnmatch.fnmatch(entry, pattern):
+                usb_device_seen[entry] = True
 
-print(Style.RESET_ALL)
-if robot_devices['hello-pimu']:
-    print('---- Checking Pimu ----')
+    # Return error if not all USB devices seen
+    for d in usb_device_seen:
+        if not usb_device_seen[d]:
+            return False, f"missing /dev/{d}", usb_device_seen, []
+
+    # Ping all dxl motors
+    ping_list = []
+    for chain in [r.end_of_arm, r.head]:
+        for mk in chain.motors.keys():
+            if not chain.motors[mk].do_ping():
+                return False, f"failed to ping {mk}", usb_device_seen, ping_list
+            ping_list.append(mk)
+
+    # Check hello steppers getting real data
+    for stepper in [r.lift.motor, r.arm.motor, r.base.left_wheel, r.base.right_wheel]:
+        if stepper.status['pos'] == 0:
+            return False, f"failed to pull data for {stepper.name}", usb_device_seen, ping_list
+        ping_list.append(stepper.name)
+
+    return True, "", usb_device_seen, ping_list
+def are_actuators_ready():
+    # Check dxl motors homed
+    for chain in [r.end_of_arm, r.head]:
+        for mk in chain.motors.keys():
+            if chain.motors[mk].params['req_calibration'] and not chain.motors[mk].motor.is_calibrated():
+                return False, "robot not homed"
+
+    # Check hello steppers homed
+    for stepper in [r.lift.motor, r.arm.motor]:
+        if not stepper.status['pos_calibrated']:
+            return False, "robot not homed"
+
+    return True, ""
+def are_sensors_ready():
+    # Establish which Realsense cameras we expect to see
+    rs_camera_seen = {
+        'D435': False,
+    }
+    if stretch_model == "SE3":
+        rs_camera_seen['D405'] = False
+
+    # Mark which Realsense cameras we actually see
+    cameras = [{'name': device.get_info(rs.camera_info.name), 'serial_number': device.get_info(rs.camera_info.serial_number)}
+        for device in rs.context().devices]
+    for cam in cameras:
+        for seen in rs_camera_seen:
+            if seen in cam['name']:
+                rs_camera_seen[seen]=True
+
+    # Return error if not all realsense cameras seen
+    for s in rs_camera_seen:
+        if not rs_camera_seen[s]:
+            return False, False, f"missing {s} camera"
+
+    # Check for lidar
+    try:
+        lidar_dev = stretch_body.device.Device('lidar')
+        lidar_usb = lidar_dev.params['usb_name']
+        lidar = rplidar.RPLidar(lidar_usb, baudrate=115200)
+        lidar.stop_motor()
+    except rplidar.RPLidarException:
+        return False, False, "missing lidar"
+
+    # TODO: Check for microphone array
+
+    # Check pimu and wacc
     p=r.pimu
-    val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
-    val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert'])
-    val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40)
-    val_in_range_warn('Cliff-0',p.status['cliff_range'][0], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
-    val_in_range_warn('Cliff-1',p.status['cliff_range'][1], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
-    val_in_range_warn('Cliff-2',p.status['cliff_range'][2], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
-    val_in_range_warn('Cliff-3',p.status['cliff_range'][3], vmin=p.config['cliff_thresh'], vmax=60, hint=' - calibrate using REx_cliff_sensor_calibrate.py')
-    val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5)
-    val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12)
-    val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-
-if robot_devices['hello-dynamixel-wrist']:
-    print('---- Checking EndOfArm ----')
-    w = r.end_of_arm
-    try:
-        for mk in w.motors.keys():
-            if w.motors[mk].do_ping():
-                print(Fore.GREEN +'[Pass] Ping of: '+mk)
-                if w.motors[mk].params['req_calibration']:
-                    if w.motors[mk].motor.is_calibrated():
-                        print(Fore.GREEN + '[Pass] Calibrated: ' + mk)
-                    else:
-                        print(Fore.RED + '[Fail] Not Calibrated: ' + mk)
-            else:
-                print(Fore.RED + '[Fail] Ping of: ' + mk)
-            print(Style.RESET_ALL)
-    except(IOError, DynamixelCommError):
-        print(Fore.RED + '[Fail] Startup of EndOfArm')
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-dynamixel-head']:
-    print('---- Checking Head ----')
-    h = r.head
-    try:
-        for mk in h.motors.keys():
-            if h.motors[mk].do_ping():
-                print(Fore.GREEN +'[Pass] Ping of: '+mk)
-            else:
-                print(Fore.RED + '[Fail] Ping of: ' + mk)
-            print(Style.RESET_ALL)
-    except(IOError, DynamixelCommError):
-        print(Fore.RED + '[Fail] Startup of EndOfArm')
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-wacc']:
-    print('---- Checking Wacc ----')
     w=r.wacc
-    val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0)
-    print(Style.RESET_ALL)
+    checks = [
+        val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5),
+        val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert']),
+        val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40),
+        val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5),
+        # val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12), # TODO
+        # val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12), # TODO
+        val_in_range('AX',w.status['ax'], vmin=8.0, vmax=11.0),
+    ]
+    for c in checks:
+        check_succeeded, check_msg = c
+        if not check_succeeded:
+            return True, False, check_msg
 
-# #####################################################
+    return True, True, ""
 print(Style.RESET_ALL)
-if robot_devices['hello-motor-left-wheel']:
-    print('---- Checking hello-motor-left-wheel ----')
-    m = r.base.left_wheel
-    val_is_not('Position',m.status['pos'], vnot=0)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-right-wheel']:
-    print('---- Checking hello-motor-right-wheel ----')
-    m = r.base.right_wheel
-    val_is_not('Position',m.status['pos'], vnot=0)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-arm']:
-    print('---- Checking hello-motor-arm ----')
-    m = r.arm.motor
-    val_is_not('Position',m.status['pos'], vnot=0)
-    val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-if robot_devices['hello-motor-lift']:
-    print('---- Checking hello-motor-lift ----')
-    m = r.lift.motor
-    val_is_not('Position',m.status['pos'], vnot=0)
-    val_is_not('Position Calibrated', m.status['pos_calibrated'], vnot=False)
-    print(Style.RESET_ALL)
-
-# #####################################################
-print(Style.RESET_ALL)
-print ('---- Checking for Intel D435i ----')
-cmd = "lsusb -d 8086:0b3a"
-returned_value = subprocess.call(cmd,shell=True)  # returns the exit code in unix
-if returned_value==0:
-    print(Fore.GREEN + '[Pass] : Device found ')
+print ('---- Checking Hardware ----')
+comms_ready, comms_err_msg, comms_usb_device_seen, comms_ping_list = is_comms_ready()
+if comms_ready:
+    print(Fore.GREEN + '[Pass] Comms are ready')
 else:
-    print(Fore.RED + '[Fail] : No device found')
-# #####################################################
+    print(Fore.RED + f'[Fail] Comms not ready ({comms_err_msg})')
+if args.verbose:
+    for d in comms_usb_device_seen:
+        if comms_usb_device_seen[d]:
+            print(Fore.LIGHTBLUE_EX + f'         {d} present')
+        else:
+            print(Fore.RED + f'         {d} missing')
+    for p in comms_ping_list:
+        print(Fore.LIGHTBLUE_EX + f'         {p} pinged')
+actuators_ready, actuators_err_msg = are_actuators_ready()
+if actuators_ready:
+    print(Fore.GREEN + '[Pass] Actuators are ready')
+else:
+    print(Fore.RED + f'[Fail] Actuators not ready ({actuators_err_msg})')
+sensors_ready, sensors_total, sensors_err_msg = are_sensors_ready()
+if sensors_ready:
+    if sensors_total:
+        print(Fore.GREEN + '[Pass] Sensors are ready')
+    else:
+        print(Fore.YELLOW + f'[Warn] Sensors not ready ({sensors_err_msg})')
+else:
+    print(Fore.RED + f'[Fail] Sensors not ready ({sensors_err_msg})')
+
+# ###################  SOFTWARE  ######################
 try: # TODO: remove try/catch after sw check verified to work reliably
     def get_ip():
         # https://stackoverflow.com/a/28950776
@@ -440,7 +464,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
     if fw_uptodate:
         print(Fore.GREEN + '[Pass] Firmware is up-to-date')
     else:
-        print(Fore.YELLOW + '[Warn] Firmware not up-to-date (try REx_firmware_updater.py --recommended)')
+        print(Fore.YELLOW + '[Warn] Firmware not up-to-date (try REx_firmware_updater.py --install)')
     print(Fore.LIGHTBLUE_EX + '         hello-pimu = ' + Fore.CYAN + fw_versions['pimu'])
     print(Fore.LIGHTBLUE_EX + '         hello-wacc = ' + Fore.CYAN + fw_versions['wacc'])
     print(Fore.LIGHTBLUE_EX + '         hello-motor-arm = ' + Fore.CYAN + fw_versions['arm'])

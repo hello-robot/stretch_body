@@ -21,7 +21,10 @@ import dynamixel_sdk.group_sync_read as gsr
 # http://emanual.robotis.com/docs/en/dxl/x/xl430-w250/#control-table
 # XM540-W270
 # https://emanual.robotis.com/docs/en/dxl/x/xm540-w270/#control-table
-
+# xm430-w350
+#https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/
+# xc430-w240
+#https://emanual.robotis.com/docs/en/dxl/x/xc430-w240/
 
 # Control table address
 #EEPROM
@@ -80,6 +83,7 @@ XL430_ADDR_HELLO_CALIBRATED = 661 #Appropriate Indirect Data 56 to store calibra
 
 XM430_ADDR_GOAL_CURRENT = 102
 XM430_ADDR_CURRENT_LIMIT = 38
+XM430_ADDR_PRESENT_CURRENT = 126
 
 COMM_CODES = {
     COMM_SUCCESS: "COMM_SUCCESS",
@@ -103,6 +107,8 @@ BAUD_MAP = {
     4000000: 6,
     4500000: 7
 }
+
+MODEL_NUMBERS = {1080: 'XC430-W240', 1120:'XM540-W270',1060:'XL430-W250',1020:'XM430-W350'}
 
 class DelayedKeyboardInterrupt:
 
@@ -132,30 +138,34 @@ class DynamixelXL430():
     """
     Wrapping of Dynamixel X-Series interface
     """
-    def __init__(self, dxl_id, usb, port_handler=None, pt_lock=None, baud=57600, logger=logging.getLogger()):
+    def __init__(self, dxl_id, usb, port_handler=None, pt_lock=None, baud=115200, logger=logging.getLogger()):
         self.dxl_id = dxl_id
         self.usb = usb
         self.comm_errors = 0
         self.last_comm_success = True
         self.logger = logger
         self.baud=baud
+        self.dxl_model_name=''
         # Make access to portHandler threadsafe
         self.pt_lock = threading.RLock() if pt_lock is None else pt_lock
+        self.hw_valid = False
 
         # Allow sharing of port handler across multiple servos
-        self.packet_handler=None
+        self.port_handler = port_handler
+        self.packet_handler= None
+    
+    def create_port_handler(self):
         try:
-            if port_handler is None:
-                self.port_handler = prh.PortHandler(usb)
+            if self.port_handler is None or not self.port_handler.is_open:
+                self.port_handler = prh.PortHandler(self.usb)
                 self.port_handler.openPort()
-                self.port_handler.setBaudRate(baud)
+                self.port_handler.setBaudRate(self.baud)
             else:
-                self.port_handler = port_handler
+                self.port_handler = self.port_handler
             self.packet_handler = pch.PacketHandler(2.0)
         except serial.SerialException as e:
             self.logger.error("Dynamixel SerialException({1}): {2}".format(self.usb,e.errno, e.strerror))
         self.hw_valid = self.packet_handler is not None
-
 
     @staticmethod
     def identify_baud_rate(dxl_id, usb):
@@ -188,6 +198,7 @@ class DynamixelXL430():
         return -1
 
     def startup(self):
+        self.create_port_handler()
         if self.hw_valid:
             try:
                 self.enable_torque()
@@ -203,11 +214,13 @@ class DynamixelXL430():
         return False
 
 
-    def stop(self):
+    def stop(self, close_port=True, disable_torque=False):
         if self.hw_valid:
             self.hw_valid = False
-            self.disable_torque()
-            self.port_handler.closePort()
+            if disable_torque:
+                self.disable_torque()
+            if close_port:
+                self.port_handler.closePort()
 
     def pretty_print(self):
         h = self.get_hardware_error()
@@ -291,9 +304,12 @@ class DynamixelXL430():
                 with DelayedKeyboardInterrupt():
                     dxl_model_number, dxl_comm_result, dxl_error = self.packet_handler.ping(self.port_handler, self.dxl_id)
             if self.handle_comm_result('XL430_PING', dxl_comm_result, dxl_error):
-                self.logger.debug("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d. Baud %d" % (self.dxl_id, dxl_model_number, self.baud))
+                self.dxl_model_name = MODEL_NUMBERS[dxl_model_number]
+                self.logger.debug("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model : %s. Baud %d" % (
+                self.dxl_id, self.dxl_model_name, self.baud))
                 if verbose:
-                    print("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model number : %d. Baud %d" % (self.dxl_id, dxl_model_number, self.baud))
+                    print("[Dynamixel ID:%03d] ping Succeeded. Dynamixel model : %s. Baud %d" % (
+                    self.dxl_id, self.dxl_model_name, self.baud))
                 return True
             else:
                 self.logger.debug("[Dynamixel ID:%03d] ping Failed." % (self.dxl_id))
@@ -515,6 +531,8 @@ class DynamixelXL430():
         self.handle_comm_result('XL430_ADDR_OPERATING_MODE', dxl_comm_result, dxl_error)
 
     # XM Series
+    # https://forum.robotis.com/t/how-does-current-mode-work-in-xm430-w210/203
+
     def enable_pos_current(self):
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
@@ -640,6 +658,15 @@ class DynamixelXL430():
                 p, dxl_comm_result, dxl_error =   self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_BUS_WATCHDOG)
         self.handle_comm_result('XL430_ADDR_BUS_WATCHDOG', dxl_comm_result, dxl_error)
         return p == 255
+
+    def get_current(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                xn, dxl_comm_result, dxl_error= self.read_int16_t(XM430_ADDR_PRESENT_CURRENT)
+        self.handle_comm_result('XM430_ADDR_PRESENT_CURRENT', dxl_comm_result, dxl_error)
+        return xn
 
     def get_pos(self):
         if not self.hw_valid:

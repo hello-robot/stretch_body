@@ -7,10 +7,12 @@ import logging
 import numpy as np
 import sys
 import numbers
-
+import subprocess
+import pyrealsense2 as rs
+import cv2
 
 def print_stretch_re_use():
-    print("For use with S T R E T C H (R) RESEARCH EDITION from Hello Robot Inc.")
+    print("For use with S T R E T C H (R) from Hello Robot Inc.")
     print("---------------------------------------------------------------------\n")
 
 def create_time_string(time_format='%Y%m%d%H%M%S'):
@@ -573,3 +575,74 @@ def map_to_range(value, new_min, new_max):
     value = max(0, min(1, value))
     mapped_value = (value - 0) * (new_max - new_min) / (1 - 0) + new_min
     return mapped_value
+
+def get_video_devices():
+    """
+    Returns dictionary of all the enumerated video devices found in the robot 
+    """
+    command = 'v4l2-ctl --list-devices'
+    lines = subprocess.getoutput(command).split('\n')
+    lines = [l.strip() for l in lines if l != '']
+    cameras = [l for l in lines if not ('/dev/' in l)]
+    devices = [l for l in lines if '/dev/' in l]
+
+    all_camera_devices = {}
+    camera_devices = []
+    current_camera = None
+    for line in lines:
+        if line in cameras:
+            if (current_camera is not None) and camera_devices:
+                all_camera_devices[current_camera] = camera_devices
+                camera_devices = []
+            current_camera = line
+        elif line in devices:
+            camera_devices.append(line)
+    if (current_camera is not None) and camera_devices:
+        all_camera_devices[current_camera] = camera_devices
+
+    return all_camera_devices
+
+def setup_realsense_camera(serial_number, color_size, depth_size, fps):
+    """
+    Returns a Realsense camera pipeline used for accessing D435i & D405's video streams
+    """
+    pipeline = rs.pipeline()
+    config = rs.config()
+
+    if serial_number:
+        config.enable_device(serial_number)
+
+    config.enable_stream(rs.stream.color, color_size[0], color_size[1], rs.format.bgr8, fps)
+    config.enable_stream(rs.stream.depth, depth_size[0], depth_size[1], rs.format.z16, fps)
+
+    profile = pipeline.start(config)
+    return pipeline
+
+def setup_uvc_camera(device_index, size=None, fps=None, format = None):
+    """
+    Returns Opencv capture object of the UVC video divice
+    """
+    cap = cv2.VideoCapture(device_index)
+    if format:
+        fourcc_value = cv2.VideoWriter_fourcc(*f'{format}')
+        cap.set(cv2.CAP_PROP_FOURCC, fourcc_value)
+    if size:
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
+    if fps:
+        cap.set(cv2.CAP_PROP_FPS, fps)
+    return cap
+
+def get_video_device_port(camera_name):
+    """
+    Returns the video device port based on the given camera name match
+    """
+    camera_devices = get_video_devices()
+    camera_device = None
+    for k,v in camera_devices.items():
+        if camera_name in k:
+            camera_device = v[0]
+            print(f"Found Camera={k} at port={camera_device} ")
+            return camera_device
+    print('ERROR: Did not find the specified camera_name = ' + str(camera_name))
+    return  camera_device

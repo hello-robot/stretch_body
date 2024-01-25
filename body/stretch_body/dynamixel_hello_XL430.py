@@ -104,6 +104,9 @@ class DynamixelHelloXL430(Device):
             self._prev_set_vel_ts = None
             self.watchdog_enabled = False
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
+            self.in_collision_stop = {'pos': False, 'neg': False}
+            self.ts_collision_stop = {'pos': 0.0, 'neg': 0.0}
+            self.pos_current_ctrl_on_startup = False
         except KeyError:
             self.motor=None
 
@@ -187,6 +190,7 @@ class DynamixelHelloXL430(Device):
             return False
         Device.startup(self, threaded=threaded)
         try:
+            self.motor.startup()
             if self.motor.do_ping(verbose=False):
                 self.hw_valid = True
                 self.motor.disable_torque()
@@ -219,10 +223,10 @@ class DynamixelHelloXL430(Device):
                 self.pull_status()
 
                 if not self.check_servo_errors():
-
                     self.hw_valid = False
                     return False
-
+                if self.pos_current_ctrl_on_startup:
+                    self.enable_pos_current_ctrl()
                 return True
             else:
                 self.logger.warning('DynamixelHelloXL430 Ping failed... %s' % self.name)
@@ -238,12 +242,13 @@ class DynamixelHelloXL430(Device):
         self.pull_status()
         self.update_trajectory()
 
-    def stop(self):
+    def stop(self, close_port=True):
         Device.stop(self)
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
         if self.hw_valid:
             if self.params['disable_torque_on_stop']:
                 self.disable_torque()
+            self.motor.stop(close_port)
             self.hw_valid = False
 
     def pull_status(self,data=None):
@@ -313,11 +318,16 @@ class DynamixelHelloXL430(Device):
                 return
         else:
             x = data['x']
+            pos_valid = x != None
             v = data['v']
+            vel_valid = v != None
             eff = data['eff']
+            eff_valid = eff != None
             temp = data['temp']
+            temp_valid = temp != None
             ts = data['ts']
             err = data['err']
+            err_valid = err != None
 
         #Now update status dictionary
         if pos_valid:
@@ -378,7 +388,7 @@ class DynamixelHelloXL430(Device):
         """
         ts = time.time()
         while time.time() - ts < timeout:
-            if  self.motor.get_moving_status()& 1 == 1:
+            if  self.motor.get_moving_status() & (1 << 1) == 0:
                 return True
             time.sleep(0.1)
         return False
@@ -421,6 +431,39 @@ class DynamixelHelloXL430(Device):
             return upper_bound
         else:
             return value
+
+    def step_collision_avoidance(self,in_collision):
+        """
+        Disable the ability to command motion in the positive or negative direction
+        If the joint is in motion in that direction, force it to stop
+        Parameters
+        ----------
+        in_collision: {'pos': False, 'neg': False},etc
+        """
+
+        if in_collision['pos'] and in_collision['neg']:
+            print('Invalid IN_COLLISION for joint %s'%self.name)
+            return
+
+        for dir in ['pos','neg']:
+            if in_collision[dir] and not self.in_collision_stop[dir]:
+                # Stop current motion
+                self.ts_collision_stop[dir] = time.time()
+                self.quick_stop()
+                self.in_collision_stop[dir] = True
+
+            #Reset if out of collision (at least 1s after collision)
+            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
+                self.in_collision_stop[dir] = False
+
+    def get_braking_distance(self,acc=None):
+        """Compute distance to brake the joint from the current velocity"""
+        v_curr = self.status['vel']
+        if acc is None:
+            acc=self.params['motion']['max']['accel']
+        t_brake = abs(v_curr / acc)  # How long to brake from current speed (s)
+        d_brake = t_brake * v_curr / 2  # How far it will go before breaking (pos/neg)
+        return d_brake
 
     def step_sentry(self, robot):
         if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:
@@ -612,6 +655,17 @@ class DynamixelHelloXL430(Device):
             self.motor.enable_vel()
             self.motor.enable_torque()
             self.in_vel_mode = True
+
+    def enable_pos_current_ctrl(self,current_limit=None):
+        #XM series only
+        if self.motor.dxl_model_name=='XM540-W270' or self.motor.dxl_model_name=='XM430-W350':
+            if current_limit is None:
+                current_limit =self.params['current_limit_A']
+            self.motor.disable_torque()
+            self.motor.set_current_limit(self.current_to_ticks(current_limit))
+            self.motor.enable_pos_current()
+            self.enable_torque()
+            self.set_motion_params(force=True)
 
     def move_to(self,x_des, v_des=None, a_des=None):
         if self.was_runstopped:
@@ -1123,3 +1177,11 @@ class DynamixelHelloXL430(Device):
     def ticks_to_pct_load(self,t):
         #-100 to 100.0
         return t/10.24
+
+    def ticks_to_current(self,t):
+        #For XM series. Return Amps
+        return t*2.69/1000.0
+
+    def current_to_ticks(self,i):
+        #For XM series, take Amps
+        return int(i*1000/2.69)

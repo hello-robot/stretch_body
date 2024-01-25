@@ -48,7 +48,14 @@ class StepperBase(Device):
     RPC_REPLY_STATUS_AUX = 30
     RPC_LOAD_TEST_PULL = 31
     RPC_REPLY_LOAD_TEST_PULL = 32
-
+    
+   
+    RPC_SET_STEPPER_TYPE = 33
+    RPC_REPLY_SET_STEPPER_TYPE = 34
+    RPC_READ_STEPPER_TYPE_FROM_FLASH = 35
+    RPC_REPLY_READ_STEPPER_TYPE_FROM_FLASH = 36
+  
+   
     MODE_SAFETY = 0
     MODE_FREEWHEEL = 1
     MODE_HOLD = 2
@@ -132,7 +139,7 @@ class StepperBase(Device):
 
         self.status_zero=self.status.copy()
 
-        self.board_info={'board_variant':None, 'firmware_version':None,'protocol_version':None,'hardware_id':0}
+        self.board_info={'board_variant':None, 'firmware_version':None,'protocol_version':None,'hardware_id':0, 'stepper_type':0}
         self.motion_limits=[0,0]
         self.is_moving_history = [False] * 10
 
@@ -656,6 +663,9 @@ class StepperBase(Device):
         self.board_info['firmware_version'] = unpack_string_t(s[sidx:], 20).strip('\x00')
         self.board_info['protocol_version'] = self.board_info['firmware_version'][self.board_info['firmware_version'].rfind('p'):]
         sidx += 20
+
+        if int(self.board_info['protocol_version'].strip('p')) >= 5:
+            self.board_info['stepper_type'] = self.get_stepper_type(unpack_uint8_t(s[sidx:]));sidx += 1
         return sidx
 
     def unpack_status(self,s,unpack_to=None): #Base
@@ -809,7 +819,6 @@ class StepperBase(Device):
         else:
             print('Error RPC_REPLY_READ_GAINS_FROM_FLASH', reply[0])
 
-
     def rpc_start_new_traj_reply(self, reply):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
             .format(self.board_info['protocol_version']))
@@ -839,6 +848,20 @@ class StepperBase(Device):
     def pull_status_aux(self):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
                                   .format(self.board_info['protocol_version']))
+    
+    def write_stepper_type_to_flash(self,type):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+    
+    def read_stepper_type_from_flash(self):
+        raise NotImplementedError('This method not supported for firmware on protocol {0}.'
+                                  .format(self.board_info['protocol_version']))
+    def get_stepper_type(self, raw):
+        try:
+            mt = [None, 'hello-motor-left-wheel','hello-motor-right-wheel', 'hello-motor-arm', 'hello-motor-lift']
+            return mt[raw]
+        except IndexError:
+            return None
 
 # ######################## STEPPER PROTOCOL PO #################################
 
@@ -1300,10 +1323,11 @@ class Stepper_Protocol_P4(StepperBase):
 
     def get_voltage(self,raw):
         raw_to_V = 20.0/1024 #10bit adc, 0-20V per 0-3.3V reading
-        return raw*raw_to_V
+        v = (raw*raw_to_V)-0.3 #0.3 is needed to account for leakage current of TVS
+        return v
 
     def pack_gains(self,s,sidx):
-        sidx=sidx+Stepper_Protocol_P3.pack_gains(self,s,sidx)
+        sidx=Stepper_Protocol_P3.pack_gains(self,s,sidx)
         pack_float_t(s, sidx, self.gains['voltage_LPF']);sidx += 4
         return sidx
 
@@ -1311,6 +1335,43 @@ class Stepper_Protocol_P4(StepperBase):
         sidx=Stepper_Protocol_P3.unpack_gains(self,s)
         self.gains_flash['voltage_LPF'] = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
+    
+# ######################## STEPPER PROTOCOL P5 #################################
+class Stepper_Protocol_P5(StepperBase):
+    def write_stepper_type_to_flash(self, motor_type): #P5
+        if not self.hw_valid:
+            return
+        mt = [None, 'hello-motor-left-wheel','hello-motor-right-wheel', 'hello-motor-arm', 'hello-motor-lift']
+        for i in range (0,len(mt)):
+            if motor_type == mt[i]:
+                motor_type = i
+                break
+        if not isinstance(motor_type, int) or (motor_type < 0 or motor_type > 4):
+            print("Error Unrecoginzed Stepper Motor Type")
+            return
+        payload = self.transport.get_empty_payload()
+        payload[0] = self.RPC_SET_STEPPER_TYPE
+        payload[1:] = arr.array('B', [motor_type])
+        self.transport.do_push_rpc_sync(payload, self.rpc_write_stepper_type_to_flash_reply)
+    
+    def read_stepper_type_from_flash(self):
+        if not self.hw_valid:
+            return
+        payload = self.transport.get_empty_payload()
+        payload = arr.array('B', [self.RPC_READ_STEPPER_TYPE_FROM_FLASH])
+        self.transport.do_pull_rpc_sync(payload, self.rpc_read_stepper_type_from_flash_reply)
+
+    def rpc_write_stepper_type_to_flash_reply(self, reply):
+        if reply[0] != self.RPC_REPLY_SET_STEPPER_TYPE:
+            print('Error RPC_REPLY_SET_STEPPER_TYPE', reply[0])
+    
+    def rpc_read_stepper_type_from_flash_reply(self, reply):
+        if reply[0] == self.RPC_REPLY_READ_STEPPER_TYPE_FROM_FLASH:
+            sidx = 0
+            self.board_info['stepper_type'] = self.get_stepper_type(unpack_uint8_t(reply[1:][sidx:]))
+        else:
+            print('Error RPC_REPLY_READ_STEPPER_TYPE_FROM_FLASH', reply[0])
+
 # ######################## STEPPER #################################
 class Stepper(StepperBase):
     """
@@ -1323,7 +1384,8 @@ class Stepper(StepperBase):
                                     'p1': (Stepper_Protocol_P1,Stepper_Protocol_P0,),
                                     'p2': (Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,),
                                     'p3': (Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,),
-                                    'p4': (Stepper_Protocol_P4,Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
+                                    'p4': (Stepper_Protocol_P4,Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,),
+                                    'p5': (Stepper_Protocol_P5,Stepper_Protocol_P4,Stepper_Protocol_P3,Stepper_Protocol_P2,Stepper_Protocol_P1,Stepper_Protocol_P0,)}
     
     def expand_protocol_methods(self, protocol_class):
         for attr_name, attr_value in protocol_class.__dict__.items():

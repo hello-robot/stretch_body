@@ -31,6 +31,7 @@ setuptools.setup(
                       'pyyaml>=5.1', # required for yaml.FullLoader
                       'hello-robot-stretch-tool-share>=0.2.6', # defines other Stretch end effectors
                       'hello-robot-stretch-factory>=0.3.5','hello-robot-stretch-body-tools>=0.4.2',
-                      'aioserial'
+                      'hello-robot-stretch-urdf>=0.0.16',
+                      'aioserial', 'meshio','numpy-stl','playsound', 'pyrender'
                       ]
 )

@@ -1,176 +1,344 @@
 #! /usr/bin/env python
 
 from stretch_body.device import Device
-import importlib
 import urchin as urdf_loader
+import meshio
 import numpy as np
-import os
+import time
+import playsound
+
+try:
+    # works on ubunut 22.04
+    import importlib.resources as importlib_resources
+    str(importlib_resources.files("stretch_body"))
+except AttributeError as e:
+    # works on ubuntu 20.04
+    import importlib_resources
+    str(importlib_resources.files("stretch_body"))
 
 # #######################################################################
 
-class RobotCollisionModel(Device):
-    """
-    The RobotCollisionModel  is a base class to provide simple self-collision avoidance
-    Derived (custom) classes should implement the collision logic
-    It works by defining acceptable joint ranges for the joints based on the current
-    kinematic state of the robot.
 
-    A joint soft limit of None denotes that no constraint is placed on motion in that direction
+class CollisionLink:
+    def __init__(self,link_name,urdf,mesh_path,max_mesh_points):
+        self.name=link_name
+        self.link = urdf.link_map[link_name]
+        stl_filename = str(mesh_path) + self.link.collisions[0].geometry.mesh.filename[1:]
+        self.mesh = meshio.read(stl_filename)
+        pts = self.mesh.points
+        self.points = np.hstack((pts, np.ones([pts.shape[0], 1], dtype=np.float32)))  # One extend to Nx4 array
+        self.in_collision= False
+        self.was_in_collision = False
+        self.is_xyz_cube=self.check_xyz_cube(self.points)
+        self.is_valid=True
+        if pts.shape[0] > max_mesh_points:
+            print('Incorrect size of points for link:', link_name, pts.shape)
+            print('Ignoring collision link %s' % link_name)
+            self.is_valid=False
+        self.pose=None
 
-    A custom RobotCollisionModel can be instantiated by declaring the class name / Python module name
-    in the User YAML file
-    """
-    def __init__(self,collision_manager, name):
-        Device.__init__(self, name=name)
-        self.collision_manager=collision_manager
+    def set_pose(self,p):
+        self.pose=p
 
-    def step(self, status):
-        return {'head_pan': [None,None],
-                'head_tilt': [None,None],
-                'lift': [None,None],
-                'arm': [None,None],
-                'wrist_yaw': [None,None]}
+    def pretty_print(self):
+        print('-- CollisionLink %s --'%self.name)
+        print('XYZ Cube',self.is_xyz_cube)
+        print('Is Valid', self.is_valid)
+        print('In collision',self.in_collision)
+        print('Was in collision',self.was_in_collision)
+        print('Mesh size',self.points.shape)
 
-    def limit(self,a,b):
+    def check_xyz_cube(self,pts):
         """
-        Utility function. Return the more conservative union of the limits a and b
-        , where a or b is of the form [lower_limit, upper_limit]
+        Check if points are aligned (roughly) to xyz and form a cube
+
+        Parameters
+        ----------
+        pts of mesh (8x4)
+
+        Returns
+        -------
+        True / False
         """
-        lower= b[0] if a[0] is None else (a[0] if b[0] is None else max(a[0],b[0]))
-        upper= b[1] if a[1] is None else (a[1] if b[1] is None else min(a[1],b[1]))
-        return [lower,upper]
+        # Check that each x,y,z of each point has two nearly (eps) idential values
+        x = pts[:, 0]
+        y = pts[:, 1]
+        z = pts[:, 2]
+        eps = .001  # meters
+        for ridx in range(8):
+            sx = sum(abs((x - x[ridx])) < eps)
+            sy = sum(abs((y - y[ridx])) < eps)
+            sz = sum(abs((y - y[ridx])) < eps)
+            if sx + sy + sz != 12:
+                return False
+        return True
+
+class CollisionPair:
+    def __init__(self, link_pts,link_cube,motion_dir,joint_name):
+        self.in_collision=False
+        self.was_in_collision=False
+        self.link_cube=link_cube
+        self.link_pts=link_pts
+        self.motion_dir=motion_dir
+        self.joint_name=joint_name
+        self.name_id='J_%s_LP_%s_LC_%s_DR_%s'%(joint_name,link_pts.name,link_cube.name,motion_dir)
+        self.is_valid=self.link_cube.is_valid and self.link_pts.is_valid and self.link_cube.is_xyz_cube
+        if not self.is_valid:
+            print('Dropping monitor of collision pair %s'%self.name_id)
+
+    def pretty_print(self):
+        print('Collision pair: %s'%self.name_id)
+        print('Is Valid',self.is_valid)
+        print('--Link Cube--')
+        self.link_cube.pretty_print()
+        print('--Link Pts--')
+        self.link_pts.pretty_print()
+    def get_name_id(self):
+        return self.name_id
+
+class CollisionJoint:
+    def __init__(self, joint_name,motor):
+        self.name=joint_name
+        self.motor=motor
+        self.active_collisions=[]
+        self.collision_pairs=[]
+        self.in_collision={'pos':False,'neg':False}
+        self.was_in_collision = {'pos': False, 'neg': False}
+    def add_collision_pair(self,cp):
+        self.collision_pairs.append(cp)
+    def pretty_print(self):
+        print('-------Collision Joint: %s-----------------'%self.name)
+        for cp in self.collision_pairs:
+            cp.pretty_print()
+        print('--Active Collisions--')
+        print(self.active_collisions)
+        for ac in self.active_collisions:
+            print('Active Collision: %s' % ac)
 
 
+class RobotCollisionMgmt(Device):
+    def __init__(self,robot):
+        """
+        RobotCollisionMgmt monitors for collisions between links.
+        It utilizes the Collision mesh for collision estimation.
+        Given the Cartesian structure of Stretch we simplify the collision detection in order to achieve real-time speeds.
+        We simplify the problem by assuming:
+        * One of the collision meshes ("cube") is a cube that is aligned with gravity (XYZ)
+        * The other collision mesh ("pts") is simple shape of just a few points (eg, a cube, trapezoid, etc)<max_mesh_points
 
-# #######################################################################
+        The params define which links we want to monitor collisions between.
+        Each link includes a parameter "scale_pct" which allows the mesh size to be expanded by a percentage around its centroid
+        enabling the ability to increase the safety zone.
+        """
+        Device.__init__(self, name='robot_collision_mgmt')
+        self.robot = robot
+        self.collision_joints = {}
+        self.collision_links = {}
+        self.collision_pairs = {}
+        self.running=True
+
+    def pretty_print(self):
+        for j in self.collision_joints:
+            self.collision_joints[j].pretty_print()
+
+    def enable(self):
+        self.running=True
+
+    def disable(self):
+        self.running=False
+    def startup(self,threaded=False):
+        Device.startup(self, threaded=False)
+        pkg = str(importlib_resources.files("stretch_urdf"))  # .local/lib/python3.10/site-packages/stretch_urdf)
+        model_name = self.robot.params['model_name']
+        eoa_name= self.robot.params['tool']
+        urdf_name = pkg + '/%s/stretch_description_%s_%s.urdf' % (model_name, model_name, eoa_name)
+        mesh_path = pkg + '/%s/' % (model_name)
+
+        try:
+            self.urdf = urdf_loader.URDF.load(urdf_name)
+        except ValueError:
+            print('Unable to load URDF: %s' % urdf_name)
+            self.urdf = None
+            return
+
+        #Build dict of potential collisions_pairs for each joint
+        #Include those of standard robot body plus its defined tool
+        # EG collision_joints={'lift':[{collision_1},{collision_2...}],'head_pan':[...]}
+        cj=self.params[model_name]
+        for tt in self.params[eoa_name]:
+            if tt in cj:
+                cj[tt]+=self.params[eoa_name][tt]
+            else:
+                cj[tt]=self.params[eoa_name][tt]
+
+        for joint_name in cj:
+            self.collision_joints[joint_name]=CollisionJoint(joint_name,self.get_joint_motor(joint_name))
+            for cp in cj[joint_name]: #eg cp={'motion_dir': 'neg', 'link_pts': 'link_lift', 'link_cube': 'base_link'}
+                if cp['link_pts'] not in self.collision_links:
+                    self.collision_links[cp['link_pts']]=CollisionLink(cp['link_pts'],self.urdf,mesh_path,self.params['max_mesh_points'])
+                if cp['link_cube'] not in self.collision_links:
+                    self.collision_links[cp['link_cube']]=CollisionLink(cp['link_cube'],self.urdf,mesh_path,self.params['max_mesh_points'])
+                p=CollisionPair(self.collision_links[cp['link_pts']],self.collision_links[cp['link_cube']],cp['motion_dir'],joint_name)
+                self.collision_pairs[p.get_name_id()]=p
+                self.collision_joints[joint_name].add_collision_pair(p)
+
+    def get_joint_motor(self,joint_name):
+        if joint_name=='lift':
+            return self.robot.lift
+        if joint_name=='arm':
+            return self.robot.arm
+        if joint_name=='head_pan':
+            return self.robot.head.get_joint('head_pan')
+        if joint_name=='head_tilt':
+            return self.robot.head.get_joint('head_tilt')
+        #Try the tool
+        return self.robot.end_of_arm.get_joint(joint_name)
+
+
+    def step(self,cfg=None):
+        """
+                Check for interference between cube pairs
+        """
+        if self.urdf is None or not self.running:
+            return
+
+        if cfg is None:
+            cfg = self.get_joint_configuration(braked=True)#_braked()
+
+        # Update forward kinematics of links
+        lfk = self.urdf.link_fk(cfg=cfg, links=self.collision_links.keys(), use_names=True)
+
+        # Update poses of links based on fk
+        for link_name in lfk:
+            self.collision_links[link_name].set_pose(lfk[link_name].dot(
+                self.collision_links[link_name].points.transpose()).transpose())
+
+        # Reset each link / joint status before updating
+        for link_name in self.collision_links:
+            self.collision_links[link_name].was_in_collision =self.collision_links[link_name].in_collision
+            self.collision_links[link_name].in_collision=False
+
+        for joint_name in self.collision_joints:
+            self.collision_joints[joint_name].active_collisions=[]
+            self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
+            self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False}
+
+        # Test for collision between cube pairs
+        for pair_name in self.collision_pairs:
+            cp=self.collision_pairs[pair_name]
+            if cp.is_valid:
+                cp.was_in_collision=cp.in_collision
+                cp.in_collision=self.check_pts_in_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
+                if cp.in_collision:
+                    cj = self.collision_joints[cp.joint_name]
+                    cj.active_collisions.append(cp.get_name_id()) #Add collision to joint
+                    cj.in_collision[cp.motion_dir] = True
+                #Propogate to links
+                self.collision_links[cp.link_cube.name].in_collision=self.collision_links[cp.link_cube.name].in_collision or cp.in_collision
+                self.collision_links[cp.link_pts.name].in_collision =self.collision_links[cp.link_pts.name].in_collision or cp.in_collision
+
+        #Update collision avoidance
+        for joint_name in self.collision_joints:
+            self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
+
+        #Beep on new collision
+        #Note: subtle issue. Playing the beep can take a variable amount of time depending on sys resources
+        #Call it after we do the step_collision_avoidance so that the stop controller can be triggered as close to
+        #Collision detection as possible (otherwise the longer time can allow a collision in worst case conditions)
+        for pair_name in self.collision_pairs:
+            if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
+                playsound.playsound('/usr/share/sounds/ubuntu/stereo/message.ogg', block=False)
+
+    def is_link_in_collsion(self,link_name):
+        if self.urdf is None:
+            return False
+        try:
+            return self.collision_links[link_name].in_collision
+        except KeyError: #Not all links will be monitored
+            return False
+
+    def was_link_in_collsion(self,link_name):
+        if self.urdf is None:
+            return False
+        try:
+            return self.collision_links[link_name].was_in_collision
+        except KeyError: #Not all links will be monitored
+            return False
+
+    def check_pts_in_cube(self,cube, pts):
+        """
+        Check if any of the 'from' points lie inside the 'into' cube
+        Parameters
+        ----------
+        cube_into: Array of points of cube (8x4)
+        pts_from: Array of points to check
+
+        Returns
+        -------
+        True/False
+        """
+        xmax = max(cube[:, 0])
+        xmin = min(cube[:, 0])
+        ymax = max(cube[:, 1])
+        ymin = min(cube[:, 1])
+        zmax = max(cube[:, 2])
+        zmin = min(cube[:, 2])
+        for p in pts:
+            inside = p[0] <= xmax and p[0] >= xmin and p[1] <= ymax and p[1] >= ymin and p[2] <= zmax and p[2] >= zmin
+            if inside:
+                return True
+        return False
+
+    def get_joint_configuration(self,braked=False):
+        """
+        Construct a dictionary of robot's current pose
+        """
+        s = self.robot.get_status()
+
+        if braked:
+            da=self.params['k_brake_distance']['arm']*self.robot.arm.get_braking_distance()/4.0
+            dl=self.params['k_brake_distance']['lift']*self.robot.lift.get_braking_distance()
+            dhp = self.params['k_brake_distance']['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
+            dht = self.params['k_brake_distance']['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
+        else:
+            da=0.0
+            dl=0.0
+            dhp=0.0
+            dht=0.0
+
+        configuration = {
+            'joint_lift': dl+s['lift']['pos'],
+            'joint_arm_l0': da+s['arm']['pos']/4.0,
+            'joint_arm_l1': da+s['arm']['pos']/4.0,
+            'joint_arm_l2': da+s['arm']['pos']/4.0,
+            'joint_arm_l3': da+s['arm']['pos']/4.0,
+            'joint_head_pan': dhp+s['head']['head_pan']['pos'],
+            'joint_head_tilt': dht+s['head']['head_tilt']['pos']
+            }
+
+        configuration.update(self.robot.end_of_arm.get_joint_configuration(braked))
+        return configuration
 
 class RobotCollision(Device):
     """
-    The RobotCollision class manages a set of collision models, as defined in YAML.
-    It is called periodically by the Robot thread.
-    Each model computes the acceptable range of motion for a subset of joints given the current kinematic state of the robot.
-    The RobotCollision class then sets the joint limits for each joint to the most restrive set of ranges, given all models.
+        Deprecated. Keep shell class (for now) to avoid breaking legacy code.
     """
     def __init__(self,robot):
-        Device.__init__(self, name='robot_collision')
-        #urdf_file = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'],'exported_urdf/stretch.urdf')
-        #self.robot_model = urdf_loader.URDF.load(urdf_file) #Kinematic model available if needed
-        self.robot=robot
-        self.models=[]
-        self.models_enabled={}
+        print('-----------')
+        print('RobotCollision has been deprecated.')
+        print('Use RobotCollisionMgmt instead')
+        print('See KB post forum.hello-robot.com/xxx')
+        print('-----------')
 
     def startup(self):
-        Device.startup(self, threaded=False)
-        model_names = []
-        if self.params.get('models'):
-            model_names=model_names+self.params.get('models')
-            if self.robot.end_of_arm.params.get('collision_models'):
-                model_names = model_names + self.robot.end_of_arm.params.get('collision_models')
-        for m in model_names:
-            module_name = self.robot_params[m]['py_module_name']
-            class_name = self.robot_params[m]['py_class_name']
-            self.models.append(getattr(importlib.import_module(module_name), class_name)(self))
-            self.models_enabled[m]=self.robot_params[m]['enabled']
+        pass
 
     def enable_model(self,name):
-        if name in self.models_enabled:
-            self.models_enabled[name]=True
+        pass
 
     def disable_model(self,name):
-        if name in self.models_enabled:
-            self.models_enabled[name]=False
+        pass
 
 
     def step(self):
-        #Compile the list of joints that may be limited
-        #Then compute the limits for each from each model
-        #Take the most conservative limit for each and pass it to the controller
-        status=self.robot.get_status()
-
-        target_limits= { 'head_pan': [None,None],'head_tilt': [None,None],'lift': [None,None],'arm': [None,None]}
-        for j in self.robot.end_of_arm.joints:
-            target_limits[j]=[None,None]
-
-
-        for m in self.models:
-            if self.models_enabled[m.name]:
-                new_limits=m.step(status)
-                #Update target limits based on the model, choose most conservative value
-                for joint in new_limits.keys():
-                    if new_limits[joint][0] is not None:
-                        target_limits[joint][0]=new_limits[joint][0] if target_limits[joint][0] is None else max(new_limits[joint][0], target_limits[joint][0])
-                    if new_limits[joint][1] is not None:
-                        target_limits[joint][1]=new_limits[joint][1] if target_limits[joint][1] is None else min(new_limits[joint][1], target_limits[joint][1])
-
-        self.robot.lift.set_soft_motion_limit_min(x=target_limits['lift'][0],limit_type='collision')
-        self.robot.lift.set_soft_motion_limit_max(x=target_limits['lift'][1],limit_type='collision')
-        self.robot.arm.set_soft_motion_limit_min(x=target_limits['arm'][0], limit_type='collision')
-        self.robot.arm.set_soft_motion_limit_max(x=target_limits['arm'][1], limit_type='collision')
-        self.robot.head.motors['head_tilt'].set_soft_motion_limit_min(x=target_limits['head_tilt'][0], limit_type='collision')
-        self.robot.head.motors['head_tilt'].set_soft_motion_limit_max(x=target_limits['head_tilt'][1], limit_type='collision')
-        self.robot.head.motors['head_pan'].set_soft_motion_limit_min(x=target_limits['head_pan'][0],limit_type='collision')
-        self.robot.head.motors['head_pan'].set_soft_motion_limit_max(x=target_limits['head_pan'][1],limit_type='collision')
-        for j in self.robot.end_of_arm.joints:
-            self.robot.end_of_arm.motors[j].set_soft_motion_limit_min(x=target_limits[j][0],limit_type='collision')
-            self.robot.end_of_arm.motors[j].set_soft_motion_limit_max(x=target_limits[j][1],limit_type='collision')
-
-
-# #######################################################################
-"""
-Helper Classes: Example for EndOfArmForwardKinematics
-            cfg = {
-                'joint_lift': status['lift']['pos'],
-                'joint_arm_l0': status['arm']['pos']*0.25,
-                'joint_arm_l1': status['arm']['pos']*0.25,
-                'joint_arm_l2': status['arm']['pos']*0.25,
-                'joint_arm_l3': status['arm']['pos']*0.25,
-                'joint_wrist_yaw': status['end_of_arm']['wrist_yaw']['pos']
-            }
-            pose = self.collision_manager.robot_model.link_fk(cfg, 'link_gripper_fingertip_right',use_names=True)
-            tx = pose[0][3]  # Forward
-            ty = pose[1][3]  # Height
-            tz = pose[2][3]  # Extension direction
-            print('Height', tz)
-            print('Extension', -1*ty)
-            print('Forward', tx)
-"""
-
-class EndOfArmForwardKinematics():
-    # Compute the FK for a tool link wrt to the fixed end_of_arm frame (link_arm_l0)
-    def __init__(self):
-        urdf_file = os.path.join(os.environ['HELLO_FLEET_PATH'], os.environ['HELLO_FLEET_ID'],'exported_urdf/stretch.urdf')
-        np.seterr(divide='ignore', invalid='ignore')
-        self.robot_model = urdf_loader.URDF.load(urdf_file)
-
-    def tool_fk(self,cfg,link):
-        # returns the 4x4 transform from <link> to link_arm_l0
-        #cfg: dictionary of joint positions of tool (including wrist yaw). Eg: {'joint_wrist_yaw': 0.1, 'joint_gripper_finger_right': 0.1}
-        #link: name of link that is after wrist_yaw in the kinematic chain.Eg 'link_gripper_fingertip_right'
-        #For reference, link_arm_l0:
-        # Origin Center of first cuff
-        # X: parallel to ground, points towards wrist
-        # Y: Parallel to graviy, points up
-        # Z:  Parallel to arm extension, points towards reach
-
-        joint_cfg = self.robot_model._process_cfg(cfg)
-        link_set = set()
-        link_set.add(self.robot_model._link_map[link])
-
-        # This is a modified version of link_fk of urdf_loader
-        # That stops FK at the 'link_arm_l0' of Stretch
-        for lnk in self.robot_model._reverse_topo:
-            if lnk not in link_set:
-                continue
-            pose = np.eye(4, dtype=np.float64)
-            path = self.robot_model._paths_to_base[lnk]
-            for i in range(len(path) - 1):
-                child = path[i]
-                parent = path[i + 1]
-                joint = self.robot_model._G.get_edge_data(child, parent)['joint']
-                cfg = None
-                if joint in joint_cfg:
-                    cfg = joint_cfg[joint]
-                pose = joint.get_child_pose(cfg).dot(pose)
-                if parent.name == 'link_arm_l0':
-                    return pose
-        return None
+        pass

@@ -112,12 +112,17 @@ def fetch_updates_in_background():
 background_process = multiprocessing.Process(target=fetch_updates_in_background)
 
 r=robot.Robot()
-r.startup()
-if not r.pimu.status['runstop_event']:
-    background_process.start()
-    r.home()
-    background_process.terminate()
-    background_process.join()
-else:
-    r.logger.warning('Cannot home while run-stopped')
+if not r.startup():
+    r.logger.error('Failed to startup connection to robot')
+    sys.exit(1)
+if r.pimu.status['runstop_event']:
+    r.logger.error('Cannot home while run-stopped')
+    r.stop()
+    sys.exit(1)
+
+background_process.start()
+r.home()
+background_process.terminate()
+background_process.join()
+
 r.stop()

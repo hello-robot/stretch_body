@@ -2,6 +2,8 @@ from __future__ import print_function
 from stretch_body.dynamixel_X_chain import DynamixelXChain
 import importlib
 from stretch_body.robot_params import RobotParams
+from stretch_body.device import Device
+
 
 class EndOfArm(DynamixelXChain):
     """
@@ -21,6 +23,7 @@ class EndOfArm(DynamixelXChain):
             class_name = self.params['devices'][j]['py_class_name']
             dynamixel_device = getattr(importlib.import_module(module_name), class_name)(chain=self)
             self.add_motor(dynamixel_device)
+        self.urdf_map={} #Override
 
     def startup(self, threaded=True):
         return DynamixelXChain.startup(self, threaded=threaded)
@@ -95,6 +98,22 @@ class EndOfArm(DynamixelXChain):
             if class_name == self.params['devices'][j]['py_class_name']:
                 return True
         return False
+
+    def get_joint_configuration(self,braked=False):
+        """
+        Construct a dictionary of tools current pose (for robot_collision_mgmt)
+        Keys match joint names in URDF
+        Specific tools should define urdf_map
+        """
+        ret = {}
+        for j in self.urdf_map:
+            jn = self.urdf_map[j]
+            motor = self.get_joint(jn)
+            dx = 0.0
+            if braked:
+                dx = self.params['k_brake_distance'][jn] * motor.get_braking_distance()
+            ret[j] = motor.status['pos'] + dx
+        return ret
 
 
 
