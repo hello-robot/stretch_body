@@ -333,12 +333,12 @@ try: # TODO: remove try/catch after sw check verified to work reliably
 
         # get latest pip versions
         latest_pip_version = {
-            'hello-robot-stretch-body': version.parse('0.4.32'),
-            'hello-robot-stretch-body-tools': version.parse('0.4.16'),
-            'hello-robot-stretch-tool-share': version.parse('0.2.7'),
-            'hello-robot-stretch-factory': version.parse('0.4.6'),
-            'hello-robot-stretch-diagnostics': version.parse('0.0.13'),
-            'hello-robot-stretch-urdf': version.parse('0.0.11'),
+            'hello-robot-stretch-body': version.parse('0.7.0'),
+            'hello-robot-stretch-body-tools': version.parse('0.7.0'),
+            'hello-robot-stretch-tool-share': version.parse('0.2.8'),
+            'hello-robot-stretch-factory': version.parse('0.5.0'),
+            'hello-robot-stretch-diagnostics': version.parse('0.0.14'),
+            'hello-robot-stretch-urdf': version.parse('0.0.18'),
         }
         if scan_dict:
             latest_pip_version = {p: version.parse(scan_dict['pip'].get(p, '0.0.0')) for p in latest_pip_version}
