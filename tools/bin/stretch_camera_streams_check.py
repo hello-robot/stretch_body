@@ -21,7 +21,7 @@ D435I_FPS = 30
 UVC_COLOR_SIZE = [1280, 720] # [3840,2880] [1920, 1080] [1280, 720] [640, 480]
 UVC_FPS = 30
 
-UVC_VIDEO_INDEX = '/dev/hello-navigation-camera'
+UVC_VIDEO_INDEX = '/dev/hello-nav-head-camera'
 UVC_VIDEO_FORMAT = 'MJPG' # YUYV
 
 # More UVC Video capture properties here:
