@@ -115,6 +115,24 @@ def are_actuators_ready():
         if not stepper.status['pos_calibrated']:
             return False, "robot not homed"
 
+    # Check robot agrees everything homed
+    if not r.is_homed():
+        return False, "robot not homed"
+
+    # Check hello steppers' self recognized type matches SDK's expectation
+    if 'stepper_type' in r.lift.motor.board_info:
+        if r.lift.motor.board_info['stepper_type'] != 'hello-motor-lift':
+            return False, "stepper type mismatch on lift motor"
+    if 'stepper_type' in r.arm.motor.board_info:
+        if r.arm.motor.board_info['stepper_type'] != 'hello-motor-arm':
+            return False, "stepper type mismatch on arm motor"
+    if 'stepper_type' in r.base.left_wheel.board_info:
+        if r.base.left_wheel.board_info['stepper_type'] != 'hello-motor-left-wheel':
+            return False, "stepper type mismatch on left wheel motor"
+    if 'stepper_type' in r.base.right_wheel.board_info:
+        if r.base.right_wheel.board_info['stepper_type'] != 'hello-motor-right-wheel':
+            return False, "stepper type mismatch on right wheel motor"
+
     return True, ""
 def are_sensors_ready():
     # Establish which Realsense cameras we expect to see
