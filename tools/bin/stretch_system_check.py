@@ -464,30 +464,32 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         print(Fore.GREEN + '[Pass] Firmware is up-to-date')
     else:
         print(Fore.YELLOW + '[Warn] Firmware not up-to-date (run REx_firmware_updater.py --install)')
-    print(Fore.LIGHTBLUE_EX + '         hello-pimu = ' + Fore.CYAN + fw_versions['pimu'])
-    print(Fore.LIGHTBLUE_EX + '         hello-wacc = ' + Fore.CYAN + fw_versions['wacc'])
-    print(Fore.LIGHTBLUE_EX + '         hello-motor-arm = ' + Fore.CYAN + fw_versions['arm'])
-    print(Fore.LIGHTBLUE_EX + '         hello-motor-lift = ' + Fore.CYAN + fw_versions['lift'])
-    print(Fore.LIGHTBLUE_EX + '         hello-motor-left-wheel = ' + Fore.CYAN + fw_versions['left-wheel'])
-    print(Fore.LIGHTBLUE_EX + '         hello-motor-right-wheel = ' + Fore.CYAN + fw_versions['right-wheel'])
+    if args.verbose:
+        print(Fore.LIGHTBLUE_EX + '         hello-pimu = ' + Fore.CYAN + fw_versions['pimu'])
+        print(Fore.LIGHTBLUE_EX + '         hello-wacc = ' + Fore.CYAN + fw_versions['wacc'])
+        print(Fore.LIGHTBLUE_EX + '         hello-motor-arm = ' + Fore.CYAN + fw_versions['arm'])
+        print(Fore.LIGHTBLUE_EX + '         hello-motor-lift = ' + Fore.CYAN + fw_versions['lift'])
+        print(Fore.LIGHTBLUE_EX + '         hello-motor-left-wheel = ' + Fore.CYAN + fw_versions['left-wheel'])
+        print(Fore.LIGHTBLUE_EX + '         hello-motor-right-wheel = ' + Fore.CYAN + fw_versions['right-wheel'])
     # Python
     pip_uptodate, pip_err_msg, pip_versions, pip_editable_locations = all_pip_uptodate()
     if pip_uptodate:
         print(Fore.GREEN + '[Pass] Python pkgs are up-to-date')
     else:
         print(Fore.YELLOW + f'[Warn] Python pkgs not up-to-date ({pip_err_msg})')
-    for bname in ['hello-robot-stretch-body', 'hello-robot-stretch-body-tools', 'hello-robot-stretch-tool-share', 'hello-robot-stretch-factory', 'hello-robot-stretch-diagnostics', 'hello-robot-stretch-urdf']:
-        print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
+    if args.verbose:
+        for bname in ['hello-robot-stretch-body', 'hello-robot-stretch-body-tools', 'hello-robot-stretch-tool-share', 'hello-robot-stretch-factory', 'hello-robot-stretch-diagnostics', 'hello-robot-stretch-urdf']:
+            print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
     # ROS
     ros_enabled, ros_name, ros_ready, ros_err_msg, ros_ws_path = all_ros_correct()
     if ros_enabled:
         if ros_ready:
             print(Fore.GREEN + f'[Pass] {ros_name} is ready')
-            if ros_ws_path:
+            if ros_ws_path and args.verbose:
                 print(Fore.LIGHTBLUE_EX + f'         Workspace at {ros_ws_path}')
         else:
             print(Fore.YELLOW + f'[Warn] {ros_name} not ready ({ros_err_msg})')
-            if ros_ws_path:
+            if ros_ws_path and args.verbose:
                 print(Fore.LIGHTBLUE_EX + f'         Workspace at {ros_ws_path}')
     else:
         if ros_name:
