@@ -74,7 +74,7 @@ def is_comms_ready():
         'hello-respeaker': False,
     }
     if stretch_model == "SE3":
-        usb_device_seen['hello-navigation-camera'] = False
+        usb_device_seen['hello-nav-head-camera'] = False
 
     # Mark which USB devices we actually see
     listOfFiles = os.listdir('/dev')
