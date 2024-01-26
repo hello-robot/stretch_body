@@ -21,6 +21,7 @@ import rplidar
 import pyrealsense2 as rs
 import stretch_body.device
 import stretch_body.robot as robot
+import stretch_factory.hello_device_utils as hdu
 
 parser=argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
 parser.add_argument('-v', "--verbose", help="Prints more information", action="store_true")
@@ -135,24 +136,34 @@ def are_actuators_ready():
 
     return True, ""
 def are_sensors_ready():
-    # Establish which Realsense cameras we expect to see
-    rs_camera_seen = {
+    # Establish which cameras we expect to see
+    cameras_seen = {
         'D435': False,
     }
     if stretch_model == "SE3":
-        rs_camera_seen['D405'] = False
+        cameras_seen['D405'] = False
+        cameras_seen['OV9782'] = False
 
     # Mark which Realsense cameras we actually see
-    cameras = [{'name': device.get_info(rs.camera_info.name), 'serial_number': device.get_info(rs.camera_info.serial_number)}
+    rs_cameras = [{'name': device.get_info(rs.camera_info.name), 'serial_number': device.get_info(rs.camera_info.serial_number)}
         for device in rs.context().devices]
-    for cam in cameras:
-        for seen in rs_camera_seen:
-            if seen in cam['name']:
-                rs_camera_seen[seen]=True
+    for rs_cam in rs_cameras:
+        for expected_cam in cameras_seen:
+            if expected_cam in rs_cam['name']:
+                cameras_seen[expected_cam] = True
+
+    # Mark which UVC cameras we actually see
+    try:
+        nhc_model = hdu.extract_udevadm_info('/dev/hello-nav-head-camera', 'ID_MODEL')
+        # nav head cam (nhc) model should be 'Arducam_OV9782_USB_Camera'
+        if 'OV9782' in nhc_model:
+            cameras_seen['OV9782'] = True
+    except:
+        pass
 
     # Return error if not all realsense cameras seen
-    for s in rs_camera_seen:
-        if not rs_camera_seen[s]:
+    for s in cameras_seen:
+        if not cameras_seen[s]:
             return False, False, f"missing {s} camera"
 
     # Check for lidar
