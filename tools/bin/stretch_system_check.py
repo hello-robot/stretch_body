@@ -161,7 +161,7 @@ def are_sensors_ready():
     except:
         pass
 
-    # Return error if not all realsense cameras seen
+    # Return error if not all cameras seen
     for s in cameras_seen:
         if not cameras_seen[s]:
             return False, False, f"missing {s} camera"
@@ -181,7 +181,7 @@ def are_sensors_ready():
     p=r.pimu
     w=r.wacc
     checks = [
-        val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5),
+        # val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5),
         val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert']),
         val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40),
         val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5),
@@ -195,6 +195,13 @@ def are_sensors_ready():
             return True, False, check_msg
 
     return True, True, ""
+def is_battery_ready():
+    # TODO: Check charged connected but not charging
+
+    # Check battery voltage
+    p=r.pimu
+    voltage_check_succeeded, _ = val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
+    return voltage_check_succeeded, p.status['voltage']
 print(Style.RESET_ALL)
 print ('---- Checking Hardware ----')
 comms_ready, comms_err_msg, comms_usb_device_seen, comms_ping_list = is_comms_ready()
@@ -223,6 +230,11 @@ if sensors_ready:
         print(Fore.YELLOW + f'[Warn] Sensors not ready ({sensors_err_msg})')
 else:
     print(Fore.RED + f'[Fail] Sensors not ready ({sensors_err_msg})')
+battery_ready, battery_voltage = is_battery_ready()
+if battery_ready:
+    print(Fore.GREEN + f'[Pass] Battery voltage is {battery_voltage:.1f} V')
+else:
+    print(Fore.RED + f'[Fail] Battery voltage is {battery_voltage:.1f} V')
 
 # ###################  SOFTWARE  ######################
 try: # TODO: remove try/catch after sw check verified to work reliably
