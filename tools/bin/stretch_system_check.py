@@ -21,6 +21,7 @@ import rplidar
 import pyrealsense2 as rs
 import stretch_body.device
 import stretch_body.robot as robot
+import stretch_factory.hello_device_utils as hdu
 
 parser=argparse.ArgumentParser(description='Check that all robot hardware is present and reporting sane values')
 parser.add_argument('-v', "--verbose", help="Prints more information", action="store_true")
@@ -74,7 +75,7 @@ def is_comms_ready():
         'hello-respeaker': False,
     }
     if stretch_model == "SE3":
-        usb_device_seen['hello-navigation-camera'] = False
+        usb_device_seen['hello-nav-head-camera'] = False
 
     # Mark which USB devices we actually see
     listOfFiles = os.listdir('/dev')
@@ -115,26 +116,54 @@ def are_actuators_ready():
         if not stepper.status['pos_calibrated']:
             return False, "robot not homed"
 
+    # Check robot agrees everything homed
+    if not r.is_homed():
+        return False, "robot not homed"
+
+    # Check hello steppers' self recognized type matches SDK's expectation
+    if 'stepper_type' in r.lift.motor.board_info and r.lift.motor.board_info['stepper_type'] != 0:
+        if r.lift.motor.board_info['stepper_type'] != 'hello-motor-lift':
+            return False, "stepper type mismatch on lift motor"
+    if 'stepper_type' in r.arm.motor.board_info and r.arm.motor.board_info['stepper_type'] != 0:
+        if r.arm.motor.board_info['stepper_type'] != 'hello-motor-arm':
+            return False, "stepper type mismatch on arm motor"
+    if 'stepper_type' in r.base.left_wheel.board_info and r.base.left_wheel.board_info['stepper_type'] != 0:
+        if r.base.left_wheel.board_info['stepper_type'] != 'hello-motor-left-wheel':
+            return False, "stepper type mismatch on left wheel motor"
+    if 'stepper_type' in r.base.right_wheel.board_info and r.base.right_wheel.board_info['stepper_type'] != 0:
+        if r.base.right_wheel.board_info['stepper_type'] != 'hello-motor-right-wheel':
+            return False, "stepper type mismatch on right wheel motor"
+
     return True, ""
 def are_sensors_ready():
-    # Establish which Realsense cameras we expect to see
-    rs_camera_seen = {
+    # Establish which cameras we expect to see
+    cameras_seen = {
         'D435': False,
     }
     if stretch_model == "SE3":
-        rs_camera_seen['D405'] = False
+        cameras_seen['D405'] = False
+        cameras_seen['OV9782'] = False
 
     # Mark which Realsense cameras we actually see
-    cameras = [{'name': device.get_info(rs.camera_info.name), 'serial_number': device.get_info(rs.camera_info.serial_number)}
+    rs_cameras = [{'name': device.get_info(rs.camera_info.name), 'serial_number': device.get_info(rs.camera_info.serial_number)}
         for device in rs.context().devices]
-    for cam in cameras:
-        for seen in rs_camera_seen:
-            if seen in cam['name']:
-                rs_camera_seen[seen]=True
+    for rs_cam in rs_cameras:
+        for expected_cam in cameras_seen:
+            if expected_cam in rs_cam['name']:
+                cameras_seen[expected_cam] = True
 
-    # Return error if not all realsense cameras seen
-    for s in rs_camera_seen:
-        if not rs_camera_seen[s]:
+    # Mark which UVC cameras we actually see
+    try:
+        nhc_model = hdu.extract_udevadm_info('/dev/hello-nav-head-camera', 'ID_MODEL')
+        # nav head cam (nhc) model should be 'Arducam_OV9782_USB_Camera'
+        if 'OV9782' in nhc_model:
+            cameras_seen['OV9782'] = True
+    except:
+        pass
+
+    # Return error if not all cameras seen
+    for s in cameras_seen:
+        if not cameras_seen[s]:
             return False, False, f"missing {s} camera"
 
     # Check for lidar
@@ -152,7 +181,7 @@ def are_sensors_ready():
     p=r.pimu
     w=r.wacc
     checks = [
-        val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5),
+        # val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5),
         val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert']),
         val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40),
         val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5),
@@ -166,6 +195,13 @@ def are_sensors_ready():
             return True, False, check_msg
 
     return True, True, ""
+def is_battery_ready():
+    # TODO: Check charged connected but not charging
+
+    # Check battery voltage
+    p=r.pimu
+    voltage_check_succeeded, _ = val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5)
+    return voltage_check_succeeded, p.status['voltage']
 print(Style.RESET_ALL)
 print ('---- Checking Hardware ----')
 comms_ready, comms_err_msg, comms_usb_device_seen, comms_ping_list = is_comms_ready()
@@ -194,6 +230,11 @@ if sensors_ready:
         print(Fore.YELLOW + f'[Warn] Sensors not ready ({sensors_err_msg})')
 else:
     print(Fore.RED + f'[Fail] Sensors not ready ({sensors_err_msg})')
+battery_ready, battery_voltage = is_battery_ready()
+if battery_ready:
+    print(Fore.GREEN + f'[Pass] Battery voltage is {battery_voltage:.1f} V')
+else:
+    print(Fore.RED + f'[Fail] Battery voltage is {battery_voltage:.1f} V')
 
 # ###################  SOFTWARE  ######################
 try: # TODO: remove try/catch after sw check verified to work reliably
@@ -333,25 +374,24 @@ try: # TODO: remove try/catch after sw check verified to work reliably
 
         # get latest pip versions
         latest_pip_version = {
-            'hello-robot-stretch-body': version.parse('0.4.32'),
-            'hello-robot-stretch-body-tools': version.parse('0.4.16'),
-            'hello-robot-stretch-tool-share': version.parse('0.2.7'),
-            'hello-robot-stretch-factory': version.parse('0.4.6'),
-            'hello-robot-stretch-diagnostics': version.parse('0.0.13'),
-            'hello-robot-stretch-urdf': version.parse('0.0.11'),
+            'hello-robot-stretch-body': version.parse('0.7.0'),
+            'hello-robot-stretch-body-tools': version.parse('0.7.0'),
+            'hello-robot-stretch-tool-share': version.parse('0.2.8'),
+            'hello-robot-stretch-factory': version.parse('0.5.0'),
+            'hello-robot-stretch-diagnostics': version.parse('0.0.14'),
+            'hello-robot-stretch-urdf': version.parse('0.0.18'),
         }
         if scan_dict:
             latest_pip_version = {p: version.parse(scan_dict['pip'].get(p, '0.0.0')) for p in latest_pip_version}
 
         # check current against latest
-        try: # The try/except catches pip pkgs that aren't installed
-            for pip_pkg in pip_versions:
-                p = version.parse(pip_versions[pip_pkg])
-                if p < latest_pip_version[pip_pkg]:
-                    return False, pip_versions, pip_editable_locations
-        except:
-            return False, pip_versions, pip_editable_locations
-        return True, pip_versions, pip_editable_locations
+        for pip_pkg in pip_versions:
+            if pip_versions[pip_pkg] is None:
+                return False, f"run pip3 install -U {pip_pkg}", pip_versions, pip_editable_locations
+            p = version.parse(pip_versions[pip_pkg])
+            if p < latest_pip_version[pip_pkg]:
+                return False, f"run pip3 install -U {pip_pkg}", pip_versions, pip_editable_locations
+        return True, "", pip_versions, pip_editable_locations
     def all_ros_correct():
         ros1_distros = ['noetic', 'melodic', 'lunar', 'kinetic', 'jade', 'indigo']
         ros2_distros = ['rolling', 'jazzy', 'iron', 'humble', 'galactic', 'foxy', 'eloquent', 'dashing']
@@ -464,31 +504,33 @@ try: # TODO: remove try/catch after sw check verified to work reliably
     if fw_uptodate:
         print(Fore.GREEN + '[Pass] Firmware is up-to-date')
     else:
-        print(Fore.YELLOW + '[Warn] Firmware not up-to-date (try REx_firmware_updater.py --install)')
-    print(Fore.LIGHTBLUE_EX + '         hello-pimu = ' + Fore.CYAN + fw_versions['pimu'])
-    print(Fore.LIGHTBLUE_EX + '         hello-wacc = ' + Fore.CYAN + fw_versions['wacc'])
-    print(Fore.LIGHTBLUE_EX + '         hello-motor-arm = ' + Fore.CYAN + fw_versions['arm'])
-    print(Fore.LIGHTBLUE_EX + '         hello-motor-lift = ' + Fore.CYAN + fw_versions['lift'])
-    print(Fore.LIGHTBLUE_EX + '         hello-motor-left-wheel = ' + Fore.CYAN + fw_versions['left-wheel'])
-    print(Fore.LIGHTBLUE_EX + '         hello-motor-right-wheel = ' + Fore.CYAN + fw_versions['right-wheel'])
+        print(Fore.YELLOW + '[Warn] Firmware not up-to-date (run REx_firmware_updater.py --install)')
+    if args.verbose:
+        print(Fore.LIGHTBLUE_EX + '         hello-pimu = ' + Fore.CYAN + fw_versions['pimu'])
+        print(Fore.LIGHTBLUE_EX + '         hello-wacc = ' + Fore.CYAN + fw_versions['wacc'])
+        print(Fore.LIGHTBLUE_EX + '         hello-motor-arm = ' + Fore.CYAN + fw_versions['arm'])
+        print(Fore.LIGHTBLUE_EX + '         hello-motor-lift = ' + Fore.CYAN + fw_versions['lift'])
+        print(Fore.LIGHTBLUE_EX + '         hello-motor-left-wheel = ' + Fore.CYAN + fw_versions['left-wheel'])
+        print(Fore.LIGHTBLUE_EX + '         hello-motor-right-wheel = ' + Fore.CYAN + fw_versions['right-wheel'])
     # Python
-    pip_uptodate, pip_versions, pip_editable_locations = all_pip_uptodate()
+    pip_uptodate, pip_err_msg, pip_versions, pip_editable_locations = all_pip_uptodate()
     if pip_uptodate:
         print(Fore.GREEN + '[Pass] Python pkgs are up-to-date')
     else:
-        print(Fore.YELLOW + '[Warn] Python pkgs not up-to-date')
-    for bname in ['hello-robot-stretch-body', 'hello-robot-stretch-body-tools', 'hello-robot-stretch-tool-share', 'hello-robot-stretch-factory', 'hello-robot-stretch-diagnostics', 'hello-robot-stretch-urdf']:
-        print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
+        print(Fore.YELLOW + f'[Warn] Python pkgs not up-to-date ({pip_err_msg})')
+    if args.verbose:
+        for bname in ['hello-robot-stretch-body', 'hello-robot-stretch-body-tools', 'hello-robot-stretch-tool-share', 'hello-robot-stretch-factory', 'hello-robot-stretch-diagnostics', 'hello-robot-stretch-urdf']:
+            print(Fore.LIGHTBLUE_EX + f'         {bname} = ' + Fore.CYAN + f"{pip_versions[bname] if pip_versions[bname] else 'Not Installed'}" + Fore.LIGHTBLUE_EX + f"{f' (installed locally at {pip_editable_locations[bname]})' if pip_editable_locations[bname] else ''}")
     # ROS
     ros_enabled, ros_name, ros_ready, ros_err_msg, ros_ws_path = all_ros_correct()
     if ros_enabled:
         if ros_ready:
             print(Fore.GREEN + f'[Pass] {ros_name} is ready')
-            if ros_ws_path:
+            if ros_ws_path and args.verbose:
                 print(Fore.LIGHTBLUE_EX + f'         Workspace at {ros_ws_path}')
         else:
             print(Fore.YELLOW + f'[Warn] {ros_name} not ready ({ros_err_msg})')
-            if ros_ws_path:
+            if ros_ws_path and args.verbose:
                 print(Fore.LIGHTBLUE_EX + f'         Workspace at {ros_ws_path}')
     else:
         if ros_name:

@@ -2,6 +2,14 @@
 
 The changes between releases of Stretch Body are documented here.
 
+## [0.7.2](https://pypi.org/project/hello-robot-stretch-body/0.7.2/) - January 26, 2023
+ - Improvements to the System Check tool, including:
+    - Check if hello stepper self recognize correctly
+    - Check if OV9782 camera seen for Stretch 3s
+    - Update pip recommendations
+    - Hide verbose printout
+    - Add battery section to hardware check
+
 ## [0.7.0](https://pypi.org/project/hello-robot-stretch-body/0.7.0/) - January 25, 2023
  - Introduces P5 firmware protocol support
  - Revamped system check tool
