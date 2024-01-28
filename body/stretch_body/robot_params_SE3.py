@@ -563,8 +563,8 @@ nominal_params={
             'collision_pairs': {
                 'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'pts'},
                 'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'pts'},
-                'link_gripper_finger_left_TO_base_link': {'link_pts': 'link_gripper_finger_left','link_cube': 'base_link', 'detect_as': 'edges'},
-                'link_gripper_finger_right_TO_base_link': {'link_pts': 'link_gripper_finger_right','link_cube': 'base_link', 'detect_as': 'edges'},
+                'link_gripper_finger_left_TO_base_link': {'link_pts': 'link_gripper_finger_left','link_cube': 'base_link', 'detect_as': 'pts'},
+                'link_gripper_finger_right_TO_base_link': {'link_pts': 'link_gripper_finger_right','link_cube': 'base_link', 'detect_as': 'pts'},
                 'link_gripper_fingertip_left_TO_base_link': {'link_pts': 'link_gripper_fingertip_left','link_cube': 'base_link', 'detect_as': 'pts'},
                 'link_gripper_fingertip_right_TO_base_link': {'link_pts': 'link_gripper_fingertip_right','link_cube': 'base_link', 'detect_as': 'pts'},
                 'link_gripper_s3_body_TO_link_arm_l0': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0','detect_as': 'pts'},

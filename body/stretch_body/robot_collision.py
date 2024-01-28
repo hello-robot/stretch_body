@@ -119,7 +119,7 @@ class CollisionLink:
             print('Ignoring collision link %s' % link_name)
             self.is_valid=False
         self.pose=None
-        self.edge_indices_ppd=self.find_edge_indices_PPD()
+        #self.edge_indices_ppd=self.find_edge_indices_PPD()
 
 
     def is_ppd(self):
@@ -372,9 +372,9 @@ class RobotCollisionMgmt(Device):
                 cp.was_in_collision=cp.in_collision
                 if cp.detect_as=='pts':
                     cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
-                elif cp.detect_as=='edges':
-                    print('Checking', cp.name)
-                    cp.in_collision = check_ppd_edges_in_cube(cube=cp.link_cube.pose, cube_edge=cp.link_pts.pose,edge_indices=cp.link_pts.edge_indices_ppd)
+                # elif cp.detect_as=='edges':
+                #     print('Checking', cp.name)
+                #     cp.in_collision = check_ppd_edges_in_cube(cube=cp.link_cube.pose, cube_edge=cp.link_pts.pose,edge_indices=cp.link_pts.edge_indices_ppd)
                 else:
                     cp.in_collision =False
                     #cp.pretty_print()
