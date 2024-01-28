@@ -151,11 +151,13 @@ nominal_params={
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'dxl_latency_timer': 64,
+        'baud':115200,
         'stow': {'wrist_yaw': 3.4}},
     'head':{
         'usb_name': '/dev/hello-dynamixel-head',
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
+        'baud': 115200,
         'dxl_latency_timer':64},
     'head_pan':{
         'range_pad_t': [50.0, -50.0],
@@ -164,6 +166,8 @@ nominal_params={
         'id': 11,
         'max_voltage_limit': 15,
         'min_voltage_limit': 11,
+        'baud': 115200,
+        'use_multiturn': 0,
         'motion': {
             'trajectory_vel_ctrl': 1,
             'trajectory_vel_ctrl_kP':1.5,
@@ -205,6 +209,7 @@ nominal_params={
         'id': 12,
         'max_voltage_limit': 15,
         'min_voltage_limit': 11,
+        'baud': 115200,
         'motion': {
             'trajectory_vel_ctrl': 1,
             'trajectory_vel_ctrl_kP':1.5,
@@ -447,7 +452,7 @@ nominal_params={
             'SystemMonitorThread_Hz': 15.0,
             'SystemMonitorThread_monitor_downrate_int': 2,
             'SystemMonitorThread_trace_downrate_int': 1,
-            'SystemMonitorThread_collision_downrate_int': 1,
+            #'SystemMonitorThread_collision_downrate_int': 1,
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
         'tool': 'tool_stretch_gripper',
@@ -477,6 +482,9 @@ nominal_params={
         'n_samples_per_file':100,
         'duration_limit_minutes':10.0
     },
+    'robot_collision_mgmt': {
+        'max_mesh_points': 48,
+        'RE1V0': {}},
     'robot_sentry':{
         'base_fan_control': 1,
         'base_max_velocity': 1,
@@ -492,6 +500,7 @@ nominal_params={
         'max_voltage_limit': 15,
         'min_grip_strength': -125,
         'min_voltage_limit': 11,
+        'baud': 115200,
         'gripper_conversion':'stretch_gripper_conversion',
         'motion':{
             'trajectory_vel_ctrl': 1,
@@ -544,6 +553,7 @@ nominal_params={
         'dxl_latency_timer': 64,
         'py_class_name': 'ToolNone',
         'py_module_name': 'stretch_body.end_of_arm_tools',
+        'baud': 115200,
         'stow': {'wrist_yaw': 3.4},
         'devices': {
             'wrist_yaw': {
@@ -555,6 +565,7 @@ nominal_params={
         'dxl_latency_timer': 64,
         'py_class_name': 'ToolStretchGripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
+        'baud': 115200,
         'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
         'devices': {
             'stretch_gripper': {
@@ -581,6 +592,7 @@ nominal_params={
         'id': 13,
         'max_voltage_limit': 15,
         'min_voltage_limit': 11,
+        'baud': 115200,
         'motion': {
             'trajectory_vel_ctrl': 1,
             'trajectory_vel_ctrl_kP': 1.5,

@@ -69,7 +69,6 @@ class DynamixelHelloXL430(Device):
             self.usb = usb
             if self.usb is None:
                 self.usb = self.params['usb_name']
-
             #Share bus resource amongst many XL430s
             self.motor = DynamixelXL430(dxl_id=self.params['id'],
                                         usb=self.usb,
