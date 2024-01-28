@@ -263,7 +263,8 @@ class RobotCollisionMgmt(Device):
         self.collision_links = {}
         self.collision_pairs = {}
         #chime.theme('big-sur') #'material')#
-        self.running=True
+        self.running=False
+        self.urdf=None
 
     def pretty_print(self):
         for j in self.collision_joints:
@@ -282,11 +283,17 @@ class RobotCollisionMgmt(Device):
         urdf_name = pkg + '/%s/stretch_description_%s_%s.urdf' % (model_name, model_name, eoa_name)
         mesh_path = pkg + '/%s/' % (model_name)
 
+        if self.params[model_name]=={}:
+            #self.logger.warning('Collision parameters not present. Disabling collision system.')
+            self.running = False
+            return
+
         try:
             self.urdf = urdf_loader.URDF.load(urdf_name)
         except ValueError:
-            print('Unable to load URDF: %s' % urdf_name)
+            print('Unable to load URDF: %s. Disabling collision system.' % urdf_name)
             self.urdf = None
+            self.running = False
             return
 
         #Construct collision pairs

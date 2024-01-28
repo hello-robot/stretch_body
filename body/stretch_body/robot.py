@@ -298,6 +298,8 @@ class Robot(Device):
         self.collision.startup()
         if not self.params['use_collision_manager']: #Turn it off here but allow user to enable it via SW later
             self.disable_collision_mgmt()
+        else:
+            self.enable_collision_mgmt()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)
