@@ -7,7 +7,7 @@ user_params_header='#User parameters\n' \
                    '#USE WITH CAUTION. IT IS POSSIBLE TO CAUSE UNSAFE BEHAVIOR OF THE ROBOT \n'
 
 user_params_template={
-    'robot': {'use_collision_manager': 1}} #Include this just as an example
+    'robot': {'use_collision_manager': 0}} #Include this just as an example
 
 # ###################### CONFIGURATION PARAMS #####################################################
 #Template for the generated file: stretch_configuration_params.yaml
@@ -445,7 +445,7 @@ nominal_params={
             'SystemMonitorThread_Hz': 15.0,
             'SystemMonitorThread_monitor_downrate_int': 2,
             'SystemMonitorThread_trace_downrate_int': 1,
-            'SystemMonitorThread_collision_downrate_int': 5,
+            #'SystemMonitorThread_collision_downrate_int': 5,
             'SystemMonitorThread_sentry_downrate_int': 1,
             'SystemMonitorThread_nondxl_trajectory_downrate_int': 2},
         'tool': 'eoa_wrist_dw3_tool_sg3',
