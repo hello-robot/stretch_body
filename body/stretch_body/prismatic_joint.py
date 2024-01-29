@@ -182,41 +182,64 @@ class PrismaticJoint(Device):
             self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing set_velocity'%('neg',self.name))
             return
 
+        if a_m is None:
+            a_m=self.params['motion']['default']['accel_m']
+        else:
+            a_m=min(abs(a_m), self.params['motion']['max']['accel_m'])
+        a_r=self.translate_m_to_motor_rad(a_m)
         v_m=min(self.params['motion']['max']['vel_m'],v_m) if v_m>=0 else max(-1*self.params['motion']['max']['vel_m'],v_m)
+
+        v_m=self.filter_vel_braking(v_m,a_m)
         v_r = self.translate_m_to_motor_rad(v_m)
+
 
         if stiffness is not None:
             stiffness = max(0.0, min(1.0, stiffness))
         else:
             stiffness = self.stiffness
 
-        if a_m is not None:
-            a_r = self.translate_m_to_motor_rad(min(abs(a_m), self.params['motion']['max']['accel_m']))
-        else:
-            a_r = self.accel_r
+        # if a_m is not None:
+        #     a_r = self.translate_m_to_motor_rad(min(abs(a_m), self.params['motion']['max']['accel_m']))
+        # else:
+        #     a_r = self.accel_r
 
         i_contact_pos,i_contact_neg  = self.contact_thresh_to_motor_current(contact_thresh_pos,contact_thresh_neg )
 
-        if self.params['set_safe_velocity']==1 and self.in_vel_brake_zone: # only when sentry is active
-            self._step_vel_braking(v_des=v_m, # vel in m/s
-                                   a_des=a_r,
-                                   stiffness=stiffness,
-                                   i_feedforward=self.i_feedforward,
-                                   i_contact_pos=i_contact_pos,
-                                   i_contact_neg=i_contact_neg)
+        # if self.params['set_safe_velocity']==1:# and self.in_vel_brake_zone: # only when sentry is active
+        #     self._step_vel_braking(v_des=v_m, # vel in m/s
+        #                            a_des=self.motor_rad_to_translate_m(a_r), #m/s^2
+        #                            stiffness=stiffness,
+        #                            i_feedforward=self.i_feedforward,
+        #                            i_contact_pos=i_contact_pos,
+        #                            i_contact_neg=i_contact_neg)
+        # else:
+        if self.params['use_vel_traj']:
+            ctrl_mode = Stepper.MODE_VEL_TRAJ
         else:
-            if self.params['use_vel_traj']:
-                ctrl_mode = Stepper.MODE_VEL_TRAJ
-            else:
-                ctrl_mode = Stepper.MODE_VEL_PID
-            self.motor.set_command(mode=ctrl_mode,
-                                v_des=v_r,
-                                a_des=a_r,
-                                stiffness=stiffness,
-                                i_feedforward=self.i_feedforward,
-                                i_contact_pos=i_contact_pos,
-                                i_contact_neg=i_contact_neg)
-            self._prev_set_vel_ts = time.time()
+            ctrl_mode = Stepper.MODE_VEL_PID
+
+        self.motor.set_command(mode=ctrl_mode,
+                            v_des=v_r,
+                            a_des=a_r,
+                            stiffness=stiffness,
+                            i_feedforward=self.i_feedforward,
+                            i_contact_pos=i_contact_pos,
+                            i_contact_neg=i_contact_neg)
+        self._prev_set_vel_ts = time.time()
+
+    def filter_vel_braking(self,v_des,a_des,pad_m=.01):
+        v_curr = self.status['vel']
+        x_curr = self.status['pos']
+        t_brake = abs(v_curr / a_des)  # How long to brake from current speed (s)
+        d_brake = (t_brake * abs(v_curr) / 2)+pad_m  # How far it will go before breaking (pos/neg)
+        print('DBRAKE',d_brake)
+        if v_des > 0 and x_curr + d_brake >= self.get_soft_motion_limits()[1]:
+            print('Breaking pos')
+            return 0
+        if v_des < 0 and x_curr - d_brake <= self.get_soft_motion_limits()[0]:
+            print('Breaking neg')
+            return 0
+        return v_des
 
     def _step_vel_braking(self, v_des, a_des, stiffness, i_feedforward, i_contact_pos, i_contact_neg):
         """
@@ -244,15 +267,16 @@ class PrismaticJoint(Device):
             t_brake = abs(v_curr /self.params['motion']['max']['accel_m'])  # How long to brake from current speed (s)
             d_brake = t_brake * abs(v_curr) / 2  # How far it will go before breaking (pos/neg)
             d_brake = d_brake+0.003 #Pad out by 0.003m to give a bit of safety margin
-            
+            print('T',t_brake,'D',d_brake)
             v = 0
             if opp_vel:
                 v = v_des # allow input velocity if direction is opposite to nearest limit
             elif (v_des > 0 and x_curr + d_brake >= lim_upper) or (v_des <=0 and x_curr - d_brake <= lim_lower) or min(to_max,to_max)<0.001:
+                print('Zero')
                 v = 0  # apply brakes if the braking distance is >= limits
-            else:
-                taper = min(to_max,to_min)/self.vel_brake_zone_thresh # normalized (0~1) distance to limits
-                v = v_des*taper # apply tapered velocity inside braking zone
+            # else:
+            #     taper = min(to_max,to_min)/self.vel_brake_zone_thresh # normalized (0~1) distance to limits
+            #     v = v_des*taper # apply tapered velocity inside braking zone
             
             # convert to motor rad
             v_m=min(self.params['motion']['max']['vel_m'],v) if v>=0 else max(-1*self.params['motion']['max']['vel_m'],v)
@@ -267,7 +291,7 @@ class PrismaticJoint(Device):
 
             self.motor.set_command(mode=ctrl_mode,
                                 v_des=v_r,
-                                a_des=a_des,
+                                a_des=self.translate_m_to_motor_rad(a_des),
                                 stiffness=stiffness,
                                 i_feedforward=i_feedforward,
                                 i_contact_pos=i_contact_pos,
@@ -659,7 +683,7 @@ class PrismaticJoint(Device):
         if distance_to_limit!=0:
             brake_zone_thresh = brake_zone_factor*abs(self.status['vel'])/distance_to_limit
             brake_zone_thresh =  self.bound_value(brake_zone_thresh,0,self.total_range/2)
-            brake_zone_thresh = brake_zone_thresh + 0.05 # 0.05m is minimum brake zone thresh  
+            brake_zone_thresh = brake_zone_thresh + 0.02 # 0.05m is minimum brake zone thresh
             self._set_vel_brake_thresh(brake_zone_thresh)
 
     def _set_vel_brake_thresh(self, thresh):

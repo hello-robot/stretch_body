@@ -228,7 +228,7 @@ class CommandLift:
             self.start_pos = None
             self.stopped_for_precision = False
             v_m = self._process_stick_to_vel(x)
-            robot.lift.set_velocity(v_m, a_m=self.acc)
+            #robot.lift.set_velocity(v_m, a_m=self.acc)
             self._prev_set_vel_ts = time.time()
             # print(f"[CommandLift]  X: {x} || v_m: {self.safety_v_m}")
         else:
@@ -324,7 +324,7 @@ class CommandArm:
         """Convert a stick axis value to robot arm motion.
 
         Args:
-            x (float): Range [-1.0,+1.0], control lift speed
+            x (float): Range [-1.0,+1.0], control arm speed
             robot (robot.Robot): Valid robot instance
         """
         if abs(x) < self.dead_zone:

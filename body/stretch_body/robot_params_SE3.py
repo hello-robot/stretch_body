@@ -76,7 +76,7 @@ nominal_params={
         'gr_spur': 3.875,
         'i_feedforward': 0,
         'calibration_range_bounds':[0.514, 0.525],
-        'use_adv_homing': 1,
+        'use_adv_homing': 0,
         'contact_models':{
             'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
         'motion':{
