@@ -569,14 +569,33 @@ class PrismaticJoint(Device):
     def wait_while_is_moving(self,timeout=15.0):
         return self.motor.wait_while_is_moving(timeout=timeout)
 
-    def wait_for_contact(self, timeout=5.0):
+    def wait_for_contact(self, timeout=5.0,pull_status=True):
         ts=time.time()
         while (time.time()-ts<timeout):
-            self.pull_status()
+            if pull_status:
+                self.pull_status()
             if self.motor.status['in_guarded_event']:
                 return True
             time.sleep(0.01)
         return False
+
+    def measure_until_contact(self,timeout = 5.0,pull_status=True):
+        ts = time.time()
+        data={'success':False,'pos':[],'motor_pos':[],'vel':[],'effort_pct':[],'current':[],'err':[]}
+        while (time.time() - ts < timeout):
+            if pull_status:
+                self.pull_status()
+            data['pos'].append(self.status['pos'])
+            data['vel'].append(self.status['vel'])
+            data['effort_pct'].append(self.motor.status['effort_pct'])
+            data['motor_pos'].append(self.motor.status['pos'])
+            data['current'].append(self.motor.status['current'])
+            data['err'].append(self.motor.status['err'])
+            if self.motor.status['in_guarded_event']:
+                data['success']=True
+                return data
+            time.sleep(0.01)
+        return data
 
     def step_collision_avoidance(self,in_collision):
         """
@@ -658,30 +677,32 @@ class PrismaticJoint(Device):
         else:
             return delta1, delta2
 
-    def home(self,end_pos,to_positive_stop, measuring=False):
+    def home(self,end_pos,to_positive_stop, measuring=False,do_pull_status=True):
         """
         end_pos: position to end on
         to_positive_stop:
         -- True: Move to the positive direction stop and mark to range_m[1]
         -- False: Move to the negative direction stop and mark to range_m[0]
         measuring: After homing to stop, move to opposite stop and report back measured distance
-        return measured range-of-motion if measuring. Return None if not a valide measurement
+        do_pull_status: False if another thread is doing the pull_status in background
+        return success, logged data
         """
 
         hu.check_deprecated_contact_model_prismatic_joint(self,'home',None,None,None,None)
 
+        log = {'dir_1': None, 'dir_2': None, 'range_of_motion': 0}
+
         if not self.motor.hw_valid:
             self.logger.warning('Not able to home %s. Hardware not present' % self.name.capitalize())
-            return None
-
+            return False,log
 
         contact_thresh_neg = self.params['contact_models']['effort_pct']['contact_thresh_homing'][0]
         contact_thresh_pos = self.params['contact_models']['effort_pct']['contact_thresh_homing'][1]
 
-
         success = True
         print('Homing %s...' % self.name.capitalize())
-        self.pull_status()
+        if do_pull_status:
+            self.pull_status()
         prev_calibrated=self.motor.status['pos_calibrated']
         prev_guarded_mode = self.motor.gains['enable_guarded_mode']
         prev_sync_mode = self.motor.gains['enable_sync_mode']
@@ -690,7 +711,8 @@ class PrismaticJoint(Device):
 
         self.motor.reset_pos_calibrated()
         self.push_command()
-        self.pull_status()
+        if do_pull_status:
+            self.pull_status()
 
         if to_positive_stop:
             x_goal_1 = 5.0  # Well past the stop
@@ -702,10 +724,11 @@ class PrismaticJoint(Device):
         # Move to stop
         self.move_by(x_m=x_goal_1, contact_thresh_pos=contact_thresh_pos, contact_thresh_neg=contact_thresh_neg,req_calibration=False)
         self.push_command()
-        if self.wait_for_contact(timeout=15.0):  # timeout=15.0):
-            self.pull_status()
-            print('Hardstop detected at motor position (rad)', self.motor.status['pos'])
-            x_dir_1 = self.status['pos']
+        data_1=self.measure_until_contact(timeout=15.0,pull_status=do_pull_status)
+        data_2=None
+        if data_1['success']:
+            print('Hardstop detected at motor position (rad)', data_1['motor_pos'][-1])
+            x_dir_1 = data_1['pos'][-1]
             if to_positive_stop:
                 x = self.translate_m_to_motor_rad(self.params['range_m'][1] )
                 print('Marking %s position to %f (m)' % (self.name.capitalize(), self.params['range_m'][1]))
@@ -720,14 +743,14 @@ class PrismaticJoint(Device):
             # Second direction
             if measuring:
                 # Move to other direction
-                self.pull_status()
                 self.move_by(x_m=x_goal_2, contact_thresh_pos=contact_thresh_pos,contact_thresh_neg=contact_thresh_neg,req_calibration=False)
                 self.push_command()
-                if self.wait_for_contact(timeout=15.0):
-                    print('Second hardstop detected at motor position (rad)', self.motor.status['pos'])
+                data_2 = self.measure_until_contact(timeout=15.0, pull_status=do_pull_status)
+                if data_2['success']:
+                    print('Second hardstop detected at motor position (rad)', data_2['motor_pos'][-1])
                     time.sleep(1.0)
-                    self.pull_status()
-                    x_dir_2 = self.status['pos']
+                    #self.pull_status()
+                    x_dir_2 = data_2['pos'][-1] #self.status['pos']
                 else:
                     self.logger.warning('%s homing failed. Failed to detect contact' % self.name.capitalize())
                     success = False
@@ -751,10 +774,13 @@ class PrismaticJoint(Device):
         if measuring and prev_calibrated:
             self.motor.set_pos_calibrated()
         self.push_command()
+        log['dir_1'] = data_1
+        log['dir_2'] = data_2
         if success:
             if measuring:
-                print('%s range measuing successful: %f (m)' % (self.name.capitalize(), abs(x_dir_1 - x_dir_2)))
-                return abs(x_dir_1 - x_dir_2)
+                rom=abs(x_dir_1 - x_dir_2)
+                print('%s range measuring successful: %f (m)' % (self.name.capitalize(), rom))
+                log['range']=rom
             else:
                 print('%s homing successful' % self.name.capitalize())
-        return None
+        return success,log
