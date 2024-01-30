@@ -102,15 +102,27 @@ class Base(Device):
         return False
 
     def wait_while_is_moving(self,timeout=15.0):
-        left_done_moving = self.left_wheel.wait_while_is_moving(timeout=timeout)
-        right_done_moving = self.right_wheel.wait_while_is_moving(timeout=timeout)
-        return left_done_moving and right_done_moving
+        done = []
+        def check_wait(wait_method):
+            done.append(wait_method(timeout))
+        threads = []
+        threads.append(threading.Thread(target=check_wait, args=(self.left_wheel.wait_while_is_moving,)))
+        threads.append(threading.Thread(target=check_wait, args=(self.right_wheel.wait_while_is_moving,)))
+        [thread.start() for thread in threads]
+        [thread.join() for thread in threads]
+        return all(done)
 
     def wait_until_at_setpoint(self, timeout=15.0):
         #Assume both are in motion. This will exit once both are at setpoints
-        left_at_setpoint = self.left_wheel.wait_until_at_setpoint(timeout)
-        right_at_setpoint = self.right_wheel.wait_until_at_setpoint(timeout)
-        return left_at_setpoint and right_at_setpoint
+        at_setpoint = []
+        def check_wait(wait_method):
+            at_setpoint.append(wait_method(timeout))
+        threads = []
+        threads.append(threading.Thread(target=check_wait, args=(self.left_wheel.wait_until_at_setpoint,)))
+        threads.append(threading.Thread(target=check_wait, args=(self.right_wheel.wait_until_at_setpoint,)))
+        [done_thread.start() for done_thread in threads]
+        [done_thread.join() for done_thread in threads]
+        return all(at_setpoint)
 
     def contact_thresh_to_motor_current(self,is_translate,contact_thresh):
         """
