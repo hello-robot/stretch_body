@@ -114,8 +114,13 @@ class DynamixelXChain(Device):
 
     def wait_until_at_setpoint(self, timeout=15.0):
         at_setpoint = []
+        def check_wait(wait_method):
+            at_setpoint.append(wait_method(timeout))
+        threads = []
         for motor in self.motors:
-            at_setpoint.append(self.motors[motor].wait_until_at_setpoint(timeout=timeout))
+            threads.append(threading.Thread(target=check_wait, args=(self.motors[motor].wait_until_at_setpoint,)))
+        [done_thread.start() for done_thread in threads]
+        [done_thread.join() for done_thread in threads]
         return all(at_setpoint)
 
     def is_trajectory_active(self):

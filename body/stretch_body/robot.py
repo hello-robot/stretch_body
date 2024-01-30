@@ -418,13 +418,40 @@ class Robot(Device):
         self.collision.disable()
 
     def wait_command(self, timeout=15.0):
-        time.sleep(0.5)
-        base_done = self.base.wait_while_is_moving(timeout=timeout)
-        arm_done = self.arm.wait_while_is_moving(timeout=timeout)
-        lift_done = self.lift.wait_while_is_moving(timeout=timeout)
-        head_done = self.head.wait_until_at_setpoint(timeout=timeout)
-        eoa_done = self.end_of_arm.wait_until_at_setpoint(timeout=timeout)
-        return base_done and arm_done and lift_done and head_done and eoa_done
+        """Pause program execution until all motion complete.
+
+        Queuing up motion and pushing it to the hardware with
+        push_command() is designed to be asynchronous, enabling
+        reactive control of the robot. However, you might want
+        sychronous control, where each command's motion is completed
+        entirely before the program moves on to the next command.
+        This is where you would use wait_command()
+
+        Parameters
+        ----------
+        timeout : float
+            How long to wait for motion to complete. Must be > 0.1 sec.
+
+        Returns
+        -------
+        bool
+            True if motion completed, False if timed out before motion completed
+        """
+        time.sleep(0.1)
+        timeout = max(0.0, timeout - 0.1)
+        done = []
+        def check_wait(wait_method):
+            done.append(wait_method(timeout))
+        start = time.time()
+        threads = []
+        threads.append(threading.Thread(target=check_wait, args=(self.base.wait_while_is_moving,)))
+        threads.append(threading.Thread(target=check_wait, args=(self.arm.wait_while_is_moving,)))
+        threads.append(threading.Thread(target=check_wait, args=(self.lift.wait_while_is_moving,)))
+        threads.append(threading.Thread(target=check_wait, args=(self.head.wait_until_at_setpoint,)))
+        threads.append(threading.Thread(target=check_wait, args=(self.end_of_arm.wait_until_at_setpoint,)))
+        [thread.start() for thread in threads]
+        [thread.join() for thread in threads]
+        return all(done)
 
     # ######### Waypoint Trajectory Interface ##############################
 
