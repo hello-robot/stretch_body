@@ -69,7 +69,6 @@ class DynamixelHelloXL430(Device):
             self.usb = usb
             if self.usb is None:
                 self.usb = self.params['usb_name']
-
             #Share bus resource amongst many XL430s
             self.motor = DynamixelXL430(dxl_id=self.params['id'],
                                         usb=self.usb,
@@ -577,6 +576,15 @@ class DynamixelHelloXL430(Device):
             self.watchdog_enabled = True
             self.enable_torque()
         v = min(self.params['motion']['max']['vel'],abs(v_des))
+
+        if self.in_collision_stop['pos'] and v_des>0:
+            self.logger.warning('set_velocity in collision . Motion disabled in direction %s for %s. Not executing set_velocity'%('pos',self.name))
+            return
+
+        if self.in_collision_stop['neg'] and v_des<0:
+            self.logger.warning('set_velocity in collision. Motion disabled in direction %s for %s. Not executing set_velocity'%('neg',self.name))
+            return
+
         v_des = -1*v if v_des<0 else v
         nretry = 2
         if not self.hw_valid:
@@ -677,6 +685,16 @@ class DynamixelHelloXL430(Device):
             self.logger.warning('Dynamixel not calibrated: %s' % self.name)
             print('Dynamixel not calibrated:', self.name)
             return
+
+
+        if self.in_collision_stop['pos'] and self.status['pos']<x_des:
+            self.logger.warning('move_to in collision. Motion disabled in direction %s for %s. Not executing move_to'%('pos',self.name))
+            return
+
+        if self.in_collision_stop['neg'] and self.status['pos']>x_des:
+            self.logger.warning('move_to in collision. Motion disabled in direction %s for %s. Not executing move_to'%('neg',self.name))
+            return
+
         if self.in_vel_mode:
             self.enable_pos()
         #print('Motion Params',v_des,a_des)
@@ -736,6 +754,19 @@ class DynamixelHelloXL430(Device):
 
                 if self.motor.last_comm_success:
                     cx=self.ticks_to_world_rad(x)
+
+                    if self.in_collision_stop['pos'] and self.status['pos'] < cx + x_des:
+                        self.logger.warning(
+                            'move_by in collision. Motion disabled in direction %s for %s. Not executing move_by' % (
+                            'pos', self.name))
+                        return
+
+                    if self.in_collision_stop['neg'] and self.status['pos'] > cx + x_des:
+                        self.logger.warning(
+                            'move_by in collision. Motion disabled in direction %s for %s. Not executing move_by' % (
+                            'neg', self.name))
+                        return
+
                     self.move_to(cx + x_des, v_des, a_des)
                 else:
                     self.logger.debug('Move_By comm failure on %s' % self.name)

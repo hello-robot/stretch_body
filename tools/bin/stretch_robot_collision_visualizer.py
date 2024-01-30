@@ -107,7 +107,8 @@ class CollisionVisualizer:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Visualize Stretch collision system ')
-    parser.add_argument("--mesh", help="View actual mesh models", action="store_true")
+    #parser.add_argument("--mesh", help="View actual mesh models", action="store_true")
+    parser.add_argument('-g', "--gamepad", help="Use gamepad to control pose", action="store_true")
     args = parser.parse_args()
 
     r = stretch_body.robot.Robot()
@@ -119,9 +120,21 @@ if __name__ == "__main__":
     r.startup()
     if not r.is_homed():
         print('Warning. Visualization may be inaccurate because the robot has not been calibrated')
-        #exit()
+        # exit()
+
+    gamepad=None
+    if args.gamepad:
+        import stretch_body.gamepad_teleop
+        gamepad = stretch_body.gamepad_teleop.GamePadTeleop(robot_instance = False)
+        gamepad.startup(robot=r)
+
+
     viz = CollisionVisualizer(robot=r)
     viz.show()
     while viz.viewer.is_active:
         viz.update_pose()
+        if gamepad:
+            gamepad.step_mainloop(r)
     r.stop()
+    if gamepad:
+        gamepad.gamepad_controller.stop()
