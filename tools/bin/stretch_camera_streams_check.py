@@ -102,8 +102,8 @@ def d435i_stream():
 def uvc_cam_stream(video_path=None):
     global stop_stream, image_uvc
     if video_path is None:
-        if not os.path.exists('/dev/hello-navigation-camera'):
-            print("Unable to Find device: /dev/hello-navigation-camera")
+        if not os.path.exists('/dev/hello-nav-head-camera'):
+            print("Unable to Find device: /dev/hello-nav-head-camera")
             return None
         print(f"Navigation Camera Stream Settings:\n UVC_COLOR_SIZE={UVC_COLOR_SIZE}\n FPS={UVC_FPS}")
         uvc_camera = hu.setup_uvc_camera(UVC_VIDEO_INDEX, UVC_COLOR_SIZE, UVC_FPS, UVC_VIDEO_FORMAT)
