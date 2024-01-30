@@ -677,32 +677,31 @@ class PrismaticJoint(Device):
         else:
             return delta1, delta2
 
-    def home(self,end_pos,to_positive_stop, measuring=False,do_pull_status=True):
+
+    def home(self,end_pos,to_positive_stop, measuring=False):
         """
         end_pos: position to end on
         to_positive_stop:
         -- True: Move to the positive direction stop and mark to range_m[1]
         -- False: Move to the negative direction stop and mark to range_m[0]
         measuring: After homing to stop, move to opposite stop and report back measured distance
-        do_pull_status: False if another thread is doing the pull_status in background
-        return success, logged data
+        return measured range-of-motion if measuring. Return None if not a valide measurement
         """
 
         hu.check_deprecated_contact_model_prismatic_joint(self,'home',None,None,None,None)
 
-        log = {'dir_1': None, 'dir_2': None, 'range_of_motion': 0}
-
         if not self.motor.hw_valid:
             self.logger.warning('Not able to home %s. Hardware not present' % self.name.capitalize())
-            return False,log
+            return None
+
 
         contact_thresh_neg = self.params['contact_models']['effort_pct']['contact_thresh_homing'][0]
         contact_thresh_pos = self.params['contact_models']['effort_pct']['contact_thresh_homing'][1]
 
+
         success = True
         print('Homing %s...' % self.name.capitalize())
-        if do_pull_status:
-            self.pull_status()
+        self.pull_status()
         prev_calibrated=self.motor.status['pos_calibrated']
         prev_guarded_mode = self.motor.gains['enable_guarded_mode']
         prev_sync_mode = self.motor.gains['enable_sync_mode']
@@ -711,8 +710,7 @@ class PrismaticJoint(Device):
 
         self.motor.reset_pos_calibrated()
         self.push_command()
-        if do_pull_status:
-            self.pull_status()
+        self.pull_status()
 
         if to_positive_stop:
             x_goal_1 = 5.0  # Well past the stop
@@ -724,11 +722,10 @@ class PrismaticJoint(Device):
         # Move to stop
         self.move_by(x_m=x_goal_1, contact_thresh_pos=contact_thresh_pos, contact_thresh_neg=contact_thresh_neg,req_calibration=False)
         self.push_command()
-        data_1=self.measure_until_contact(timeout=15.0,pull_status=do_pull_status)
-        data_2=None
-        if data_1['success']:
-            print('Hardstop detected at motor position (rad)', data_1['motor_pos'][-1])
-            x_dir_1 = data_1['pos'][-1]
+        if self.wait_for_contact(timeout=15.0):  # timeout=15.0):
+            self.pull_status()
+            print('Hardstop detected at motor position (rad)', self.motor.status['pos'])
+            x_dir_1 = self.status['pos']
             if to_positive_stop:
                 x = self.translate_m_to_motor_rad(self.params['range_m'][1] )
                 print('Marking %s position to %f (m)' % (self.name.capitalize(), self.params['range_m'][1]))
@@ -743,14 +740,14 @@ class PrismaticJoint(Device):
             # Second direction
             if measuring:
                 # Move to other direction
+                self.pull_status()
                 self.move_by(x_m=x_goal_2, contact_thresh_pos=contact_thresh_pos,contact_thresh_neg=contact_thresh_neg,req_calibration=False)
                 self.push_command()
-                data_2 = self.measure_until_contact(timeout=15.0, pull_status=do_pull_status)
-                if data_2['success']:
-                    print('Second hardstop detected at motor position (rad)', data_2['motor_pos'][-1])
+                if self.wait_for_contact(timeout=15.0):
+                    print('Second hardstop detected at motor position (rad)', self.motor.status['pos'])
                     time.sleep(1.0)
-                    #self.pull_status()
-                    x_dir_2 = data_2['pos'][-1] #self.status['pos']
+                    self.pull_status()
+                    x_dir_2 = self.status['pos']
                 else:
                     self.logger.warning('%s homing failed. Failed to detect contact' % self.name.capitalize())
                     success = False
@@ -774,13 +771,101 @@ class PrismaticJoint(Device):
         if measuring and prev_calibrated:
             self.motor.set_pos_calibrated()
         self.push_command()
-        log['dir_1'] = data_1
-        log['dir_2'] = data_2
         if success:
             if measuring:
-                rom=abs(x_dir_1 - x_dir_2)
-                print('%s range measuring successful: %f (m)' % (self.name.capitalize(), rom))
-                log['range']=rom
+                print('%s range measuing successful: %f (m)' % (self.name.capitalize(), abs(x_dir_1 - x_dir_2)))
+                return abs(x_dir_1 - x_dir_2)
             else:
                 print('%s homing successful' % self.name.capitalize())
-        return success,log
+        return None
+
+    def home_single_ended(self,end_pos,to_positive_stop, measuring=False,do_pull_status=True):
+        """
+        This is a newer, simpler homing procedure that is more flexible for doing recalibration.
+        It will eventually replace the orginal home() procedure.
+
+        end_pos: position to move to on completion, None means don't move
+        to_positive_stop:
+        -- True: Move to the positive direction stop and set home position to range_m[1]
+        -- False: Move to the negative direction stop and set home position to range_m[0]
+        measuring: True if just making measurements and don't want to actual set the home position
+        do_pull_status: True if need to do pull_status (instead of robot thread)
+        return success, logged data
+        """
+
+        hu.check_deprecated_contact_model_prismatic_joint(self,'home',None,None,None,None)
+
+        log = {'data': None, 'x_contact': 0}
+
+        if not self.motor.hw_valid:
+            self.logger.warning('Not able to home %s. Hardware not present' % self.name.capitalize())
+            return False,log
+
+        contact_thresh_neg = self.params['contact_models']['effort_pct']['contact_thresh_homing'][0]
+        contact_thresh_pos = self.params['contact_models']['effort_pct']['contact_thresh_homing'][1]
+
+        self.pull_status()
+        prev_calibrated=self.motor.status['pos_calibrated']
+        prev_guarded_mode = self.motor.gains['enable_guarded_mode']
+        prev_sync_mode = self.motor.gains['enable_sync_mode']
+        self.motor.enable_guarded_mode()
+        self.motor.disable_sync_mode()
+
+        self.motor.reset_pos_calibrated()
+        self.push_command()
+        self.pull_status()
+
+        if to_positive_stop:
+            x_goal_1 = 5.0  # Well past the stop
+            xm=self.params['range_m'][1]
+        else:
+            x_goal_1 = -5.0
+            xm = self.params['range_m'][0]
+        xmr = self.translate_m_to_motor_rad(xm)
+
+        # Move to stop
+        self.move_by(x_m=x_goal_1, contact_thresh_pos=contact_thresh_pos, contact_thresh_neg=contact_thresh_neg,req_calibration=False)
+        self.push_command()
+        time.sleep(0.5)
+        log['data']=self.measure_until_contact(timeout=15.0,pull_status=do_pull_status)
+        if log['data']['success']:
+            time.sleep(0.5) #Time to settle
+            if not measuring:
+                print('Hardstop detected at motor position %f (rad)' % xmr)
+                print('Setting %s home position to %f (m)' % (self.name.capitalize(), xm))
+                self.motor.mark_position(xmr)
+                self.motor.set_pos_calibrated()
+                self.push_command()
+                log['x_contact']=xm
+            else:
+                self.pull_status()
+                log['x_contact'] = self.status['pos']
+        else:
+            self.logger.warning('%s homing failed. Failed to detect contact' % self.name.capitalize())
+
+        #Move to final position
+        if log['data']['success'] and end_pos is not None:
+            self.motor.disable_guarded_mode() #Turn it off for this move to ensure it doesn't get stuck at hardstop
+            self.push_command()
+            print('Moving to finish position %f...'%end_pos)
+            self.move_to(x_m=end_pos, req_calibration=False)
+            self.push_command()
+            time.sleep(0.5)
+            if not self.motor.wait_until_at_setpoint():
+                self.logger.warning('%s failed to reach final position' % self.name.capitalize())
+                log['data']['success']= False
+            self.motor.enable_guarded_mode()
+
+
+        # Restore previous modes
+        if not prev_guarded_mode:
+            self.motor.disable_guarded_mode()
+        if prev_sync_mode:
+            self.motor.enable_sync_mode()
+        if measuring and prev_calibrated:
+            self.motor.set_pos_calibrated()
+        self.push_command()
+
+        if log['data']['success'] and measuring:
+            print('%s homing successful' % self.name.capitalize())
+        return log['data']['success'],log

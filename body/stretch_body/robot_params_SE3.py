@@ -75,7 +75,7 @@ nominal_params={
         'chain_sprocket_teeth': 10,
         'gr_spur': 3.875,
         'i_feedforward': 0,
-        'calibration_range_bounds':[0.514, 0.525],
+        'calibration_range_bounds':[0.50, 0.525],
         'use_adv_homing': 1,
         'contact_models':{
             'effort_pct': {'contact_thresh_calibration_margin':10.0,'contact_thresh_max': [-90.0, 90.0]}},
@@ -243,7 +243,7 @@ nominal_params={
         'range_pad_t': [50.0, -50.0]},
     'hello-motor-arm':{
         'gains':{
-            'effort_LPF': 10.0,
+            'effort_LPF': 1.0,
             'enable_guarded_mode': 1,
             'enable_runstop': 1,
             'enable_sync_mode': 1,
@@ -280,7 +280,7 @@ nominal_params={
         'rated_current': 2.8},
     'hello-motor-left-wheel':{
         'gains':{
-            'effort_LPF': 2.0,
+            'effort_LPF': 1.0,
             'enable_guarded_mode': 0,
             'enable_runstop': 1,
             'enable_sync_mode': 1,
@@ -317,7 +317,7 @@ nominal_params={
         'rated_current': 2.8},
     'hello-motor-lift':{
             'gains':{
-            'effort_LPF': 2.0,
+            'effort_LPF': 1.0,
             'enable_guarded_mode': 1,
             'enable_runstop': 1,
             'enable_sync_mode': 1,
@@ -354,7 +354,7 @@ nominal_params={
         'rated_current': 2.8},
     'hello-motor-right-wheel':{
         'gains':{
-            'effort_LPF': 2.0,
+            'effort_LPF': 1.0,
             'enable_guarded_mode': 0,
             'enable_runstop': 1,
             'enable_sync_mode': 1,
