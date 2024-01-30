@@ -20,7 +20,7 @@ configuration_params_template={
         'contact_models':{
             'effort_pct':{
                 'contact_thresh_default':[-55.0, 55.0],
-                'contact_thresh_homing':[-55.0, 55.0]}},
+                'contact_thresh_homing':[-75.0, 75.0]}},
         'range_m':[0.0,0.52]},
     'lift': {
         'contact_models':{
