@@ -3,6 +3,7 @@
 The changes between releases of Stretch Body are documented here.
 
 ## [0.7.2](https://pypi.org/project/hello-robot-stretch-body/0.7.2/) - January 26, 2023
+ - Fix for wait_command() timeout not being respected (issue [#255](https://github.com/hello-robot/stretch_body/issues/255))
  - Improvements to the System Check tool, including:
     - Check if hello stepper self recognize correctly
     - Check if OV9782 camera seen for Stretch 3s
