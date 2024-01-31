@@ -303,7 +303,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             if pkg not in apt_list and is_install_expected:
                 return False, f"{pkg} should be installed"
             if pkg in apt_list and is_install_expected != apt_list[pkg].is_installed:
-                return False, f"{pkg} should {'not' if not is_install_expected else ''} be installed"
+                return False, f"{pkg} should {'not' if not is_install_expected else ''}be installed"
         return True, ''
     def all_firmware_uptodate():
         # get current fw versions
@@ -444,7 +444,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             rospack_list = rospack.list()
             for pkg, is_install_expected in ros_expectations[ros_distro].items():
                 if is_install_expected != (pkg in rospack_list):
-                    return True, ros_name, False, f"{pkg} should {'not' if not is_install_expected else ''} be installed", ''
+                    return True, ros_name, False, f"{pkg} should {'not' if not is_install_expected else ''}be installed", ''
             p = rospack.get_path('stretch_core')
             ws_paths = [str(par.parent) for par in pathlib.Path(p).parents if str(par).endswith('src')]
             ws_path = ''
