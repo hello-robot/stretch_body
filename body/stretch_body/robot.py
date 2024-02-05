@@ -156,7 +156,7 @@ class SystemMonitorThread(threading.Thread):
         if self.robot.params['use_sentry']:
             if (self.titr % self.sentry_downrate_int) == 0:
                 self.robot._step_sentry()
-        if self.robot.is_homed():
+        if self.robot.is_homed() and 'eoa_wrist_dw3_tool' in self.robot.params['tool']:
             self.robot.collision.step()
         if (self.titr % self.trajectory_downrate_int) == 0:
             self.robot._update_trajectory_non_dynamixel()
@@ -194,7 +194,11 @@ class Robot(Device):
 
         self.monitor = RobotMonitor(self)
         self.trace = RobotTrace(self)
-        self.collision = RobotCollisionMgmt(self)
+        
+        # Robot collision management is only enabled for DW3 tool for now
+        if 'eoa_wrist_dw3_tool' in self.params['tool']:
+            self.collision = RobotCollisionMgmt(self)
+
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
         self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
@@ -295,9 +299,10 @@ class Robot(Device):
             self.start_event_loop()
 
         #Always startup to load URDFs now and not while thread is running
-        self.collision.startup()
-        if not self.params['use_collision_manager']: #Turn it off here but allow user to enable it via SW later
-            self.disable_collision_mgmt()
+        if 'eoa_wrist_dw3_tool' in self.params['tool']:
+            self.collision.startup()
+            if not self.params['use_collision_manager']: #Turn it off here but allow user to enable it via SW later
+                self.disable_collision_mgmt()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)

@@ -107,7 +107,8 @@ class DynamixelHelloXL430(Device):
             self.in_collision_stop = {'pos': False, 'neg': False}
             self.ts_collision_stop = {'pos': 0.0, 'neg': 0.0}
             self.pos_current_ctrl_on_startup = False
-        except KeyError:
+        except KeyError as e:
+            self.logger.error(f"Unable to start the device. {e}")
             self.motor=None
 
     # ###########  Device Methods #############
