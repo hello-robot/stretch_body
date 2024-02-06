@@ -134,7 +134,7 @@ class SystemMonitorThread(threading.Thread):
         self.monitor_downrate_int = int(robot.params['rates']['SystemMonitorThread_monitor_downrate_int'])  # Step the monitor at every Nth iteration
         self.trace_downrate_int = int(robot.params['rates']['SystemMonitorThread_trace_downrate_int'])  # Step the trace at every Nth iteration
         self.sentry_downrate_int = int(robot.params['rates']['SystemMonitorThread_sentry_downrate_int']) # Step the sentry at every Nth iteration
-        self.collision_downrate_int = int(robot.params['rates']['SystemMonitorThread_collision_downrate_int'])  # Step the monitor at every Nth iteration
+        #self.collision_downrate_int = int(robot.params['rates']['SystemMonitorThread_collision_downrate_int'])  # Step the monitor at every Nth iteration
         self.trajectory_downrate_int = int(robot.params['rates']['SystemMonitorThread_nondxl_trajectory_downrate_int'])  # Update hardware with waypoint trajectory segments at every Nth iteration
 
         if self.robot.params['use_monitor']:
@@ -298,6 +298,8 @@ class Robot(Device):
         self.collision.startup()
         if not self.params['use_collision_manager']: #Turn it off here but allow user to enable it via SW later
             self.disable_collision_mgmt()
+        else:
+            self.enable_collision_mgmt()
 
         # Register the signal handlers
         signal.signal(signal.SIGTERM, hello_utils.thread_service_shutdown)

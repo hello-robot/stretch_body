@@ -461,24 +461,8 @@ nominal_params={
         'use_sentry': 1,
         'use_asyncio':1},
     'robot_collision_mgmt': {
-        'max_mesh_points': 36,
-        'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
-        'RE2V0': {
-            'lift': [{'motion_dir': 'pos', 'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4'}],
-            'arm': [{'motion_dir': 'neg', 'link_pts': 'link_arm_l0', 'link_cube': 'base_link'}],
-        },
-        'tool_stretch_gripper': {
-            'lift': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'base_link'},
-                     {'motion_dir': 'neg', 'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'base_link'}],
-            'arm': [{'motion_dir': 'neg', 'link_pts': 'link_gripper', 'link_cube': 'base_link'}],
-            'wrist_yaw': [{'motion_dir': 'pos', 'link_pts': 'link_gripper_finger_left', 'link_cube': 'base_link'},
-                          {'motion_dir': 'neg', 'link_pts': 'link_gripper_finger_right', 'link_cube': 'base_link'}]},
-        'tool_stretch_dex_wrist': {},
-        'tool_none': {},
-    },
+        'max_mesh_points': 48,
+        'RE2V0': {}},
     'robot_monitor':{
         'monitor_base_bump_event': 1,
         'monitor_base_cliff_event': 1,
@@ -495,6 +479,8 @@ nominal_params={
         'dynamixel_stop_on_runstop': 1,
         'stretch_gripper_overload': 1,
         'wrist_yaw_overload': 1,
+        'wrist_pitch_overload': 1,
+        'wrist_roll_overload': 1,
         'stepper_is_moving_filter': 1},
     'robot_trace':{
         'n_samples_per_file':100,
@@ -555,6 +541,68 @@ nominal_params={
                                       'closed_aperture_m':0.0,
                                       'open_robotis':70.0,
                                       'closed_robotis':0.0},
+    "eoa_wrist_dw3_tool_sg3": {
+        'py_class_name': 'EOA_Wrist_DW3_Tool_SG3',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud': 115200,
+        'dxl_latency_timer': 64,
+        'stow': {
+            'arm': 0.0,
+            'lift': 0.3,
+            'wrist_pitch': -0.52,
+            'wrist_roll': 0.0,
+            'wrist_yaw': 3.0,
+            'stretch_gripper': 0.0
+        },
+        'devices': {
+            'wrist_pitch': {
+                'py_class_name': 'WristPitch',
+                'py_module_name': 'stretch_body.wrist_pitch'
+            },
+            'wrist_roll': {
+                'py_class_name': 'WristRoll',
+                'py_module_name': 'stretch_body.wrist_roll'
+            },
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            },
+            'stretch_gripper': {
+                'py_class_name': 'StretchGripper3',
+                'py_module_name': 'stretch_body.stretch_gripper',
+            }
+        }},
+    "eoa_wrist_dw3_tool_nil": {
+        'py_class_name': 'EOA_Wrist_DW3_Tool_NIL',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud': 115200,
+        'dxl_latency_timer': 64,
+        'wrist': 'eoaw_dw3',
+        'tool': 'eoat_nil',
+        'stow': {
+            'arm': 0.0,
+            'lift': 0.3,
+            'wrist_pitch': -0.52,
+            'wrist_roll': 0.0,
+            'wrist_yaw': 3.0
+        },
+        'devices': {
+            'wrist_pitch': {
+                'py_class_name': 'WristPitch',
+                'py_module_name': 'stretch_body.wrist_pitch'
+            },
+            'wrist_roll': {
+                'py_class_name': 'WristRoll',
+                'py_module_name': 'stretch_body.wrist_roll'
+            },
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw'
+            }}},
     'tool_none': {
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
@@ -700,7 +748,7 @@ nominal_params={
         'pid': [400, 0, 200],
         'pwm_homing': [0, 0],
         'pwm_limit': 885,
-        'range_t': [650, 2048],
+        'range_t': [730, 2048],
         'req_calibration': 0,
         'return_delay_time': 0,
         'stall_backoff': 0.017,
@@ -714,7 +762,9 @@ nominal_params={
         'baud': 115200,
         'retry_on_comm_failure': 1,
         'disable_torque_on_stop': 0,
+        'float_on_stop': 1,
         'current_float_A': -0.13,
+        'current_limit_A': 2.5
     },
     "wrist_roll": {
         'flip_encoder_polarity': 0,
@@ -736,7 +786,7 @@ nominal_params={
         'pid': [800, 0, 0],
         'pwm_homing': [0, 0],
         'pwm_limit': 885,
-        'range_t': [0, 4095],
+        'range_t': [150, 3950],
         'req_calibration': 0,
         'return_delay_time': 0,
         'stall_backoff': 0.017,
@@ -749,7 +799,9 @@ nominal_params={
         'zero_t': 2048,
         'baud': 115200,
         'retry_on_comm_failure': 1,
-        'disable_torque_on_stop': 1,
+        'disable_torque_on_stop': 0,
+        'float_on_stop': 1,
         'current_float_A': 0.02,
-    }
+        'current_limit_A': 1.0
+    },
 }

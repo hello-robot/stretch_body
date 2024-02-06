@@ -64,7 +64,7 @@ class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
             'joint_wrist_roll':'wrist_roll'}
     def stow(self):
         # Fold in wrist and gripper
-        print('--------- Stowing EOA_Wrist_DW3_Tool_NIL ----')
+        print('--------- Stowing %s ----'%self.name)
         self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
         self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
@@ -88,7 +88,7 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
 
     def stow(self):
         # Fold in wrist and gripper
-        print('--------- Stowing EOA_Wrist_DW3_Tool_SG3 ----')
+        print('--------- Stowing %s ----'%self.name)
         self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
         self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])

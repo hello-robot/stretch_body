@@ -31,5 +31,5 @@ setuptools.setup(
                       'xmltodict', 'filelock',
                       'pyglet == 1.4.10; python_version < "3.0"', 'trimesh==3.6.38', 'urchin', # urdfpy ==> urchin
                       'pyyaml>=5.1', # required for yaml.FullLoader
-                      'hello-robot-stretch-body>=0.4.26']
+                      'hello-robot-stretch-body>=0.7.1']
 )
