@@ -7,6 +7,9 @@ class ToolNone(EndOfArm):
     """
     def __init__(self):
         EndOfArm.__init__(self, name='tool_none')
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt 
         self.urdf_map={'joint_wrist_yaw':'wrist_yaw'} #Not mapping fingers for collision mgmt yet
 
 class ToolStretchGripper(EndOfArm):
@@ -15,6 +18,9 @@ class ToolStretchGripper(EndOfArm):
     """
     def __init__(self):
         EndOfArm.__init__(self, name='tool_stretch_gripper')
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt
         self.urdf_map={'joint_wrist_yaw':'wrist_yaw'} #Not mapping fingers for collision mgmt yet
 
     def stow(self):
@@ -41,6 +47,9 @@ class ToolStretchDexWrist(EndOfArm):
     """
     def __init__(self, name='tool_stretch_dex_wrist'):
         EndOfArm.__init__(self, name)
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt
         self.urdf_map={
             'joint_wrist_yaw':'wrist_yaw',
             'joint_wrist_pitch': 'wrist_pitch',
@@ -67,6 +76,9 @@ class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
     """
     def __init__(self, name='eoa_wrist_dw3_tool_nil'):
         EndOfArm.__init__(self, name)
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt.
         self.urdf_map={
             'joint_wrist_yaw':'wrist_yaw',
             'joint_wrist_pitch': 'wrist_pitch',
@@ -90,6 +102,9 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
     """
     def __init__(self, name='eoa_wrist_dw3_tool_sg3'):
         EndOfArm.__init__(self, name)
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt
         self.urdf_map={
             'joint_wrist_yaw':'wrist_yaw',
             'joint_wrist_pitch': 'wrist_pitch',
