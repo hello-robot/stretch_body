@@ -3,6 +3,7 @@ from os.path import exists
 import importlib
 import logging
 import sys
+import click
 
 
 #System parameters that are common across models. May be updated by the factory via Pip.
@@ -71,12 +72,30 @@ class RobotParams:
         else:
             param_module_name = 'stretch_body.robot_params_' + _config_params['robot']['model_name']
 
+        def check_dexwrist_warning(external_params_module):
+            if external_params_module == 'stretch_tool_share.stretch_dex_wrist.params':
+                print('')
+                click.secho('--------------------------', fg="cyan", bold=True)
+                click.secho('Deprecation Warning: Loading DexWrist params from stretch_tool_share.stretch_dex_wrist.params', fg="cyan", bold=True)
+                click.secho('Deprecation Warning: Support for the DexWrist is moving out of Stretch ToolShare to Stretch Body' , fg="cyan", bold=True)
+                click.secho('Deprecation Warning: Please migrate to Stretch Body. See this post on the forum: x',fg="cyan", bold=True)
+                click.secho('--------------------------', fg="cyan", bold=True)
+                print('')
+
         _nominal_params = getattr(importlib.import_module(param_module_name), 'nominal_params')
         hello_utils.overwrite_dict(_robot_params, _nominal_params)
+
+        for external_params_module in _nominal_params.get('params', []):
+            check_dexwrist_warning(external_params_module)
+            hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
+
         for external_params_module in _config_params.get('params', []):
+            check_dexwrist_warning(external_params_module)
             hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
         for external_params_module in _user_params.get('params', []):
+            check_dexwrist_warning(external_params_module)
             hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
+
         hello_utils.overwrite_dict(_robot_params, _config_params)
         hello_utils.overwrite_dict(_robot_params, _user_params)
         _valid_params=True
