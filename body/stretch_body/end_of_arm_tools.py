@@ -8,12 +8,20 @@ class ToolNone(EndOfArm):
     def __init__(self):
         EndOfArm.__init__(self, name='tool_none')
 
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt 
+        self.urdf_map={'joint_wrist_yaw':'wrist_yaw'} #Not mapping fingers for collision mgmt yet
+
 class ToolStretchGripper(EndOfArm):
     """
     Wrist Yaw + standard Stretch Gripper for RE1 / Stretch 2
     """
     def __init__(self):
         EndOfArm.__init__(self, name='tool_stretch_gripper')
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt
+        self.urdf_map={'joint_wrist_yaw':'wrist_yaw'} #Not mapping fingers for collision mgmt yet
 
     def stow(self):
         # Fold in wrist and gripper
@@ -22,21 +30,31 @@ class ToolStretchGripper(EndOfArm):
         print('--------- Stowing Gripper ----')
         self.move_to('stretch_gripper', self.params['stow']['stretch_gripper'])
 
-    def get_joint_configuration(self,braked=False):
-        """
-        Construct a dictionary of tools current pose (for robot_collision_mgmt)
-        Keys match joint names in URDF
-        """
-        g=self.get_motor('stretch_gripper')
-        _, gripper_finger_rad, _, _ = g.gripper_conversion.status_to_all(g.status)
-        return {
-            'joint_gripper_finger_left': gripper_finger_rad,
-            'joint_gripper_finger_right': gripper_finger_rad}
+    # def get_joint_configuration(self,braked=False):
+    #     """
+    #     Construct a dictionary of tools current pose (for robot_collision_mgmt)
+    #     Keys match joint names in URDF
+    #     """
+    #     g=self.get_motor('stretch_gripper')
+    #     _, gripper_finger_rad, _, _ = g.gripper_conversion.status_to_all(g.status)
+    #     return {
+    #         'joint_gripper_finger_left': gripper_finger_rad,
+    #         'joint_gripper_finger_right': gripper_finger_rad}
 
 class ToolStretchDexWrist(EndOfArm):
+    """
+    DexWrist2 (brought over from toolshare) + straight gripper for RE1 / Stretch 2
+    """
     def __init__(self, name='tool_stretch_dex_wrist'):
         EndOfArm.__init__(self, name)
 
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt
+        self.urdf_map={
+            'joint_wrist_yaw':'wrist_yaw',
+            'joint_wrist_pitch': 'wrist_pitch',
+            'joint_wrist_roll':'wrist_roll' #Not mapping fingers for collision mgmt yet
+        }
     def stow(self):
         # Fold in wrist and gripper
         print('--------- Stowing ToolStretchDexWrist ----')
@@ -58,6 +76,9 @@ class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
     """
     def __init__(self, name='eoa_wrist_dw3_tool_nil'):
         EndOfArm.__init__(self, name)
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt.
         self.urdf_map={
             'joint_wrist_yaw':'wrist_yaw',
             'joint_wrist_pitch': 'wrist_pitch',
@@ -81,10 +102,14 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
     """
     def __init__(self, name='eoa_wrist_dw3_tool_sg3'):
         EndOfArm.__init__(self, name)
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt
         self.urdf_map={
             'joint_wrist_yaw':'wrist_yaw',
             'joint_wrist_pitch': 'wrist_pitch',
-            'joint_wrist_roll':'wrist_roll'}
+            'joint_wrist_roll':'wrist_roll' #Not mapping fingers for collision mgmt yet
+        }
 
     def stow(self):
         # Fold in wrist and gripper
