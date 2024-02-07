@@ -9,7 +9,6 @@ class WristPitch(DynamixelHelloXL430):
     def __init__(self, chain=None, usb=None, name='wrist_pitch'):
         DynamixelHelloXL430.__init__(self, name, chain, usb)
         self.poses = {'up': hu.deg_to_rad(56.0), 'forward': hu.deg_to_rad(0.0), 'down': hu.deg_to_rad(-90.0)}
-        self.pos_current_ctrl_on_startup = True
 
     def stop(self,close_port=True):
         if self.hw_valid and self.params['float_on_stop']:
