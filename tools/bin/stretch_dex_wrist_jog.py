@@ -104,5 +104,8 @@ if w is not None:
                 print('Bad input...')
             w.pull_status()
     except (ThreadServiceExit, KeyboardInterrupt):
-        w.stop()
+        pass
+w.stop()
+
+
 

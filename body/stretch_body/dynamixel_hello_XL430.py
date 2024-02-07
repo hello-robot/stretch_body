@@ -105,7 +105,6 @@ class DynamixelHelloXL430(Device):
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
             self.in_collision_stop = {'pos': False, 'neg': False}
             self.ts_collision_stop = {'pos': 0.0, 'neg': 0.0}
-            self.pos_current_ctrl_on_startup = False
         except KeyError:
             self.motor=None
 
@@ -224,7 +223,7 @@ class DynamixelHelloXL430(Device):
                 if not self.check_servo_errors():
                     self.hw_valid = False
                     return False
-                if self.pos_current_ctrl_on_startup:
+                if self.params['use_pos_current_ctrl']:
                     self.enable_pos_current_ctrl()
                 return True
             else:
@@ -674,6 +673,8 @@ class DynamixelHelloXL430(Device):
             self.motor.enable_pos_current()
             self.enable_torque()
             self.set_motion_params(force=True)
+        else:
+            self.logger.warning('Joint %s does not support POS_CURRENT_CTRL: %s' % self.name)
 
     def move_to(self,x_des, v_des=None, a_des=None):
         if self.was_runstopped:
@@ -795,8 +796,11 @@ class DynamixelHelloXL430(Device):
             self.motor.disable_torque()
             if self.params['use_multiturn']:
                 self.motor.enable_multiturn()
+            elif self.params['use_pos_current_ctrl']:
+                    self.enable_pos_current_ctrl()
             else:
                 self.motor.enable_pos()
+
             self.motor.enable_torque()
             self.set_motion_params(force=True)
             self.in_vel_mode = False
