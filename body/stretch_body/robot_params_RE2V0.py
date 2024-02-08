@@ -65,6 +65,10 @@ configuration_params_template={
 
 # ###################### NOMINAL PARAMS #####################################################
 #Parameters that are common across the RE2 fleet
+
+
+
+
 nominal_params={
     'arm':{
         'usb_name': '/dev/hello-motor-arm',

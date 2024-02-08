@@ -269,11 +269,5 @@ params={
                                       'open_aperture_m':0.09,
                                       'closed_aperture_m':0.0,
                                       'open_robotis':70.0,
-                                      'closed_robotis':0.0},
-                                      
-    'stretch_gripper_conversion': {'finger_length_m':0.171,
-                                      'open_aperture_m':0.09,
-                                      'closed_aperture_m':0.0,
-                                      'open_robotis':70.0,
                                       'closed_robotis':0.0}
 }

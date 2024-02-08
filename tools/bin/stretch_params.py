@@ -31,6 +31,14 @@ rep={}
 build_rep('param',stretch_body.robot_params.nominal_system_params,'stretch_body.robot_params.nominal_system_params',rep)
 build_rep('param',rp._nominal_params,'stretch_body.robot_params.nominal_params',rep)
 
+for outside_params_origin in rp._nominal_params.get('params', []):
+    outside_params=getattr(importlib.import_module(outside_params_origin), 'params')
+    build_rep('param',outside_params,outside_params_origin,rep)
+
+for outside_params_origin in rp._config_params.get('params', []):
+    outside_params=getattr(importlib.import_module(outside_params_origin),'params')
+    build_rep('param', outside_params, outside_params_origin, rep)
+
 for outside_params_origin in rp._user_params.get('params', []):
     outside_params=getattr(importlib.import_module(outside_params_origin),'params')
     build_rep('param', outside_params, outside_params_origin, rep)

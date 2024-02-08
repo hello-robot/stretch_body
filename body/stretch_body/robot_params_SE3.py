@@ -514,5 +514,5 @@ nominal_params={
         'enable_fn_button': 0,
         'function_cmd':'',
         'press_time_span':5},
-    'params':['stretch_body.robot_SE3_eoa']
+    'params':['stretch_body.robot_params_SE3_eoa']
 }

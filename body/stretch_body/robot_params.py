@@ -53,7 +53,7 @@ class RobotParams:
     Overwrite dictionaries in order of ascending priority
     1. stretch_body.robot_params.nominal_system_params  | Generic systems settings (Common across all robot models. Factory may modify these via Pip updates)
     2. stretch_body.robot_params_XXXX.py                | Nominal robot paramters for this robot model (e.g., RE1V0) as defined in stretch_user_params.yaml. Factory may modify these via Pip updates
-    3. Outside parameters                               | (eg, from stretch_tool_share.stretch_dex_wrist.params). Factory may modify these via Pip updates.
+    3. Outside parameters                               | Include other sourcesthrough 'params' field. (eg, from stretch_tool_share.stretch_dex_wrist.params). Factory may modify these via Pip updates.
     4. stretch_configuration_params.yaml                | Robot specific data (eg, serial numbers and calibrations). Calibration tools may update these.
     5. stretch_user_params.yaml                         | User specific data (eg, contact thresholds, controller tunings, etc)
     """
@@ -67,10 +67,30 @@ class RobotParams:
         _user_params = hello_utils.read_fleet_yaml('stretch_user_params.yaml')
         _config_params = hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
         _robot_params=nominal_system_params
+
+        #Check for user / config overrides that impact what data is loaded
+        #Get the name of the robot model
         if 'robot' in _user_params and 'model_name' in _user_params['robot']:
             param_module_name = 'stretch_body.robot_params_'+_user_params['robot']['model_name']
         else:
             param_module_name = 'stretch_body.robot_params_' + _config_params['robot']['model_name']
+
+        _nominal_params = getattr(importlib.import_module(param_module_name), 'nominal_params')
+
+        #Get the name of the end-of-arm configuration
+        if 'robot' in _user_params and 'tool' in _user_params['robot']:
+            eoa_cfg_name = _user_params['robot']['tool']
+        elif 'robot' in _config_params and 'tool' in _config_params['robot']:
+            eoa_cfg_name = _config_params['robot']['tool']
+        else:
+            eoa_cfg_name = _nominal_params['robot']['tool']
+
+        #Now load the params for this EOA
+        if not eoa_cfg_name in _nominal_params['eoa_configurations']:
+            _valid_params = False
+            print('End-of-arm configuration of %s not supported for robot model parameters %s'%(eoa_cfg_name,param_module_name))
+            sys.exit(1)
+        _nominal_params.update(_nominal_params['eoa_configurations'][eoa_cfg_name])
 
         def check_dexwrist_warning(external_params_module):
             if external_params_module == 'stretch_tool_share.stretch_dex_wrist.params':
@@ -82,7 +102,7 @@ class RobotParams:
                 click.secho('--------------------------', fg="cyan", bold=True)
                 print('')
 
-        _nominal_params = getattr(importlib.import_module(param_module_name), 'nominal_params')
+
         hello_utils.overwrite_dict(_robot_params, _nominal_params)
 
         for external_params_module in _nominal_params.get('params', []):
@@ -92,6 +112,7 @@ class RobotParams:
         for external_params_module in _config_params.get('params', []):
             check_dexwrist_warning(external_params_module)
             hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
+
         for external_params_module in _user_params.get('params', []):
             check_dexwrist_warning(external_params_module)
             hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
