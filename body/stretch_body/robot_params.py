@@ -77,37 +77,37 @@ class RobotParams:
 
         _nominal_params = getattr(importlib.import_module(param_module_name), 'nominal_params')
 
-        #Get the name of the end-of-arm configuration
+        #Get the name of the current end-of-arm
         if 'robot' in _user_params and 'tool' in _user_params['robot']:
-            eoa_cfg_name = _user_params['robot']['tool']
+            eoa_name = _user_params['robot']['tool']
         elif 'robot' in _config_params and 'tool' in _config_params['robot']:
-            eoa_cfg_name = _config_params['robot']['tool']
+            eoa_name = _config_params['robot']['tool']
         else:
-            eoa_cfg_name = _nominal_params['robot']['tool']
+            eoa_name = _nominal_params['robot']['tool']
 
-        #Now load the params for this EOA
-        if not eoa_cfg_name in _nominal_params['eoa_configurations']:
+        if not eoa_name in _nominal_params['supported_eoa'] or not eoa_name in _nominal_params:
             _valid_params = False
-            print('End-of-arm configuration of %s not supported for robot model parameters %s'%(eoa_cfg_name,param_module_name))
+            print('%s not supported for robot %s'%(eoa_name.upper(), param_module_name))
+            print('Check your YAML definition of robot.tool')
             sys.exit(1)
-        _nominal_params.update(_nominal_params['eoa_configurations'][eoa_cfg_name])
+
+        #Now expand the params for each EOA
+        for d in _nominal_params[eoa_name]['devices']:
+            _nominal_params[d]=_nominal_params[eoa_name]['devices'][d]['device_params']
+
 
         def check_dexwrist_warning(external_params_module):
             if external_params_module == 'stretch_tool_share.stretch_dex_wrist.params':
                 print('')
+                click.secho('-----------Deprecation Warning-----------', fg="cyan", bold=True)
+                click.secho('Attempting to load DexWrist2 params from Stretch Tool Share', fg="cyan", bold=True)
+                click.secho('Support for the DexWrist2 has moved to Stretch Body' , fg="cyan", bold=True)
+                click.secho('Please locate and remove from your YAML: ', fg="cyan", bold=True)
+                click.secho('     params: stretch_tool_share.stretch_dex_wrist.params',fg="cyan", bold=True)
                 click.secho('--------------------------', fg="cyan", bold=True)
-                click.secho('Deprecation Warning: Loading DexWrist params from stretch_tool_share.stretch_dex_wrist.params', fg="cyan", bold=True)
-                click.secho('Deprecation Warning: Support for the DexWrist is moving out of Stretch ToolShare to Stretch Body' , fg="cyan", bold=True)
-                click.secho('Deprecation Warning: Please migrate to Stretch Body. See this post on the forum: x',fg="cyan", bold=True)
-                click.secho('--------------------------', fg="cyan", bold=True)
-                print('')
-
+                sys.exit(1)
 
         hello_utils.overwrite_dict(_robot_params, _nominal_params)
-
-        for external_params_module in _nominal_params.get('params', []):
-            check_dexwrist_warning(external_params_module)
-            hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
 
         for external_params_module in _config_params.get('params', []):
             check_dexwrist_warning(external_params_module)

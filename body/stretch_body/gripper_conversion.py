@@ -1,4 +1,3 @@
-from stretch_body.device import Device
 
 """
 This is the gripper_conversion library moved from 
@@ -6,9 +5,18 @@ https://github.com/hello-robot/stretch_ros2/blob/humble/hello_helpers/src/hello_
 """
 
 
-class GripperConversion(Device):
-    def __init__(self,name):
-        Device.__init__(self, name=name,req_params=True)
+class GripperConversion():
+    def __init__(self,params):
+        """
+        Params is a dict from the StretchGripper class of the form:
+        {
+            'finger_length_m': 0.171,
+           'open_aperture_m': 0.09,
+           'closed_aperture_m': 0.0,
+           'open_robotis': 70.0, #Pct units
+           'closed_robotis': 0.0} #Pct units
+        """
+        self.params=params
         # robotis position values (gripper.py)
         #      0 is very close to closed (fingers almost or barely touching)
         #     50 is maximally open
