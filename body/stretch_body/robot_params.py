@@ -93,32 +93,37 @@ class RobotParams:
 
         #Now expand the params for each EOA
         for d in _nominal_params[eoa_name]['devices']:
-            _nominal_params[d]=_nominal_params[eoa_name]['devices'][d]['device_params']
+            g=getattr(importlib.import_module(param_module_name),_nominal_params[eoa_name]['devices'][d]['device_params'])
+            _nominal_params[d]=g
+        #     _nominal_params[d]=_nominal_params[eoa_name]['devices'][d]['device_params']
 
-
-        def check_dexwrist_warning(external_params_module):
+        def check_for_dexwrist_toolshare(external_params_module):
             if external_params_module == 'stretch_tool_share.stretch_dex_wrist.params':
                 print('')
                 click.secho('-----------Deprecation Warning-----------', fg="cyan", bold=True)
-                click.secho('Attempting to load DexWrist2 params from Stretch Tool Share', fg="cyan", bold=True)
+                click.secho('System is configured to load DexWrist2 params from Stretch Tool Share', fg="cyan", bold=True)
                 click.secho('Support for the DexWrist2 has moved to Stretch Body' , fg="cyan", bold=True)
                 click.secho('Please locate and remove from your YAML: ', fg="cyan", bold=True)
                 click.secho('     params: stretch_tool_share.stretch_dex_wrist.params',fg="cyan", bold=True)
                 click.secho('--------------------------', fg="cyan", bold=True)
-                sys.exit(1)
+                return True
+            return False
+
 
         hello_utils.overwrite_dict(_robot_params, _nominal_params)
 
         for external_params_module in _config_params.get('params', []):
-            check_dexwrist_warning(external_params_module)
-            hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
+            if not check_for_dexwrist_toolshare(external_params_module):
+                hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
 
         for external_params_module in _user_params.get('params', []):
-            check_dexwrist_warning(external_params_module)
-            hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
+            if not check_for_dexwrist_toolshare(external_params_module):
+                hello_utils.overwrite_dict(_robot_params,getattr(importlib.import_module(external_params_module), 'params'))
 
         hello_utils.overwrite_dict(_robot_params, _config_params)
+
         hello_utils.overwrite_dict(_robot_params, _user_params)
+
         _valid_params=True
 
     @classmethod

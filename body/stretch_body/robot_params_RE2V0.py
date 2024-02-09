@@ -271,7 +271,7 @@ RE2V0_tool_none={
         'wrist_yaw': {
             'py_class_name': 'WristYaw',
             'py_module_name': 'stretch_body.wrist_yaw',
-            'device_params':RE2V0_wrist_yaw}}}
+            'device_params':'RE2V0_wrist_yaw'}}}
 
 RE2V0_tool_stretch_gripper={
     'device_info': "EndOfArm chain with just Yaw  / Gripper joints for standard RE2",
@@ -286,12 +286,12 @@ RE2V0_tool_stretch_gripper={
         'stretch_gripper': {
             'py_class_name': 'StretchGripper',
             'py_module_name': 'stretch_body.stretch_gripper',
-            'device_params':RE2V0_stretch_gripper
+            'device_params':'RE2V0_stretch_gripper'
         },
         'wrist_yaw': {
             'py_class_name': 'WristYaw',
             'py_module_name': 'stretch_body.wrist_yaw',
-            'device_params':RE2V0_wrist_yaw
+            'device_params':'RE2V0_wrist_yaw'
         }
     }}
 
@@ -315,22 +315,22 @@ RE2V0_tool_stretch_dex_wrist={
         'stretch_gripper': {
             'py_class_name': 'StretchGripper',
             'py_module_name': 'stretch_body.stretch_gripper',
-            'device_params':RE2V0_stretch_gripper
+            'device_params':'RE2V0_stretch_gripper'
         },
         'wrist_pitch': {
             'py_class_name': 'WristPitch',
             'py_module_name': 'stretch_body.wrist_pitch',
-            'device_params':RE2V0_wrist_pitch_DW2
+            'device_params':'RE2V0_wrist_pitch_DW2'
         },
         'wrist_roll': {
             'py_class_name': 'WristRoll',
             'py_module_name': 'stretch_body.wrist_roll',
-            'device_params': RE2V0_wrist_roll_DW2
+            'device_params': 'RE2V0_wrist_roll_DW2'
         },
         'wrist_yaw': {
             'py_class_name': 'WristYaw',
             'py_module_name': 'stretch_body.wrist_yaw',
-            'device_params':RE2V0_wrist_yaw
+            'device_params':'RE2V0_wrist_yaw'
         },
     }
 }

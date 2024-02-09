@@ -102,9 +102,6 @@ class StretchGripper(DynamixelHelloXL430):
 class StretchGripper3(StretchGripper):
     """
         Wrapper for version 3 (for DW3)
-        Extend/override base class for hardware specific needs
-        This will pull in params for 'stretch_gripper' and then
-        override/extend with params for 'stretch_gripper_3'
     """
     def __init__(self, chain=None, usb=None):
         StretchGripper.__init__(self, chain, usb,'stretch_gripper')
