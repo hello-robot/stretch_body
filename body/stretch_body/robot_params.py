@@ -105,6 +105,7 @@ class RobotParams:
                 click.secho('Support for the DexWrist2 has moved to Stretch Body' , fg="cyan", bold=True)
                 click.secho('Please locate and remove from your YAML: ', fg="cyan", bold=True)
                 click.secho('     params: stretch_tool_share.stretch_dex_wrist.params',fg="cyan", bold=True)
+                click.secho('More information can be found at: https://github.com/hello-robot/stretch_body/pull/272',fg="cyan", bold=True)
                 click.secho('--------------------------', fg="cyan", bold=True)
                 return True
             return False
