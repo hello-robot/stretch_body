@@ -55,6 +55,7 @@ if args.verbose:
     print(Fore.LIGHTBLUE_EX + 'Batch = ' + Fore.CYAN + stretch_batch)
 print(Fore.LIGHTBLUE_EX + 'Serial Number = ' + Fore.CYAN + stretch_serial_no)
 
+print(Fore.LIGHTBLUE_EX + 'Tool= '+Fore.CYAN + device.params.get('tool', ''))
 # create robot instance
 r=robot.Robot()
 r.startup()
