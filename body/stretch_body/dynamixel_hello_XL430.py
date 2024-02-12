@@ -223,6 +223,7 @@ class DynamixelHelloXL430(Device):
                 if not self.check_servo_errors():
                     self.hw_valid = False
                     return False
+
                 if self.params['use_pos_current_ctrl']:
                     self.enable_pos_current_ctrl()
                 return True

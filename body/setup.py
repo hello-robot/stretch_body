@@ -29,7 +29,7 @@ setuptools.setup(
                       'terminado==0.8.3; python_version < "3.0"', # depend on old terminado for py2
                       'dynamixel-sdk>=3.1; python_version >= "3.0.0"', # py2 gets dynamixel-sdk through ROS
                       'pyyaml>=5.1', # required for yaml.FullLoader
-                      'hello-robot-stretch-tool-share>=0.2.6', # defines other Stretch end effectors
+                      'hello-robot-stretch-tool-share>=0.3.3', # defines other Stretch end effectors
                       'hello-robot-stretch-factory>=0.3.5','hello-robot-stretch-body-tools>=0.4.2',
                       'hello-robot-stretch-urdf>=0.0.19',
                       'aioserial', 'meshio','numpy-stl','playsound', 'pyrender'

@@ -65,7 +65,287 @@ configuration_params_template={
 
 # ###################### NOMINAL PARAMS #####################################################
 #Parameters that are common across the RE2 fleet
+
+# ######## EOA Joints ######
+# We use a modular design of dictionaries so that different parameter sets
+# can be easily managed depending on the configuation of the end-of-arm
+# Eg, which joints and tools and versions of hardware are present
+
+RE2V0_stretch_gripper={
+        'device_info': "Standard angled or DexWrist straight gripper compatible RE2",
+        'range_pad_t': [100.0, -100.0],
+        'flip_encoder_polarity': 0,
+        'gr': 1.0,
+        'id': 14,
+        'max_voltage_limit': 15,
+        'min_grip_strength': -125,
+        'min_voltage_limit': 11,
+        'gripper_conversion':{
+            'finger_length_m': 0.171,
+           'open_aperture_m': 0.09,
+           'closed_aperture_m': 0.0,
+           'open_robotis': 70.0,
+           'closed_robotis': 0.0},
+        'motion':{
+            'trajectory_vel_ctrl':1,
+            'trajectory_vel_ctrl_kP':1.5,
+            'default':{
+              'accel': 10.0,
+              'vel': 4.0},
+            'fast':{
+              'accel': 10.0,
+              'vel': 6.0},
+            'max':{
+              'accel': 12,
+              'vel': 8},
+            'slow':{
+              'accel': 4.0,
+              'vel': 2.0},
+            'trajectory_max': {
+                'vel_r': 50.0,
+                'accel_r': 100.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
+        'pid': [640.0,0,0],
+        'pwm_homing': [-400, 0],
+        'pwm_limit': 885,
+        'req_calibration': 1,
+        'return_delay_time': 0,
+        'stall_backoff': 2.0,
+        'stall_max_effort': 20.0,
+        'stall_max_time': 0.5,
+        'stall_min_vel': 0.1,
+        'temperature_limit': 72,
+        'usb_name': '/dev/hello-dynamixel-wrist',
+        'use_multiturn': 1,
+        'use_pos_current_ctrl': 0,
+        'retry_on_comm_failure': 1,
+        'baud': 115200,
+        'enable_runstop': 1,
+        'disable_torque_on_stop': 1}
+
+RE2V0_wrist_yaw={
+    'device_info': "Standard wrist yaw shipped with original RE2",
+    'flip_encoder_polarity': 1,
+    'gr': 2.4,
+    'id': 13,
+    'max_voltage_limit': 15,
+    'min_voltage_limit': 11,
+    'motion': {
+        'trajectory_vel_ctrl': 1,
+        'trajectory_vel_ctrl_kP': 1.5,
+        'default': {
+            'accel': 3.0,
+            'vel': 2.0},
+        'fast': {
+            'accel': 5.0,
+            'vel': 2.5},
+        'max': {
+            'accel': 10,
+            'vel': 3.0},
+        'slow': {
+            'accel': 1.5,
+            'vel': 0.75},
+        'trajectory_max': {
+            'vel_r': 3.0,
+            'accel_r': 3.0},
+        'vel_brakezone_factor': 0.2},
+    'set_safe_velocity': 1,
+    'pid': [640, 0, 0],
+    'pwm_homing': [-300, 300],
+    'pwm_limit': 885,
+    'req_calibration': 1,
+    'return_delay_time': 0,
+    'stall_backoff': 0.017,
+    'stall_max_effort': 20.0,
+    'stall_max_time': 1.0,
+    'stall_min_vel': 0.1,
+    'temperature_limit': 72,
+    'usb_name': '/dev/hello-dynamixel-wrist',
+    'use_multiturn': 1,
+    'use_pos_current_ctrl': 0,
+    'retry_on_comm_failure': 1,
+    'baud': 115200,
+    'enable_runstop': 1,
+    'disable_torque_on_stop': 1,
+    'range_pad_t': [100.0, -100.0]}
+
+#Brought in from tool_share for DexWrist "2"
+RE2V0_wrist_pitch_DW2={
+        'device_info': "Wrist pitch shipped with original DexWrist for RE2s. Imported from tool_share.",
+        'flip_encoder_polarity': 1,
+        'enable_runstop': 1,
+        'gr': 1.0,
+        'id': 15,
+        'max_voltage_limit': 15,
+        'min_voltage_limit': 11,
+        'motion': {
+            'trajectory_vel_ctrl': 1,
+            'trajectory_vel_ctrl_kP': 1.5,
+            'default': {'accel': 6.0, 'vel': 2.0},
+            'fast': {'accel': 8.0, 'vel': 2.0},
+            'max': {'accel': 10.0, 'vel': 3.0},
+            'slow': {'accel': 4.0, 'vel': 1.0},
+            'trajectory_max': {'accel_r': 16.0, 'vel_r': 8.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
+        'pid': [400, 0, 200],
+        'pwm_homing': [0, 0],
+        'pwm_limit': 885,
+        'range_t': [730, 2048],
+        'req_calibration': 0,
+        'return_delay_time': 0,
+        'stall_backoff': 0.017,
+        'stall_max_effort': 10.0,
+        'stall_max_time': 1.0,
+        'stall_min_vel': 0.1,
+        'temperature_limit': 72,
+        'usb_name': '/dev/hello-dynamixel-wrist',
+        'use_multiturn': 0,
+        'use_pos_current_ctrl': 1,
+        'zero_t': 1024,
+        'baud': 115200,
+        'retry_on_comm_failure': 1,
+        'disable_torque_on_stop': 0,
+        'float_on_stop': 1,
+        'current_float_A': -0.13,
+        'current_limit_A': 2.5
+    }
+
+RE2V0_wrist_roll_DW2={
+        'device_info': "Wrist roll shipped with original DexWrist for RE2s. Imported from tool_share.",
+        'flip_encoder_polarity': 0,
+        'enable_runstop': 1,
+        'gr': 1.0,
+        'id': 16,
+        'max_voltage_limit': 16,
+        'min_voltage_limit': 9,
+        'motion': {
+            'trajectory_vel_ctrl': 1,
+            'trajectory_vel_ctrl_kP': 1.5,
+            'default': {'accel': 8.0, 'vel': 2.0},
+            'fast': {'accel': 10.0, 'vel': 3.0},
+            'max': {'accel': 12, 'vel': 4.5},
+            'slow': {'accel': 4.0, 'vel': 1.0},
+            'trajectory_max': {'accel_r': 16.0, 'vel_r': 8.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
+        'pid': [800, 0, 0],
+        'pwm_homing': [0, 0],
+        'pwm_limit': 885,
+        'range_t': [150, 3950],
+        'req_calibration': 0,
+        'return_delay_time': 0,
+        'stall_backoff': 0.017,
+        'stall_max_effort': 10.0,
+        'stall_max_time': 1.0,
+        'stall_min_vel': 0.1,
+        'temperature_limit': 80,
+        'usb_name': '/dev/hello-dynamixel-wrist',
+        'use_multiturn': 0,
+        'use_pos_current_ctrl': 0,
+        'zero_t': 2048,
+        'baud': 115200,
+        'retry_on_comm_failure': 1,
+        'disable_torque_on_stop': 0,
+        'float_on_stop': 1,
+        'current_float_A': 0.04,
+        'current_limit_A': 1.0
+    }
+
+# ######### EndOfArm Defn ##############
+"""
+Define the EndOfArm DynamixelXChain parameters
+Point to which joint devices & parameters to load for the chain
+"""
+RE2V0_tool_none={
+    'device_info': "EndOfArm chain with just Yaw joint for standard RE2",
+    'use_group_sync_read': 1,
+    'retry_on_comm_failure': 1,
+    'baud': 115200,
+    'dxl_latency_timer': 64,
+    'py_class_name': 'ToolNone',
+    'py_module_name': 'stretch_body.end_of_arm_tools',
+    'stow': {'wrist_yaw': 3.4},
+    'devices': {
+        'wrist_yaw': {
+            'py_class_name': 'WristYaw',
+            'py_module_name': 'stretch_body.wrist_yaw',
+            'device_params':'RE2V0_wrist_yaw'}}}
+
+RE2V0_tool_stretch_gripper={
+    'device_info': "EndOfArm chain with just Yaw  / Gripper joints for standard RE2",
+    'use_group_sync_read': 1,
+    'retry_on_comm_failure': 1,
+    'baud': 115200,
+    'dxl_latency_timer': 64,
+    'py_class_name': 'ToolStretchGripper',
+    'py_module_name': 'stretch_body.end_of_arm_tools',
+    'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
+    'devices': {
+        'stretch_gripper': {
+            'py_class_name': 'StretchGripper',
+            'py_module_name': 'stretch_body.stretch_gripper',
+            'device_params':'RE2V0_stretch_gripper'
+        },
+        'wrist_yaw': {
+            'py_class_name': 'WristYaw',
+            'py_module_name': 'stretch_body.wrist_yaw',
+            'device_params':'RE2V0_wrist_yaw'
+        }
+    }}
+
+RE2V0_tool_stretch_dex_wrist={
+    'device_info': "EndOfArm chain for original DexWrist with 'straight gripper'. Compatible RE2. Imported from tool_share.",
+    'py_class_name': 'ToolStretchDexWrist',
+    'py_module_name': 'stretch_body.end_of_arm_tools',
+    'use_group_sync_read': 1,
+    'retry_on_comm_failure': 1,
+    'baud': 115200,
+    'dxl_latency_timer': 64,
+    'stow': {
+        'arm': 0.0,
+        'lift': 0.2,
+        'stretch_gripper': 0.0,
+        'wrist_pitch': 0.0,
+        'wrist_roll': 0.0,
+        'wrist_yaw': 3.0
+    },
+    'devices': {
+        'stretch_gripper': {
+            'py_class_name': 'StretchGripper',
+            'py_module_name': 'stretch_body.stretch_gripper',
+            'device_params':'RE2V0_stretch_gripper'
+        },
+        'wrist_pitch': {
+            'py_class_name': 'WristPitch',
+            'py_module_name': 'stretch_body.wrist_pitch',
+            'device_params':'RE2V0_wrist_pitch_DW2'
+        },
+        'wrist_roll': {
+            'py_class_name': 'WristRoll',
+            'py_module_name': 'stretch_body.wrist_roll',
+            'device_params': 'RE2V0_wrist_roll_DW2'
+        },
+        'wrist_yaw': {
+            'py_class_name': 'WristYaw',
+            'py_module_name': 'stretch_body.wrist_yaw',
+            'device_params':'RE2V0_wrist_yaw'
+        },
+    }
+}
+# ###################################33
+# Baseline Nominal Params
 nominal_params={
+    # #################################
+    #Each EOA will get expanded at runtime into its full parameter dictionary
+    # Eg, supported_eoa.tool_none --> adds the wrist_yaw param dict to nominal_params
+    # Add all formally supported EOA to this list
+    'supported_eoa': ['tool_stretch_dex_wrist','tool_stretch_gripper','tool_none'],
+    'tool_stretch_dex_wrist': RE2V0_tool_stretch_dex_wrist,
+    'tool_stretch_gripper': RE2V0_tool_stretch_gripper,
+    'tool_none': RE2V0_tool_none,
+    # #################################
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
         'use_vel_traj': 1,
@@ -488,154 +768,6 @@ nominal_params={
         'n_samples_per_file':100,
         'duration_limit_minutes':10.0
     },
-    'stretch_gripper':{
-        'range_pad_t': [100.0, -100.0],
-        'flip_encoder_polarity': 0,
-        'gr': 1.0,
-        'id': 14,
-        'max_voltage_limit': 15,
-        'min_grip_strength': -125,
-        'min_voltage_limit': 11,
-        'gripper_conversion':'stretch_gripper_conversion',
-        'motion':{
-            'trajectory_vel_ctrl':1,
-            'trajectory_vel_ctrl_kP':1.5,
-            'default':{
-              'accel': 10.0,
-              'vel': 4.0},
-            'fast':{
-              'accel': 10.0,
-              'vel': 6.0},
-            'max':{
-              'accel': 12,
-              'vel': 8},
-            'slow':{
-              'accel': 4.0,
-              'vel': 2.0},
-            'trajectory_max': {
-                'vel_r': 50.0,
-                'accel_r': 100.0},
-            'vel_brakezone_factor': 1},
-        'set_safe_velocity': 1,
-        'pid': [640.0,0,0],
-        'pwm_homing': [-400, 0],
-        'pwm_limit': 885,
-        'req_calibration': 1,
-        'return_delay_time': 0,
-        'stall_backoff': 2.0,
-        'stall_max_effort': 20.0,
-        'stall_max_time': 0.5,
-        'stall_min_vel': 0.1,
-        'temperature_limit': 72,
-        'usb_name': '/dev/hello-dynamixel-wrist',
-        'use_multiturn': 1,
-        'use_pos_current_ctrl': 0,
-        'retry_on_comm_failure': 1,
-        'baud': 115200,
-        'enable_runstop': 1,
-        'disable_torque_on_stop': 1},
-    'stretch_gripper_3_conversion': {'finger_length_m':0.171,
-                                      'open_aperture_m':0.09,
-                                      'closed_aperture_m':0.0,
-                                      'open_robotis':70.0,
-                                      'closed_robotis':0.0},
-    'stretch_gripper_conversion': {'finger_length_m':0.171,
-                                      'open_aperture_m':0.09,
-                                      'closed_aperture_m':0.0,
-                                      'open_robotis':70.0,
-                                      'closed_robotis':0.0},
-    "eoa_wrist_dw3_tool_sg3": {
-        'py_class_name': 'EOA_Wrist_DW3_Tool_SG3',
-        'py_module_name': 'stretch_body.end_of_arm_tools',
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud': 115200,
-        'dxl_latency_timer': 64,
-        'stow': {
-            'arm': 0.0,
-            'lift': 0.3,
-            'wrist_pitch': -0.52,
-            'wrist_roll': 0.0,
-            'wrist_yaw': 3.0,
-            'stretch_gripper': 0.0
-        },
-        'devices': {
-            'wrist_pitch': {
-                'py_class_name': 'WristPitch',
-                'py_module_name': 'stretch_body.wrist_pitch'
-            },
-            'wrist_roll': {
-                'py_class_name': 'WristRoll',
-                'py_module_name': 'stretch_body.wrist_roll'
-            },
-            'wrist_yaw': {
-                'py_class_name': 'WristYaw',
-                'py_module_name': 'stretch_body.wrist_yaw'
-            },
-            'stretch_gripper': {
-                'py_class_name': 'StretchGripper3',
-                'py_module_name': 'stretch_body.stretch_gripper',
-            }
-        }},
-    "eoa_wrist_dw3_tool_nil": {
-        'py_class_name': 'EOA_Wrist_DW3_Tool_NIL',
-        'py_module_name': 'stretch_body.end_of_arm_tools',
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud': 115200,
-        'dxl_latency_timer': 64,
-        'wrist': 'eoaw_dw3',
-        'tool': 'eoat_nil',
-        'stow': {
-            'arm': 0.0,
-            'lift': 0.3,
-            'wrist_pitch': -0.52,
-            'wrist_roll': 0.0,
-            'wrist_yaw': 3.0
-        },
-        'devices': {
-            'wrist_pitch': {
-                'py_class_name': 'WristPitch',
-                'py_module_name': 'stretch_body.wrist_pitch'
-            },
-            'wrist_roll': {
-                'py_class_name': 'WristRoll',
-                'py_module_name': 'stretch_body.wrist_roll'
-            },
-            'wrist_yaw': {
-                'py_class_name': 'WristYaw',
-                'py_module_name': 'stretch_body.wrist_yaw'
-            }}},
-    'tool_none': {
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud':115200,
-        'dxl_latency_timer': 64,
-        'py_class_name': 'ToolNone',
-        'py_module_name': 'stretch_body.end_of_arm_tools',
-        'stow': {'wrist_yaw': 3.4},
-        'devices': {
-            'wrist_yaw': {
-                'py_class_name': 'WristYaw',
-                'py_module_name': 'stretch_body.wrist_yaw'}}},
-    'tool_stretch_gripper': {
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud':115200,
-        'dxl_latency_timer': 64,
-        'py_class_name': 'ToolStretchGripper',
-        'py_module_name': 'stretch_body.end_of_arm_tools',
-        'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
-        'devices': {
-            'stretch_gripper': {
-                'py_class_name': 'StretchGripper',
-                'py_module_name': 'stretch_body.stretch_gripper'
-            },
-            'wrist_yaw': {
-                'py_class_name': 'WristYaw',
-                'py_module_name': 'stretch_body.wrist_yaw'
-            }
-        }},
     'wacc':{
         'usb_name': '/dev/hello-wacc',
         'config': {
@@ -644,170 +776,10 @@ nominal_params={
         'accel_single_tap_dur': 70,
         'accel_single_tap_thresh': 50,
         'ana_LPF': 10.0}},
-    'wrist_yaw':{
-        'flip_encoder_polarity': 1,
-        'gr': 2.4,
-        'id': 13,
-        'max_voltage_limit': 15,
-        'min_voltage_limit': 11,
-        'motion':{
-            'trajectory_vel_ctrl':1,
-            'trajectory_vel_ctrl_kP':1.5,
-            'default':{
-              'accel': 3.0,
-              'vel': 2.0},
-            'fast':{
-              'accel': 5.0,
-              'vel': 2.5},
-            'max':{
-              'accel': 10,
-              'vel': 3.0},
-            'slow':{
-              'accel': 1.5,
-              'vel': 0.75},
-              'trajectory_max': {
-                  'vel_r': 3.0,
-                  'accel_r': 3.0},
-            'vel_brakezone_factor': 0.2},
-        'set_safe_velocity': 1,
-        'pid': [640,0,0],
-        'pwm_homing': [-300,300],
-        'pwm_limit': 885,
-        'req_calibration': 1,
-        'return_delay_time': 0,
-        'stall_backoff': 0.017,
-        'stall_max_effort': 20.0,
-        'stall_max_time': 1.0,
-        'stall_min_vel': 0.1,
-        'temperature_limit': 72,
-        'usb_name': '/dev/hello-dynamixel-wrist',
-        'use_multiturn': 1,
-        'use_pos_current_ctrl': 0,
-        'retry_on_comm_failure': 1,
-        'baud': 115200,
-        'enable_runstop': 1,
-        'disable_torque_on_stop': 1,
-        'range_pad_t': [100.0, -100.0]},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
     'lidar': {'usb_name': '/dev/hello-lrf'},
     'stretch_gamepad':{
         'enable_fn_button': 0,
         'function_cmd':'',
-        'press_time_span':5},
-    "tool_stretch_dex_wrist": {
-        'py_class_name': 'ToolStretchDexWrist',
-        'py_module_name': 'stretch_tool_share.stretch_dex_wrist.tool',
-        'use_group_sync_read': 1,
-        'retry_on_comm_failure': 1,
-        'baud': 115200,
-        'dxl_latency_timer': 64,
-        'stow': {
-            'arm': 0.0,
-            'lift': 0.2,
-            'stretch_gripper': 0.0,
-            'wrist_pitch': 0.0,
-            'wrist_roll': 0.0,
-            'wrist_yaw': 3.0
-        },
-        'devices': {
-            'stretch_gripper': {
-                'py_class_name': 'StretchGripper',
-                'py_module_name': 'stretch_body.stretch_gripper',
-            },
-            'wrist_pitch': {
-                'py_class_name': 'WristPitch',
-                'py_module_name': 'stretch_tool_share.stretch_dex_wrist.wrist_pitch',
-                'ros_py_class_name': 'WristPitchCommandGroup',
-                'ros_py_module_name': 'stretch_tool_share.stretch_dex_wrist.command_groups'
-            },
-            'wrist_roll': {
-                'py_class_name': 'WristRoll',
-                'py_module_name': 'stretch_tool_share.stretch_dex_wrist.wrist_roll',
-                'ros_py_class_name': 'WristRollCommandGroup',
-                'ros_py_module_name': 'stretch_tool_share.stretch_dex_wrist.command_groups'
-            },
-            'wrist_yaw': {
-                'py_class_name': 'WristYaw',
-                'py_module_name': 'stretch_body.wrist_yaw',
-            },
-        }
-    },
-    "wrist_pitch": {
-        'flip_encoder_polarity': 1,
-        'enable_runstop': 1,
-        'gr': 1.0,
-        'id': 15,
-        'max_voltage_limit': 15,
-        'min_voltage_limit': 11,
-        'motion': {
-            'trajectory_vel_ctrl': 1,
-            'trajectory_vel_ctrl_kP': 1.5,
-            'default': {'accel': 6.0, 'vel': 2.0},
-            'fast': {'accel': 8.0, 'vel': 2.0},
-            'max': {'accel': 10.0, 'vel': 3.0},
-            'slow': {'accel': 4.0, 'vel': 1.0},
-            'trajectory_max': {'accel_r': 16.0, 'vel_r': 8.0},
-            'vel_brakezone_factor': 1},
-        'set_safe_velocity': 1,
-        'pid': [400, 0, 200],
-        'pwm_homing': [0, 0],
-        'pwm_limit': 885,
-        'range_t': [730, 2048],
-        'req_calibration': 0,
-        'return_delay_time': 0,
-        'stall_backoff': 0.017,
-        'stall_max_effort': 10.0,
-        'stall_max_time': 1.0,
-        'stall_min_vel': 0.1,
-        'temperature_limit': 72,
-        'usb_name': '/dev/hello-dynamixel-wrist',
-        'use_multiturn': 0,
-        'use_pos_current_ctrl': 1,
-        'zero_t': 1024,
-        'baud': 115200,
-        'retry_on_comm_failure': 1,
-        'disable_torque_on_stop': 0,
-        'float_on_stop': 1,
-        'current_float_A': -0.13,
-        'current_limit_A': 2.5
-    },
-    "wrist_roll": {
-        'flip_encoder_polarity': 0,
-        'enable_runstop': 1,
-        'gr': 1.0,
-        'id': 16,
-        'max_voltage_limit': 16,
-        'min_voltage_limit': 9,
-        'motion': {
-            'trajectory_vel_ctrl': 1,
-            'trajectory_vel_ctrl_kP': 1.5,
-            'default': {'accel': 8.0, 'vel': 2.0},
-            'fast': {'accel': 10.0, 'vel': 3.0},
-            'max': {'accel': 12, 'vel': 4.5},
-            'slow': {'accel': 4.0, 'vel': 1.0},
-            'trajectory_max': {'accel_r': 16.0, 'vel_r': 8.0},
-            'vel_brakezone_factor': 1},
-        'set_safe_velocity': 1,
-        'pid': [800, 0, 0],
-        'pwm_homing': [0, 0],
-        'pwm_limit': 885,
-        'range_t': [150, 3950],
-        'req_calibration': 0,
-        'return_delay_time': 0,
-        'stall_backoff': 0.017,
-        'stall_max_effort': 10.0,
-        'stall_max_time': 1.0,
-        'stall_min_vel': 0.1,
-        'temperature_limit': 80,
-        'usb_name': '/dev/hello-dynamixel-wrist',
-        'use_multiturn': 0,
-        'use_pos_current_ctrl': 0,
-        'zero_t': 2048,
-        'baud': 115200,
-        'retry_on_comm_failure': 1,
-        'disable_torque_on_stop': 0,
-        'float_on_stop': 1,
-        'current_float_A': 0.04,
-        'current_limit_A': 1.0
-    },
+        'press_time_span':5}
 }
