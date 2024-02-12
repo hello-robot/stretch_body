@@ -1,3 +1,6 @@
+
+from stretch_body.robot_params_SE3 import SE3_eoa_wrist_dw3_tool_nil,SE3_eoa_wrist_dw3_tool_sg3, SE3_wrist_pitch_DW3, SE3_wrist_roll_DW3, SE3_wrist_yaw_DW3, SE3_stretch_gripper_SG3
+
 #Robot parameters for Stretch RE2
 
 # ######################### USER PARAMS ##################################################
@@ -334,6 +337,7 @@ RE2V0_tool_stretch_dex_wrist={
         },
     }
 }
+
 # ###################################33
 # Baseline Nominal Params
 nominal_params={
@@ -341,10 +345,13 @@ nominal_params={
     #Each EOA will get expanded at runtime into its full parameter dictionary
     # Eg, supported_eoa.tool_none --> adds the wrist_yaw param dict to nominal_params
     # Add all formally supported EOA to this list
-    'supported_eoa': ['tool_stretch_dex_wrist','tool_stretch_gripper','tool_none'],
+    'supported_eoa': ['tool_stretch_dex_wrist','tool_stretch_gripper','tool_none',
+                      'eoa_wrist_dw3_tool_nil', 'eoa_wrist_dw3_tool_sg3'],
     'tool_stretch_dex_wrist': RE2V0_tool_stretch_dex_wrist,
     'tool_stretch_gripper': RE2V0_tool_stretch_gripper,
     'tool_none': RE2V0_tool_none,
+    'eoa_wrist_dw3_tool_nil': SE3_eoa_wrist_dw3_tool_nil,
+    'eoa_wrist_dw3_tool_sg3': SE3_eoa_wrist_dw3_tool_sg3,
     # #################################
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
