@@ -707,6 +707,10 @@ class DynamixelXL430():
     def set_profile_velocity(self,v):
         if not self.hw_valid:
             return
+        if abs(v)<1:
+        # Dxls assumes Zero ticks/s as infinite/max velocity which is counterintutive
+        # Therefore setting a zero will assign to the lowest possible velocity 1 ticks/s
+            v = 1
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 dxl_comm_result, dxl_error =   self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_PROFILE_VELOCITY, int(v))
@@ -715,6 +719,10 @@ class DynamixelXL430():
     def set_profile_acceleration(self, a):
         if not self.hw_valid:
             return
+        if abs(a)<1:
+        # Dxls assumes Zero ticks/s^2 as infinite/max acceleration which is counterintutive
+        # Therefore setting a zero will assign to the lowest possible acceleration 1 ticks/s^2
+            a = 1
         with self.pt_lock:
             with DelayedKeyboardInterrupt():
                 dxl_comm_result, dxl_error = self.packet_handler.write4ByteTxRx(self.port_handler, self.dxl_id,XL430_ADDR_PROFILE_ACCELERATION, int(a))
