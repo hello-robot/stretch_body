@@ -272,6 +272,8 @@ SE3_eoa_wrist_dw3_tool_sg3={
         'collision_mgmt': {
             'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25, 'stretch_gripper': 0.0},
             'collision_pairs': {
+                'link_gripper_fingertip_left_TO_link_lift': {'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'link_lift','detect_as': 'pts'},
+                'link_gripper_s3_body_TO_base_link': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'base_link','detect_as': 'pts'},
                 'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'pts'},
                 'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'pts'},
                 'link_gripper_finger_left_TO_base_link': {'link_pts': 'link_gripper_finger_left','link_cube': 'base_link', 'detect_as': 'pts'},
@@ -280,13 +282,15 @@ SE3_eoa_wrist_dw3_tool_sg3={
                 'link_gripper_fingertip_right_TO_base_link': {'link_pts': 'link_gripper_fingertip_right','link_cube': 'base_link', 'detect_as': 'pts'},
                 'link_gripper_s3_body_TO_link_arm_l0': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0','detect_as': 'pts'},
                 'link_gripper_s3_body_TO_link_arm_l1': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l1','detect_as': 'pts'}},
-            'joints': {'lift': [{'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'},
+            'joints': {'lift': [{'motion_dir': 'neg', 'collision_pair': 'link_gripper_s3_body_TO_base_link'},
+                                {'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'},
                                 {'motion_dir': 'neg', 'collision_pair': 'link_wrist_yaw_bottom_TO_base_link'},
                                 {'motion_dir': 'neg', 'collision_pair': 'link_gripper_finger_left_TO_base_link'},
                                 {'motion_dir': 'neg', 'collision_pair': 'link_gripper_finger_right_TO_base_link'},
                                 {'motion_dir': 'neg', 'collision_pair': 'link_gripper_fingertip_left_TO_base_link'},
                                 {'motion_dir': 'neg', 'collision_pair': 'link_gripper_fingertip_right_TO_base_link'}],
-                       'wrist_pitch': [{'motion_dir': 'neg', 'collision_pair': 'link_gripper_finger_left_TO_base_link'},
+                       'wrist_pitch': [{'motion_dir': 'neg', 'collision_pair': 'link_gripper_s3_body_TO_base_link'},
+                                       {'motion_dir': 'neg', 'collision_pair': 'link_gripper_finger_left_TO_base_link'},
                                        {'motion_dir': 'neg','collision_pair': 'link_gripper_finger_right_TO_base_link'},
                                        {'motion_dir': 'neg','collision_pair': 'link_gripper_fingertip_left_TO_base_link'},
                                        {'motion_dir': 'neg','collision_pair': 'link_gripper_fingertip_right_TO_base_link'},
@@ -294,7 +298,10 @@ SE3_eoa_wrist_dw3_tool_sg3={
                                        {'motion_dir': 'pos', 'collision_pair': 'link_gripper_s3_body_TO_link_arm_l1'}],
                        'wrist_roll': [{'motion_dir': 'neg', 'collision_pair': 'link_gripper_s3_body_TO_link_arm_l1'},
                                       {'motion_dir': 'pos', 'collision_pair': 'link_gripper_s3_body_TO_link_arm_l0'}],
-                       'wrist_yaw': [{'motion_dir': 'neg', 'collision_pair': 'link_gripper_s3_body_TO_link_arm_l0'},
+                       'wrist_yaw': [{'motion_dir': 'pos', 'collision_pair': 'link_gripper_fingertip_left_TO_link_lift'},
+                                     {'motion_dir': 'neg', 'collision_pair': 'link_gripper_finger_right_TO_base_link'},
+                                     {'motion_dir': 'pos', 'collision_pair': 'link_gripper_finger_left_TO_base_link'},
+                                     {'motion_dir': 'neg', 'collision_pair': 'link_gripper_s3_body_TO_link_arm_l0'},
                                      {'motion_dir': 'pos', 'collision_pair': 'link_gripper_s3_body_TO_link_arm_l1'}]}},
 
         'devices': {
@@ -338,10 +345,12 @@ SE3_eoa_wrist_dw3_tool_nil={
             'wrist_yaw': 3.0
         },
         'collision_mgmt': {
-            'k_brake_distance':{'wrist_pitch':0.0,'wrist_yaw':0.0,'wrist_roll':0.0},
-            'joints':{
-                'lift': [{'motion_dir': 'neg', 'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link'},
-                         {'motion_dir': 'neg', 'link_pts': 'link_wrist_roll', 'link_cube': 'base_link'}, ]}},
+            'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25},
+            'collision_pairs': {
+                'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'pts'},
+                'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'pts'}},
+            'joints': {'lift': [{'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'},
+                                {'motion_dir': 'neg', 'collision_pair': 'link_wrist_yaw_bottom_TO_base_link'}]}},
 
         'devices': {
             'wrist_pitch': {

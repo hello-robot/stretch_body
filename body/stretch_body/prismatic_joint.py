@@ -587,9 +587,9 @@ class PrismaticJoint(Device):
         in_collision: {'pos': False, 'neg': False},etc
         """
 
-        if in_collision['pos'] and in_collision['neg']:
-            print('Invalid IN_COLLISION for joint %s'%self.name)
-            return
+        # if in_collision['pos'] and in_collision['neg']:
+        #     print('Invalid IN_COLLISION for joint %s'%self.name)
+        #     return
 
         for dir in ['pos','neg']:
             if in_collision[dir] and not self.in_collision_stop[dir]:

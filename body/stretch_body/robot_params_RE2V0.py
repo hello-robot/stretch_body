@@ -270,6 +270,10 @@ RE2V0_tool_none={
     'py_class_name': 'ToolNone',
     'py_module_name': 'stretch_body.end_of_arm_tools',
     'stow': {'wrist_yaw': 3.4},
+    'collision_mgmt': {
+        'k_brake_distance': {},
+        'collision_pairs': {},
+        'joints': {}},
     'devices': {
         'wrist_yaw': {
             'py_class_name': 'WristYaw',
@@ -285,6 +289,10 @@ RE2V0_tool_stretch_gripper={
     'py_class_name': 'ToolStretchGripper',
     'py_module_name': 'stretch_body.end_of_arm_tools',
     'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
+    'collision_mgmt': {
+        'k_brake_distance': {},
+        'collision_pairs': {},
+        'joints': {}},
     'devices': {
         'stretch_gripper': {
             'py_class_name': 'StretchGripper',
@@ -306,6 +314,10 @@ RE2V0_tool_stretch_dex_wrist={
     'retry_on_comm_failure': 1,
     'baud': 115200,
     'dxl_latency_timer': 64,
+    'collision_mgmt': {
+        'k_brake_distance': {},
+        'collision_pairs': {},
+        'joints': {}},
     'stow': {
         'arm': 0.0,
         'lift': 0.2,
@@ -751,7 +763,17 @@ nominal_params={
         'use_asyncio':1},
     'robot_collision_mgmt': {
         'max_mesh_points': 48,
-        'RE2V0': {}},
+        'RE2V0': {
+            'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
+            'collision_pairs': {
+                'link_head_tilt_TO_link_arm_l4': {'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4',
+                                                  'detect_as': 'pts'},
+                'link_arm_l0_TO_base_link': {'link_pts': 'link_arm_l0', 'link_cube': 'base_link', 'detect_as': 'pts'}},
+            'joints': {
+                'lift': [{'motion_dir': 'pos', 'collision_pair': 'link_head_tilt_TO_link_arm_l4'},
+                         {'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}],
+                'arm': [{'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}]}
+        }},
     'robot_monitor':{
         'monitor_base_bump_event': 1,
         'monitor_base_cliff_event': 1,
