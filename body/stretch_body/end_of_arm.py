@@ -111,7 +111,10 @@ class EndOfArm(DynamixelXChain):
             motor = self.get_joint(jn)
             dx = 0.0
             if braked:
-                dx = self.params['collision_mgmt']['k_brake_distance'][jn] * motor.get_braking_distance()
+                try:
+                    dx = self.params['collision_mgmt']['k_brake_distance'][jn] * motor.get_braking_distance()
+                except KeyError:
+                    dx=0
             ret[j] = motor.status['pos'] + dx
         return ret
 

@@ -276,6 +276,10 @@ RE1V0_tool_none={
     'py_class_name': 'ToolNone',
     'py_module_name': 'stretch_body.end_of_arm_tools',
     'stow': {'wrist_yaw': 3.4},
+    'collision_mgmt': {
+        'k_brake_distance': {},
+        'collision_pairs': {},
+        'joints': {}},
     'devices': {
         'wrist_yaw': {
             'py_class_name': 'WristYaw',
@@ -291,6 +295,10 @@ RE1V0_tool_stretch_gripper={
     'py_class_name': 'ToolStretchGripper',
     'py_module_name': 'stretch_body.end_of_arm_tools',
     'stow': {'stretch_gripper': 0, 'wrist_yaw': 3.4},
+    'collision_mgmt': {
+        'k_brake_distance': {},
+        'collision_pairs': {},
+        'joints': {}},
     'devices': {
         'stretch_gripper': {
             'py_class_name': 'StretchGripper',
@@ -320,6 +328,10 @@ RE1V0_tool_stretch_dex_wrist={
         'wrist_roll': 0.0,
         'wrist_yaw': 3.0
     },
+    'collision_mgmt': {
+        'k_brake_distance': {},
+        'collision_pairs': {},
+        'joints': {}},
     'devices': {
         'stretch_gripper': {
             'py_class_name': 'StretchGripper',
@@ -769,13 +781,25 @@ nominal_params={
     },
     'robot_collision_mgmt': {
         'max_mesh_points': 48,
-        'RE1V0': {}},
-    'robot_sentry':{
+        'RE1V0': {
+            'k_brake_distance': {'lift': 0.75, 'arm': 0.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
+            'collision_pairs': {
+                'link_head_tilt_TO_link_arm_l4': {'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4',
+                                                  'detect_as': 'pts'},
+                'link_arm_l0_TO_base_link': {'link_pts': 'link_arm_l0', 'link_cube': 'base_link', 'detect_as': 'pts'}},
+            'joints': {
+                'lift': [{'motion_dir': 'pos', 'collision_pair': 'link_head_tilt_TO_link_arm_l4'},
+                         {'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}],
+                'arm': [{'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}]}
+        }},
+    'robot_sentry': {
         'base_fan_control': 1,
         'base_max_velocity': 1,
         'dynamixel_stop_on_runstop': 1,
         'stretch_gripper_overload': 1,
         'wrist_yaw_overload': 1,
+        'wrist_pitch_overload': 1,
+        'wrist_roll_overload': 1,
         'stepper_is_moving_filter': 1},
     'wacc':{
         'usb_name': '/dev/hello-wacc',
