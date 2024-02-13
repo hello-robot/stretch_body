@@ -11,6 +11,10 @@ class ToolNone(EndOfArm):
         #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
         #It is used by CollisionMgmt 
         self.urdf_map={'joint_wrist_yaw':'wrist_yaw'} #Not mapping fingers for collision mgmt yet
+    def stow(self):
+        # Fold in wrist and gripper
+        print('--------- Stowing Wrist Yaw ----')
+        self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
 
 class ToolStretchGripper(EndOfArm):
     """

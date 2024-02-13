@@ -446,8 +446,7 @@ nominal_params={
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'dxl_latency_timer': 64,
-        'baud':115200,
-        'stow': {'wrist_yaw': 3.4}},
+        'baud':115200},
     'head':{
         'usb_name': '/dev/hello-dynamixel-head',
         'use_group_sync_read': 1,
@@ -758,9 +757,7 @@ nominal_params={
         'arm': 0.0,
         'head_pan': 0.0,
         'head_tilt': 0.0,
-        'lift': 0.2,
-        'stretch_gripper': 0,
-        'wrist_yaw': 3.4},
+        'lift': 0.2},
         'use_monitor': 1,
         'use_trace': 0,
         'use_sentry': 1,
@@ -893,7 +890,6 @@ factory_params_deprecated = {
         "retry_on_comm_failure": 1,
         "baud": 57600,
         "dxl_latency_timer": 64,
-        'stow': {'wrist_yaw': 3.4},
         'devices': {
             'wrist_yaw': {
                 'py_class_name': 'WristYaw',

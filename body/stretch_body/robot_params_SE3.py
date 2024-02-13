@@ -457,8 +457,7 @@ nominal_params={
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'baud': 115200,
-        'dxl_latency_timer': 64,
-        'stow': {'wrist_yaw': 3.4}},
+        'dxl_latency_timer': 64},
     'head':{
         'usb_name': '/dev/hello-dynamixel-head',
         'use_group_sync_read': 1,
