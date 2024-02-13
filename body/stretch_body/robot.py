@@ -553,9 +553,10 @@ class Robot(Device):
         ts = time.time()
         while not self.arm.motor.status['near_pos_setpoint'] and time.time() - ts < 6.0:
             time.sleep(0.1)
+
         self.end_of_arm.stow()
         time.sleep(0.25)
-       # self.end_of_arm.stow()
+
         #Now bring lift down
         if not lift_stowed:
             print('--------- Stowing Lift ----')

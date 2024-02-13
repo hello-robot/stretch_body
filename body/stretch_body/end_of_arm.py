@@ -74,8 +74,7 @@ class EndOfArm(DynamixelXChain):
             self.motors[joint].pose(p, v_r, a_r)
 
     def stow(self):
-        print('--------- Stowing Wrist Yaw ----')
-        self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
+        pass #Override by specific tool
 
     def home(self, joint=None):
         """
