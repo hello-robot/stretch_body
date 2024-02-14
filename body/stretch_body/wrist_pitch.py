@@ -39,6 +39,9 @@ class WristPitch(DynamixelHelloXL430):
         """
         i=self.motor.get_current()
         self.disable_torque()
+        if self.watchdog_enabled:
+            self.motor.disable_watchdog()
+            self.watchdog_enabled = False
         self.motor.enable_current()
         self.enable_torque()
         self.motor.set_goal_current(i)#self.current_to_ticks(self.params['current_float_A']))

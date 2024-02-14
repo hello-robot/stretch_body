@@ -245,6 +245,10 @@ class DynamixelHelloXL430(Device):
         Device.stop(self)
         self._waypoint_ts, self._waypoint_vel, self._waypoint_accel = None, None, None
         if self.hw_valid:
+            if self.watchdog_enabled:
+                self.disable_torque()
+                self.motor.disable_watchdog()
+                self.enable_torque()
             if self.params['disable_torque_on_stop']:
                 self.disable_torque()
             self.motor.stop(close_port)
