@@ -673,9 +673,9 @@ class DynamixelHelloXL430(Device):
         if self.motor.dxl_model_name=='XM540-W270' or self.motor.dxl_model_name=='XM430-W350':
             if current_limit is None:
                 current_limit =self.params['current_limit_A']
-            if self.in_vel_mode:
-                self.enable_pos()
             self.motor.disable_torque()
+            if self.in_vel_mode:
+                self.motor.enable_pos()
             self.motor.set_current_limit(self.current_to_ticks(current_limit))
             self.motor.enable_pos_current()
             self.enable_torque()
