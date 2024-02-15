@@ -490,7 +490,7 @@ class DynamixelHelloXL430(Device):
 
         if self.in_vel_mode:
             # disable watchdog if a set_velocity() command is not passed above 3s
-            if self._prev_set_vel_ts:
+            if self._prev_set_vel_ts and self.watchdog_enabled:
                 if time.time() - self._prev_set_vel_ts >=3:
                     wd_error=self.motor.get_watchdog_error()
                     self.disable_torque()
@@ -673,9 +673,9 @@ class DynamixelHelloXL430(Device):
         if self.motor.dxl_model_name=='XM540-W270' or self.motor.dxl_model_name=='XM430-W350':
             if current_limit is None:
                 current_limit =self.params['current_limit_A']
-            if self.in_vel_mode:
-                self.enable_pos()
             self.motor.disable_torque()
+            if self.in_vel_mode:
+                self.motor.enable_pos()
             self.motor.set_current_limit(self.current_to_ticks(current_limit))
             self.motor.enable_pos_current()
             self.enable_torque()
@@ -801,6 +801,9 @@ class DynamixelHelloXL430(Device):
             return
         try:
             self.motor.disable_torque()
+            if self.watchdog_enabled:
+                self.motor.disable_watchdog()
+                self.watchdog_enabled = False
             if self.params['use_multiturn']:
                 self.motor.enable_multiturn()
             elif self.params['use_pos_current_ctrl']:

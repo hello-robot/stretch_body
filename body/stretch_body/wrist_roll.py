@@ -17,6 +17,7 @@ class WristRoll(DynamixelHelloXL430):
         """
         #Put joint in float around zero on exit
         if self.hw_valid and self.params['float_on_stop']:
+            self.enable_pos()
             self.enable_pos_current_ctrl(current_limit=self.params['current_float_A'])
             self.move_to(0.0)
 
