@@ -801,6 +801,9 @@ class DynamixelHelloXL430(Device):
             return
         try:
             self.motor.disable_torque()
+            if self.watchdog_enabled:
+                self.motor.disable_watchdog()
+                self.watchdog_enabled = False
             if self.params['use_multiturn']:
                 self.motor.enable_multiturn()
             elif self.params['use_pos_current_ctrl']:
