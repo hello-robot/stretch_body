@@ -490,7 +490,7 @@ class DynamixelHelloXL430(Device):
 
         if self.in_vel_mode:
             # disable watchdog if a set_velocity() command is not passed above 3s
-            if self._prev_set_vel_ts:
+            if self._prev_set_vel_ts and self.watchdog_enabled:
                 if time.time() - self._prev_set_vel_ts >=3:
                     wd_error=self.motor.get_watchdog_error()
                     self.disable_torque()
