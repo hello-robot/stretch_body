@@ -7,6 +7,7 @@ import threading
 import sys
 import time
 import array as arr
+import math
 
 
 
@@ -406,13 +407,22 @@ class StepperBase(Device):
         self.gains['enable_guarded_mode'] = 0
         self._dirty_gains = 1
 
-
+    def check_nan_value(self,x):
+        try:
+            return math.isnan(x)
+        except TypeError:
+            return False
 
     # ######################################################################
     #Primary interface to controlling the stepper
     #YAML defaults are used if values not provided
     #This allows user to override defaults every control cycle and then easily revert to defaults
     def set_command(self,mode=None, x_des=None, v_des=None, a_des=None,i_des=None, stiffness=None,i_feedforward=None, i_contact_pos=None, i_contact_neg=None  ):
+        
+        if  True in [self.check_nan_value(d) for d in (x_des, v_des, a_des, i_des, stiffness, i_feedforward, i_contact_pos, i_contact_neg)]:
+            self.logger.warning('Received NaN value. dropping the command.')
+            return
+        
         if mode is not None:
             self._command['mode'] = mode
 
