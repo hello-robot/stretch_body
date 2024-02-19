@@ -1,4 +1,6 @@
 from __future__ import print_function
+import matplotlib
+matplotlib.use('TkAgg')
 from matplotlib.widgets import Slider, Button
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
