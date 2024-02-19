@@ -6,6 +6,7 @@ import time
 from stretch_body.hello_utils import *
 import termios
 import numpy
+import math
 
 class DynamixelCommErrorStats(Device):
     def __init__(self, name, logger):
@@ -571,6 +572,9 @@ class DynamixelHelloXL430(Device):
                     raise DynamixelCommError
 
     def set_velocity(self,v_des,a_des=None):
+        if  True in [self.check_nan_value(d) for d in (v_des, a_des)]:
+            self.logger.warning('Received NaN value. dropping the command.')
+            return
         if self.was_runstopped:
             return
         if not self.watchdog_enabled:
@@ -683,7 +687,16 @@ class DynamixelHelloXL430(Device):
         else:
             self.logger.warning('Joint %s does not support POS_CURRENT_CTRL: %s' % self.name)
 
+    def check_nan_value(self,x):
+        try:
+            return math.isnan(x)
+        except TypeError:
+            return False
+        
     def move_to(self,x_des, v_des=None, a_des=None):
+        if  True in [self.check_nan_value(d) for d in (x_des, v_des, a_des)]:
+            self.logger.warning('Received NaN value. dropping the command.')
+            return
         if self.was_runstopped:
             return
         nretry = 2
@@ -748,6 +761,9 @@ class DynamixelHelloXL430(Device):
 
 
     def move_by(self,x_des, v_des=None, a_des=None):
+        if  True in [self.check_nan_value(d) for d in (x_des, v_des, a_des)]:
+            self.logger.warning('Received NaN value. dropping the command.')
+            return
         if self.was_runstopped:
             return
         if not self.hw_valid:
