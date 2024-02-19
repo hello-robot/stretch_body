@@ -171,7 +171,7 @@ def main(config):
             if image_uvc is not None:
                 # Change navigation camera orientation
                 if uvc:
-                    cv2.imshow('Navigation Head Camera', cv2.rotate(image_uvc, cv2.ROTATE_90_CLOCKWISE))
+                    cv2.imshow('Navigation Head Camera', cv2.rotate(image_uvc, cv2.ROTATE_90_COUNTERCLOCKWISE))
                 if video_path is not None:
                     cv2.imshow('USB Camera',image_uvc)
 
