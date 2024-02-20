@@ -9,6 +9,7 @@ hu.print_stretch_re_use()
 import re
 import os
 import sys
+import shlex
 import distro
 import logging
 import argparse
@@ -57,15 +58,14 @@ def is_d405_present():
 
 def run_cmd(cmdstr):
     cli_device.logger.debug(f'Executing command: {cmdstr}')
-    process = subprocess.run(shlex.split(cmdstr), capture_output=True, text=True)
-    if (process.returncode != 0):
-        cli_device.logger.info(f"ERROR: {process.stderr}")
+    returncode = os.system(cmdstr)
+    if (returncode != 0):
+        cli_device.logger.info(f"ERROR executing {cmdstr}")
         sys.exit(1)
-    return process
 
 cli_device.logger.info('Loading...')
 robot_device = stretch_body.device.Device(name='robot')
-stretch_model = device.params.get('model_name', '')
+stretch_model = robot_device.params.get('model_name', '')
 stretch_tool = robot_device.params.get('tool', '')
 supported_tools = robot_device.robot_params.get('supported_eoa', [])
 num_wrist_dxls = how_many_dxl_on_wrist_chain()
@@ -77,7 +77,7 @@ def does_tool_need_to_change():
     # check if current tool is supported
     if stretch_tool not in supported_tools:
         cli_device.logger.info(f"But {Fore.CYAN + stretch_tool + Style.RESET_ALL} isn't a supported tool for your robot")
-        cli_device.logger.debug(f"The supported tools for your robot are: {Fore.CYAN + str(supported_tools) + Style.RESET_ALL}")
+        cli_device.logger.debug(f"The supported tools for your robot are: {Fore.YELLOW + str(supported_tools) + Style.RESET_ALL}")
         return True
 
     # check if the existing hardware, num dxls, matches the current tool
@@ -108,7 +108,7 @@ def determine_what_tool_is_correct():
 
     # start with the supported list
     matches = supported_tools
-    cli_device.logger.debug(f"Starting with the supported tools for your model: {Fore.CYAN + str(matches) + Style.RESET_ALL}")
+    cli_device.logger.debug(f"Starting with the supported tools for your model: {Fore.YELLOW + str(matches) + Style.RESET_ALL}")
 
     # filter by num dxls
     numdxls_tool_map = {
@@ -118,9 +118,9 @@ def determine_what_tool_is_correct():
         4: ['tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_sg3']
     }
     numdxls_match = numdxls_tool_map.get(num_wrist_dxls, [])
-    cli_device.logger.debug(f"These tools match based on {num_wrist_dxls} number of wrist dxls: {Fore.CYAN + str(numdxls_match) + Style.RESET_ALL}")
+    cli_device.logger.debug(f"These tools match based on {num_wrist_dxls} number of wrist dxls: {Fore.YELLOW + str(numdxls_match) + Style.RESET_ALL}")
     matches = list(set(matches) & set(numdxls_match))
-    cli_device.logger.debug(f"Filtering based on this brings the matches to: {Fore.CYAN + str(matches) + Style.RESET_ALL}")
+    cli_device.logger.debug(f"Filtering based on this brings the matches to: {Fore.YELLOW + str(matches) + Style.RESET_ALL}")
 
     # filter by d405 present
     d405_tool_map = {
@@ -128,9 +128,9 @@ def determine_what_tool_is_correct():
         True: ['eoa_wrist_dw3_tool_nil', 'eoa_wrist_dw3_tool_sg3'],
     }
     d405_match = d405_tool_map.get(d405_present, [])
-    cli_device.logger.debug(f"These tools match based on present={d405_present} gripper camera: {Fore.CYAN + str(d405_match) + Style.RESET_ALL}")
+    cli_device.logger.debug(f"These tools match based on present={d405_present} gripper camera: {Fore.YELLOW + str(d405_match) + Style.RESET_ALL}")
     matches = list(set(matches) & set(d405_match))
-    cli_device.logger.debug(f"Filtering based on this brings the matches to: {Fore.CYAN + str(matches) + Style.RESET_ALL}")
+    cli_device.logger.debug(f"Filtering based on this brings the matches to: {Fore.YELLOW + str(matches) + Style.RESET_ALL}")
 
     if len(matches) == 0:
         cli_device.logger.info('Unable to find any tool that matches the hardware connected to your robot. Contact Hello Robot support for help.')
@@ -149,10 +149,11 @@ def determine_what_tool_is_correct():
         return matches[0]
 
 def configure_tool(target_tool_name):
-    cli_device.logger.info(f'Configuring your software to use the {Fore.CYAN + target_tool_name + Style.RESET_ALL} tool')
+    cli_device.logger.info(f'Configuring your software to use the {Fore.GREEN + target_tool_name + Style.RESET_ALL} tool')
     user_input = input('Proceed? (y/n): ')
     if user_input not in ['y', 'Y', 'yes', 'YES']:
         cli_device.logger.info('Not changing anything. Exiting.')
+        sys.exit(1)
 
     # check config params exist
     if not exists(stretch_body.hello_utils.get_fleet_directory()+'stretch_configuration_params.yaml'):
@@ -168,10 +169,12 @@ def configure_tool(target_tool_name):
         import importlib_resources
         root_dir = str(importlib_resources.files("stretch_urdf"))
         data_dir = f"{root_dir}/{stretch_model}"
+        cli_device.logger.debug(f'data_dir={data_dir}')
     elif ubuntu_version == '22.04':
         import importlib.resources as importlib_resources
         root_dir = importlib_resources.files("stretch_urdf")
-        data_dir = f"{root_dir}/{model_name}"
+        data_dir = f"{root_dir}/{stretch_model}"
+        cli_device.logger.debug(f'data_dir={data_dir}')
     else:
         cli_device.logger.info(f'This CLI doesnt support {ubuntu_version}. Consider upgrading your robots operating system.')
         sys.exit(1)
@@ -179,7 +182,7 @@ def configure_tool(target_tool_name):
     # check stretch_urdf has target_tool_name
     target_tool_urdf = f"stretch_description_{stretch_model}_{target_tool_name}.urdf"
     target_tool_xacro = f"stretch_description_{stretch_model}_{target_tool_name}.xacro"
-    if target_tool_urdf not in os.listdir(data_dir) or target_tool_xacro not in os.listdir(data_dir):
+    if target_tool_urdf not in os.listdir(data_dir) or target_tool_xacro not in os.listdir(data_dir + '/xacro'):
         cli_device.logger.info(f'Cannot find URDF for this tool. Contact Hello Robot support.')
         cli_device.logger.debug(f"Target URDF={target_tool_urdf}. Target XACRO={target_tool_xacro}. Stretch URDF has these: {os.listdir(data_dir)}")
         cli_device.logger.info("Not changing anything. Exiting.")
@@ -188,14 +191,14 @@ def configure_tool(target_tool_name):
     # check ROS workspace exists
     ros_distro = os.getenv('ROS_DISTRO')
     if ros_distro == 'noetic':
-        ros_repo_path = f'/home/{os.getenv('USER')}/catkin_ws/src/stretch_ros'
+        ros_repo_path = f'/home/{os.getenv("USER")}/catkin_ws/src/stretch_ros'
         if not exists(ros_repo_path):
             cli_device.logger.info(f'Cannot find ROS workspace. Consider creating a new ROS workspace.')
-            cli_device.logger.debug(f"Check for ROS workspace here: {ros_repo_path}")
+            cli_device.logger.debug(f"Checked for ROS workspace here: {ros_repo_path}")
             cli_device.logger.info("Not changing anything. Exiting.")
             sys.exit(1)
     elif ros_distro == 'humble':
-        ros_repo_path = f'/home/{os.getenv('USER')}/ament_ws/src/stretch_ros2'
+        ros_repo_path = f'/home/{os.getenv("USER")}/ament_ws/src/stretch_ros2'
         if not exists(ros_repo_path):
             cli_device.logger.info(f'Cannot find ROS workspace. Consider creating a new ROS workspace.')
             cli_device.logger.debug(f"Check for ROS workspace here: {ros_repo_path}")
@@ -242,6 +245,10 @@ def configure_tool(target_tool_name):
     stretch_body.hello_utils.write_fleet_yaml('stretch_configuration_params.yaml', configuration_yaml,
                                               header=stretch_body.robot_params.RobotParams().get_configuration_params_header())
 
+    # get rid of export_urdf and exported_urdf_previous directories
+    run_cmd(f"rm -rf {ros_repo_path}/stretch_description/urdf/exported_urdf")
+    run_cmd(f"rm -rf {ros_repo_path}/stretch_description/urdf/exported_urdf_previous")
+
     # copy URDF mesh files to ROS workspace
     src = f"{data_dir}/meshes/*"
     dst = f"{ros_repo_path}/stretch_description/meshes/"
@@ -256,6 +263,8 @@ def configure_tool(target_tool_name):
 
     # replace mesh paths to package:// format
     def search_and_replace(file_path, search_word, replace_word):
+        if file_path.endswith('.sh') or file_path.endswith('.md'):
+            return
         with open(file_path, 'r') as file:
             file_contents = file.read()
             updated_contents = file_contents.replace(search_word, replace_word)
@@ -268,7 +277,7 @@ def configure_tool(target_tool_name):
         cleaned_text = end_regex.sub(start_pattern + end_pattern, cleaned_text)
         cleaned_text = cleaned_text.replace(start_pattern + end_pattern, "")
         return cleaned_text
-    for f in os.listdir(f"{dst}/xacro/"):
+    for f in os.listdir(dst):
         try:
             search_and_replace(f"{dst}/{f}",'./meshes','package://stretch_description/meshes')
         except IsADirectoryError:
@@ -307,10 +316,10 @@ def configure_tool(target_tool_name):
     # export the calibrated URDF
     if ros_distro == 'noetic':
         cli_device.logger.debug("Export URDF...")
-        run_cmd('cd ~/catkin_ws/src/stretch_ros/stretch_description/urdf; ./export_urdf.py')
+        run_cmd('cd ~/catkin_ws/src/stretch_ros/stretch_description/urdf; ./export_urdf.sh')
     elif ros_distro == 'humble':
         cli_device.logger.debug("Export URDF...")
-        run_cmd('cd ~/ament_ws/src/stretch_ros2/stretch_description/urdf; ./export_urdf.py')
+        run_cmd('cd ~/ament_ws/src/stretch_ros2/stretch_description/urdf; ./export_urdf.sh')
 
     cli_device.logger.info('Done!')
 
