@@ -58,7 +58,7 @@ def is_d405_present():
 
 def run_cmd(cmdstr):
     cli_device.logger.debug(f'Executing command: {cmdstr}')
-    returncode = os.system(cmdstr)
+    returncode = os.system(cmdstr + ' > /dev/null 2>&1')
     if (returncode != 0):
         cli_device.logger.info(f"ERROR executing {cmdstr}")
         sys.exit(1)
