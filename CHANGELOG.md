@@ -2,7 +2,14 @@
 
 The changes between releases of Stretch Body are documented here.
 
-## [0.7.2](https://pypi.org/project/hello-robot-stretch-body/0.7.2/) - January 26, 2023
+## [0.7.11](https://pypi.org/project/hello-robot-stretch-body/0.7.11/) - Feburary 20, 2024
+ - Introduce the `stretch_configure_tool.py` tool (pr [#287](https://github.com/hello-robot/stretch_body/pull/287))
+    - This PR introduces a new CLI called stretch_configure_tool.py. It eliminates a pain point around changing the robot.tool parameter and updating the URDF (and exported URDF).
+    - This tool supports all three models, all officially supported tools, Ubuntu 20.04 and 22.04.
+ - Add "Tool" section to the system check
+ - Add the ability to change the formatter for the logging params
+
+## [0.7.2](https://pypi.org/project/hello-robot-stretch-body/0.7.2/) - January 26, 2024
  - Fix for wait_command() timeout not being respected (issue [#255](https://github.com/hello-robot/stretch_body/issues/255))
  - Improvements to the System Check tool, including:
     - Check if hello stepper self recognize correctly
@@ -11,7 +18,7 @@ The changes between releases of Stretch Body are documented here.
     - Hide verbose printout
     - Add battery section to hardware check
 
-## [0.7.0](https://pypi.org/project/hello-robot-stretch-body/0.7.0/) - January 25, 2023
+## [0.7.0](https://pypi.org/project/hello-robot-stretch-body/0.7.0/) - January 25, 2024
  - Introduces P5 firmware protocol support
  - Revamped system check tool
  - Revamped wrist/tool management system
