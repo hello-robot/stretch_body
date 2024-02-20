@@ -9,7 +9,9 @@ hu.print_stretch_re_use()
 import sys
 import logging
 import argparse
+from os.path import exists
 import stretch_body.device
+import stretch_body.hello_utils
 from colorama import Fore, Back, Style
 
 parser=argparse.ArgumentParser(description="Configure Stretch's software for the attached tool")
@@ -51,13 +53,11 @@ def is_d405_present():
 
 cli_device.logger.info('Loading...')
 robot_device = stretch_body.device.Device(name='robot')
+stretch_model = device.params.get('model_name', '')
 stretch_tool = robot_device.params.get('tool', '')
-# supported_tools = robot_device.robot_params.get('supported_eoa', []) # TODO
-supported_tools = ['tool_none', 'tool_stretch_gripper', 'tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_nil', 'eoa_wrist_dw3_tool_sg3']
-# num_wrist_dxls = how_many_dxl_on_wrist_chain() # TODO
-num_wrist_dxls = 4
-# d405_present = is_d405_present() # TODO
-d405_present = True
+supported_tools = robot_device.robot_params.get('supported_eoa', [])
+num_wrist_dxls = how_many_dxl_on_wrist_chain()
+d405_present = is_d405_present()
 
 def does_tool_need_to_change():
     cli_device.logger.info(f'Your software is currently configured for the {Fore.CYAN + stretch_tool + Style.RESET_ALL} tool')
@@ -130,12 +130,62 @@ def determine_what_tool_is_correct():
             cli_device.logger.info(f'    {i}) {match}')
         user_select = int(input('Select one. If unsure, Ctrl C to exit & contact Hello Robot support. Input #: '))
         if user_select >= len(matches):
-            cli_device.logger.info('Invalid selection. Exiting...')
+            cli_device.logger.info('Invalid selection. Exiting.')
             sys.exit(1)
         return matches[user_select]
     else:
         return matches[0]
 
+def configure_tool(target_tool_name):
+    cli_device.logger.info(f'Configuring your software to use the {Fore.CYAN + target_tool_name + Style.RESET_ALL} tool')
+    user_input = input('Proceed? (y/n): ')
+    if user_input not in ['y', 'Y', 'yes', 'YES']:
+        cli_device.logger.info('Not changing anything. Exiting.')
+
+    # check config params exist
+    if not exists(stretch_body.hello_utils.get_fleet_directory()+'stretch_configuration_params.yaml'):
+        cli_device.logger.info('Please run RE1_migrate_params.py before continuing. For more details, see https://forum.hello-robot.com/t/425')
+        sys.exit(1)
+
+    if stretch_model == 'RE1V0': # Stretch RE1
+        tool_feedforward_map = {
+            'tool_none': 0.4,
+            'tool_stretch_gripper': 0.4,
+            'tool_stretch_dex_wrist': 0.75,
+            'eoa_wrist_dw3_tool_nil': 0.75,
+            'eoa_wrist_dw3_tool_sg3': 0.75,
+        }
+        feedforward_value = tool_feedforward_map.get(target_tool_name, 0.8)
+        cli_device.logger.debug(f'For model={stretch_model} and tool={target_tool_name}, choosing i_feedforward={feedforward_value}')
+
+        tool_yaml = {
+            'robot': {'tool': target_tool_name},
+            'lift': {'i_feedforward': feedforward_value},
+            'hello-motor-lift': {'gains': {'i_safety_feedforward': feedforward_value}}
+        }
+    else: # Stretch 2 and Stretch 3
+        tool_feedforward_map = {
+            'tool_none': 1.2,
+            'tool_stretch_gripper': 1.2,
+            'tool_stretch_dex_wrist': 1.8,
+            'eoa_wrist_dw3_tool_nil': 1.8,
+            'eoa_wrist_dw3_tool_sg3': 1.8,
+        }
+        feedforward_value = tool_feedforward_map.get(target_tool_name, 1.9)
+        cli_device.logger.debug(f'For model={stretch_model} and tool={target_tool_name}, choosing i_feedforward={feedforward_value}')
+
+        tool_yaml = {
+            'robot': {'tool': target_tool_name},
+            'lift': {'i_feedforward': feedforward_value},
+            'hello-motor-lift': {'gains': {'i_safety_feedforward': feedforward_value}}
+        }
+
+    # push new parameters to yaml
+    configuration_yaml = stretch_body.hello_utils.read_fleet_yaml('stretch_configuration_params.yaml')
+    stretch_body.hello_utils.overwrite_dict(overwritee_dict=configuration_yaml, overwriter_dict=tool_yaml)
+    stretch_body.hello_utils.write_fleet_yaml('stretch_configuration_params.yaml', configuration_yaml,
+                                              header=stretch_body.robot_params.RobotParams().get_configuration_params_header())
+
 if does_tool_need_to_change():
     target_tool_name = determine_what_tool_is_correct()
-    print(target_tool_name)
+    configure_tool(target_tool_name)
