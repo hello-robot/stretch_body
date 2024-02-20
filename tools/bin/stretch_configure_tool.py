@@ -6,9 +6,13 @@ stretch_body.robot_params.RobotParams.set_logging_formatter("brief_console_forma
 import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
 
+import re
+import os
 import sys
+import distro
 import logging
 import argparse
+import subprocess
 from os.path import exists
 import stretch_body.device
 import stretch_body.hello_utils
@@ -50,6 +54,14 @@ def is_d405_present():
         if 'D405' in rs_cam['name']:
             return True
     return False
+
+def run_cmd(cmdstr):
+    cli_device.logger.debug(f'Executing command: {cmdstr}')
+    process = subprocess.run(shlex.split(cmdstr), capture_output=True, text=True)
+    if (process.returncode != 0):
+        cli_device.logger.info(f"ERROR: {process.stderr}")
+        sys.exit(1)
+    return process
 
 cli_device.logger.info('Loading...')
 robot_device = stretch_body.device.Device(name='robot')
@@ -147,6 +159,50 @@ def configure_tool(target_tool_name):
         cli_device.logger.info('Please run RE1_migrate_params.py before continuing. For more details, see https://forum.hello-robot.com/t/425')
         sys.exit(1)
 
+    # check stretch_urdf exists
+    ubuntu_version = distro.version()
+    if ubuntu_version == '18.04':
+        cli_device.logger.info('This CLI doesnt support Ubuntu 18.04. Consider upgrading your robots operating system.')
+        sys.exit(1)
+    elif ubuntu_version == '20.04':
+        import importlib_resources
+        root_dir = str(importlib_resources.files("stretch_urdf"))
+        data_dir = f"{root_dir}/{stretch_model}"
+    elif ubuntu_version == '22.04':
+        import importlib.resources as importlib_resources
+        root_dir = importlib_resources.files("stretch_urdf")
+        data_dir = f"{root_dir}/{model_name}"
+    else:
+        cli_device.logger.info(f'This CLI doesnt support {ubuntu_version}. Consider upgrading your robots operating system.')
+        sys.exit(1)
+
+    # check stretch_urdf has target_tool_name
+    target_tool_urdf = f"stretch_description_{stretch_model}_{target_tool_name}.urdf"
+    target_tool_xacro = f"stretch_description_{stretch_model}_{target_tool_name}.xacro"
+    if target_tool_urdf not in os.listdir(data_dir) or target_tool_xacro not in os.listdir(data_dir):
+        cli_device.logger.info(f'Cannot find URDF for this tool. Contact Hello Robot support.')
+        cli_device.logger.debug(f"Target URDF={target_tool_urdf}. Target XACRO={target_tool_xacro}. Stretch URDF has these: {os.listdir(data_dir)}")
+        cli_device.logger.info("Not changing anything. Exiting.")
+        sys.exit(1)
+
+    # check ROS workspace exists
+    ros_distro = os.getenv('ROS_DISTRO')
+    if ros_distro == 'noetic':
+        ros_repo_path = f'/home/{os.getenv('USER')}/catkin_ws/src/stretch_ros'
+        if not exists(ros_repo_path):
+            cli_device.logger.info(f'Cannot find ROS workspace. Consider creating a new ROS workspace.')
+            cli_device.logger.debug(f"Check for ROS workspace here: {ros_repo_path}")
+            cli_device.logger.info("Not changing anything. Exiting.")
+            sys.exit(1)
+    elif ros_distro == 'humble':
+        ros_repo_path = f'/home/{os.getenv('USER')}/ament_ws/src/stretch_ros2'
+        if not exists(ros_repo_path):
+            cli_device.logger.info(f'Cannot find ROS workspace. Consider creating a new ROS workspace.')
+            cli_device.logger.debug(f"Check for ROS workspace here: {ros_repo_path}")
+            cli_device.logger.info("Not changing anything. Exiting.")
+            sys.exit(1)
+
+    # update the robot parameters for the next tool
     if stretch_model == 'RE1V0': # Stretch RE1
         tool_feedforward_map = {
             'tool_none': 0.4,
@@ -185,6 +241,78 @@ def configure_tool(target_tool_name):
     stretch_body.hello_utils.overwrite_dict(overwritee_dict=configuration_yaml, overwriter_dict=tool_yaml)
     stretch_body.hello_utils.write_fleet_yaml('stretch_configuration_params.yaml', configuration_yaml,
                                               header=stretch_body.robot_params.RobotParams().get_configuration_params_header())
+
+    # copy URDF mesh files to ROS workspace
+    src = f"{data_dir}/meshes/*"
+    dst = f"{ros_repo_path}/stretch_description/meshes/"
+    cmd = f"cp -r {src} {dst}"
+    run_cmd(cmd)
+
+    # copy URDF xacro files to ROS workspace
+    src = f"{data_dir}/xacro/*"
+    dst = f"{ros_repo_path}/stretch_description/urdf/"
+    cmd = f"cp -r {src} {dst}"
+    run_cmd(cmd)
+
+    # replace mesh paths to package:// format
+    def search_and_replace(file_path, search_word, replace_word):
+        with open(file_path, 'r') as file:
+            file_contents = file.read()
+            updated_contents = file_contents.replace(search_word, replace_word)
+        with open(file_path, 'w') as file:
+            file.write(updated_contents)
+    def remove_lines_between_patterns(text, start_pattern, end_pattern):
+        start_regex = re.compile(re.escape(start_pattern) + r'.*?' + re.escape(end_pattern), re.DOTALL)
+        end_regex = re.compile(re.escape(end_pattern) + r'.*?' + re.escape(start_pattern), re.DOTALL)
+        cleaned_text = start_regex.sub(start_pattern + end_pattern, text)
+        cleaned_text = end_regex.sub(start_pattern + end_pattern, cleaned_text)
+        cleaned_text = cleaned_text.replace(start_pattern + end_pattern, "")
+        return cleaned_text
+    for f in os.listdir(f"{dst}/xacro/"):
+        try:
+            search_and_replace(f"{dst}/{f}",'./meshes','package://stretch_description/meshes')
+        except IsADirectoryError:
+            for f2 in os.listdir(f"{dst}/{f}"):
+                search_and_replace(f"{dst}/{f}/{f2}",'./meshes','package://stretch_description/meshes')
+
+        # Manually remove the link_ground and joint_ground
+        if f == 'stretch_main.xacro':
+            main = f"{dst}/{f}"
+            file = open(main)
+            r = remove_lines_between_patterns(file.read(),'<link\n    name="link_ground">','</link>')
+            r = remove_lines_between_patterns(r,'<joint\n    name="joint_ground"','</joint>')
+            file.close()
+            run_cmd(f"rm {main}")
+            f = open(main, "a")
+            f.write(r)
+            f.close()
+
+    # set stretch_description.xacro
+    cli_device.logger.debug(f"Updating stretch_description.xacro from {target_tool_xacro}")
+    cmd = f"cp {ros_repo_path}/stretch_description/urdf/{target_tool_xacro} {ros_repo_path}/stretch_description/urdf/stretch_description.xacro"
+    run_cmd(cmd)
+
+    # generate the calibrated URDF
+    if ros_distro == 'noetic':
+        cli_device.logger.debug("Starting roscore in background...")
+        run_cmd('roscore &')
+        cli_device.logger.debug("Updating URDF after xacro change...")
+        run_cmd('rosrun stretch_calibration update_urdf_after_xacro_change.sh')
+    elif ros_distro == 'humble':
+        cli_device.logger.debug("Updating URDF after xacro change...")
+        run_cmd('ros2 run stretch_calibration update_urdf_after_xacro_change')
+        cli_device.logger.debug("Rebuild stretch_description package...")
+        run_cmd('cd ~/ament_ws;colcon build --packages-select stretch_description')
+
+    # export the calibrated URDF
+    if ros_distro == 'noetic':
+        cli_device.logger.debug("Export URDF...")
+        run_cmd('cd ~/catkin_ws/src/stretch_ros/stretch_description/urdf; ./export_urdf.py')
+    elif ros_distro == 'humble':
+        cli_device.logger.debug("Export URDF...")
+        run_cmd('cd ~/ament_ws/src/stretch_ros2/stretch_description/urdf; ./export_urdf.py')
+
+    cli_device.logger.info('Done!')
 
 if does_tool_need_to_change():
     target_tool_name = determine_what_tool_is_correct()
