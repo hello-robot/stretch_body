@@ -154,6 +154,12 @@ class RobotParams:
         if level in level_names and handler in cls._robot_params['logging']['handlers']:
             cls._robot_params['logging']['handlers'][handler]['level'] = level
 
+    @classmethod
+    def set_logging_formatter(cls, formatter, handler='console_handler'):
+        formatter_names = ["default_console_formatter", "brief_console_formatter", "default_file_formatter"]
+        if formatter in formatter_names and handler in cls._robot_params['logging']['handlers']:
+            cls._robot_params['logging']['handlers'][handler]['formatter'] = formatter
+
 # For Reference, the parameter loading organization prior to release of RE2
 # class RobotParams:
 #     """Build the parameter dictionary that is available as stretch_body.Device().robot_params.

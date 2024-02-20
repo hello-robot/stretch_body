@@ -45,17 +45,28 @@ device = stretch_body.device.Device(name='robot', req_params=False)
 stretch_serial_no = device.params.get('serial_no', '')
 stretch_model = device.params.get('model_name', '')
 stretch_batch = device.params.get('batch_name', '')
+stretch_tool = device.params.get('tool', '')
 if stretch_model == "SE3":
     print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch 3')
 elif stretch_model == "RE2V0":
     print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch 2')
 elif stretch_model == "RE1V0":
     print(Fore.LIGHTBLUE_EX + 'Model = ' + Fore.CYAN + 'Stretch RE1')
+if stretch_tool == "tool_none":
+    print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + 'None')
+elif stretch_tool == "tool_stretch_gripper":
+    print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + 'Standard Gripper')
+elif stretch_tool == "tool_stretch_dex_wrist":
+    print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + 'DexWrist 2 w/ Gripper')
+elif stretch_tool == "eoa_wrist_dw3_tool_nil":
+    print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + 'DexWrist 3 w/ no attached tool')
+elif stretch_tool == "eoa_wrist_dw3_tool_sg3":
+    print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + 'DexWrist 3 w/ Gripper')
+else:
+    print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + stretch_tool)
 if args.verbose:
     print(Fore.LIGHTBLUE_EX + 'Batch = ' + Fore.CYAN + stretch_batch)
 print(Fore.LIGHTBLUE_EX + 'Serial Number = ' + Fore.CYAN + stretch_serial_no)
-
-print(Fore.LIGHTBLUE_EX + 'Tool= '+Fore.CYAN + device.params.get('tool', ''))
 # create robot instance
 r=robot.Robot()
 r.startup()
@@ -110,16 +121,16 @@ def are_actuators_ready():
     for chain in [r.end_of_arm, r.head]:
         for mk in chain.motors.keys():
             if chain.motors[mk].params['req_calibration'] and not chain.motors[mk].motor.is_calibrated():
-                return False, "robot not homed"
+                return False, "robot not homed, run stretch_robot_home.py"
 
     # Check hello steppers homed
     for stepper in [r.lift.motor, r.arm.motor]:
         if not stepper.status['pos_calibrated']:
-            return False, "robot not homed"
+            return False, "robot not homed, run stretch_robot_home.py"
 
     # Check robot agrees everything homed
     if not r.is_homed():
-        return False, "robot not homed"
+        return False, "robot not homed, run stretch_robot_home.py"
 
     # Check hello steppers' self recognized type matches SDK's expectation
     if 'stepper_type' in r.lift.motor.board_info and r.lift.motor.board_info['stepper_type'] != 0:
