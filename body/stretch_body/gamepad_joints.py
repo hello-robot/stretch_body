@@ -222,7 +222,7 @@ class CommandLift:
         if abs(x) < self.dead_zone:
             x = 0
         # x = to_parabola_transform(x)
-        
+        #print('Vel %f Current %f Effort %f'%(robot.lift.status['vel'],robot.lift.motor.status['current'],robot.lift.motor.status['effort_pct']))
         # Standard Mode
         if not self.precision_mode:
             self.start_pos = None
