@@ -113,15 +113,15 @@ if __name__ == "__main__":
 
     r = stretch_body.robot.Robot()
 
-    if not r.params['use_collision_manager']:
-        print('Collision manager not enabled in robot.params')
-        exit(0)
+    # if not r.params['use_collision_manager']:
+    #     print('Collision manager not enabled in robot.params')
+    #     exit(0)
 
     r.startup()
     if not r.is_homed():
         print('Warning. Visualization may be inaccurate because the robot has not been calibrated')
         # exit()
-
+    r.enable_collision_mgmt()
     gamepad=None
     if args.gamepad:
         import stretch_body.gamepad_teleop
