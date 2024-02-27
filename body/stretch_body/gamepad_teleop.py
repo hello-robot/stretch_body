@@ -30,7 +30,7 @@ customized such as manage_shutdown(), manage_fn_button() and setting precision_m
 """
 
 class GamePadTeleop(Device):
-    def __init__(self, robot_instance = True, print_dongle_status = True, lock=None):
+    def __init__(self, robot_instance = True, print_dongle_status = True, lock=None, collision_mgmt=True):
         """
         Main controller for Stretch's gamepad that ships with the robot.
 
@@ -44,6 +44,7 @@ class GamePadTeleop(Device):
         self.precision_mode = False
         self.fast_base_mode = False
         self.robot = None
+        self.collision_mgmt=collision_mgmt
         self._needs_robot_startup = robot_instance
         if robot_instance:
             self.robot = rb.Robot()
@@ -280,6 +281,8 @@ class GamePadTeleop(Device):
                 self.do_double_beep()
         else:
             self.do_double_beep(robot)
+        if  self.collision_mgmt:
+            robot.enable_collision_mgmt()
     
     def do_single_beep(self, robot=None):
         if self.robot:

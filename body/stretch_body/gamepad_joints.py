@@ -201,9 +201,9 @@ class CommandLift:
         self.params = RobotParams().get_params()[1]['lift']
         self.dead_zone = 0.0001
         self._prev_set_vel_ts = None
-        self.max_linear_vel = self.params['motion']['default']['vel_m']
+        self.max_linear_vel = 0.13 #self.params['motion']['default']['vel_m']
         self.precision_mode = False
-        self.acc = self.params['motion']['default']['accel_m']
+        self.acc = self.params['motion']['max']['accel_m']
         
         # Precision mode params
         self.start_pos = None
