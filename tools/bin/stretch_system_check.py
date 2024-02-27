@@ -70,6 +70,7 @@ print(Fore.LIGHTBLUE_EX + 'Serial Number = ' + Fore.CYAN + stretch_serial_no)
 # create robot instance
 r=robot.Robot()
 r.startup()
+r.monitor.logger.setLevel('WARN')
 
 # ###################  HARDWARE  ######################
 def is_comms_ready():
