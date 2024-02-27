@@ -53,7 +53,6 @@ class WristPitch(DynamixelHelloXL430):
         # Range is 0 ~ 2047  (5506.43 ma)
         iA=self.ticks_to_current(t)
         iMax=self.ticks_to_current(2047)
-        print('Got ticks_to_pct_load', iA, iMax, 100 * iA / iMax)
         return 100*iA/iMax
 
     def step_sentry(self,robot):
