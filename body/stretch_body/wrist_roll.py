@@ -47,6 +47,14 @@ class WristRoll(DynamixelHelloXL430):
         """
         self.move_to(self.poses[p],v_r,a_r)
 
+    def ticks_to_pct_load(self,t):
+        #Override as XM series support current measurement
+        # ticks are 2.69ma per tick
+        # Range is 0 ~ 1,193  (3209.17 ma)
+        iA=self.ticks_to_current(t)
+        iMax=self.ticks_to_current(1193)
+        return 100*iA/iMax
+
     def step_sentry(self,robot):
         """
         This sentry attempts to prevent the wrist servo from overheating

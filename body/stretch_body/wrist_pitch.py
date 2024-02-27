@@ -47,6 +47,15 @@ class WristPitch(DynamixelHelloXL430):
         self.motor.set_goal_current(i)#self.current_to_ticks(self.params['current_float_A']))
         self.set_motion_params(force=True)
 
+    def ticks_to_pct_load(self,t):
+        #Override as XM series support current measurement
+        # ticks are 2.69ma per tick
+        # Range is 0 ~ 2047  (5506.43 ma)
+        iA=self.ticks_to_current(t)
+        iMax=self.ticks_to_current(2047)
+        print('Got ticks_to_pct_load', iA, iMax, 100 * iA / iMax)
+        return 100*iA/iMax
+
     def step_sentry(self,robot):
         """
         This sentry attempts to prevent the wrist servo from overheating
