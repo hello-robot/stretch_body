@@ -122,7 +122,8 @@ SE3_stretch_gripper_SG3={
         'retry_on_comm_failure': 1,
         'baud': 115200,
         'enable_runstop': 1,
-        'disable_torque_on_stop': 1}
+        'disable_torque_on_stop': 1,
+        'hold_on_stop': 1}
 
 SE3_wrist_yaw_DW3={
         'flip_encoder_polarity': 1,

@@ -35,6 +35,13 @@ class StretchGripper(DynamixelHelloXL430):
     def home(self,move_to_zero=True):
         DynamixelHelloXL430.home(self,single_stop=True,move_to_zero=move_to_zero,delay_at_stop=2.25)
 
+
+    def stop(self,close_port=True):
+        if self.hw_valid and self.params['hold_on_stop']:
+            pass
+        else:
+            DynamixelHelloXL430.stop(self,close_port)
+
     def pretty_print(self):
         print('--- StretchGripper ----')
         print("Position (%)",self.status['pos_pct'])

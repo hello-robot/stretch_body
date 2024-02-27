@@ -1,5 +1,6 @@
 from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 import stretch_body.hello_utils as hu
+import numpy
 import time
 
 class WristPitch(DynamixelHelloXL430):
@@ -37,14 +38,21 @@ class WristPitch(DynamixelHelloXL430):
         When the joint is straight down it will float back to straight up
         Useful for human-interaction
         """
-        i=self.motor.get_current()
+        i_ticks=self.motor.get_current()
+        i_A=self.ticks_to_current(i_ticks)
         self.disable_torque()
         if self.watchdog_enabled:
             self.motor.disable_watchdog()
             self.watchdog_enabled = False
         self.motor.enable_current()
         self.enable_torque()
-        self.motor.set_goal_current(i)#self.current_to_ticks(self.params['current_float_A']))
+        i_ramp=numpy.arange(i_A,-.15,-.01*numpy.sign(i_A)) #Ramp current to zero 1A/s
+        for ii in i_ramp:
+            id=self.current_to_ticks(ii)
+            self.motor.set_goal_current(id)#self.current_to_ticks(self.params['current_float_A']))
+            time.sleep(0.1)
+            print('II',ii)
+        #self.motor.set_goal_current(0)
         self.set_motion_params(force=True)
 
     def ticks_to_pct_load(self,t):

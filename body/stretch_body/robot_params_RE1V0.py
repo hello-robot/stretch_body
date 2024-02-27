@@ -131,6 +131,7 @@ RE1V0_stretch_gripper={
         'retry_on_comm_failure': 1,
         'baud': 115200,
         'enable_runstop': 1,
+        'hold_on_stop':1,
         'disable_torque_on_stop': 1}
 
 RE1V0_wrist_yaw={
