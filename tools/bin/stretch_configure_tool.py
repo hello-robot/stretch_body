@@ -27,6 +27,9 @@ cli_device = stretch_body.device.Device(name='stretch_configure_tool.py', req_pa
 cli_device.logger.setLevel('DEBUG' if args.verbose else 'INFO')
 logging.getLogger().setLevel(logging.CRITICAL)
 
+def is_wrist_present():
+    return exists('/dev/hello-dynamixel-wrist')
+
 def how_many_dxl_on_wrist_chain():
     from stretch_body.dynamixel_XL430 import DynamixelXL430, DynamixelCommError
     cli_device.logger.debug("Scanning wrist dxl chain for motors...")
@@ -68,6 +71,9 @@ robot_device = stretch_body.device.Device(name='robot')
 stretch_model = robot_device.params.get('model_name', '')
 stretch_tool = robot_device.params.get('tool', '')
 supported_tools = robot_device.robot_params.get('supported_eoa', [])
+if not is_wrist_present():
+    cli_device.logger.info('ERROR: Unable to find wrist hardware. Contact Hello Robot Support.')
+    sys.exit(1)
 num_wrist_dxls = how_many_dxl_on_wrist_chain()
 d405_present = is_d405_present()
 
