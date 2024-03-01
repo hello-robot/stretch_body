@@ -100,13 +100,19 @@ class RobotParams:
         def check_for_dexwrist_toolshare(external_params_module):
             if external_params_module == 'stretch_tool_share.stretch_dex_wrist.params':
                 print('')
-                click.secho('-----------Deprecation Warning-----------', fg="cyan", bold=True)
-                click.secho('System is configured to load DexWrist2 params from Stretch Tool Share', fg="cyan", bold=True)
+                click.secho('----------- Deprecation Warning -----------', fg="cyan", bold=True)
+                click.secho('Your robot params are configured to load DexWrist2 params from Stretch Tool Share', fg="cyan", bold=True)
                 click.secho('Support for the DexWrist2 has moved to Stretch Body' , fg="cyan", bold=True)
-                click.secho('Please locate and remove from your YAML: ', fg="cyan", bold=True)
+                click.secho(' 1) Open stretch_user_params.yaml and stretch_configuration_params.yaml in', fg="cyan", bold=True)
+                click.secho('    the ~/stretch_user/stretch-yyy-xxxx directory.', fg="cyan", bold=True)
+                click.secho(' 2) Locate the following text in one of those files and remove it:',fg="cyan", bold=True)
                 click.secho('     params: stretch_tool_share.stretch_dex_wrist.params',fg="cyan", bold=True)
+                click.secho('     or',fg="cyan", bold=True)
+                click.secho('     params:',fg="cyan", bold=True)
+                click.secho('      - stretch_tool_share.stretch_dex_wrist.params',fg="cyan", bold=True)
                 click.secho('More information can be found at: https://github.com/hello-robot/stretch_body/pull/272',fg="cyan", bold=True)
-                click.secho('--------------------------', fg="cyan", bold=True)
+                click.secho('-------------------------------------------', fg="cyan", bold=True)
+                print('')
                 return True
             return False
 
