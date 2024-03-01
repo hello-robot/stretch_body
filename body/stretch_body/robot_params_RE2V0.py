@@ -125,7 +125,9 @@ RE2V0_stretch_gripper={
         'retry_on_comm_failure': 1,
         'baud': 115200,
         'enable_runstop': 1,
-        'disable_torque_on_stop': 1}
+        'disable_torque_on_stop': 1,
+        'range_t': [0, 8022],
+        'zero_t': 5212}
 
 RE2V0_wrist_yaw={
     'device_info': "Standard wrist yaw shipped with original RE2",
@@ -171,7 +173,9 @@ RE2V0_wrist_yaw={
     'baud': 115200,
     'enable_runstop': 1,
     'disable_torque_on_stop': 1,
-    'range_pad_t': [100.0, -100.0]}
+    'range_pad_t': [100.0, -100.0],
+    'range_t': [0,9340],
+    'zero_t': 7005}
 
 #Brought in from tool_share for DexWrist "2"
 RE2V0_wrist_pitch_DW2={
@@ -492,7 +496,9 @@ nominal_params={
         'stall_backoff': 0.017,
         'stall_max_time': 1.0,
         'stall_min_vel': 0.1,
-        'range_pad_t':[50.0,-50.0]},
+        'range_pad_t':[50.0,-50.0],
+        'range_t': [0, 3827],
+        'zero_t': 1250},
     'head_tilt':{
         'flip_encoder_polarity': 1,
         'gr': 1.0,
@@ -538,7 +544,9 @@ nominal_params={
         'stall_max_effort': 20.0,
         'stall_max_time': 1.0,
         'stall_min_vel': 0.1,
-        'range_pad_t': [50.0, -50.0]},
+        'range_pad_t': [50.0, -50.0],
+        'range_t': [1775,3150],
+        'zero_t': 2048},
     'hello-motor-arm':{
         'gains':{
             'effort_LPF': 10.0,
@@ -801,7 +809,8 @@ nominal_params={
         'accel_range_g': 4,
         'accel_single_tap_dur': 70,
         'accel_single_tap_thresh': 50,
-        'ana_LPF': 10.0}},
+        'ana_LPF': 10.0},
+        'accel_gravity_scale': 1.0},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
     'lidar': {'usb_name': '/dev/hello-lrf'},
     'stretch_gamepad':{

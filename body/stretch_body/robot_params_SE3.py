@@ -122,7 +122,9 @@ SE3_stretch_gripper_SG3={
         'retry_on_comm_failure': 1,
         'baud': 115200,
         'enable_runstop': 1,
-        'disable_torque_on_stop': 1}
+        'disable_torque_on_stop': 1,
+        'range_t': [0, 9102],
+        'zero_t': 3279}
 
 SE3_wrist_yaw_DW3={
         'flip_encoder_polarity': 1,
@@ -167,7 +169,9 @@ SE3_wrist_yaw_DW3={
         'baud': 115200,
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
-        'range_pad_t': [100.0, -100.0]}
+        'range_pad_t': [100.0, -100.0],
+        'range_t': [0,9340],
+        'zero_t': 7136}
 
 SE3_wrist_pitch_DW3={
         'flip_encoder_polarity': 1,
@@ -510,7 +514,9 @@ nominal_params={
         'stall_backoff': 0.017,
         'stall_max_time': 1.0,
         'stall_min_vel': 0.1,
-        'range_pad_t':[50.0,-50.0]},
+        'range_pad_t':[50.0,-50.0],
+        'range_t': [0, 3827],
+        'zero_t': 1250},
     'head_tilt':{
         'flip_encoder_polarity': 1,
         'gr': 1.0,
@@ -822,7 +828,8 @@ nominal_params={
         'accel_range_g': 4,
         'accel_single_tap_dur': 70,
         'accel_single_tap_thresh': 50,
-        'ana_LPF': 10.0}},
+        'ana_LPF': 10.0,
+        'accel_gravity_scale': 1.0}},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
     'lidar': {'usb_name': '/dev/hello-lrf'},
     'stretch_gamepad':{
