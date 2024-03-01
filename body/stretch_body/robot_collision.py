@@ -395,7 +395,6 @@ class RobotCollisionMgmt(Device):
                 if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
                     print('New collision pair event: %s'%pair_name)
                     # print('\a')
-                    s = time.time()
                     self.alert()
 
         #Now update joint state
