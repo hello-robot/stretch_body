@@ -106,7 +106,7 @@ def does_tool_need_to_change():
         return True
 
     cli_device.logger.info("Which seems correct based on the hardware connected to your robot")
-    cli_device.logger.info("Not changing anything. Exiting.")
+    cli_device.logger.info("Done!")
     return False
 
 def determine_what_tool_is_correct():
