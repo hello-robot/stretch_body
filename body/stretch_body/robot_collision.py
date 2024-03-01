@@ -5,7 +5,8 @@ import urchin as urdf_loader
 import meshio
 import numpy as np
 import time
-#import chime
+import threading
+import chime
 
 try:
     # works on ubunut 22.04
@@ -393,8 +394,8 @@ class RobotCollisionMgmt(Device):
                 # Beep on new collision
                 if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
                     print('New collision pair event: %s'%pair_name)
-                    print('\a')
-                    #chime.warning()
+                    # print('\a')
+                    self.alert()
 
         #Now update joint state
         for joint_name in self.collision_joints:
@@ -406,7 +407,8 @@ class RobotCollisionMgmt(Device):
             #Finally, update the collision state for each joint
             self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
 
-
+    def alert(self):
+        threading.Thread(target=chime.warning,daemon=True).start()
 
     def is_link_in_collsion(self,link_name):
         if self.urdf is None:
