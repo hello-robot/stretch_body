@@ -127,3 +127,30 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
         self.motors['stretch_gripper'].home()
+
+class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
+    """
+    Wrist Yaw / Pitch / Roll + 12in Tablet
+    """
+    def __init__(self, name='eoa_wrist_dw3_tool_tablet_12in'):
+        EndOfArm.__init__(self, name)
+
+        #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
+        #It is used by CollisionMgmt
+        self.urdf_map={
+            'joint_wrist_yaw':'wrist_yaw',
+            'joint_wrist_pitch': 'wrist_pitch',
+            'joint_wrist_roll':'wrist_roll' #Not mapping fingers for collision mgmt yet
+        }
+
+    def stow(self):
+        # Fold Arm, Wrist yaw turns left making the tabled screen face forward.
+        print('--------- Stowing %s ----'%self.name)
+        self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
+        self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
+        self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
+
+    def home(self):
+        self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
+        self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
+        self.motors['wrist_yaw'].home()

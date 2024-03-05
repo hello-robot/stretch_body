@@ -377,6 +377,49 @@ SE3_eoa_wrist_dw3_tool_nil={
             }
             }}
 
+
+SE3_eoa_wrist_dw3_tool_tablet_12in={
+        'py_class_name': 'EOA_Wrist_DW3_Tool_Tablet_12in',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud': 115200,
+        'dxl_latency_timer': 64,
+        'wrist': 'eoaw_dw3',
+        'tool': 'eoat_nil',
+        'stow': {
+            'arm': 0.0,
+            'lift': 0.3,
+            'wrist_pitch': 0.0,
+            'wrist_roll': 0.0,
+            'wrist_yaw': 1.57
+        },
+        'collision_mgmt': {
+            'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25},
+            'collision_pairs': {
+                'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'pts'},
+                'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'pts'}},
+            'joints': {'lift': [{'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'},
+                                {'motion_dir': 'neg', 'collision_pair': 'link_wrist_yaw_bottom_TO_base_link'}]}},
+
+        'devices': {
+            'wrist_pitch': {
+                'py_class_name': 'WristPitch',
+                'py_module_name': 'stretch_body.wrist_pitch',
+                'device_params': 'SE3_wrist_pitch_DW3'
+            },
+            'wrist_roll': {
+                'py_class_name': 'WristRoll',
+                'py_module_name': 'stretch_body.wrist_roll',
+                'device_params': 'SE3_wrist_roll_DW3'
+            },
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw',
+                'device_params': 'SE3_wrist_yaw_DW3'
+            }
+            }}
+
 # ###################################33
 # Baseline Nominal Params
 nominal_params={
@@ -384,9 +427,10 @@ nominal_params={
     #Each EOA will get expanded at runtime into its full parameter dictionary
     # Eg, supported_eoa.tool_none --> adds the wrist_yaw param dict to nominal_params
     # Add all formally supported EOA to this list
-    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3'],
+    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_tablet_12in'],
     'eoa_wrist_dw3_tool_nil': SE3_eoa_wrist_dw3_tool_nil,
     'eoa_wrist_dw3_tool_sg3': SE3_eoa_wrist_dw3_tool_sg3,
+    'eoa_wrist_dw3_tool_tablet_12in': SE3_eoa_wrist_dw3_tool_tablet_12in,
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
         'use_vel_traj': 1,
