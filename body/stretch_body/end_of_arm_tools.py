@@ -145,22 +145,32 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
             'joint_wrist_roll':'wrist_roll' #Not mapping fingers for collision mgmt yet
         }
     
-    def move_by(self, joint, x_r, v_r=None, a_r=None, homing = False):
+    def move_by(self, joint, x_r, v_r=None, a_r=None, enable_wrist_roll = False):
+        # Lock wrist roll by default
         if joint=='wrist_roll':
-            if homing:
+            if enable_wrist_roll:
                 return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
             else:
                 return None
         return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
     
-    def move_to(self, joint, x_r, v_r=None, a_r=None, homing=False):
+    def move_to(self, joint, x_r, v_r=None, a_r=None, enable_wrist_roll = False):
+        # Lock wrist roll by default
         if joint=='wrist_roll':
-            if homing:
+            if enable_wrist_roll:
                 return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
             else:
                 return None
         return EndOfArm.move_to(self, joint, x_r, v_r, a_r)
-    
+
+    def set_velocity(self, joint, v_r, a_r=None, enable_wrist_roll = False):
+        # Lock wrist roll by default
+        if joint=='wrist_roll':
+            if enable_wrist_roll:
+                return EndOfArm.set_velocity(self, joint, v_r, a_r)
+            else:
+                return None
+        return EndOfArm.set_velocity(self, joint, v_r, a_r)
 
     def stow(self):
         # Fold Arm, Wrist yaw turns left making the tabled screen face forward.
