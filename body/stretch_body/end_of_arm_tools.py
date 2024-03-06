@@ -1,4 +1,6 @@
 from stretch_body.end_of_arm import *
+import threading
+import time
 
 # ############# STRETCH RE1 / RE2 #######################
 class ToolNone(EndOfArm):
@@ -151,6 +153,8 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
 
     def home(self):
-        self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
+        self.motors['wrist_pitch'].move_to(-1.57)
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
+        self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
+        time.sleep(1)

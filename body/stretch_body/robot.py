@@ -581,11 +581,18 @@ class Robot(Device):
 
         # Wrist pitch should be angled somewhere in between the lift leaving
         # the base of its range and before it reaches the top of its range.
-        def _angle_pitch():
+        def _angle_pitch(angle):
             time.sleep(1) # wait 1 sec to leave bottom of lift's range
             if 'wrist_pitch' in self.end_of_arm.joints:
-                self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
-        threading.Thread(target=_angle_pitch).start()
+                self.end_of_arm.move_to('wrist_pitch', angle)
+        
+        # If gripper present
+        if 'stretch_gripper' in self.end_of_arm.joints:
+            threading.Thread(target=_angle_pitch,args=(self.end_of_arm.params['stow']['wrist_pitch'],)).start()
+
+        # No gripper but tablet or accessory present in dw3 wrist, wrist pitch should face downward
+        elif 'wrist_pitch' in self.end_of_arm.joints:
+            threading.Thread(target=_angle_pitch,args=(-1.57,)).start()
 
         # Home the lift
         if self.lift is not None:

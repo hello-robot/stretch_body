@@ -395,7 +395,7 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
             'wrist_yaw': 1.57
         },
         'collision_mgmt': {
-            'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw':5, 'wrist_roll': 0.25},
+            'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw':1, 'wrist_roll': 0.25},
             'collision_pairs': {
                 'link_DW3_tablet_12in_TO_base_link': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'base_link', 'detect_as': 'pts'},
                 'link_DW3_tablet_12in_TO_link_arm_l0': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_arm_l0','detect_as': 'pts'},
