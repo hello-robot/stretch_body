@@ -62,6 +62,15 @@ class EndOfArm(DynamixelXChain):
         """
         with self.pt_lock:
             self.motors[joint].move_by(x_r, v_r, a_r)
+    
+    def set_velocity(self, joint, v_r, a_r=None):
+        """
+        joint: name of joint (string)
+        v_r: commanded velocity (rad/s).
+        a_r: acceleration motion profile (rad/s^2)
+        """
+        with self.pt_lock:
+            self.motors[joint].set_velocity(v_r, a_r)
 
     def pose(self,joint, p,v_r=None, a_r=None):
         """

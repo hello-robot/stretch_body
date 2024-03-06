@@ -136,7 +136,7 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
     """
     def __init__(self, name='eoa_wrist_dw3_tool_tablet_12in'):
         EndOfArm.__init__(self, name)
-
+        self.portrait_orientation = self.params['portrait_orientation']
         #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
         #It is used by CollisionMgmt
         self.urdf_map={
@@ -144,6 +144,23 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
             'joint_wrist_pitch': 'wrist_pitch',
             'joint_wrist_roll':'wrist_roll' #Not mapping fingers for collision mgmt yet
         }
+    
+    def move_by(self, joint, x_r, v_r=None, a_r=None, homing = False):
+        if joint=='wrist_roll':
+            if homing:
+                return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
+            else:
+                return None
+        return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
+    
+    def move_to(self, joint, x_r, v_r=None, a_r=None, homing=False):
+        if joint=='wrist_roll':
+            if homing:
+                return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
+            else:
+                return None
+        return EndOfArm.move_to(self, joint, x_r, v_r, a_r)
+    
 
     def stow(self):
         # Fold Arm, Wrist yaw turns left making the tabled screen face forward.
@@ -153,7 +170,10 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
 
     def home(self):
+        # Tablet should face completely downwards during homing 
         self.motors['wrist_pitch'].move_to(-1.57)
+        while self.motors['wrist_pitch'].motor.is_moving():
+            time.sleep(0.2)
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
         self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
