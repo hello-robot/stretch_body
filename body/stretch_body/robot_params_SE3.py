@@ -417,7 +417,7 @@ SE3_eoa_wrist_dw3_tool_nil={
             }}
 
 SE3_wrist_dw3_aloha_gripper={
-        'py_class_name': 'EOA_Wrist_Aloha_Gripper',
+        'py_class_name': 'EOA_Wrist_DW3_Aloha_Gripper',
         'py_module_name': 'stretch_body.end_of_arm_tools',
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
@@ -471,10 +471,10 @@ nominal_params={
     #Each EOA will get expanded at runtime into its full parameter dictionary
     # Eg, supported_eoa.tool_none --> adds the wrist_yaw param dict to nominal_params
     # Add all formally supported EOA to this list
-    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3','eoa_wrist_aloha_gripper'],
+    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3','eoa_wrist_dw3_aloha_gripper'],
     'eoa_wrist_dw3_tool_nil': SE3_eoa_wrist_dw3_tool_nil,
     'eoa_wrist_dw3_tool_sg3': SE3_eoa_wrist_dw3_tool_sg3,
-    'eoa_wrist_aloha_gripper': SE3_wrist_dw3_aloha_gripper,
+    'eoa_wrist_dw3_aloha_gripper': SE3_wrist_dw3_aloha_gripper,
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
         'use_vel_traj': 1,

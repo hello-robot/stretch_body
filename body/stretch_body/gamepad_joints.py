@@ -576,14 +576,14 @@ class CommandAlohaGripperPosition:
     def open_gripper(self, robot):
         pct = self.gripper_rotate_inc
         if self.precision_mode:
-            pct = 0.1
+            pct = 0.05
         robot.end_of_arm.get_joint(self.name).move_by(pct, self.gripper_vel, self.gripper_accel)
         self.stop_reqd = True
         
     def close_gripper(self, robot):
         pct = self.gripper_rotate_inc
         if self.precision_mode:
-            pct = 0.1
+            pct = 0.05
         robot.end_of_arm.get_joint(self.name).move_by(-pct, self.gripper_vel, self.gripper_accel)
         self.stop_reqd = True
 

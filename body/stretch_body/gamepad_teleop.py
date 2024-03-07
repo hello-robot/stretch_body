@@ -94,14 +94,14 @@ class GamePadTeleop(Device):
         self.right_stick_button_fn = None
     
     def using_aloha_gripper(self):
-        return self.end_of_arm_tool == 'eoa_wrist_aloha_gripper'
+        return self.end_of_arm_tool == 'eoa_wrist_dw3_aloha_gripper'
     
     def using_stretch_gripper(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
             or self.end_of_arm_tool == 'tool_stretch_gripper'
     def using_dexwrist(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
-            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_nil' or self.end_of_arm_tool == 'eoa_wrist_aloha_gripper'
+            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_nil' or self.end_of_arm_tool == 'eoa_wrist_dw3_aloha_gripper'
 
     def command_robot_joints(self, robot):
         """

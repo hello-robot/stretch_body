@@ -128,11 +128,11 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
         self.motors['wrist_yaw'].home()
         self.motors['stretch_gripper'].home()
 
-class EOA_Wrist_Aloha_Gripper(EndOfArm):
+class EOA_Wrist_DW3_Aloha_Gripper(EndOfArm):
     """
     Wrist Yaw / Pitch / Roll + Aloha Gripper
     """
-    def __init__(self, name='eoa_wrist_aloha_gripper'):
+    def __init__(self, name='eoa_wrist_dw3_aloha_gripper'):
         EndOfArm.__init__(self, name)
 
         #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
