@@ -531,8 +531,8 @@ class CommandGripperPosition:
     For this class only simple open and close methods are provided
     and expected only to be controlled on a button state.
     """
-    def __init__(self):
-        self.name = 'stretch_gripper'
+    def __init__(self,name='stretch_gripper'):
+        self.name = name
         self.params = RobotParams().get_params()[1][self.name]
         self.gripper_rotate_pct = 60.0
         self.gripper_accel = self.params['motion']['max']['accel']
@@ -559,3 +559,35 @@ class CommandGripperPosition:
             robot.end_of_arm.get_joint(self.name).quick_stop()
             self.stop_reqd = False
 
+class CommandAlohaGripperPosition:
+    """Gripper motion command class for Dynamixel joints
+    For this class only simple open and close methods are provided
+    and expected only to be controlled on a button state.
+    """
+    def __init__(self,name='aloha_gripper'):
+        self.name = name
+        self.params = RobotParams().get_params()[1][self.name]
+        self.gripper_rotate_inc = 0.1 # rad
+        self.gripper_accel = self.params['motion']['default']['accel']
+        self.gripper_vel = self.params['motion']['default']['vel']
+        self.precision_mode = False
+        self.stop_reqd=False
+    
+    def open_gripper(self, robot):
+        pct = self.gripper_rotate_inc
+        if self.precision_mode:
+            pct = self.gripper_rotate_inc*0.05
+        robot.end_of_arm.get_joint(self.name).move_by(pct, self.gripper_vel, self.gripper_accel)
+        self.stop_reqd = True
+        
+    def close_gripper(self, robot):
+        pct = self.gripper_rotate_inc
+        if self.precision_mode:
+            pct = self.gripper_rotate_inc*0.05
+        robot.end_of_arm.get_joint(self.name).move_by(-pct, self.gripper_vel, self.gripper_accel)
+        self.stop_reqd = True
+
+    def stop_gripper(self, robot):
+        if self.stop_reqd:
+            robot.end_of_arm.get_joint(self.name).quick_stop()
+            self.stop_reqd = False

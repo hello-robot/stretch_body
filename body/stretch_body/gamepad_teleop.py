@@ -30,7 +30,7 @@ customized such as manage_shutdown(), manage_fn_button() and setting precision_m
 """
 
 class GamePadTeleop(Device):
-    def __init__(self, robot_instance = True, print_dongle_status = True, lock=None, collision_mgmt=True):
+    def __init__(self, robot_instance = True, print_dongle_status = True, lock=None, collision_mgmt=False):
         """
         Main controller for Stretch's gamepad that ships with the robot.
 
@@ -79,6 +79,8 @@ class GamePadTeleop(Device):
         if self.using_dexwrist():
             self.wrist_pitch_command = gamepad_joints.CommandWristPitch()
             self.wrist_roll_command = gamepad_joints.CommandWristRoll()
+        if self.using_aloha_gripper():
+            self.gripper = gamepad_joints.CommandAlohaGripperPosition()
             
         print(f"Key mapped to End-Of-Arm Tool: {self.end_of_arm_tool}")
         self.lock = lock
@@ -90,7 +92,10 @@ class GamePadTeleop(Device):
 
         self.left_stick_button_fn = None
         self.right_stick_button_fn = None
-
+    
+    def using_aloha_gripper(self):
+        return self.end_of_arm_tool == 'eoa_wrist_aloha_gripper'
+    
     def using_stretch_gripper(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
             or self.end_of_arm_tool == 'tool_stretch_gripper'

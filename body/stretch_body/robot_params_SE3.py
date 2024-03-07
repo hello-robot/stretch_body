@@ -252,6 +252,45 @@ SE3_wrist_roll_DW3={
         'current_float_A': 0.04,
         'current_limit_A': 1.0}
 
+SE3_aloha_gripper={
+        'flip_encoder_polarity': 0,
+        'enable_runstop': 1,
+        'gr': 1.0,
+        'id': 14,
+        'max_voltage_limit': 16,
+        'min_voltage_limit': 9,
+        'motion': {
+            'trajectory_vel_ctrl': 1,
+            'trajectory_vel_ctrl_kP': 1.5,
+            'default': {'accel': 8.0, 'vel': 2.0},
+            'fast': {'accel': 10.0, 'vel': 3.0},
+            'max': {'accel': 12, 'vel': 4.5},
+            'slow': {'accel': 4.0, 'vel': 1.0},
+            'trajectory_max': {'accel_r': 16.0, 'vel_r': 8.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
+        'pid': [800, 0, 0],
+        'pwm_homing': [0, 0],
+        'pwm_limit': 885,
+        'range_t': [2003, 2859],
+        'req_calibration': 0,
+        'return_delay_time': 0,
+        'stall_backoff': 0.017,
+        'stall_max_effort': 25.0,
+        'stall_max_time': 2.0,
+        'stall_min_vel': 0.1,
+        'temperature_limit': 80,
+        'usb_name': '/dev/hello-dynamixel-wrist',
+        'use_multiturn': 0,
+        'use_pos_current_ctrl':0,
+        'zero_t': 2003,
+        'baud': 115200,
+        'retry_on_comm_failure': 1,
+        'disable_torque_on_stop': 0,
+        'float_on_stop': 0,
+        'current_float_A': 0.04,
+        'current_limit_A': 1.0}
+
 # ######### EndOfArm Defn ##############
 """
 Define the EndOfArm DynamixelXChain parameters
@@ -377,6 +416,54 @@ SE3_eoa_wrist_dw3_tool_nil={
             }
             }}
 
+SE3_wrist_dw3_aloha_gripper={
+        'py_class_name': 'EOA_Wrist_Aloha_Gripper',
+        'py_module_name': 'stretch_body.end_of_arm_tools',
+        'use_group_sync_read': 1,
+        'retry_on_comm_failure': 1,
+        'baud': 115200,
+        'dxl_latency_timer': 64,
+        'wrist': 'eoaw_dw3',
+        'tool': 'eoat_nil',
+        'stow': {
+            'arm': 0.0,
+            'lift': 0.3,
+            'wrist_pitch': -0.52,
+            'wrist_roll': 0.0,
+            'wrist_yaw': 3.0,
+            'aloha_gripper':1.3/2,
+        },
+        # 'collision_mgmt': {
+        #     'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25},
+        #     'collision_pairs': {
+        #         'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'pts'},
+        #         'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'pts'}},
+        #     'joints': {'lift': [{'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'},
+        #                         {'motion_dir': 'neg', 'collision_pair': 'link_wrist_yaw_bottom_TO_base_link'}]}},
+
+        'devices': {
+            'wrist_pitch': {
+                'py_class_name': 'WristPitch',
+                'py_module_name': 'stretch_body.wrist_pitch',
+                'device_params': 'SE3_wrist_pitch_DW3'
+            },
+            'wrist_roll': {
+                'py_class_name': 'WristRoll',
+                'py_module_name': 'stretch_body.wrist_roll',
+                'device_params': 'SE3_wrist_roll_DW3'
+            },
+            'wrist_yaw': {
+                'py_class_name': 'WristYaw',
+                'py_module_name': 'stretch_body.wrist_yaw',
+                'device_params': 'SE3_wrist_yaw_DW3'
+            },
+            'aloha_gripper': {
+                'py_class_name': 'AlohaGripper',
+                'py_module_name': 'stretch_body.aloha_gripper',
+                'device_params': 'SE3_aloha_gripper'
+            }
+            }}
+
 # ###################################33
 # Baseline Nominal Params
 nominal_params={
@@ -384,9 +471,10 @@ nominal_params={
     #Each EOA will get expanded at runtime into its full parameter dictionary
     # Eg, supported_eoa.tool_none --> adds the wrist_yaw param dict to nominal_params
     # Add all formally supported EOA to this list
-    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3'],
+    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3','eoa_wrist_aloha_gripper'],
     'eoa_wrist_dw3_tool_nil': SE3_eoa_wrist_dw3_tool_nil,
     'eoa_wrist_dw3_tool_sg3': SE3_eoa_wrist_dw3_tool_sg3,
+    'eoa_wrist_aloha_gripper': SE3_wrist_dw3_aloha_gripper,
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
         'use_vel_traj': 1,

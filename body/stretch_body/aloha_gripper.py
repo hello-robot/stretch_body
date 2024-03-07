@@ -11,3 +11,9 @@ class AlohaGripper(DynamixelHelloXL430):
 
     def pose(self,p,v_r=None,a_r=None):
         self.move_to(self.poses[p],v_r,a_r)
+    
+    def home(self):
+        self.move_to(1.3/2)
+
+    def stow(self):
+        self.move_to(1.3/2)
