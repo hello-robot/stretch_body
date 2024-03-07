@@ -256,7 +256,7 @@ SE3_aloha_gripper={
         'flip_encoder_polarity': 0,
         'enable_runstop': 1,
         'gr': 1.0,
-        'id': 14,
+        'id': 17,
         'max_voltage_limit': 16,
         'min_voltage_limit': 9,
         'motion': {
