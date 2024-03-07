@@ -272,7 +272,7 @@ SE3_aloha_gripper={
         'pid': [800, 0, 0],
         'pwm_homing': [0, 0],
         'pwm_limit': 885,
-        'range_t': [2003, 2859],
+        'range_t': [1326, 2096], #[1426, 2096]
         'req_calibration': 0,
         'return_delay_time': 0,
         'stall_backoff': 0.017,
@@ -283,7 +283,7 @@ SE3_aloha_gripper={
         'usb_name': '/dev/hello-dynamixel-wrist',
         'use_multiturn': 0,
         'use_pos_current_ctrl':0,
-        'zero_t': 2003,
+        'zero_t': 1326,#1426
         'baud': 115200,
         'retry_on_comm_failure': 1,
         'disable_torque_on_stop': 0,
