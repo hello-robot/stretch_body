@@ -252,6 +252,9 @@ SE3_wrist_roll_DW3={
         'current_float_A': 0.04,
         'current_limit_A': 1.0}
 
+SE3_wrist_roll_DW3_tablet = SE3_wrist_roll_DW3
+SE3_wrist_roll_DW3_tablet['float_on_stop'] = 0
+
 # ######### EndOfArm Defn ##############
 """
 Define the EndOfArm DynamixelXChain parameters
@@ -396,27 +399,30 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
             'wrist_yaw': 1.57
         },
         'collision_mgmt': {
-            'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw':1, 'wrist_roll': 0.25},
+            'k_brake_distance': {'wrist_pitch': 1, 'wrist_yaw':1, 'wrist_roll': 0.25},
             'collision_pairs': {
                 'link_DW3_tablet_12in_TO_base_link': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'base_link', 'detect_as': 'pts'},
                 'link_DW3_tablet_12in_TO_link_arm_l0': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_arm_l0','detect_as': 'pts'},
                 'link_DW3_tablet_12in_TO_link_arm_l1': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_arm_l1','detect_as': 'pts'},
 
-                'link_DW3_tablet_link_head_tilt': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_head_tilt','detect_as': 'pts'},
+                'link_DW3_tablet_12in_TO_link_head_tilt': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_head_tilt','detect_as': 'pts'},
 
                 'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'pts'},
                 'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'pts'}},
 
             'joints': {'arm':  [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
-                                {'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'}],
+                                {'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'},
+                                {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'}],
 
                        'lift': [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
                                 {'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'},
-                                {'motion_dir': 'neg', 'collision_pair': 'link_wrist_yaw_bottom_TO_base_link'}],
+                                {'motion_dir': 'neg', 'collision_pair': 'link_wrist_yaw_bottom_TO_base_link'},
+                                {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'}],
 
                        'wrist_pitch': [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
                                        {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
-                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'}],
+                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
+                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'}],
 
                        'wrist_roll': [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'}],
@@ -426,7 +432,7 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
                                      {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
                                      {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'}],
 
-                       'wrist_yaw': [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_link_head_tilt'}],
+                       'wrist_yaw': [{'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'}],
 
                        'wrist_roll': [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
                                      {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'}]
@@ -442,7 +448,7 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
             'wrist_roll': {
                 'py_class_name': 'WristRoll',
                 'py_module_name': 'stretch_body.wrist_roll',
-                'device_params': 'SE3_wrist_roll_DW3'
+                'device_params': 'SE3_wrist_roll_DW3_tablet'
             },
             'wrist_yaw': {
                 'py_class_name': 'WristYaw',

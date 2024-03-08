@@ -75,6 +75,10 @@ class ToolStretchDexWrist(EndOfArm):
         self.motors['wrist_roll'].move_to(0)
         self.motors['wrist_yaw'].home()
 
+    def pre_stow(self):
+        if 'wrist_pitch' in self.end_of_arm.joints:
+            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+
 # ##########################################################3#
 class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
     """
@@ -101,6 +105,9 @@ class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
 
+    def pre_stow(self):
+        if 'wrist_pitch' in self.end_of_arm.joints:
+            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
 class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
     """
@@ -124,11 +131,16 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
         self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
         self.move_to('stretch_gripper', self.params['stow']['stretch_gripper'])
+
     def home(self):
         self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
         self.motors['stretch_gripper'].home()
+    
+    def pre_stow(self):
+        if 'wrist_pitch' in self.end_of_arm.joints:
+            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
 class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
     """
@@ -171,13 +183,27 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
             else:
                 return None
         return EndOfArm.set_velocity(self, joint, v_r, a_r)
+    
+    def pre_stow(self,robot=None):
+        if robot:
+            if robot.lift.status['pos'] > 0.9:
+                robot.lift.move_by(-0.2)
+            robot.push_command()
+            time.sleep(0.25)
+            while robot.lift.motor.status['is_moving']:
+                time.sleep(0.1)
+
+        if not (2 > self.motors['wrist_yaw'].status['pos'] > 0):
+            self.move_to('wrist_pitch',-1.57)
 
     def stow(self):
         # Fold Arm, Wrist yaw turns left making the tabled screen face forward.
         print('--------- Stowing %s ----'%self.name)
-        self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
         self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
+        time.sleep(1)
+        self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
+        time.sleep(1)
 
     def home(self):
         # Tablet should face completely downwards during homing 

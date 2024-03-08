@@ -85,6 +85,9 @@ class EndOfArm(DynamixelXChain):
     def stow(self):
         pass #Override by specific tool
 
+    def pre_stow(self,robot=None):
+        pass #Override by specific tool
+
     def home(self, joint=None):
         """
         Home to hardstops
