@@ -603,6 +603,10 @@ class PrismaticJoint(Device):
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
                 # Make sure the joint pose has changed before reseting the in_collision_stop flag
+
+                ### TODO: Try calculating if a minimum threshold distance between the current collision pair has exceeded 
+                ######### before re-setting the in_collision_stop. Using the joint displacement error makes one prismatic joint 
+                ######### in collision locked even if moving the other gets it out of collision event.
                 if abs(self.collision_stop_pos - self.status['pos'])>0.05:
                     self.in_collision_stop[dir] = False
 
