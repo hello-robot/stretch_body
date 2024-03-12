@@ -7,6 +7,7 @@ import numpy as np
 import time
 import threading
 import chime
+import math
 
 try:
     # works on ubunut 22.04
@@ -101,6 +102,24 @@ def check_ppd_edges_in_cube(cube,cube_edge,edge_indices):
             return True
     return False
 
+def distance(point1, point2):
+    return math.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2 + (point1[2] - point2[2])**2)
+
+def closest_pair_3d(points1, points2):
+    """
+    Find the closest pair of 3D points from two lists of 3D points.
+    """
+    closest_distance = float('inf')
+    closest_pair = None
+    
+    for p1 in points1:
+        for p2 in points2:
+            dist = distance(p1, p2)
+            if dist < closest_distance:
+                closest_distance = dist
+                closest_pair = (p1, p2)
+                
+    return closest_pair, closest_distance
 # #######################################################################
 
 class CollisionLink:
@@ -228,11 +247,20 @@ class CollisionJoint:
         self.active_collisions=[]
         self.collision_pairs=[]
         self.collision_dirs={}
-        self.in_collision={'pos':False,'neg':False}
+        self.in_collision={'pos':False,'neg':False, 'min_dist_pair':None}
         self.was_in_collision = {'pos': False, 'neg': False}
+
     def add_collision_pair(self,motion_dir, collision_pair):
         self.collision_pairs.append(collision_pair)
         self.collision_dirs[collision_pair.name]=motion_dir
+    
+    def update_collision_pair_min_dist(self,pair_name):
+        for cp in self.collision_pairs:
+            if cp.name == pair_name:
+                _,dist = closest_pair_3d(cp.link_cube.pose,cp.link_pts.pose)
+                self.in_collision['min_dist_pair'] = {'pair_name':pair_name,'dist':dist}
+                return
+
     def pretty_print(self):
         print('-------Collision Joint: %s-----------------'%self.name)
         for cp in self.collision_pairs:
@@ -371,7 +399,9 @@ class RobotCollisionMgmt(Device):
         for joint_name in self.collision_joints:
             self.collision_joints[joint_name].active_collisions=[]
             self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
-            self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False}
+            # self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False, 'min_dist_pair':None}
+            self.collision_joints[joint_name].in_collision['pos'] = False
+            self.collision_joints[joint_name].in_collision['neg'] = False
 
         # Test for collisions across all collision pairs
         for pair_name in self.collision_pairs:
@@ -404,7 +434,11 @@ class RobotCollisionMgmt(Device):
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
                     cj.in_collision[cj.collision_dirs[cp.name]] = True
+                    cj.update_collision_pair_min_dist(cp.name)
+                    
             #Finally, update the collision state for each joint
+            if cj.in_collision['min_dist_pair']:
+                self.collision_joints[joint_name].update_collision_pair_min_dist(cj.in_collision['min_dist_pair']['pair_name'])
             self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
 
     def alert(self):
