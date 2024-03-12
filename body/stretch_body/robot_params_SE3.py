@@ -434,7 +434,9 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
                        'wrist_yaw': [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
                                      {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
                                      {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
-                                     {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'}],
+                                     {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
+                                     {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
+                                     {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'}],
 
                        'wrist_yaw': [{'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'}],
 
