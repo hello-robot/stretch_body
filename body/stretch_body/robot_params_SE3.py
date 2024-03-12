@@ -401,10 +401,14 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
         'collision_mgmt': {
             'k_brake_distance': {'wrist_pitch': 1, 'wrist_yaw':1, 'wrist_roll': 0.25},
             'collision_pairs': {
+                'link_DW3_tablet_12in_TO_base_link': {'link_cube': 'link_DW3_tablet_12in', 'link_pts': 'base_link', 'detect_as': 'pts'},
+                'link_DW3_tablet_12in_TO_link_arm_l0': {'link_cube': 'link_DW3_tablet_12in', 'link_pts': 'link_arm_l0','detect_as': 'pts'},
+                'link_DW3_tablet_12in_TO_link_arm_l1': {'link_cube': 'link_DW3_tablet_12in', 'link_pts': 'link_arm_l1','detect_as': 'pts'},
+                'link_DW3_tablet_12in_TO_link_head_tilt': {'link_cube': 'link_DW3_tablet_12in', 'link_pts': 'link_head_tilt','detect_as': 'pts'},
+
                 'link_DW3_tablet_12in_TO_base_link': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'base_link', 'detect_as': 'pts'},
                 'link_DW3_tablet_12in_TO_link_arm_l0': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_arm_l0','detect_as': 'pts'},
                 'link_DW3_tablet_12in_TO_link_arm_l1': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_arm_l1','detect_as': 'pts'},
-
                 'link_DW3_tablet_12in_TO_link_head_tilt': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_head_tilt','detect_as': 'pts'},
 
                 'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'pts'},

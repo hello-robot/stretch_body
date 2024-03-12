@@ -247,7 +247,7 @@ class CollisionJoint:
         self.active_collisions=[]
         self.collision_pairs=[]
         self.collision_dirs={}
-        self.in_collision={'pos':False,'neg':False, 'min_dist_pair':None}
+        self.in_collision={'pos':False,'neg':False, 'las_cp_min_dist':None}
         self.was_in_collision = {'pos': False, 'neg': False}
 
     def add_collision_pair(self,motion_dir, collision_pair):
@@ -258,7 +258,7 @@ class CollisionJoint:
         for cp in self.collision_pairs:
             if cp.name == pair_name:
                 _,dist = closest_pair_3d(cp.link_cube.pose,cp.link_pts.pose)
-                self.in_collision['min_dist_pair'] = {'pair_name':pair_name,'dist':dist}
+                self.in_collision['las_cp_min_dist'] = {'pair_name':pair_name,'dist':dist}
                 return
 
     def pretty_print(self):
@@ -435,10 +435,10 @@ class RobotCollisionMgmt(Device):
                     cj.active_collisions.append(cp.name) #Add collision to joint
                     cj.in_collision[cj.collision_dirs[cp.name]] = True
                     cj.update_collision_pair_min_dist(cp.name)
-                    
+
+            if cj.in_collision['las_cp_min_dist']:
+                self.collision_joints[joint_name].update_collision_pair_min_dist(cj.in_collision['las_cp_min_dist']['pair_name'])
             #Finally, update the collision state for each joint
-            if cj.in_collision['min_dist_pair']:
-                self.collision_joints[joint_name].update_collision_pair_min_dist(cj.in_collision['min_dist_pair']['pair_name'])
             self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
 
     def alert(self):

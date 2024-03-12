@@ -598,19 +598,15 @@ class PrismaticJoint(Device):
                 self.push_command()
                 self.in_collision_stop[dir] = True
                 self.ts_collision_stop[dir]=time.time()
-                self.last_collision_pair_min_dist = in_collision['min_dist_pair']
+                self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
 
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
-                # Make sure the joint pose has changed before reseting the in_collision_stop flag
-
-                ### TODO: Try calculating if a minimum threshold distance between the current collision pair has exceeded 
-                ######### before re-setting the in_collision_stop. Using the joint displacement error makes one prismatic joint 
-                ######### in collision locked even if moving the other gets it out of collision event.
-                if in_collision['min_dist_pair']:
-                    print(in_collision['min_dist_pair'])
-                    if self.last_collision_pair_min_dist['pair_name']==in_collision['min_dist_pair']['pair_name']:
-                        if abs(self.last_collision_pair_min_dist['dist'] - in_collision['min_dist_pair']['dist'])>0.01:
+                # Check if the minimum distance between the last active collision pair has changed before reset
+                if in_collision['las_cp_min_dist']:
+                    print(f"[{self.name}] Joint in collision {in_collision['las_cp_min_dist']}")
+                    if self.last_collision_pair_min_dist['pair_name']==in_collision['las_cp_min_dist']['pair_name']:
+                        if abs(self.last_collision_pair_min_dist['dist'] - in_collision['las_cp_min_dist']['dist'])>0.03:
                             self.in_collision_stop[dir] = False
 
 
