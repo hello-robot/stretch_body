@@ -282,7 +282,7 @@ SE3_aloha_gripper={
         'temperature_limit': 80,
         'usb_name': '/dev/hello-dynamixel-wrist',
         'use_multiturn': 0,
-        'use_pos_current_ctrl':0,
+        'use_pos_current_ctrl':1,
         'zero_t': 1326,#1426
         'baud': 115200,
         'retry_on_comm_failure': 1,
@@ -433,6 +433,7 @@ SE3_wrist_dw3_aloha_gripper={
             'wrist_yaw': 3.0,
             'aloha_gripper':1.3/2,
         },
+        # TODO
         # 'collision_mgmt': {
         #     'k_brake_distance': {'wrist_pitch': 0.25, 'wrist_yaw': 0.25, 'wrist_roll': 0.25},
         #     'collision_pairs': {
