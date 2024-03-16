@@ -15,6 +15,7 @@ import sys
 import click
 import numpy as np
 import subprocess
+import threading
 
 """
 The GamePadTeleop runs the Stretch's main gamepad controller that ships with 
@@ -90,6 +91,8 @@ class GamePadTeleop(Device):
 
         self.left_stick_button_fn = None
         self.right_stick_button_fn = None
+
+        self.currently_stowing = False
 
     def using_stretch_gripper(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
@@ -241,7 +244,7 @@ class GamePadTeleop(Device):
             if not robot.is_homed() and self.controller_state['start_button_pressed']:
                 self.do_single_beep(robot)
                 robot.home()
-            if robot.is_homed():
+            if robot.is_homed() and not self.currently_stowing:
                 if self.gamepad_controller.is_gamepad_dongle:
                     self.command_robot_joints(robot)
                 else:
@@ -337,10 +340,11 @@ class GamePadTeleop(Device):
             if not self._last_fn_btn_press:
                 self._last_fn_btn_press = time.time()
 
-            if time.time() - self._last_fn_btn_press >= 2:
+            if time.time() - self._last_fn_btn_press >= 2 and not self.currently_stowing:
                 self.do_single_beep(robot)
                 self._last_fn_btn_press = None
-                self.stow_robot(robot)
+                threading.Thread(target=self.stow_robot,args=(robot,),daemon=True).start()
+                # self.stow_robot(robot)
         else:
             self._last_fn_btn_press = None
 
@@ -412,11 +416,13 @@ class GamePadTeleop(Device):
     def stow_robot(self, robot):
         if robot.is_homed():
             # Reset motion params as fast for xbox
+            self.currently_stowing = True
             v = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['vel']
             a = robot.end_of_arm.motors['wrist_yaw'].params['motion']['default']['accel']
             robot.end_of_arm.motors['wrist_yaw'].set_motion_params(v, a)
             robot.stow()
             self.do_single_beep(robot)
+            self.currently_stowing = False
     
     def stop(self):
         if self._needs_robot_startup:
