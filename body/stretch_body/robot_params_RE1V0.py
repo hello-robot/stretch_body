@@ -246,7 +246,7 @@ RE1V0_wrist_roll_DW2={
         'req_calibration': 0,
         'return_delay_time': 0,
         'stall_backoff': 0.017,
-        'stall_max_effort': 10.0,
+        'stall_min_vel': 0.1,
         'stall_max_effort': 25.0,
         'stall_max_time': 2.0,
         'temperature_limit': 80,
