@@ -102,9 +102,6 @@ def check_ppd_edges_in_cube(cube,cube_edge,edge_indices):
             return True
     return False
 
-def distance(point1, point2):
-    return math.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2 + (point1[2] - point2[2])**2)
-
 def closest_pair_3d(points1, points2):
     """
     Find the closest pair of 3D points from two lists of 3D points.
@@ -114,7 +111,7 @@ def closest_pair_3d(points1, points2):
     
     for p1 in points1:
         for p2 in points2:
-            dist = distance(p1, p2)
+            dist = np.linalg.norm(p1-p2)
             if dist < closest_distance:
                 closest_distance = dist
                 closest_pair = (p1, p2)

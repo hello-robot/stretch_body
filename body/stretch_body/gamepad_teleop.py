@@ -250,7 +250,7 @@ class GamePadTeleop(Device):
                 else:
                     self._safety_stop(robot)
             else:   
-                if self._i % 100 == 0: 
+                if self._i % 100 == 0 and not self.currently_stowing: 
                     print('press the start button to calibrate the robot')
 
     def update_gamepad_state(self, robot=None):

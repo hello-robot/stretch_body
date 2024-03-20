@@ -195,11 +195,25 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
 
         if not (2 > self.motors['wrist_yaw'].status['pos'] > 0):
             self.move_to('wrist_pitch',-1.57)
+    
+    def switch_to_portrait_mode(self):
+        self.portrait_orientation = True
+        self.reset_tablet_orientation()
+    
+    def switch_to_landscape_mode(self):
+        self.portrait_orientation = False
+        self.reset_tablet_orientation()
+    
+    def reset_tablet_orientation(self):
+        if self.portrait_orientation:
+            self.motors['wrist_roll'].move_to(1.57)
+        else:
+            self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
 
     def stow(self):
         # Fold Arm, Wrist yaw turns left making the tabled screen face forward.
         print('--------- Stowing %s ----'%self.name)
-        self.move_to('wrist_roll', self.params['stow']['wrist_roll'])
+        self.reset_tablet_orientation()
         self.move_to('wrist_yaw', self.params['stow']['wrist_yaw'])
         time.sleep(1)
         self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
@@ -210,7 +224,7 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
         self.motors['wrist_pitch'].move_to(-1.57)
         while self.motors['wrist_pitch'].motor.is_moving():
             time.sleep(0.2)
-        self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
+        self.reset_tablet_orientation()
         self.motors['wrist_yaw'].home()
         self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
         self.motors['wrist_yaw'].move_to(1.57)
