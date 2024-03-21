@@ -39,6 +39,7 @@ class PrismaticJoint(Device):
         self.dist_to_min_max = None # track dist to min,max limits
         self.vel_brake_zone_thresh = 0.02 # initial/minimum brake zone thresh value
         self._prev_set_vel_ts = None
+        self._prev_collision_update_ts = None
         self.watchdog_enabled = False
         self.total_range = abs(self.params['range_m'][1] - self.params['range_m'][0])
         self.in_collision_stop = {'pos': False, 'neg': False}

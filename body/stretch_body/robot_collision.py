@@ -291,6 +291,7 @@ class RobotCollisionMgmt(Device):
         #chime.theme('big-sur') #'material')#
         self.running=False
         self.urdf=None
+        self.prev_loop_start_ts = None
 
     def pretty_print(self):
         for j in self.collision_joints:
@@ -375,6 +376,9 @@ class RobotCollisionMgmt(Device):
         """
                 Check for interference between cube pairs
         """
+        if self.prev_loop_start_ts:
+            print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
+            
         if self.urdf is None or not self.running:
             return
 
@@ -437,7 +441,8 @@ class RobotCollisionMgmt(Device):
                 self.collision_joints[joint_name].update_collision_pair_min_dist(cj.in_collision['las_cp_min_dist']['pair_name'])
             #Finally, update the collision state for each joint
             self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
-
+        self.prev_loop_start_ts = time.perf_counter()
+        
     def alert(self):
         threading.Thread(target=chime.warning,daemon=True).start()
 
