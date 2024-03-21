@@ -83,6 +83,25 @@ def check_pts_in_AABB_cube(cube, pts):
             return True
     return False
 
+def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
+    for t_set in mesh_triangles:
+        for points in t_set:
+            set_1 = [points[0],points[1]]
+            set_2 = [points[0],points[2]]
+            set_3 = [points[1],points[2]]
+            for set in [set_1,set_2,set_3]:
+                mid = (set[0] + set[1])/2
+                if check_pts_in_AABB_cube(cube,[mid]):
+                    return True
+                mid1 = (mid + set[0])/2
+                if check_pts_in_AABB_cube(cube,[mid1]):
+                    return True
+                mid2 = (mid + set[1])/2
+                if check_pts_in_AABB_cube(cube,[mid2]):
+                    return True
+    return False
+
+
 def check_ppd_edges_in_cube(cube,cube_edge,edge_indices):
     if len(edge_indices)!=12:
         print('Invalid PPD provided to check_ppd_edges_in_cube')
@@ -188,6 +207,16 @@ class CollisionLink:
         lens.sort()
         print('LENS',lens)
         return q
+    
+    def get_triangles(self):
+        triangles=self.mesh.cells_dict['triangle']
+        triangles = []
+        for t_set in triangles:
+            p1 = self.pose[t_set[0]]
+            p2 = self.pose[t_set[1]]
+            p3 = self.pose[t_set[2]]
+            triangles.append([p1,p2,p3])
+        return triangles
 
     def check_AABB(self,pts):
         """
@@ -376,8 +405,8 @@ class RobotCollisionMgmt(Device):
         """
                 Check for interference between cube pairs
         """
-        if self.prev_loop_start_ts:
-            print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
+        # if self.prev_loop_start_ts:
+        #     print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
             
         if self.urdf is None or not self.running:
             return
@@ -389,7 +418,7 @@ class RobotCollisionMgmt(Device):
         lfk = self.urdf.link_fk(cfg=cfg, links=self.collision_links.keys(), use_names=True)
 
         # Update poses of links based on fk
-        for link_name in lfk:
+        for link_name in lfk: 
             self.collision_links[link_name].set_pose(lfk[link_name].dot(
                 self.collision_links[link_name].points.transpose()).transpose())
 
@@ -411,9 +440,8 @@ class RobotCollisionMgmt(Device):
                 cp.was_in_collision=cp.in_collision
                 if cp.detect_as=='pts':
                     cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
-                # elif cp.detect_as=='edges':
-                #     print('Checking', cp.name)
-                #     cp.in_collision = check_ppd_edges_in_cube(cube=cp.link_cube.pose, cube_edge=cp.link_pts.pose,edge_indices=cp.link_pts.edge_indices_ppd)
+                elif cp.detect_as=='edges':
+                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(),cube=cp.link_cube.pose)
                 else:
                     cp.in_collision =False
                     #cp.pretty_print()
