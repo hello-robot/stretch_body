@@ -84,21 +84,20 @@ def check_pts_in_AABB_cube(cube, pts):
     return False
 
 def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
-    for t_set in mesh_triangles:
-        for points in t_set:
-            set_1 = [points[0],points[1]]
-            set_2 = [points[0],points[2]]
-            set_3 = [points[1],points[2]]
-            for set in [set_1,set_2,set_3]:
-                mid = (set[0] + set[1])/2
-                if check_pts_in_AABB_cube(cube,[mid]):
-                    return True
-                mid1 = (mid + set[0])/2
-                if check_pts_in_AABB_cube(cube,[mid1]):
-                    return True
-                mid2 = (mid + set[1])/2
-                if check_pts_in_AABB_cube(cube,[mid2]):
-                    return True
+    for points in mesh_triangles:
+        set_1 = [points[0],points[1]]
+        set_2 = [points[0],points[2]]
+        set_3 = [points[1],points[2]]
+        for set in [set_1,set_2,set_3]:
+            mid = (set[0] + set[1])/2
+            if check_pts_in_AABB_cube(cube,[mid]):
+                return True
+            mid1 = (mid + set[0])/2
+            if check_pts_in_AABB_cube(cube,[mid1]):
+                return True
+            mid2 = (mid + set[1])/2
+            if check_pts_in_AABB_cube(cube,[mid2]):
+                return True
     return False
 
 
@@ -209,9 +208,9 @@ class CollisionLink:
         return q
     
     def get_triangles(self):
-        triangles=self.mesh.cells_dict['triangle']
+        triangles_idx=self.mesh.cells_dict['triangle']
         triangles = []
-        for t_set in triangles:
+        for t_set in triangles_idx:
             p1 = self.pose[t_set[0]]
             p2 = self.pose[t_set[1]]
             p3 = self.pose[t_set[2]]
@@ -439,7 +438,9 @@ class RobotCollisionMgmt(Device):
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
                 if cp.detect_as=='pts':
-                    cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
+                    # cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
+                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(),cube=cp.link_cube.pose)
+                    pass
                 elif cp.detect_as=='edges':
                     cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(),cube=cp.link_cube.pose)
                 else:
