@@ -99,14 +99,10 @@ def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
 
         # Sample three equilinear points on each side and test for AABB intersection
         for set in [set_1,set_2,set_3]:
-            mid = np.add(set[0],set[1])/2
-            if check_pts_in_AABB_cube(cube,[mid]):
-                return True
+            mid =  np.add(set[0], set[1])/2
             mid1 = np.add(mid, set[0])/2
-            if check_pts_in_AABB_cube(cube,[mid1]):
-                return True
             mid2 = np.add(mid, set[1])/2
-            if check_pts_in_AABB_cube(cube,[mid2]):
+            if check_pts_in_AABB_cube(cube,[mid, mid1, mid2]):
                 return True
     return False
 

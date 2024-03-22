@@ -602,7 +602,7 @@ class PrismaticJoint(Device):
                 self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
 
             #Reset if out of collision (at least 1s after collision)
-            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
+            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.5:
                 # Check if the minimum distance between the last active collision pair has changed before reset
                 if in_collision['las_cp_min_dist']:
                     # print(f"[{self.name}] Joint in collision {in_collision['las_cp_min_dist']}")
