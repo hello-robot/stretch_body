@@ -8,6 +8,7 @@ import time
 import threading
 import chime
 import math
+import random
 
 try:
     # works on ubunut 22.04
@@ -84,21 +85,47 @@ def check_pts_in_AABB_cube(cube, pts):
     return False
 
 def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
-    for points in mesh_triangles:
+    # Check a set of mesh's triangles intersect an AABB cube
+    while len(mesh_triangles) - len(mesh_triangles)/2:
+        # choose a random triangle indices
+        random_index = random.randint(0, len(mesh_triangles) - 1)
+        points = mesh_triangles[random_index]
+        mesh_triangles.pop(random_index)
+
+        # Three triangle sides
         set_1 = [points[0],points[1]]
         set_2 = [points[0],points[2]]
         set_3 = [points[1],points[2]]
+
+        # Sample three equilinear points on each side and test for AABB intersection
         for set in [set_1,set_2,set_3]:
-            mid = (set[0] + set[1])/2
+            mid = np.add(set[0],set[1])/2
             if check_pts_in_AABB_cube(cube,[mid]):
                 return True
-            mid1 = (mid + set[0])/2
+            mid1 = np.add(mid, set[0])/2
             if check_pts_in_AABB_cube(cube,[mid1]):
                 return True
-            mid2 = (mid + set[1])/2
+            mid2 = np.add(mid, set[1])/2
             if check_pts_in_AABB_cube(cube,[mid2]):
                 return True
     return False
+
+# def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
+#     for points in mesh_triangles:
+#         set_1 = [points[0],points[1]]
+#         set_2 = [points[0],points[2]]
+#         set_3 = [points[1],points[2]]
+#         for set in [set_1,set_2,set_3]:
+#             mid = np.add(set[0],set[1])/2
+#             if check_pts_in_AABB_cube(cube,[mid]):
+#                 return True
+#             mid1 = np.add(mid, set[0])/2
+#             if check_pts_in_AABB_cube(cube,[mid1]):
+#                 return True
+#             mid2 = np.add(mid, set[1])/2
+#             if check_pts_in_AABB_cube(cube,[mid2]):
+#                 return True
+#     return False
 
 
 def check_ppd_edges_in_cube(cube,cube_edge,edge_indices):
@@ -404,8 +431,8 @@ class RobotCollisionMgmt(Device):
         """
                 Check for interference between cube pairs
         """
-        # if self.prev_loop_start_ts:
-        #     print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
+        if self.prev_loop_start_ts:
+            print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
             
         if self.urdf is None or not self.running:
             return
@@ -438,9 +465,7 @@ class RobotCollisionMgmt(Device):
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
                 if cp.detect_as=='pts':
-                    # cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
-                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(),cube=cp.link_cube.pose)
-                    pass
+                    cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
                     cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(),cube=cp.link_cube.pose)
                 else:

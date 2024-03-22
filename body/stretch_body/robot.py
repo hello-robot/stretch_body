@@ -340,7 +340,7 @@ class Robot(Device):
         self.dxl_end_of_arm_thread = DXLEndOfArmStatusThread(self,target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
         self.sys_thread = SystemMonitorThread(self, target_rate_hz=self.params['rates']['SystemMonitorThread_Hz'])
         self.dxl_head_thread = DXLHeadStatusThread(self, target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
-        self.collision_mgmt_thread = CollisionMonitorThread(self, target_rate_hz=50)
+        self.collision_mgmt_thread = CollisionMonitorThread(self, target_rate_hz=self.params['rates']['SystemMonitorThread_Hz'])
 
         if start_non_dxl_thread:
             self.non_dxl_thread.setDaemon(True)
