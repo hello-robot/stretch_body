@@ -84,9 +84,34 @@ def check_pts_in_AABB_cube(cube, pts):
             return True
     return False
 
+def check_AABB_in_AABB_from_pts(pts1, pts2):
+    """
+    Check if an AABB intersects another AABB from the given two sets of points
+    """
+    xmax_1 = max(pts1[:, 0])
+    xmin_1 = min(pts1[:, 0])
+    ymax_1 = max(pts1[:, 1])
+    ymin_1 = min(pts1[:, 1])
+    zmax_1 = max(pts1[:, 2])
+    zmin_1 = min(pts1[:, 2])
+
+    xmax_2 = max(pts2[:, 0])
+    xmin_2 = min(pts2[:, 0])
+    ymax_2 = max(pts2[:, 1])
+    ymin_2 = min(pts2[:, 1])
+    zmax_2 = max(pts2[:, 2])
+    zmin_2 = min(pts2[:, 2])
+
+    cx = xmin_1<=xmax_2 and xmax_1>=xmin_2
+    cy = ymin_1<=ymax_2 and ymax_1>=ymin_2
+    cz = zmin_1<=zmax_2 and zmax_1>=zmin_2
+    
+    return cx and cy and cz
+
+
 def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
     # Check a set of mesh's triangles intersect an AABB cube
-    while len(mesh_triangles) - len(mesh_triangles)/2:
+    while len(mesh_triangles):
         # choose a random triangle indices
         random_index = random.randint(0, len(mesh_triangles) - 1)
         points = mesh_triangles[random_index]
@@ -462,6 +487,7 @@ class RobotCollisionMgmt(Device):
                 cp.was_in_collision=cp.in_collision
                 if cp.detect_as=='pts':
                     cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
+                    # cp.in_collision=check_AABB_in_AABB_from_pts(pts1=cp.link_cube.pose,pts2=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
                     cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(),cube=cp.link_cube.pose)
                 else:
@@ -485,10 +511,10 @@ class RobotCollisionMgmt(Device):
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
                     cj.in_collision[cj.collision_dirs[cp.name]] = True
-                    cj.update_collision_pair_min_dist(cp.name)
+                    # cj.update_collision_pair_min_dist(cp.name)
 
-            if cj.in_collision['las_cp_min_dist']:
-                self.collision_joints[joint_name].update_collision_pair_min_dist(cj.in_collision['las_cp_min_dist']['pair_name'])
+            # if cj.in_collision['las_cp_min_dist']:
+            #     self.collision_joints[joint_name].update_collision_pair_min_dist(cj.in_collision['las_cp_min_dist']['pair_name'])
             #Finally, update the collision state for each joint
             self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
         self.prev_loop_start_ts = time.perf_counter()
