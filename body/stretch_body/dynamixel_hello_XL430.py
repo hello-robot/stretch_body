@@ -455,11 +455,14 @@ class DynamixelHelloXL430(Device):
                 self.ts_collision_stop[dir] = time.time()
                 self.quick_stop()
                 self.in_collision_stop[dir] = True
-                self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
+                # self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
+                self.last_cfg_thresh = in_collision['last_joint_cfg_thresh']
 
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1:
-                self.in_collision_stop[dir] = False
+                print(f"{self.name} cfg_thres: {abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh'])}")
+                if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001:
+                    self.in_collision_stop[dir] = False
                 # Check if the minimum distance between the last active collision pair has changed before reset
                 # if in_collision['las_cp_min_dist']:
                 #     # print(f"[{self.name}] Joint in collision {in_collision['las_cp_min_dist']}")

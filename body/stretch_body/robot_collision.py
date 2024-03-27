@@ -9,6 +9,7 @@ import threading
 import chime
 import math
 import random
+from stretch_body.robot_params import RobotParams
 
 try:
     # works on ubunut 22.04
@@ -320,13 +321,17 @@ class CollisionJoint:
         self.active_collisions=[]
         self.collision_pairs=[]
         self.collision_dirs={}
-        self.in_collision={'pos':False,'neg':False, 'las_cp_min_dist':None}
+        self.in_collision={'pos':False,'neg':False, 'last_joint_cfg_thresh':1000}
         self.was_in_collision = {'pos': False, 'neg': False}
 
     def add_collision_pair(self,motion_dir, collision_pair):
         self.collision_pairs.append(collision_pair)
         self.collision_dirs[collision_pair.name]=motion_dir
     
+    def update_last_joint_cfg_thresh(self,thresh):
+        self.in_collision['last_joint_cfg_thresh'] = thresh
+
+
     def update_collision_pair_min_dist(self,pair_name):
         for cp in self.collision_pairs:
             if cp.name == pair_name:
@@ -368,6 +373,7 @@ class RobotCollisionMgmt(Device):
         self.running=False
         self.urdf=None
         self.prev_loop_start_ts = None
+        self.robot_params = RobotParams().get_params()[1]
 
     def pretty_print(self):
         for j in self.collision_joints:
@@ -446,14 +452,28 @@ class RobotCollisionMgmt(Device):
             return self.robot.head.get_joint('head_tilt')
         #Try the tool
         return self.robot.end_of_arm.get_joint(joint_name)
+    
 
+    def get_normalized_cfg_threshold(self):
+        arm_pos = self.robot.status['arm']['pos']/(0.5)
+        lift_pos = self.robot.status['lift']['pos']/(1.1)
+        head_pan_pos = self.robot.status['head']['head_pan']['pos_ticks']/(self.robot_params['head_pan']['range_t'][1] - self.robot_params['head_pan']['range_t'][0])
+        head_tilt_pos = self.robot.status['head']['head_tilt']['pos_ticks']/(self.robot_params['head_tilt']['range_t'][1] - self.robot_params['head_tilt']['range_t'][0])
+        thresh = arm_pos + lift_pos + head_pan_pos + head_tilt_pos
+        i = 0
+        for j in self.robot.end_of_arm.joints:
+            value = self.robot.status['end_of_arm'][j]['pos_ticks']/(self.robot_params['head_pan']['range_t'][1] - self.robot_params[j]['range_t'][0])
+            thresh = thresh + value
+            i = i + 1
+        thresh = thresh/(4+i)
+        return thresh
 
     def step(self,cfg=None):
         """
                 Check for interference between cube pairs
         """
-        if self.prev_loop_start_ts:
-            print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
+        # if self.prev_loop_start_ts:
+        #     print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
             
         if self.urdf is None or not self.running:
             return
@@ -479,7 +499,6 @@ class RobotCollisionMgmt(Device):
             # self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False, 'min_dist_pair':None}
             self.collision_joints[joint_name].in_collision['pos'] = False
             self.collision_joints[joint_name].in_collision['neg'] = False
-
         # Test for collisions across all collision pairs
         for pair_name in self.collision_pairs:
             cp=self.collision_pairs[pair_name]
@@ -504,9 +523,11 @@ class RobotCollisionMgmt(Device):
                     # print('\a')
                     self.alert()
 
+        normalized_joint_status_thresh = self.get_normalized_cfg_threshold()
         #Now update joint state
         for joint_name in self.collision_joints:
             cj = self.collision_joints[joint_name]
+            cj.update_last_joint_cfg_thresh(normalized_joint_status_thresh)
             for cp in cj.collision_pairs:
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
