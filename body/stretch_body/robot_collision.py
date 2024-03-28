@@ -350,16 +350,18 @@ class CollisionJoint:
         for ac in self.active_collisions:
             print('Active Collision: %s' % ac)
 
-def _worker(shared_joint_cfg, shared_collision_status):
+def _worker(shared_joint_cfg, shared_collision_status, shared_joint_cfg_thresh):
     collision_mgmt = RobotCollisionMgmtObj()
     collision_mgmt.startup()
     collision_joints_status = {}
     while True:
-        collision_mgmt.step(shared_joint_cfg)
+        # print(f"Process Side: {shared_joint_cfg}")
+        collision_mgmt.step(shared_joint_cfg, shared_joint_cfg_thresh)
         for joint_name in collision_mgmt.collision_joints:
             collision_joints_status[joint_name] = collision_mgmt.collision_joints[joint_name].in_collision
         for k in collision_joints_status.keys():
             shared_collision_status[k] = collision_joints_status[k]
+        # print(f"Process Side: {collision_joints_status}")
             
 
 class RobotCollisionMgmt(Device):
@@ -368,7 +370,10 @@ class RobotCollisionMgmt(Device):
         self.process_manager = multiprocessing.Manager()
         self.shared_joint_cfg = self.process_manager.dict()
         self.shared_collision_status = self.process_manager.dict()
-        self.collision_mgmt_proccess = multiprocessing.Process(target=_worker,args=(self.shared_joint_cfg,self.shared_collision_status,),daemon=True)
+        self.shared_joint_cfg_thresh = self.process_manager.Value(typecode=float,value=1000.0)
+        self.collision_mgmt_proccess = multiprocessing.Process(target=_worker,args=(self.shared_joint_cfg,
+                                                                                    self.shared_collision_status,
+                                                                                    self.shared_joint_cfg_thresh,),daemon=True)
         self.running = False
         self.robot_params = RobotParams().get_params()[1]
 
@@ -381,9 +386,10 @@ class RobotCollisionMgmt(Device):
     
     def step(self):
         cfg = self.get_joint_configuration()
+        self.shared_joint_cfg_thresh.set(self.get_normalized_cfg_threshold())
         for k in cfg.keys():
             self.shared_joint_cfg[k] = cfg[k]
-        print(self.shared_collision_status)
+        # print(f"Thread Side: {self.shared_collision_status}")
 
     def get_joint_motor(self,joint_name):
         if joint_name=='lift':
@@ -409,7 +415,7 @@ class RobotCollisionMgmt(Device):
             thresh = thresh + value
             i = i + 1
         thresh = thresh/(4+i)
-        return thresh
+        return float(thresh)
     
     def get_joint_configuration(self,braked=False):
         """
@@ -466,7 +472,7 @@ class RobotCollisionMgmtObj(Device):
         self.collision_links = {}
         self.collision_pairs = {}
         chime.theme('big-sur') #'material')
-        self.running=False
+        self.running=True
         self.urdf=None
         self.prev_loop_start_ts = None
         self.robot_params = RobotParams().get_params()[1]
@@ -538,7 +544,7 @@ class RobotCollisionMgmtObj(Device):
                                                                      collision_pair=self.collision_pairs[cp['collision_pair']])
     
 
-    def step(self,cfg=None):
+    def step(self,cfg=None, joint_cfg_thresh=None):
         """
                 Check for interference between cube pairs
         """
@@ -552,7 +558,10 @@ class RobotCollisionMgmtObj(Device):
         #     cfg = self.get_joint_configuration(braked=True)#_braked()
 
         # Update forward kinematics of links
-        lfk = self.urdf.link_fk(cfg=cfg, links=self.collision_links.keys(), use_names=True)
+        _cfg = {}
+        for k in cfg.keys():
+            _cfg[k] = cfg[k]
+        lfk = self.urdf.link_fk(cfg=_cfg, links=self.collision_links.keys(), use_names=True)
 
         # Update poses of links based on fk
         for link_name in lfk: 
@@ -593,7 +602,8 @@ class RobotCollisionMgmtObj(Device):
                     # print('\a')
                     self.alert()
 
-        normalized_joint_status_thresh = self.get_normalized_cfg_threshold()
+        normalized_joint_status_thresh = joint_cfg_thresh.get()
+        # print(f"From Process: Normal CFG = {normalized_joint_status_thresh}")
         #Now update joint state
         for joint_name in self.collision_joints:
             cj = self.collision_joints[joint_name]
@@ -602,6 +612,7 @@ class RobotCollisionMgmtObj(Device):
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
                     cj.in_collision[cj.collision_dirs[cp.name]] = True
+            # print(f"From Process: {joint_name} = {self.collision_joints[joint_name].in_collision}")
             # self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
         self.prev_loop_start_ts = time.perf_counter()
         
@@ -623,8 +634,6 @@ class RobotCollisionMgmtObj(Device):
             return self.collision_links[link_name].was_in_collision
         except KeyError: #Not all links will be monitored
             return False
-
-
 
 
 class RobotCollision(Device):
