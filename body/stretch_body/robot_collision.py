@@ -11,6 +11,7 @@ import math
 import random
 from stretch_body.robot_params import RobotParams
 
+
 try:
     # works on ubunut 22.04
     import importlib.resources as importlib_resources
@@ -369,7 +370,7 @@ class RobotCollisionMgmt(Device):
         self.collision_joints = {}
         self.collision_links = {}
         self.collision_pairs = {}
-        #chime.theme('big-sur') #'material')#
+        chime.theme('big-sur') #'material')
         self.running=False
         self.urdf=None
         self.prev_loop_start_ts = None
@@ -457,12 +458,12 @@ class RobotCollisionMgmt(Device):
     def get_normalized_cfg_threshold(self):
         arm_pos = self.robot.status['arm']['pos']/(0.5)
         lift_pos = self.robot.status['lift']['pos']/(1.1)
-        head_pan_pos = self.robot.status['head']['head_pan']['pos_ticks']/(self.robot_params['head_pan']['range_t'][1] - self.robot_params['head_pan']['range_t'][0])
-        head_tilt_pos = self.robot.status['head']['head_tilt']['pos_ticks']/(self.robot_params['head_tilt']['range_t'][1] - self.robot_params['head_tilt']['range_t'][0])
+        head_pan_pos = (self.robot.status['head']['head_pan']['pos_ticks']- self.robot_params['head_pan']['range_t'][0])/(self.robot_params['head_pan']['range_t'][1] - self.robot_params['head_pan']['range_t'][0])
+        head_tilt_pos = (self.robot.status['head']['head_tilt']['pos_ticks']- self.robot_params['head_tilt']['range_t'][0])/(self.robot_params['head_tilt']['range_t'][1] - self.robot_params['head_tilt']['range_t'][0])
         thresh = arm_pos + lift_pos + head_pan_pos + head_tilt_pos
         i = 0
         for j in self.robot.end_of_arm.joints:
-            value = self.robot.status['end_of_arm'][j]['pos_ticks']/(self.robot_params['head_pan']['range_t'][1] - self.robot_params[j]['range_t'][0])
+            value = (self.robot.status['end_of_arm'][j]['pos_ticks']- self.robot_params[j]['range_t'][0])/(self.robot_params['head_pan']['range_t'][1] - self.robot_params[j]['range_t'][0])
             thresh = thresh + value
             i = i + 1
         thresh = thresh/(4+i)
