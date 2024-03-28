@@ -10,6 +10,7 @@ import chime
 import math
 import random
 from stretch_body.robot_params import RobotParams
+import multiprocessing
 
 
 try:
@@ -316,9 +317,8 @@ class CollisionPair:
 
 
 class CollisionJoint:
-    def __init__(self, joint_name,motor):
+    def __init__(self, joint_name):
         self.name=joint_name
-        self.motor=motor
         self.active_collisions=[]
         self.collision_pairs=[]
         self.collision_dirs={}
@@ -350,9 +350,105 @@ class CollisionJoint:
         for ac in self.active_collisions:
             print('Active Collision: %s' % ac)
 
+def _worker(shared_joint_cfg, shared_collision_status):
+    collision_mgmt = RobotCollisionMgmtObj()
+    collision_mgmt.startup()
+    collision_joints_status = {}
+    while True:
+        collision_mgmt.step(shared_joint_cfg)
+        for joint_name in collision_mgmt.collision_joints:
+            collision_joints_status[joint_name] = collision_mgmt.collision_joints[joint_name].in_collision
+        for k in collision_joints_status.keys():
+            shared_collision_status[k] = collision_joints_status[k]
+            
 
 class RobotCollisionMgmt(Device):
-    def __init__(self,robot):
+    def __init__(self,robot,name='robot_collision_mgmt'):
+        self.robot = robot
+        self.process_manager = multiprocessing.Manager()
+        self.shared_joint_cfg = self.process_manager.dict()
+        self.shared_collision_status = self.process_manager.dict()
+        self.collision_mgmt_proccess = multiprocessing.Process(target=_worker,args=(self.shared_joint_cfg,self.shared_collision_status,),daemon=True)
+        self.running = False
+        self.robot_params = RobotParams().get_params()[1]
+
+    def startup(self):
+        self.collision_mgmt_proccess.start()
+    
+    def stop(self):
+        self.collision_mgmt_proccess.terminate()
+        self.collision_mgmt_proccess.join()
+    
+    def step(self):
+        cfg = self.get_joint_configuration()
+        for k in cfg.keys():
+            self.shared_joint_cfg[k] = cfg[k]
+        print(self.shared_collision_status)
+
+    def get_joint_motor(self,joint_name):
+        if joint_name=='lift':
+            return self.robot.lift
+        if joint_name=='arm':
+            return self.robot.arm
+        if joint_name=='head_pan':
+            return self.robot.head.get_joint('head_pan')
+        if joint_name=='head_tilt':
+            return self.robot.head.get_joint('head_tilt')
+        #Try the tool
+        return self.robot.end_of_arm.get_joint(joint_name)
+
+    def get_normalized_cfg_threshold(self):
+        arm_pos = self.robot.status['arm']['pos']/(0.5)
+        lift_pos = self.robot.status['lift']['pos']/(1.1)
+        head_pan_pos = (self.robot.status['head']['head_pan']['pos_ticks']- self.robot_params['head_pan']['range_t'][0])/(self.robot_params['head_pan']['range_t'][1] - self.robot_params['head_pan']['range_t'][0])
+        head_tilt_pos = (self.robot.status['head']['head_tilt']['pos_ticks']- self.robot_params['head_tilt']['range_t'][0])/(self.robot_params['head_tilt']['range_t'][1] - self.robot_params['head_tilt']['range_t'][0])
+        thresh = arm_pos + lift_pos + head_pan_pos + head_tilt_pos
+        i = 0
+        for j in self.robot.end_of_arm.joints:
+            value = (self.robot.status['end_of_arm'][j]['pos_ticks']- self.robot_params[j]['range_t'][0])/(self.robot_params['head_pan']['range_t'][1] - self.robot_params[j]['range_t'][0])
+            thresh = thresh + value
+            i = i + 1
+        thresh = thresh/(4+i)
+        return thresh
+    
+    def get_joint_configuration(self,braked=False):
+        """
+        Construct a dictionary of robot's current pose
+        """
+        s = self.robot.get_status()
+        kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
+        if braked:
+            da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
+            dl=kbd['lift']*self.robot.lift.get_braking_distance()
+            dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
+            dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
+        else:
+            da=0.0
+            dl=0.0
+            dhp=0.0
+            dht=0.0
+
+        configuration = {
+            'joint_lift': dl+s['lift']['pos'],
+            'joint_arm_l0': da+s['arm']['pos']/4.0,
+            'joint_arm_l1': da+s['arm']['pos']/4.0,
+            'joint_arm_l2': da+s['arm']['pos']/4.0,
+            'joint_arm_l3': da+s['arm']['pos']/4.0,
+            'joint_head_pan': dhp+s['head']['head_pan']['pos'],
+            'joint_head_tilt': dht+s['head']['head_tilt']['pos']
+            }
+
+        configuration.update(self.robot.end_of_arm.get_joint_configuration(braked))
+        return configuration
+    
+    def enable(self):
+        self.running=True
+
+    def disable(self):
+        self.running=False
+
+class RobotCollisionMgmtObj(Device):
+    def __init__(self):
         """
         RobotCollisionMgmt monitors for collisions between links.
         It utilizes the Collision mesh for collision estimation.
@@ -366,7 +462,6 @@ class RobotCollisionMgmt(Device):
         enabling the ability to increase the safety zone.
         """
         Device.__init__(self, name='robot_collision_mgmt')
-        self.robot = robot
         self.collision_joints = {}
         self.collision_links = {}
         self.collision_pairs = {}
@@ -388,8 +483,8 @@ class RobotCollisionMgmt(Device):
     def startup(self,threaded=False):
         Device.startup(self, threaded=False)
         pkg = str(importlib_resources.files("stretch_urdf"))  # .local/lib/python3.10/site-packages/stretch_urdf)
-        model_name = self.robot.params['model_name']
-        eoa_name= self.robot.params['tool']
+        model_name = self.robot_params['robot']['model_name']
+        eoa_name= self.robot_params['robot']['tool']
         urdf_name = pkg + '/%s/stretch_description_%s_%s.urdf' % (model_name, model_name, eoa_name)
         mesh_path = pkg + '/%s/' % (model_name)
 
@@ -408,7 +503,7 @@ class RobotCollisionMgmt(Device):
 
         #Construct collision pairs
         cp_dict = self.params[model_name]['collision_pairs']
-        cp_dict.update(self.robot.end_of_arm.params['collision_mgmt']['collision_pairs'])
+        cp_dict.update(self.robot_params[eoa_name]['collision_mgmt']['collision_pairs'])
 
         for cp_name in cp_dict:
             cp=cp_dict[cp_name] #Eg {'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'}
@@ -427,7 +522,7 @@ class RobotCollisionMgmt(Device):
         #Include those of standard robot body plus its defined tool
         # EG collision_joints={'lift':[{collision_1},{collision_2...}],'head_pan':[...]}
         cj_dict=self.params[model_name]['joints']
-        eoa_cj_dict=self.robot.end_of_arm.params['collision_mgmt']['joints']
+        eoa_cj_dict=self.robot_params[eoa_name]['collision_mgmt']['joints']
 
         for tt in eoa_cj_dict:
             if tt in cj_dict:
@@ -436,38 +531,12 @@ class RobotCollisionMgmt(Device):
                 cj_dict[tt]=eoa_cj_dict[tt]
 
         for joint_name in cj_dict:
-            self.collision_joints[joint_name]=CollisionJoint(joint_name,self.get_joint_motor(joint_name))
+            self.collision_joints[joint_name]=CollisionJoint(joint_name)
             cp_list = cj_dict[joint_name]
             for cp in cp_list: #eg cp={'motion_dir': 'pos', 'collision_pair': 'link_head_tilt_TO_link_arm_l4'}
                 self.collision_joints[joint_name].add_collision_pair(motion_dir=cp['motion_dir'],
                                                                      collision_pair=self.collision_pairs[cp['collision_pair']])
-
-    def get_joint_motor(self,joint_name):
-        if joint_name=='lift':
-            return self.robot.lift
-        if joint_name=='arm':
-            return self.robot.arm
-        if joint_name=='head_pan':
-            return self.robot.head.get_joint('head_pan')
-        if joint_name=='head_tilt':
-            return self.robot.head.get_joint('head_tilt')
-        #Try the tool
-        return self.robot.end_of_arm.get_joint(joint_name)
     
-
-    def get_normalized_cfg_threshold(self):
-        arm_pos = self.robot.status['arm']['pos']/(0.5)
-        lift_pos = self.robot.status['lift']['pos']/(1.1)
-        head_pan_pos = (self.robot.status['head']['head_pan']['pos_ticks']- self.robot_params['head_pan']['range_t'][0])/(self.robot_params['head_pan']['range_t'][1] - self.robot_params['head_pan']['range_t'][0])
-        head_tilt_pos = (self.robot.status['head']['head_tilt']['pos_ticks']- self.robot_params['head_tilt']['range_t'][0])/(self.robot_params['head_tilt']['range_t'][1] - self.robot_params['head_tilt']['range_t'][0])
-        thresh = arm_pos + lift_pos + head_pan_pos + head_tilt_pos
-        i = 0
-        for j in self.robot.end_of_arm.joints:
-            value = (self.robot.status['end_of_arm'][j]['pos_ticks']- self.robot_params[j]['range_t'][0])/(self.robot_params['head_pan']['range_t'][1] - self.robot_params[j]['range_t'][0])
-            thresh = thresh + value
-            i = i + 1
-        thresh = thresh/(4+i)
-        return thresh
 
     def step(self,cfg=None):
         """
@@ -479,8 +548,8 @@ class RobotCollisionMgmt(Device):
         if self.urdf is None or not self.running:
             return
 
-        if cfg is None:
-            cfg = self.get_joint_configuration(braked=True)#_braked()
+        # if cfg is None:
+        #     cfg = self.get_joint_configuration(braked=True)#_braked()
 
         # Update forward kinematics of links
         lfk = self.urdf.link_fk(cfg=cfg, links=self.collision_links.keys(), use_names=True)
@@ -533,12 +602,7 @@ class RobotCollisionMgmt(Device):
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
                     cj.in_collision[cj.collision_dirs[cp.name]] = True
-                    # cj.update_collision_pair_min_dist(cp.name)
-
-            # if cj.in_collision['las_cp_min_dist']:
-            #     self.collision_joints[joint_name].update_collision_pair_min_dist(cj.in_collision['las_cp_min_dist']['pair_name'])
-            #Finally, update the collision state for each joint
-            self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
+            # self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
         self.prev_loop_start_ts = time.perf_counter()
         
     def alert(self):
@@ -561,36 +625,7 @@ class RobotCollisionMgmt(Device):
             return False
 
 
-    def get_joint_configuration(self,braked=False):
-        """
-        Construct a dictionary of robot's current pose
-        """
-        s = self.robot.get_status()
 
-        kbd = self.params[self.robot.params['model_name']]['k_brake_distance']
-        if braked:
-            da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
-            dl=kbd['lift']*self.robot.lift.get_braking_distance()
-            dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
-            dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
-        else:
-            da=0.0
-            dl=0.0
-            dhp=0.0
-            dht=0.0
-
-        configuration = {
-            'joint_lift': dl+s['lift']['pos'],
-            'joint_arm_l0': da+s['arm']['pos']/4.0,
-            'joint_arm_l1': da+s['arm']['pos']/4.0,
-            'joint_arm_l2': da+s['arm']['pos']/4.0,
-            'joint_arm_l3': da+s['arm']['pos']/4.0,
-            'joint_head_pan': dhp+s['head']['head_pan']['pos'],
-            'joint_head_tilt': dht+s['head']['head_tilt']['pos']
-            }
-
-        configuration.update(self.robot.end_of_arm.get_joint_configuration(braked))
-        return configuration
 
 class RobotCollision(Device):
     """
