@@ -355,15 +355,18 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
     collision_compute.startup()
     collision_joints_status = {}
     while not exit_event.is_set():
-        if shared_is_running.get():
-            # print(f"Process Side: {shared_joint_cfg}")
-            collision_compute.step(shared_joint_cfg, shared_joint_cfg_thresh)
-            for joint_name in collision_compute.collision_joints:
-                collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
-            for k in collision_joints_status.keys():
-                shared_collision_status[k] = collision_joints_status[k]
-            # print(f"Process Side: {collision_joints_status}")
-
+        try:
+            if shared_is_running.get():
+                # print(f"Process Side: {shared_joint_cfg}")
+                collision_compute.step(shared_joint_cfg, shared_joint_cfg_thresh)
+                for joint_name in collision_compute.collision_joints:
+                    collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
+                for k in collision_joints_status.keys():
+                    shared_collision_status[k] = collision_joints_status[k]
+                # print(f"Process Side: {collision_joints_status}")
+        except (BrokenPipeError,ConnectionResetError):
+            pass
+                
 class RobotCollisionMgmt(Device):
     def __init__(self,robot,name='robot_collision_mgmt'):
         self.name = name
@@ -376,7 +379,7 @@ class RobotCollisionMgmt(Device):
         self.exit_event = multiprocessing.Event()
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
-        self.collision_mgmt_proccess = multiprocessing.Process(target=_collision_compute_worker,
+        self.collision_compute_proccess = multiprocessing.Process(target=_collision_compute_worker,
                                                                args=(self.name,
                                                                      self.shared_is_running,
                                                                      self.shared_joint_cfg,
@@ -387,24 +390,27 @@ class RobotCollisionMgmt(Device):
         self.robot_params = RobotParams().get_params()[1]
 
     def startup(self):
-        self.collision_mgmt_proccess.start()
+        self.collision_compute_proccess.start()
     
     def stop(self):
         self.exit_event.set()
         self.shared_is_running.set(False)
-        self.collision_mgmt_proccess.terminate()
-        self.collision_mgmt_proccess.join()
+        self.collision_compute_proccess.terminate()
+        self.collision_compute_proccess.join()
     
     def step(self):
-        self.shared_is_running.set(self.running)
-        if self.running:
-            cfg = self.get_joint_configuration(braked=True)
-            self.shared_joint_cfg_thresh.set(self.get_normalized_cfg_threshold())
-            for k in cfg.keys():
-                self.shared_joint_cfg[k] = cfg[k]
-            for j in self.shared_collision_status.keys():
-                self.get_joint_motor(j).step_collision_avoidance(self.shared_collision_status[j])
-        # print(f"Thread Side: {self.shared_collision_status}")
+        try:
+            self.shared_is_running.set(self.running)
+            if self.running:
+                cfg = self.get_joint_configuration(braked=True)
+                self.shared_joint_cfg_thresh.set(self.get_normalized_cfg_threshold())
+                for k in cfg.keys():
+                    self.shared_joint_cfg[k] = cfg[k]
+                for j in self.shared_collision_status.keys():
+                    self.get_joint_motor(j).step_collision_avoidance(self.shared_collision_status[j])
+            # print(f"Thread Side: {self.shared_collision_status}")
+        except (BrokenPipeError,ConnectionResetError):
+            pass
 
     def signal_handler(self, signal_received, frame):
         self.exit_event.set()
