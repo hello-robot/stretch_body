@@ -7,11 +7,9 @@ import numpy as np
 import time
 import threading
 import chime
-import math
 import random
 from stretch_body.robot_params import RobotParams
 import multiprocessing
-
 
 try:
     # works on ubunut 22.04
@@ -350,30 +348,39 @@ class CollisionJoint:
         for ac in self.active_collisions:
             print('Active Collision: %s' % ac)
 
-def _worker(shared_joint_cfg, shared_collision_status, shared_joint_cfg_thresh):
-    collision_mgmt = RobotCollisionMgmtObj()
-    collision_mgmt.startup()
+def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_collision_status, shared_joint_cfg_thresh):
+    collision_compute = RobotCollisionCompute(name)
+    collision_compute.startup()
     collision_joints_status = {}
     while True:
-        # print(f"Process Side: {shared_joint_cfg}")
-        collision_mgmt.step(shared_joint_cfg, shared_joint_cfg_thresh)
-        for joint_name in collision_mgmt.collision_joints:
-            collision_joints_status[joint_name] = collision_mgmt.collision_joints[joint_name].in_collision
-        for k in collision_joints_status.keys():
-            shared_collision_status[k] = collision_joints_status[k]
-        # print(f"Process Side: {collision_joints_status}")
+        try:
+            if shared_is_running.get():
+                # print(f"Process Side: {shared_joint_cfg}")
+                collision_compute.step(shared_joint_cfg, shared_joint_cfg_thresh)
+                for joint_name in collision_compute.collision_joints:
+                    collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
+                for k in collision_joints_status.keys():
+                    shared_collision_status[k] = collision_joints_status[k]
+                # print(f"Process Side: {collision_joints_status}")
+        except (BrokenPipeError, ConnectionResetError):
+            pass
             
 
 class RobotCollisionMgmt(Device):
     def __init__(self,robot,name='robot_collision_mgmt'):
+        self.name = name
         self.robot = robot
         self.process_manager = multiprocessing.Manager()
         self.shared_joint_cfg = self.process_manager.dict()
         self.shared_collision_status = self.process_manager.dict()
         self.shared_joint_cfg_thresh = self.process_manager.Value(typecode=float,value=1000.0)
-        self.collision_mgmt_proccess = multiprocessing.Process(target=_worker,args=(self.shared_joint_cfg,
-                                                                                    self.shared_collision_status,
-                                                                                    self.shared_joint_cfg_thresh,),daemon=True)
+        self.shared_is_running = self.process_manager.Value(typecode=bool,value=False)
+        self.collision_mgmt_proccess = multiprocessing.Process(target=_collision_compute_worker,
+                                                               args=(self.name,
+                                                                     self.shared_is_running,
+                                                                     self.shared_joint_cfg,
+                                                                     self.shared_collision_status,
+                                                                     self.shared_joint_cfg_thresh,),daemon=True)
         self.running = False
         self.robot_params = RobotParams().get_params()[1]
 
@@ -385,10 +392,14 @@ class RobotCollisionMgmt(Device):
         self.collision_mgmt_proccess.join()
     
     def step(self):
-        cfg = self.get_joint_configuration()
-        self.shared_joint_cfg_thresh.set(self.get_normalized_cfg_threshold())
-        for k in cfg.keys():
-            self.shared_joint_cfg[k] = cfg[k]
+        self.shared_is_running.set(self.running)
+        if self.running:
+            cfg = self.get_joint_configuration(braked=True)
+            self.shared_joint_cfg_thresh.set(self.get_normalized_cfg_threshold())
+            for k in cfg.keys():
+                self.shared_joint_cfg[k] = cfg[k]
+            for j in self.shared_collision_status.keys():
+                self.get_joint_motor(j).step_collision_avoidance(self.shared_collision_status[j])
         # print(f"Thread Side: {self.shared_collision_status}")
 
     def get_joint_motor(self,joint_name):
@@ -453,8 +464,8 @@ class RobotCollisionMgmt(Device):
     def disable(self):
         self.running=False
 
-class RobotCollisionMgmtObj(Device):
-    def __init__(self):
+class RobotCollisionCompute(Device):
+    def __init__(self,name='robot_collision_mgmt'):
         """
         RobotCollisionMgmt monitors for collisions between links.
         It utilizes the Collision mesh for collision estimation.
@@ -467,12 +478,11 @@ class RobotCollisionMgmtObj(Device):
         Each link includes a parameter "scale_pct" which allows the mesh size to be expanded by a percentage around its centroid
         enabling the ability to increase the safety zone.
         """
-        Device.__init__(self, name='robot_collision_mgmt')
+        Device.__init__(self, name)
         self.collision_joints = {}
         self.collision_links = {}
         self.collision_pairs = {}
         chime.theme('big-sur') #'material')
-        self.running=True
         self.urdf=None
         self.prev_loop_start_ts = None
         self.robot_params = RobotParams().get_params()[1]
@@ -481,13 +491,10 @@ class RobotCollisionMgmtObj(Device):
         for j in self.collision_joints:
             self.collision_joints[j].pretty_print()
 
-    def enable(self):
-        self.running=True
 
-    def disable(self):
-        self.running=False
+        
     def startup(self,threaded=False):
-        Device.startup(self, threaded=False)
+        Device.startup(self, threaded)
         pkg = str(importlib_resources.files("stretch_urdf"))  # .local/lib/python3.10/site-packages/stretch_urdf)
         model_name = self.robot_params['robot']['model_name']
         eoa_name= self.robot_params['robot']['tool']
@@ -551,7 +558,7 @@ class RobotCollisionMgmtObj(Device):
         # if self.prev_loop_start_ts:
         #     print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
             
-        if self.urdf is None or not self.running:
+        if self.urdf is None:
             return
 
         # if cfg is None:
@@ -599,7 +606,6 @@ class RobotCollisionMgmtObj(Device):
                 # Beep on new collision
                 if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
                     print('New collision pair event: %s'%pair_name)
-                    # print('\a')
                     self.alert()
 
         normalized_joint_status_thresh = joint_cfg_thresh.get()
