@@ -358,13 +358,10 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
     while not exit_event.is_set():
         try:
             if shared_is_running.get():
-                # print(f"Process Side: {shared_joint_cfg}")
                 collision_compute.step(shared_joint_cfg, shared_joint_cfg_thresh)
                 for joint_name in collision_compute.collision_joints:
                     collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
-                for k in collision_joints_status.keys():
-                    shared_collision_status[k] = collision_joints_status[k]
-                # print(f"Process Side: {collision_joints_status}")
+                shared_collision_status.update(collision_joints_status)
         except (BrokenPipeError,ConnectionResetError):
             pass
                 
@@ -389,6 +386,7 @@ class RobotCollisionMgmt(Device):
                                                                      self.exit_event,),daemon=True)
         self.running = False
         self.robot_params = RobotParams().get_params()[1]
+        self.collision_status = {}
 
     def startup(self):
         self.collision_compute_proccess.start()
@@ -403,13 +401,11 @@ class RobotCollisionMgmt(Device):
         try:
             self.shared_is_running.set(self.running)
             if self.running:
-                cfg = self.get_joint_configuration(braked=True)
                 self.shared_joint_cfg_thresh.set(self.get_normalized_cfg_threshold())
-                for k in cfg.keys():
-                    self.shared_joint_cfg[k] = cfg[k]
-                for j in self.shared_collision_status.keys():
-                    self.get_joint_motor(j).step_collision_avoidance(self.shared_collision_status[j])
-            # print(f"Thread Side: {self.shared_collision_status}")
+                self.shared_joint_cfg.update(self.get_joint_configuration(braked=True))
+                self.collision_status.update(self.shared_collision_status)
+                for j in self.collision_status.keys():
+                    self.get_joint_motor(j).step_collision_avoidance(self.collision_status[j])
         except (BrokenPipeError,ConnectionResetError):
             pass
 
