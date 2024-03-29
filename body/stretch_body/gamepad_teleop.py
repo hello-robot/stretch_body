@@ -53,7 +53,7 @@ class GamePadTeleop(Device):
 
         self.end_of_arm_tool =RobotParams().get_params()[1]['robot']['tool']
 
-        self.sleep = 1/50
+        self.sleep = 1/30
         self.print_mode = False
         self._i = 0
         

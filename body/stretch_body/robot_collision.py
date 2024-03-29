@@ -354,6 +354,7 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
     collision_compute = RobotCollisionCompute(name)
     collision_compute.startup()
     collision_joints_status = {}
+    time.sleep(0.5)
     while not exit_event.is_set():
         try:
             if shared_is_running.get():
@@ -618,7 +619,7 @@ class RobotCollisionCompute(Device):
 
                 # Beep on new collision
                 if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
-                    print('New collision pair event: %s'%pair_name)
+                    print(f'New collision pair event: {pair_name}' )
                     self.alert()
 
         normalized_joint_status_thresh = joint_cfg_thresh.get()
