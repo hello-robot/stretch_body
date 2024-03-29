@@ -10,6 +10,7 @@ import chime
 import random
 from stretch_body.robot_params import RobotParams
 import multiprocessing
+import signal
 
 try:
     # works on ubunut 22.04
@@ -184,6 +185,7 @@ def closest_pair_3d(points1, points2):
                 closest_pair = (p1, p2)
                 
     return closest_pair, closest_distance
+    
 # #######################################################################
 
 class CollisionLink:
@@ -348,23 +350,19 @@ class CollisionJoint:
         for ac in self.active_collisions:
             print('Active Collision: %s' % ac)
 
-def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_collision_status, shared_joint_cfg_thresh):
+def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_collision_status, shared_joint_cfg_thresh, exit_event):
     collision_compute = RobotCollisionCompute(name)
     collision_compute.startup()
     collision_joints_status = {}
-    while True:
-        try:
-            if shared_is_running.get():
-                # print(f"Process Side: {shared_joint_cfg}")
-                collision_compute.step(shared_joint_cfg, shared_joint_cfg_thresh)
-                for joint_name in collision_compute.collision_joints:
-                    collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
-                for k in collision_joints_status.keys():
-                    shared_collision_status[k] = collision_joints_status[k]
-                # print(f"Process Side: {collision_joints_status}")
-        except (BrokenPipeError, ConnectionResetError):
-            pass
-            
+    while not exit_event.is_set():
+        if shared_is_running.get():
+            # print(f"Process Side: {shared_joint_cfg}")
+            collision_compute.step(shared_joint_cfg, shared_joint_cfg_thresh)
+            for joint_name in collision_compute.collision_joints:
+                collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
+            for k in collision_joints_status.keys():
+                shared_collision_status[k] = collision_joints_status[k]
+            # print(f"Process Side: {collision_joints_status}")
 
 class RobotCollisionMgmt(Device):
     def __init__(self,robot,name='robot_collision_mgmt'):
@@ -375,12 +373,16 @@ class RobotCollisionMgmt(Device):
         self.shared_collision_status = self.process_manager.dict()
         self.shared_joint_cfg_thresh = self.process_manager.Value(typecode=float,value=1000.0)
         self.shared_is_running = self.process_manager.Value(typecode=bool,value=False)
+        self.exit_event = multiprocessing.Event()
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGTERM, self.signal_handler)
         self.collision_mgmt_proccess = multiprocessing.Process(target=_collision_compute_worker,
                                                                args=(self.name,
                                                                      self.shared_is_running,
                                                                      self.shared_joint_cfg,
                                                                      self.shared_collision_status,
-                                                                     self.shared_joint_cfg_thresh,),daemon=True)
+                                                                     self.shared_joint_cfg_thresh,
+                                                                     self.exit_event,),daemon=True)
         self.running = False
         self.robot_params = RobotParams().get_params()[1]
 
@@ -388,6 +390,8 @@ class RobotCollisionMgmt(Device):
         self.collision_mgmt_proccess.start()
     
     def stop(self):
+        self.exit_event.set()
+        self.shared_is_running.set(False)
         self.collision_mgmt_proccess.terminate()
         self.collision_mgmt_proccess.join()
     
@@ -402,6 +406,9 @@ class RobotCollisionMgmt(Device):
                 self.get_joint_motor(j).step_collision_avoidance(self.shared_collision_status[j])
         # print(f"Thread Side: {self.shared_collision_status}")
 
+    def signal_handler(self, signal_received, frame):
+        self.exit_event.set()
+    
     def get_joint_motor(self,joint_name):
         if joint_name=='lift':
             return self.robot.lift
