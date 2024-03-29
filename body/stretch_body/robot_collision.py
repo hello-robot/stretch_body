@@ -11,6 +11,7 @@ import random
 from stretch_body.robot_params import RobotParams
 import multiprocessing
 import signal
+import ctypes
 
 try:
     # works on ubunut 22.04
@@ -357,11 +358,11 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
     time.sleep(0.5)
     while not exit_event.is_set():
         try:
-            if shared_is_running.get():
+            if shared_is_running.value:
                 collision_compute.step(shared_joint_cfg, shared_joint_cfg_thresh)
                 for joint_name in collision_compute.collision_joints:
                     collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
-                shared_collision_status.update(collision_joints_status)
+                shared_collision_status.put(collision_joints_status)
         except (BrokenPipeError,ConnectionResetError):
             pass
                 
@@ -369,11 +370,10 @@ class RobotCollisionMgmt(Device):
     def __init__(self,robot,name='robot_collision_mgmt'):
         self.name = name
         self.robot = robot
-        self.process_manager = multiprocessing.Manager()
-        self.shared_joint_cfg = self.process_manager.dict()
-        self.shared_collision_status = self.process_manager.dict()
-        self.shared_joint_cfg_thresh = self.process_manager.Value(typecode=float,value=1000.0)
-        self.shared_is_running = self.process_manager.Value(typecode=bool,value=False)
+        self.shared_joint_cfg = multiprocessing.Queue()
+        self.shared_collision_status = multiprocessing.Queue()
+        self.shared_joint_cfg_thresh = multiprocessing.Value(ctypes.c_float, 1000.0)
+        self.shared_is_running = multiprocessing.Value(ctypes.c_bool, False)
         self.exit_event = multiprocessing.Event()
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
@@ -399,11 +399,11 @@ class RobotCollisionMgmt(Device):
     
     def step(self):
         try:
-            self.shared_is_running.set(self.running)
+            self.shared_is_running.value = self.running
             if self.running:
-                self.shared_joint_cfg_thresh.set(self.get_normalized_cfg_threshold())
-                self.shared_joint_cfg.update(self.get_joint_configuration(braked=True))
-                self.collision_status.update(self.shared_collision_status)
+                self.shared_joint_cfg_thresh.value = self.get_normalized_cfg_threshold()
+                self.shared_joint_cfg.put(self.get_joint_configuration(braked=True))
+                self.collision_status.update(self.shared_collision_status.get())
                 for j in self.collision_status.keys():
                     self.get_joint_motor(j).step_collision_avoidance(self.collision_status[j])
         except (BrokenPipeError,ConnectionResetError):
@@ -575,9 +575,7 @@ class RobotCollisionCompute(Device):
         #     cfg = self.get_joint_configuration(braked=True)#_braked()
 
         # Update forward kinematics of links
-        _cfg = {}
-        for k in cfg.keys():
-            _cfg[k] = cfg[k]
+        _cfg = cfg.get()
         lfk = self.urdf.link_fk(cfg=_cfg, links=self.collision_links.keys(), use_names=True)
 
         # Update poses of links based on fk
@@ -618,7 +616,7 @@ class RobotCollisionCompute(Device):
                     print(f'New collision pair event: {pair_name}' )
                     self.alert()
 
-        normalized_joint_status_thresh = joint_cfg_thresh.get()
+        normalized_joint_status_thresh = joint_cfg_thresh.value
         # print(f"From Process: Normal CFG = {normalized_joint_status_thresh}")
         #Now update joint state
         for joint_name in self.collision_joints:
