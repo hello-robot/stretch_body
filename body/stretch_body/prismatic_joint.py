@@ -597,15 +597,13 @@ class PrismaticJoint(Device):
                 # Stop current motion
                 self.motor.enable_safety()
                 self.push_command()
-                self.motor.enable_safety()
-                self.push_command()
                 self.in_collision_stop[dir] = True
                 self.ts_collision_stop[dir]=time.time()
                 self.last_cfg_thresh = in_collision['last_joint_cfg_thresh']
 
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.5:
-                if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001:
+                if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001 and abs(self.status['vel'])<0.001:
                     self.in_collision_stop[dir] = False
  
 
