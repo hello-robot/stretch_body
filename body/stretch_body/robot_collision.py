@@ -352,6 +352,8 @@ class CollisionJoint:
             print('Active Collision: %s' % ac)
 
 def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_collision_status, shared_joint_cfg_thresh, exit_event):
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     collision_compute = RobotCollisionCompute(name)
     collision_compute.startup()
     collision_joints_status = {}
@@ -365,7 +367,10 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
                 shared_collision_status.put(collision_joints_status)
         except (BrokenPipeError,ConnectionResetError):
             pass
-                
+
+def signal_handler(signal_received, frame):
+    exit(0)
+
 class RobotCollisionMgmt(Device):
     def __init__(self,robot,name='robot_collision_mgmt'):
         self.name = name
@@ -375,8 +380,6 @@ class RobotCollisionMgmt(Device):
         self.shared_joint_cfg_thresh = multiprocessing.Value(ctypes.c_float, 1000.0)
         self.shared_is_running = multiprocessing.Value(ctypes.c_bool, False)
         self.exit_event = multiprocessing.Event()
-        signal.signal(signal.SIGINT, self.signal_handler)
-        signal.signal(signal.SIGTERM, self.signal_handler)
         self.collision_compute_proccess = multiprocessing.Process(target=_collision_compute_worker,
                                                                args=(self.name,
                                                                      self.shared_is_running,
@@ -404,13 +407,11 @@ class RobotCollisionMgmt(Device):
                 self.shared_joint_cfg_thresh.value = self.get_normalized_cfg_threshold()
                 self.shared_joint_cfg.put(self.get_joint_configuration(braked=True))
                 self.collision_status.update(self.shared_collision_status.get())
+                start = time.perf_counter()
                 for j in self.collision_status.keys():
                     self.get_joint_motor(j).step_collision_avoidance(self.collision_status[j])
         except (BrokenPipeError,ConnectionResetError):
             pass
-
-    def signal_handler(self, signal_received, frame):
-        self.exit_event.set()
     
     def get_joint_motor(self,joint_name):
         if joint_name=='lift':
@@ -613,7 +614,7 @@ class RobotCollisionCompute(Device):
 
                 # Beep on new collision
                 if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
-                    print(f'New collision pair event: {pair_name}' )
+                    print(f'New collision pair event: {pair_name} [{time.time()}]' )
                     self.alert()
 
         normalized_joint_status_thresh = joint_cfg_thresh.value
