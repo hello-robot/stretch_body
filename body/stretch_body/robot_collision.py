@@ -91,6 +91,7 @@ def check_AABB_in_AABB_from_pts(pts1, pts2):
     """
     Check if an AABB intersects another AABB from the given two sets of points
     """
+    print(pts1.shape,pts2.shape)
     xmax_1 = max(pts1[:, 0])
     xmin_1 = min(pts1[:, 0])
     ymax_1 = max(pts1[:, 1])
@@ -132,7 +133,33 @@ def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
             mid2 = np.add(mid, set[1])/2
             if check_pts_in_AABB_cube(cube,[mid, mid1, mid2]):
                 return True
+            
+        # TODO: Barycentric Coordinates based points interpolation which is multiple folds efficient
+        # if check_AABB_in_AABB_from_pts(cube,sample_points_on_triangle(points[0],points[1],points[2],50)):
+        #     return True
+
     return False
+
+def sample_points_on_triangle(A, B, C, N):
+    """
+    Sample N points on the triangle formed by 3D points A, B, and C.
+    
+    Parameters:
+    A, B, C: Arrays representing the 3D coordinates of the triangle's vertices.
+    N: The number of points to sample.
+    
+    Returns:
+    points: An array of shape (N, 3) containing N sampled points on the triangle.
+    """
+    # Generate N sets of barycentric coordinates using the Dirichlet distribution
+    barycentric_coords = np.random.dirichlet([1, 1, 1], N)
+    
+    # Convert barycentric coordinates to Cartesian coordinates
+    points = barycentric_coords[:, 0][:, np.newaxis] * A \
+           + barycentric_coords[:, 1][:, np.newaxis] * B \
+           + barycentric_coords[:, 2][:, np.newaxis] * C
+    
+    return points
 
 # def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
 #     for points in mesh_triangles:

@@ -232,4 +232,4 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
         self.motors['wrist_yaw'].home()
         self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
         self.motors['wrist_yaw'].move_to(1.57)
-        time.sleep(1)
+        time.sleep(2)
