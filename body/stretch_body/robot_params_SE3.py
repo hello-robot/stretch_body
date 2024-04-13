@@ -277,7 +277,7 @@ SE3_eoa_wrist_dw3_tool_sg3={
             'stretch_gripper':0.0
         },
         'collision_mgmt': {
-            'k_brake_distance': {'wrist_pitch': 3.0, 'wrist_yaw': 2.0, 'wrist_roll': 2.0, 'stretch_gripper': 0.0},
+            'k_brake_distance': {'wrist_pitch': 3.0, 'wrist_yaw': 4.0, 'wrist_roll': 2.0, 'stretch_gripper': 0.0},
             'collision_pairs': {
                 'link_gripper_fingertip_left_TO_link_lift': {'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'link_lift','detect_as': 'edges'},
                 'link_gripper_s3_body_TO_base_link': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'base_link','detect_as': 'edges'},
@@ -427,7 +427,7 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
             'wrist_yaw': 1.57
         },
         'collision_mgmt': {
-            'k_brake_distance': {'wrist_pitch': 2.25, 'wrist_yaw':2.25, 'wrist_roll': 0.25},
+            'k_brake_distance': {'wrist_pitch': 3.5, 'wrist_yaw':3, 'wrist_roll': 0.25},
             'collision_pairs': {
                 'link_DW3_tablet_12in_TO_base_link': {'link_cube': 'base_link', 'link_pts': 'link_DW3_tablet_12in', 'detect_as': 'edges'},
                 'link_DW3_tablet_12in_TO_link_arm_l0': {'link_cube': 'link_arm_l0', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges'},
