@@ -128,7 +128,9 @@ class EndOfArm(DynamixelXChain):
                     dx=0
             ret[j] = motor.status['pos'] + dx
         return ret
-
+    
+    def pre_stow(self,robot=None):
+        pass
 
 
 

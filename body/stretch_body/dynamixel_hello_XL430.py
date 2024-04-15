@@ -106,6 +106,8 @@ class DynamixelHelloXL430(Device):
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
             self.in_collision_stop = {'pos': False, 'neg': False}
             self.ts_collision_stop = {'pos': 0.0, 'neg': 0.0}
+            self.forced_collision_stop_override = {'pos': False, 'neg':False}
+            self._in_collision_stop_override = False
         except KeyError:
             self.motor=None
 
@@ -449,22 +451,33 @@ class DynamixelHelloXL430(Device):
         #     print('Invalid IN_COLLISION for joint %s'%self.name)
         #     return
 
+        if True in self.forced_collision_stop_override.values():
+            if not self._in_collision_stop_override:
+                self.quick_stop()
+                self._in_collision_stop_override = True
+                return
+        
+        if not True in self.forced_collision_stop_override.values():
+            self._in_collision_stop_override = False
+
+
         for dir in ['pos','neg']:
             if in_collision[dir] and not self.in_collision_stop[dir]:
                 # Stop current motion
                 self.ts_collision_stop[dir] = time.time()
-                self.quick_stop()
+                if not self.was_runstopped:
+                    self.quick_stop()
                 self.in_collision_stop[dir] = True
-                self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
+                # self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
+                # self.last_cfg_thresh = in_collision['last_joint_cfg_thresh']
 
             #Reset if out of collision (at least 1s after collision)
-            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
-                # Check if the minimum distance between the last active collision pair has changed before reset
-                if in_collision['las_cp_min_dist']:
-                    print(f"[{self.name}] Joint in collision {in_collision['las_cp_min_dist']}")
-                    if self.last_collision_pair_min_dist['pair_name']==in_collision['las_cp_min_dist']['pair_name']:
-                        if abs(self.last_collision_pair_min_dist['dist'] - in_collision['las_cp_min_dist']['dist'])>0.03:
-                            self.in_collision_stop[dir] = False
+            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1:
+                self.in_collision_stop[dir] = False
+                # if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001:
+                #     self.in_collision_stop[dir] = False
+                # if  abs(self.status['vel'])<0.001:
+                #     self.in_collision_stop[dir] = False
 
     def get_braking_distance(self,acc=None):
         """Compute distance to brake the joint from the current velocity"""
@@ -590,6 +603,14 @@ class DynamixelHelloXL430(Device):
             self.watchdog_enabled = True
             self.enable_torque()
         v = min(self.params['motion']['max']['vel'],abs(v_des))
+
+        if self.forced_collision_stop_override['pos'] and v_des>0:
+            self.logger.warning(f"Forced Collision stop")
+            return
+
+        if self.forced_collision_stop_override['neg'] and v_des<0:
+            self.logger.warning(f"Forced Collision stop")
+            return
 
         if self.in_collision_stop['pos'] and v_des>0:
             self.logger.warning('set_velocity in collision . Motion disabled in direction %s for %s. Not executing set_velocity'%('pos',self.name))

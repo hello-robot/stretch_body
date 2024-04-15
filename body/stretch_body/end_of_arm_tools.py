@@ -75,7 +75,7 @@ class ToolStretchDexWrist(EndOfArm):
         self.motors['wrist_roll'].move_to(0)
         self.motors['wrist_yaw'].home()
 
-    def pre_stow(self):
+    def pre_stow(self,robot=None):
         if 'wrist_pitch' in self.end_of_arm.joints:
             self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
@@ -105,8 +105,10 @@ class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
         self.motors['wrist_roll'].move_to(self.params['stow']['wrist_roll'])
         self.motors['wrist_yaw'].home()
 
-    def pre_stow(self):
-        if 'wrist_pitch' in self.end_of_arm.joints:
+    def pre_stow(self,robot=None):
+        if robot:
+            robot.end_of_arm.move_to('wrist_pitch', robot.end_of_arm.params['stow']['wrist_pitch'])
+        else:
             self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
 class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
@@ -138,8 +140,10 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
         self.motors['wrist_yaw'].home()
         self.motors['stretch_gripper'].home()
     
-    def pre_stow(self):
-        if 'wrist_pitch' in self.end_of_arm.joints:
+    def pre_stow(self,robot=None):
+        if robot:
+            robot.end_of_arm.move_to('wrist_pitch', robot.end_of_arm.params['stow']['wrist_pitch'])
+        else:
             self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
 class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
@@ -156,7 +160,7 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
             'joint_wrist_pitch': 'wrist_pitch',
             'joint_wrist_roll':'wrist_roll' #Not mapping fingers for collision mgmt yet
         }
-    
+
     def move_by(self, joint, x_r, v_r=None, a_r=None, enable_wrist_roll = False):
         # Lock wrist roll by default
         if joint=='wrist_roll':
@@ -228,4 +232,20 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
         self.motors['wrist_yaw'].home()
         self.motors['wrist_pitch'].move_to(self.params['stow']['wrist_pitch'])
         self.motors['wrist_yaw'].move_to(1.57)
-        time.sleep(1)
+        time.sleep(2)
+    
+    def step_sentry(self, robot):
+        super().step_sentry(robot)
+        if robot.collision.running:
+            wrist_p = self.get_joint('wrist_pitch').status['pos']
+            wrist_y = self.get_joint('wrist_yaw').status['pos']
+            # TODO: Add more special conditions around this part
+            if wrist_p > -0.3 and wrist_y < 0.18:
+                # print("In Special Stop")
+                self.get_joint('wrist_yaw').forced_collision_stop_override = {'pos': False, 'neg':True}
+                self.get_joint('wrist_pitch').forced_collision_stop_override = {'pos': True, 'neg':False}
+                
+            else:
+                # print("Out Special Stop")
+                self.get_joint('wrist_yaw').forced_collision_stop_override = {'pos': False, 'neg':False}
+                self.get_joint('wrist_pitch').forced_collision_stop_override = {'pos': False, 'neg':False}

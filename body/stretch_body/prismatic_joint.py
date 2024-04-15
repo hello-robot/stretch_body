@@ -44,6 +44,7 @@ class PrismaticJoint(Device):
         self.total_range = abs(self.params['range_m'][1] - self.params['range_m'][0])
         self.in_collision_stop = {'pos': False, 'neg': False}
         self.ts_collision_stop = {'pos': 0, 'neg': 0}
+        self.collision_till_zero_vel_counter = 0
 
     # ###########  Device Methods #############
     def startup(self, threaded=True):
@@ -591,7 +592,6 @@ class PrismaticJoint(Device):
         # if in_collision['pos'] and in_collision['neg']:
         #     print('Invalid IN_COLLISION for joint %s'%self.name)
         #     return
-
         for dir in ['pos','neg']:
             if in_collision[dir] and not self.in_collision_stop[dir]:
                 # Stop current motion
@@ -599,16 +599,20 @@ class PrismaticJoint(Device):
                 self.push_command()
                 self.in_collision_stop[dir] = True
                 self.ts_collision_stop[dir]=time.time()
-                self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
+                self.collision_till_zero_vel_counter = 0
+                # self.last_cfg_thresh = in_collision['last_joint_cfg_thresh']
 
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
-                # Check if the minimum distance between the last active collision pair has changed before reset
-                if in_collision['las_cp_min_dist']:
-                    print(f"[{self.name}] Joint in collision {in_collision['las_cp_min_dist']}")
-                    if self.last_collision_pair_min_dist['pair_name']==in_collision['las_cp_min_dist']['pair_name']:
-                        if abs(self.last_collision_pair_min_dist['dist'] - in_collision['las_cp_min_dist']['dist'])>0.03:
-                            self.in_collision_stop[dir] = False
+                self.in_collision_stop[dir] = False
+                # if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001 and abs(self.status['vel'])<0.001:
+                #     self.in_collision_stop[dir] = False
+                # if abs(self.status['vel'])<0.001:
+                #     self.collision_till_zero_vel_counter = self.collision_till_zero_vel_counter + 1
+                # if self.collision_till_zero_vel_counter>50:
+                #     self.in_collision_stop[dir] = False
+                #     self.collision_till_zero_vel_counter = 0
+ 
 
 
 
