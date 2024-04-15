@@ -404,6 +404,7 @@ class RobotCollisionMgmt(Device):
         self.running = False
         self.robot_params = RobotParams().get_params()[1]
         self.collision_status = {}
+        self.brake_joints = {}
 
     def startup(self):
         self.collision_compute_proccess.start()
@@ -418,11 +419,17 @@ class RobotCollisionMgmt(Device):
         try:
             self.shared_is_running.value = self.running
             if self.running:
-                config = self.get_joint_configuration(braked=False)
+                config = self.get_joint_configuration(self.brake_joints)
                 self.shared_joint_cfg.put(config)
                 self.collision_status.update(self.shared_collision_status.get())
                 for j in self.collision_status.keys():
-                    self.get_joint_motor(j).step_collision_avoidance(self.collision_status[j])
+                    jm = self.get_joint_motor(j)
+                    jm.step_collision_avoidance(self.collision_status[j])
+                    if True in self.collision_status[j].values():
+                        self.brake_joints[j] = True
+                    else:
+                        self.brake_joints[j] = False
+
         except (BrokenPipeError,ConnectionResetError):
             pass
     
@@ -437,36 +444,66 @@ class RobotCollisionMgmt(Device):
             return self.robot.head.get_joint('head_tilt')
         #Try the tool
         return self.robot.end_of_arm.get_joint(joint_name)
-
-    def get_normalized_cfg_threshold(self):
-        arm_pos = self.robot.status['arm']['pos']/(0.5)
-        lift_pos = self.robot.status['lift']['pos']/(1.1)
-        head_pan_pos = (self.robot.status['head']['head_pan']['pos_ticks']- self.robot_params['head_pan']['range_t'][0])/(self.robot_params['head_pan']['range_t'][1] - self.robot_params['head_pan']['range_t'][0])
-        head_tilt_pos = (self.robot.status['head']['head_tilt']['pos_ticks']- self.robot_params['head_tilt']['range_t'][0])/(self.robot_params['head_tilt']['range_t'][1] - self.robot_params['head_tilt']['range_t'][0])
-        thresh = arm_pos + lift_pos + head_pan_pos + head_tilt_pos
-        i = 0
-        for j in self.robot.end_of_arm.joints:
-            value = (self.robot.status['end_of_arm'][j]['pos_ticks']- self.robot_params[j]['range_t'][0])/(self.robot_params['head_pan']['range_t'][1] - self.robot_params[j]['range_t'][0])
-            thresh = thresh + value
-            i = i + 1
-        thresh = thresh/(4+i)
-        return float(thresh)
     
-    def get_joint_configuration(self,braked=False):
+    # def get_joint_configuration(self,braked=False):
+    #     """
+    #     Construct a dictionary of robot's current pose
+    #     """
+    #     s = self.robot.get_status()
+    #     kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
+    #     if braked:
+    #         da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
+    #         dl=kbd['lift']*self.robot.lift.get_braking_distance()
+    #         dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
+    #         dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
+    #     else:
+    #         da=0.0
+    #         dl=0.0
+    #         dhp=0.0
+    #         dht=0.0
+
+    #     configuration = {
+    #         'joint_lift': dl+s['lift']['pos'],
+    #         'joint_arm_l0': da+s['arm']['pos']/4.0,
+    #         'joint_arm_l1': da+s['arm']['pos']/4.0,
+    #         'joint_arm_l2': da+s['arm']['pos']/4.0,
+    #         'joint_arm_l3': da+s['arm']['pos']/4.0,
+    #         'joint_head_pan': dhp+s['head']['head_pan']['pos'],
+    #         'joint_head_tilt': dht+s['head']['head_tilt']['pos']
+    #         }
+
+    #     configuration.update(self.robot.end_of_arm.get_joint_configuration(braked))
+    #     return configuration
+
+    def get_joint_configuration(self,brake_joints={}):
         """
         Construct a dictionary of robot's current pose
         """
         s = self.robot.get_status()
         kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
-        if braked:
-            da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
-            dl=kbd['lift']*self.robot.lift.get_braking_distance()
-            dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
-            dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
-        else:
+        da=0.0
+        dl=0.0
+        dhp=0.0
+        dht=0.0
+        try:
+            if brake_joints['arm']:
+                da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
+        except KeyError:
             da=0.0
+        try:
+            if brake_joints['lift']:
+                dl=kbd['lift']*self.robot.lift.get_braking_distance()
+        except KeyError:
             dl=0.0
+        try:
+            if brake_joints['head_pan']:
+                dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
+        except KeyError:
             dhp=0.0
+        try:
+            if brake_joints['head_tilt']:
+                dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
+        except KeyError:
             dht=0.0
 
         configuration = {
@@ -479,32 +516,7 @@ class RobotCollisionMgmt(Device):
             'joint_head_tilt': dht+s['head']['head_tilt']['pos']
             }
 
-        configuration.update(self.robot.end_of_arm.get_joint_configuration(True))
-        return configuration
-
-    def update_configuration_with_brakes(self,configuration):
-        """
-        Update a dictionary of robot's current pose with braking distance applied
-        """
-        s = self.robot.get_status()
-        kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
-        da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
-        dl=kbd['lift']*self.robot.lift.get_braking_distance()
-        dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
-        dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
-
-
-        configuration = {
-            'joint_lift': dl+s['lift']['pos'],
-            'joint_arm_l0': da+s['arm']['pos']/4.0,
-            'joint_arm_l1': da+s['arm']['pos']/4.0,
-            'joint_arm_l2': da+s['arm']['pos']/4.0,
-            'joint_arm_l3': da+s['arm']['pos']/4.0,
-            'joint_head_pan': dhp+s['head']['head_pan']['pos'],
-            'joint_head_tilt': dht+s['head']['head_tilt']['pos']
-            }
-
-        configuration.update(self.robot.end_of_arm.get_joint_configuration(True))
+        configuration.update(self.robot.end_of_arm.get_joint_configuration(brake_joints))
         return configuration
     
     def enable(self):

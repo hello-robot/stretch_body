@@ -468,16 +468,11 @@ class DynamixelHelloXL430(Device):
                 if not self.was_runstopped:
                     self.quick_stop()
                 self.in_collision_stop[dir] = True
-                # self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
-                # self.last_cfg_thresh = in_collision['last_joint_cfg_thresh']
 
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1:
                 self.in_collision_stop[dir] = False
-                # if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001:
-                #     self.in_collision_stop[dir] = False
-                # if  abs(self.status['vel'])<0.001:
-                #     self.in_collision_stop[dir] = False
+
 
     def get_braking_distance(self,acc=None):
         """Compute distance to brake the joint from the current velocity"""
@@ -605,11 +600,11 @@ class DynamixelHelloXL430(Device):
         v = min(self.params['motion']['max']['vel'],abs(v_des))
 
         if self.forced_collision_stop_override['pos'] and v_des>0:
-            self.logger.warning(f"Forced Collision stop")
+            self.logger.warning(f"set_velocity in Forced Collision stop. Motion disabled in direction {'pos'} for {self.name}. Not executing move_to")
             return
 
         if self.forced_collision_stop_override['neg'] and v_des<0:
-            self.logger.warning(f"Forced Collision stop")
+            self.logger.warning(f"set_velocity in Forced Collision stop. Motion disabled in direction {'neg'} for {self.name}. Not executing move_to")
             return
 
         if self.in_collision_stop['pos'] and v_des>0:
@@ -734,6 +729,13 @@ class DynamixelHelloXL430(Device):
             print('Dynamixel not calibrated:', self.name)
             return
 
+        if self.forced_collision_stop_override['pos'] and self.status['pos']<x_des:
+            self.logger.warning(f"move_to in Forced Collision stop. Motion disabled in direction {'pos'} for {self.name}. Not executing move_to")
+            return
+
+        if self.forced_collision_stop_override['neg'] and self.status['pos']>x_des:
+            self.logger.warning(f"move_to in Forced Collision stop. Motion disabled in direction {'neg'} for {self.name}. Not executing move_to")
+            return
 
         if self.in_collision_stop['pos'] and self.status['pos']<x_des:
             self.logger.warning('move_to in collision. Motion disabled in direction %s for %s. Not executing move_to'%('pos',self.name))

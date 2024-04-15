@@ -427,14 +427,15 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
             'wrist_yaw': 1.57
         },
         'collision_mgmt': {
-            'k_brake_distance': {'wrist_pitch': 0.5, 'wrist_yaw':0.5, 'wrist_roll': 0.25},
+            'k_brake_distance': {'wrist_pitch': 0.5, 'wrist_yaw':1.5, 'wrist_roll': 0.25},
             'collision_pairs': {
                 'link_DW3_tablet_12in_TO_base_link': {'link_cube': 'base_link', 'link_pts': 'link_DW3_tablet_12in', 'detect_as': 'edges'},
                 'link_DW3_tablet_12in_TO_link_arm_l0': {'link_cube': 'link_arm_l0', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges'},
                 'link_DW3_tablet_12in_TO_link_arm_l1': {'link_cube': 'link_arm_l1', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges'},
                 'link_DW3_tablet_12in_TO_link_head_tilt': {'link_cube': 'link_head_tilt', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges', 'cube_scale': 1.2},
                 'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'edges'},
-                'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'edges'}},
+                'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'edges'},
+                'link_DW3_tablet_12in_TO_link_lift': {'link_pts': 'link_DW3_tablet_12in', 'link_cube': 'link_lift','detect_as': 'edges'},},
 
             'joints': {'arm':  [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
                                 {'motion_dir': 'neg', 'collision_pair': 'link_wrist_pitch_TO_base_link'},
@@ -460,6 +461,7 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
                                      {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
                                      {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
                                     #  {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
+                                     {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_lift'},
                                      {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
                                      {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
                                      {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},

@@ -110,7 +110,7 @@ class EndOfArm(DynamixelXChain):
                 return True
         return False
 
-    def get_joint_configuration(self,braked=False):
+    def get_joint_configuration(self,brake_joints={}):
         """
         Construct a dictionary of tools current pose (for robot_collision_mgmt)
         Keys match joint names in URDF
@@ -121,11 +121,11 @@ class EndOfArm(DynamixelXChain):
             jn = self.urdf_map[j]
             motor = self.get_joint(jn)
             dx = 0.0
-            if braked:
-                try:
+            try:
+                if brake_joints[j]:
                     dx = self.params['collision_mgmt']['k_brake_distance'][jn] * motor.get_braking_distance()
-                except KeyError:
-                    dx=0
+            except KeyError:
+                dx=0
             ret[j] = motor.status['pos'] + dx
         return ret
     
