@@ -74,7 +74,7 @@ class RobotMonitor(Device):
     def monitor_over_tilt_alert(self):
         if self.robot.pimu is not None:
             if self.robot.pimu.status['over_tilt_alert'] and self.monitor_history['monitor_over_tilt_alert'] == 0:
-                self.logger.info("Over Tilt Alert")
+                self.logger.info(f"Over Tilt Alert, {self.robot.pimu.status['over_tilt_type']}")
             self.monitor_history['monitor_over_tilt_alert'] = self.robot.pimu.status['over_tilt_alert']
 
     # ##################################

@@ -447,6 +447,14 @@ class PimuBase(Device):
         mV = raw * raw_to_mV
         mA = mV/.215 # conversion per circuit
         return mA/1000.0
+    
+    def get_tilt_type(self, raw):
+        tilt_type = {
+            1: 'Left Tilt',
+            2: 'Right Tilt',
+            3: 'Front Tilt'
+        }
+        return tilt_type.get(raw, None)
     # ################Data Packing #####################
 
     def unpack_board_info(self,s):
@@ -894,7 +902,7 @@ class Pimu_Protocol_P6(PimuBase):
             unpack_to = self.status
         sidx = 0
         sidx = sidx + Pimu_Protocol_P5.unpack_status(self, s, unpack_to)
-        unpack_to['over_tilt_type'] = (unpack_uint8_t(s[sidx:]));sidx += 1
+        unpack_to['over_tilt_type'] = self.get_tilt_type(unpack_uint8_t(s[sidx:]));sidx += 1
         return sidx
 # ######################## PIMU #################################
 class Pimu(PimuBase):
