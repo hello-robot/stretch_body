@@ -309,13 +309,14 @@ class CollisionLink:
         return True
 
 class CollisionPair:
-    def __init__(self, name,link_pts,link_cube,detect_as):
+    def __init__(self, name,link_pts,link_cube,detect_as, cube_scale=1.2):
         self.in_collision=False
         self.was_in_collision=False
         self.link_cube=link_cube
         self.link_pts=link_pts
         self.detect_as=detect_as
         self.name=name
+        self.cube_scale = cube_scale 
         self.is_valid=self.link_cube.is_valid and self.link_pts.is_valid and self.link_cube.is_aabb
         if not self.is_valid:
             print('Dropping monitor of collision pair %s'%self.name_id)
@@ -366,7 +367,7 @@ class CollisionJoint:
         for ac in self.active_collisions:
             print('Active Collision: %s' % ac)
 
-def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_collision_status, shared_joint_cfg_thresh, exit_event):
+def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_collision_status, exit_event):
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     collision_compute = RobotCollisionCompute(name)
@@ -376,7 +377,7 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
     while not exit_event.is_set():
         try:
             if shared_is_running.value:
-                collision_compute.step(shared_joint_cfg, shared_joint_cfg_thresh)
+                collision_compute.step(shared_joint_cfg)
                 for joint_name in collision_compute.collision_joints:
                     collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
                 shared_collision_status.put(collision_joints_status)
@@ -392,7 +393,6 @@ class RobotCollisionMgmt(Device):
         self.robot = robot
         self.shared_joint_cfg = multiprocessing.Queue()
         self.shared_collision_status = multiprocessing.Queue()
-        self.shared_joint_cfg_thresh = multiprocessing.Value(ctypes.c_float, 1000.0)
         self.shared_is_running = multiprocessing.Value(ctypes.c_bool, False)
         self.exit_event = multiprocessing.Event()
         self.collision_compute_proccess = multiprocessing.Process(target=_collision_compute_worker,
@@ -400,7 +400,6 @@ class RobotCollisionMgmt(Device):
                                                                      self.shared_is_running,
                                                                      self.shared_joint_cfg,
                                                                      self.shared_collision_status,
-                                                                     self.shared_joint_cfg_thresh,
                                                                      self.exit_event,),daemon=True)
         self.running = False
         self.robot_params = RobotParams().get_params()[1]
@@ -419,7 +418,6 @@ class RobotCollisionMgmt(Device):
         try:
             self.shared_is_running.value = self.running
             if self.running:
-                self.shared_joint_cfg_thresh.value = self.get_normalized_cfg_threshold()
                 self.shared_joint_cfg.put(self.get_joint_configuration(braked=False))
                 self.collision_status.update(self.shared_collision_status.get())
                 for j in self.collision_status.keys():
@@ -555,6 +553,9 @@ class RobotCollisionCompute(Device):
                                                           link_pts=self.collision_links[cp['link_pts']],
                                                           link_cube=self.collision_links[cp['link_cube']],
                                                           detect_as=cp['detect_as'])
+            if 'cube_scale' in list(cp.keys()):
+                print('cp_name',cp['cube_scale'])
+                self.collision_pairs[cp_name].cube_scale = cp['cube_scale']
 
         #Assign collision pairs to each joint
         #Include those of standard robot body plus its defined tool
@@ -576,7 +577,7 @@ class RobotCollisionCompute(Device):
                                                                      collision_pair=self.collision_pairs[cp['collision_pair']])
     
 
-    def step(self,cfg=None, joint_cfg_thresh=None):
+    def step(self,cfg=None):
         """
                 Check for interference between cube pairs
         """
@@ -619,12 +620,13 @@ class RobotCollisionCompute(Device):
             cp=self.collision_pairs[pair_name]
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
-                cube_scale = 1.2
                 if cp.detect_as=='pts':
-                    cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
+                    cp.in_collision=check_pts_in_AABB_cube(cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale),
+                                                           pts = cp.link_pts.pose)
                     # cp.in_collision=check_AABB_in_AABB_from_pts(pts1=cp.link_cube.pose,pts2=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
-                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(), cube=scale_cuboid_points(cp.link_cube.pose,cube_scale))
+                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles = cp.link_pts.get_triangles(), 
+                                                                        cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale))
                 else:
                     cp.in_collision =False
                     #cp.pretty_print()
@@ -638,12 +640,10 @@ class RobotCollisionCompute(Device):
                     print(f'New collision pair event: {pair_name} [{time.time()}]' )
                     self.alert()
 
-        normalized_joint_status_thresh = joint_cfg_thresh.value
         # print(f"From Process: Normal CFG = {normalized_joint_status_thresh}")
         #Now update joint state
         for joint_name in self.collision_joints:
             cj = self.collision_joints[joint_name]
-            cj.update_last_joint_cfg_thresh(normalized_joint_status_thresh)
             for cp in cj.collision_pairs:
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
