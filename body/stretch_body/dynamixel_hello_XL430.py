@@ -460,7 +460,9 @@ class DynamixelHelloXL430(Device):
 
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1:
-                if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001:
+                # if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001:
+                #     self.in_collision_stop[dir] = False
+                if  abs(self.status['vel'])<0.001:
                     self.in_collision_stop[dir] = False
 
     def get_braking_distance(self,acc=None):

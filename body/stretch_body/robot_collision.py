@@ -122,42 +122,54 @@ def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
         mesh_triangles.pop(random_index)
 
         # Three triangle sides
-        set_1 = [points[0],points[1]]
-        set_2 = [points[0],points[2]]
-        set_3 = [points[1],points[2]]
+        # set_1 = [points[0],points[1]]
+        # set_2 = [points[0],points[2]]
+        # set_3 = [points[1],points[2]]
 
         # Sample three equilinear points on each side and test for AABB intersection
-        for set in [set_1,set_2,set_3]:
-            mid =  np.add(set[0], set[1])/2
-            mid1 = np.add(mid, set[0])/2
-            mid2 = np.add(mid, set[1])/2
-            if check_pts_in_AABB_cube(cube,[mid, mid1, mid2]):
-                return True
+        # for set in [set_1,set_2,set_3]:
+        #     mid =  np.add(set[0], set[1])/2
+        #     mid1 = np.add(mid, set[0])/2
+        #     mid2 = np.add(mid, set[1])/2
+        #     if check_pts_in_AABB_cube(cube,[mid, mid1, mid2]):
+        #         return True
             
         # TODO: Barycentric Coordinates based points interpolation which is multiple folds efficient
         # if check_AABB_in_AABB_from_pts(cube,sample_points_on_triangle(points[0],points[1],points[2],50)):
         #     return True
 
+        if check_pts_in_AABB_cube(cube,sample_points_on_triangle_edges(points)):
+            return True
     return False
 
-def sample_points_on_triangle(A, B, C, N):
+def get_triangle_edge_barycentric_coords(N):
     """
-    Sample N points on the triangle formed by 3D points A, B, and C.
-    
-    Parameters:
-    A, B, C: Arrays representing the 3D coordinates of the triangle's vertices.
-    N: The number of points to sample.
-    
-    Returns:
-    points: An array of shape (N, 3) containing N sampled points on the triangle.
+    Generate a Barycentric coordinate vectors of N points of a triangle edges
+    This matrix is a constant.
     """
-    # Generate N sets of barycentric coordinates using the Dirichlet distribution
-    barycentric_coords = np.random.dirichlet([1, 1, 1], N)
-    
+    barycentric_coords = []
+    nums = np.linspace(0,1,num=N)
+    for n1 in nums:
+        for n2 in nums:
+            for n3 in nums:
+                c = False
+                if abs(n3)<0.001:
+                    c = True
+                if abs(n2)<0.001:
+                    c = True
+                if abs(n1)<0.001:
+                    c = True
+                if c and abs((1-n2-n3)-n1)<0.001:
+                    barycentric_coords.append([n1,n2,n3])
+
+    return np.array(barycentric_coords)
+
+BARYCENTRIC_COORDS = get_triangle_edge_barycentric_coords(7)
+def sample_points_on_triangle_edges(points):
     # Convert barycentric coordinates to Cartesian coordinates
-    points = barycentric_coords[:, 0][:, np.newaxis] * A \
-           + barycentric_coords[:, 1][:, np.newaxis] * B \
-           + barycentric_coords[:, 2][:, np.newaxis] * C
+    points = BARYCENTRIC_COORDS[:, 0][:, np.newaxis] * points[0] \
+           + BARYCENTRIC_COORDS[:, 1][:, np.newaxis] * points[1] \
+           + BARYCENTRIC_COORDS[:, 2][:, np.newaxis] * points[2]
     
     return points
 
@@ -352,6 +364,7 @@ class CollisionJoint:
         self.collision_dirs={}
         self.in_collision={'pos':False,'neg':False, 'last_joint_cfg_thresh':1000}
         self.was_in_collision = {'pos': False, 'neg': False}
+        self.last_in_collision_cnt = 0
 
     def add_collision_pair(self,motion_dir, collision_pair):
         self.collision_pairs.append(collision_pair)
@@ -432,9 +445,8 @@ class RobotCollisionMgmt(Device):
             self.shared_is_running.value = self.running
             if self.running:
                 self.shared_joint_cfg_thresh.value = self.get_normalized_cfg_threshold()
-                self.shared_joint_cfg.put(self.get_joint_configuration(braked=True))
+                self.shared_joint_cfg.put(self.get_joint_configuration(braked=False))
                 self.collision_status.update(self.shared_collision_status.get())
-                start = time.perf_counter()
                 for j in self.collision_status.keys():
                     self.get_joint_motor(j).step_collision_avoidance(self.collision_status[j])
         except (BrokenPipeError,ConnectionResetError):
@@ -619,8 +631,13 @@ class RobotCollisionCompute(Device):
             self.collision_joints[joint_name].active_collisions=[]
             self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
             # self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False, 'min_dist_pair':None}
-            self.collision_joints[joint_name].in_collision['pos'] = False
-            self.collision_joints[joint_name].in_collision['neg'] = False
+            print(f"[{joint_name}] Was in Collision cnt: {self.collision_joints[joint_name].last_in_collision_cnt}")
+            if self.collision_joints[joint_name].in_collision['pos'] or self.collision_joints[joint_name].in_collision['neg']:
+                self.collision_joints[joint_name].last_in_collision_cnt = self.collision_joints[joint_name].last_in_collision_cnt + 1
+            if self.collision_joints[joint_name].last_in_collision_cnt > 100:
+                self.collision_joints[joint_name].in_collision['pos'] = False
+                self.collision_joints[joint_name].in_collision['neg'] = False
+                self.collision_joints[joint_name].last_in_collision_cnt = 0
         # Test for collisions across all collision pairs
         for pair_name in self.collision_pairs:
             cp=self.collision_pairs[pair_name]
