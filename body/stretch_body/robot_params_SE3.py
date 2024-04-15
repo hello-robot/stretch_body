@@ -431,8 +431,8 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
             'collision_pairs': {
                 'link_DW3_tablet_12in_TO_base_link': {'link_cube': 'base_link', 'link_pts': 'link_DW3_tablet_12in', 'detect_as': 'edges'},
                 'link_DW3_tablet_12in_TO_link_arm_l0': {'link_cube': 'link_arm_l0', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges'},
-                'link_DW3_tablet_12in_TO_link_arm_l1': {'link_cube': 'link_arm_l1', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges', 'cube_scale': 2},
-                'link_DW3_tablet_12in_TO_link_head_tilt': {'link_cube': 'link_head_tilt', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges', 'cube_scale': 2},
+                'link_DW3_tablet_12in_TO_link_arm_l1': {'link_cube': 'link_arm_l1', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges'},
+                'link_DW3_tablet_12in_TO_link_head_tilt': {'link_cube': 'link_head_tilt', 'link_pts': 'link_DW3_tablet_12in','detect_as': 'edges', 'cube_scale': 1.2},
                 'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'edges'},
                 'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'edges'}},
 
@@ -446,19 +446,21 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
                                 {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'}],
 
                        'wrist_pitch': [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
-                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
-                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
+                                    #    {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
+                                    #    {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
                                        {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
-                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'}],
+                                    #    {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'},
+                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'}
+                                       ],
 
                        'wrist_roll': [{'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
                                       {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'}],
 
                        'wrist_yaw': [
-                                    #  {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
-                                     {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
                                      {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
-                                    #  {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
+                                     {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
+                                    #  {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l0'},
+                                     {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_arm_l1'},
                                      {'motion_dir': 'neg', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
                                      {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_base_link'},
                                      {'motion_dir': 'pos', 'collision_pair': 'link_DW3_tablet_12in_TO_link_head_tilt'},

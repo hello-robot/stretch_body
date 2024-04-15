@@ -147,7 +147,7 @@ def get_triangle_edge_barycentric_coords(N):
 
     return np.array(barycentric_coords)
 
-BARYCENTRIC_COORDS = get_triangle_edge_barycentric_coords(7) # Sample a NX3 Barycentric Coord vector matrix
+BARYCENTRIC_COORDS = get_triangle_edge_barycentric_coords(25) # Sample a NX3 Barycentric Coord vector matrix
 
 def sample_points_on_triangle_edges(points):
     # Convert barycentric coordinates to Cartesian coordinates
@@ -554,7 +554,6 @@ class RobotCollisionCompute(Device):
                                                           link_cube=self.collision_links[cp['link_cube']],
                                                           detect_as=cp['detect_as'])
             if 'cube_scale' in list(cp.keys()):
-                print('cp_name',cp['cube_scale'])
                 self.collision_pairs[cp_name].cube_scale = cp['cube_scale']
 
         #Assign collision pairs to each joint
@@ -611,7 +610,7 @@ class RobotCollisionCompute(Device):
             # Release Collision Joints in_collision mode onlt after 100 cycles
             if self.collision_joints[joint_name].in_collision['pos'] or self.collision_joints[joint_name].in_collision['neg']:
                 self.collision_joints[joint_name].last_in_collision_cnt = self.collision_joints[joint_name].last_in_collision_cnt + 1
-            if self.collision_joints[joint_name].last_in_collision_cnt > 100:
+            if self.collision_joints[joint_name].last_in_collision_cnt > 20:
                 self.collision_joints[joint_name].in_collision['pos'] = False
                 self.collision_joints[joint_name].in_collision['neg'] = False
                 self.collision_joints[joint_name].last_in_collision_cnt = 0

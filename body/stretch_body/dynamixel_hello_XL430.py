@@ -453,7 +453,8 @@ class DynamixelHelloXL430(Device):
             if in_collision[dir] and not self.in_collision_stop[dir]:
                 # Stop current motion
                 self.ts_collision_stop[dir] = time.time()
-                self.quick_stop()
+                if not self.was_runstopped:
+                    self.quick_stop()
                 self.in_collision_stop[dir] = True
                 # self.last_collision_pair_min_dist = in_collision['las_cp_min_dist']
                 # self.last_cfg_thresh = in_collision['last_joint_cfg_thresh']
