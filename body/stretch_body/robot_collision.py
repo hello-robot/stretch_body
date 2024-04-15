@@ -120,32 +120,15 @@ def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
         random_index = random.randint(0, len(mesh_triangles) - 1)
         points = mesh_triangles[random_index]
         mesh_triangles.pop(random_index)
-
-        # Three triangle sides
-        # set_1 = [points[0],points[1]]
-        # set_2 = [points[0],points[2]]
-        # set_3 = [points[1],points[2]]
-
-        # Sample three equilinear points on each side and test for AABB intersection
-        # for set in [set_1,set_2,set_3]:
-        #     mid =  np.add(set[0], set[1])/2
-        #     mid1 = np.add(mid, set[0])/2
-        #     mid2 = np.add(mid, set[1])/2
-        #     if check_pts_in_AABB_cube(cube,[mid, mid1, mid2]):
-        #         return True
-            
-        # TODO: Barycentric Coordinates based points interpolation which is multiple folds efficient
-        # if check_AABB_in_AABB_from_pts(cube,sample_points_on_triangle(points[0],points[1],points[2],50)):
-        #     return True
-
-        if check_pts_in_AABB_cube(cube,sample_points_on_triangle_edges(points)):
+        # Barycentric Coordinates based points based edge points interpolation
+        if check_pts_in_AABB_cube(cube,sample_points_on_triangle_edges(np.array(points))):
             return True
     return False
 
 def get_triangle_edge_barycentric_coords(N):
     """
     Generate a Barycentric coordinate vectors of N points of a triangle edges
-    This matrix is a constant.
+    This matrix is to be used as a constant.
     """
     barycentric_coords = []
     nums = np.linspace(0,1,num=N)
@@ -164,32 +147,24 @@ def get_triangle_edge_barycentric_coords(N):
 
     return np.array(barycentric_coords)
 
-BARYCENTRIC_COORDS = get_triangle_edge_barycentric_coords(7)
+BARYCENTRIC_COORDS = get_triangle_edge_barycentric_coords(7) # Sample a NX3 Barycentric Coord vector matrix
+
 def sample_points_on_triangle_edges(points):
     # Convert barycentric coordinates to Cartesian coordinates
     points = BARYCENTRIC_COORDS[:, 0][:, np.newaxis] * points[0] \
            + BARYCENTRIC_COORDS[:, 1][:, np.newaxis] * points[1] \
            + BARYCENTRIC_COORDS[:, 2][:, np.newaxis] * points[2]
-    
     return points
 
-# def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
-#     for points in mesh_triangles:
-#         set_1 = [points[0],points[1]]
-#         set_2 = [points[0],points[2]]
-#         set_3 = [points[1],points[2]]
-#         for set in [set_1,set_2,set_3]:
-#             mid = np.add(set[0],set[1])/2
-#             if check_pts_in_AABB_cube(cube,[mid]):
-#                 return True
-#             mid1 = np.add(mid, set[0])/2
-#             if check_pts_in_AABB_cube(cube,[mid1]):
-#                 return True
-#             mid2 = np.add(mid, set[1])/2
-#             if check_pts_in_AABB_cube(cube,[mid2]):
-#                 return True
-#     return False
-
+def scale_cuboid_points(vertices,scale_factor):
+    # Calculate the centroid of the cuboid
+    centroid = np.mean(vertices, axis=0)
+    
+    # Scale the vertices relative to the centroid
+    scaled_vertices = centroid + scale_factor * (vertices - centroid)
+    
+    # Convert the scaled vertices back to a list of tuples and return
+    return scaled_vertices
 
 def check_ppd_edges_in_cube(cube,cube_edge,edge_indices):
     if len(edge_indices)!=12:
@@ -630,8 +605,9 @@ class RobotCollisionCompute(Device):
         for joint_name in self.collision_joints:
             self.collision_joints[joint_name].active_collisions=[]
             self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
-            # self.collision_joints[joint_name].in_collision = {'pos': False, 'neg': False, 'min_dist_pair':None}
-            print(f"[{joint_name}] Was in Collision cnt: {self.collision_joints[joint_name].last_in_collision_cnt}")
+
+            # print(f"[{joint_name}] Was in Collision cnt: {self.collision_joints[joint_name].last_in_collision_cnt}")
+            # Release Collision Joints in_collision mode onlt after 100 cycles
             if self.collision_joints[joint_name].in_collision['pos'] or self.collision_joints[joint_name].in_collision['neg']:
                 self.collision_joints[joint_name].last_in_collision_cnt = self.collision_joints[joint_name].last_in_collision_cnt + 1
             if self.collision_joints[joint_name].last_in_collision_cnt > 100:
@@ -643,11 +619,12 @@ class RobotCollisionCompute(Device):
             cp=self.collision_pairs[pair_name]
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
+                cube_scale = 1.2
                 if cp.detect_as=='pts':
                     cp.in_collision=check_pts_in_AABB_cube(cube=cp.link_cube.pose,pts=cp.link_pts.pose)
                     # cp.in_collision=check_AABB_in_AABB_from_pts(pts1=cp.link_cube.pose,pts2=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
-                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(),cube=cp.link_cube.pose)
+                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles=cp.link_pts.get_triangles(), cube=scale_cuboid_points(cp.link_cube.pose,cube_scale))
                 else:
                     cp.in_collision =False
                     #cp.pretty_print()

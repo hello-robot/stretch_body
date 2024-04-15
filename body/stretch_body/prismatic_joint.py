@@ -604,9 +604,9 @@ class PrismaticJoint(Device):
 
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
+                self.in_collision_stop[dir] = False
                 # if abs(self.last_cfg_thresh - in_collision['last_joint_cfg_thresh']) > 0.001 and abs(self.status['vel'])<0.001:
                 #     self.in_collision_stop[dir] = False
-                self.in_collision_stop[dir] = False
                 # if abs(self.status['vel'])<0.001:
                 #     self.collision_till_zero_vel_counter = self.collision_till_zero_vel_counter + 1
                 # if self.collision_till_zero_vel_counter>50:
