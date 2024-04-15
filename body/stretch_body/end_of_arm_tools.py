@@ -239,12 +239,13 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
         if robot.collision.running:
             wrist_p = self.get_joint('wrist_pitch').status['pos']
             wrist_y = self.get_joint('wrist_yaw').status['pos']
-            if wrist_p > -0.23 and wrist_y < 0.18:
-                print("In Special Stop")
+            # TODO: Add more special conditions around this part
+            if wrist_p > -0.3 and wrist_y < 0.18:
+                # print("In Special Stop")
                 self.get_joint('wrist_yaw').forced_collision_stop_override = {'pos': False, 'neg':True}
                 self.get_joint('wrist_pitch').forced_collision_stop_override = {'pos': True, 'neg':False}
                 
             else:
-                print("Out Special Stop")
+                # print("Out Special Stop")
                 self.get_joint('wrist_yaw').forced_collision_stop_override = {'pos': False, 'neg':False}
                 self.get_joint('wrist_pitch').forced_collision_stop_override = {'pos': False, 'neg':False}

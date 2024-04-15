@@ -338,7 +338,7 @@ class CollisionJoint:
         self.active_collisions=[]
         self.collision_pairs=[]
         self.collision_dirs={}
-        self.in_collision={'pos':False,'neg':False, 'last_joint_cfg_thresh':1000}
+        self.in_collision={'pos':False,'neg':False}
         self.was_in_collision = {'pos': False, 'neg': False}
         self.last_in_collision_cnt = 0
 
@@ -418,7 +418,8 @@ class RobotCollisionMgmt(Device):
         try:
             self.shared_is_running.value = self.running
             if self.running:
-                self.shared_joint_cfg.put(self.get_joint_configuration(braked=False))
+                config = self.get_joint_configuration(braked=False)
+                self.shared_joint_cfg.put(config)
                 self.collision_status.update(self.shared_collision_status.get())
                 for j in self.collision_status.keys():
                     self.get_joint_motor(j).step_collision_avoidance(self.collision_status[j])
@@ -478,7 +479,32 @@ class RobotCollisionMgmt(Device):
             'joint_head_tilt': dht+s['head']['head_tilt']['pos']
             }
 
-        configuration.update(self.robot.end_of_arm.get_joint_configuration(braked))
+        configuration.update(self.robot.end_of_arm.get_joint_configuration(True))
+        return configuration
+
+    def update_configuration_with_brakes(self,configuration):
+        """
+        Update a dictionary of robot's current pose with braking distance applied
+        """
+        s = self.robot.get_status()
+        kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
+        da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
+        dl=kbd['lift']*self.robot.lift.get_braking_distance()
+        dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
+        dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
+
+
+        configuration = {
+            'joint_lift': dl+s['lift']['pos'],
+            'joint_arm_l0': da+s['arm']['pos']/4.0,
+            'joint_arm_l1': da+s['arm']['pos']/4.0,
+            'joint_arm_l2': da+s['arm']['pos']/4.0,
+            'joint_arm_l3': da+s['arm']['pos']/4.0,
+            'joint_head_pan': dhp+s['head']['head_pan']['pos'],
+            'joint_head_tilt': dht+s['head']['head_tilt']['pos']
+            }
+
+        configuration.update(self.robot.end_of_arm.get_joint_configuration(True))
         return configuration
     
     def enable(self):
