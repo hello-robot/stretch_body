@@ -70,7 +70,7 @@ if args.speed:
             data.append(delta)
             old_t = now
     except KeyboardInterrupt:
-        print('Stoping. Computing mean...')
+        print('Stopping. Computing mean...')
         # lidar.stop()
         # lidar.disconnect()
         delta = sum(data)/len(data)
