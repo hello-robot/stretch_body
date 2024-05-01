@@ -38,6 +38,10 @@ parser.add_argument("--save", nargs="?", type=str, const="",
                     help="Save as .avi video to given filepath at end of script.")
 parser.add_argument("--save_limit", type=int, default=60,
                     help="The number of minutes of data to save.")
+parser.add_argument("--d405", action="store_true",
+                    help="By default, this tool shows the D435if head camera imagery. Setting this flag causes the tool to instead show the D405 wrist imagery.")
+parser.add_argument('--exposure', action='store', type=str, default='auto',
+                    help="Set the D405 exposure to ['low', 'medium', 'auto'] or an integer in the range [0, 165000]")
 args, _ = parser.parse_known_args()
 output_filepath = args.save
 
@@ -70,10 +74,28 @@ apply_global_histogram_equalization = False
 # Initialize
 ####################################
 
-# Configure depth and color streams.
-# Note: width/heights are swapped since the images will be rotated 90 degrees from what the camera captures.
+serial_no = None
+rs_cameras = [{'name': device.get_info(rs.camera_info.name), 'serial_number': device.get_info(rs.camera_info.serial_number)}
+    for device in rs.context().devices]
+if args.d405:
+    for info in rs_cameras:
+        if 'D405' in info['name']:
+            serial_no = info['serial_number']
+    if serial_no is None:
+        print("Wrist D405 camera not found. Exiting.")
+        sys.exit(1)
+else:
+    for info in rs_cameras:
+        if 'D435' in info['name']:
+            serial_no = info['serial_number']
+    if serial_no is None:
+        print("Head D435 camera not found. Exiting.")
+        sys.exit(1)
 pipeline = rs.pipeline()
 config = rs.config()
+config.enable_device(serial_no)
+# Configure depth and color streams.
+# Note: width/heights are swapped since the images will be rotated 90 degrees from what the camera captures.
 config.enable_stream(rs.stream.depth, resolution_depth[0], resolution_depth[1], rs.format.z16, fps_color) # note that the fps downsampling will be applied later
 config.enable_stream(rs.stream.color, resolution_color[0], resolution_color[1], rs.format.bgr8, fps_color)
 frame_width_colorAndDepth = resolution_color[1] + resolution_depth[1]
@@ -130,6 +152,23 @@ frameBuffer_limit_depth = round(frameBuffer_limit_s * fps_color / fps_depth_down
 capture_limit_color = round(fps_color * 60 * args.save_limit)
 
 pipeline.start(config)
+# Set exposure for D405
+if args.d405:
+    if args.exposure == 'auto':
+        # Use autoexposure
+        stereo_sensor = pipeline.get_active_profile().get_device().query_sensors()[0]
+        stereo_sensor.set_option(rs.option.enable_auto_exposure, True)
+    else:
+        if args.exposure == 'low':
+            exposure_value = 33000
+        elif args.exposure == 'medium':
+            exposure_value = 85000
+        else:
+            exposure_value = int(args.exposure)
+
+        stereo_sensor = pipeline.get_active_profile().get_device().query_sensors()[0]
+        stereo_sensor.set_option(rs.option.exposure, exposure_value)
+
 start_capture_time_s = time.time()
 end_capture_time_color_s = start_capture_time_s
 end_capture_time_depth_s = start_capture_time_s
@@ -168,11 +207,12 @@ try:
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first).
         depth_image = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=-0.04, beta=255.0), args.colormap)
 
-        # Rotate and flip images.
-        color_image = np.moveaxis(color_image, 0, 1)
-        color_image = np.fliplr(color_image)
-        depth_image = np.moveaxis(depth_image, 0, 1)
-        depth_image = np.fliplr(depth_image)
+        if not args.d405:
+            # Rotate and flip images.
+            color_image = np.moveaxis(color_image, 0, 1)
+            color_image = np.fliplr(color_image)
+            depth_image = np.moveaxis(depth_image, 0, 1)
+            depth_image = np.fliplr(depth_image)
 
         # Concatenate images horizontally if desired.
         if save_video_colorAndDepth or not args.no_gui:
