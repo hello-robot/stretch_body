@@ -566,6 +566,7 @@ class Robot(Device):
         Cause the robot to move to its stow position
         Blocking.
         """
+        self.disable_collision_mgmt()
         self.head.move_to('head_pan', self.get_stow_pos('head_pan'))
         self.head.move_to('head_tilt',self.get_stow_pos('head_pan'))
 
@@ -608,12 +609,14 @@ class Robot(Device):
         #Make sure wrist yaw is done before exiting
         while self.end_of_arm.motors['wrist_yaw'].motor.is_moving():
             time.sleep(0.1)
+        self.enable_collision_mgmt()
 
     def home(self):
         """
         Cause the robot to home its joints by moving to hardstops
         Blocking.
         """
+        self.disable_collision_mgmt()
         if self.head is not None:
             print('--------- Homing Head ----')
             self.head.home()
@@ -646,6 +649,8 @@ class Robot(Device):
         # Home the end-of-arm
         if self.end_of_arm is not None:
             self.end_of_arm.home()
+        
+        self.enable_collision_mgmt()
         #Let user know it is done
         self.pimu.trigger_beep()
         self.push_command()
