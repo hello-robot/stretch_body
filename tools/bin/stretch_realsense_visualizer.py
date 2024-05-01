@@ -40,6 +40,8 @@ parser.add_argument("--save_limit", type=int, default=60,
                     help="The number of minutes of data to save.")
 parser.add_argument("--d405", action="store_true",
                     help="By default, this tool shows the D435if head camera imagery. Setting this flag causes the tool to instead show the D405 wrist imagery.")
+parser.add_argument('--exposure', action='store', type=str, default='auto',
+                    help="Set the D405 exposure to ['low', 'medium', 'auto'] or an integer in the range [0, 165000]")
 args, _ = parser.parse_known_args()
 output_filepath = args.save
 
@@ -150,6 +152,23 @@ frameBuffer_limit_depth = round(frameBuffer_limit_s * fps_color / fps_depth_down
 capture_limit_color = round(fps_color * 60 * args.save_limit)
 
 pipeline.start(config)
+# Set exposure for D405
+if args.d405:
+    if args.exposure == 'auto':
+        # Use autoexposure
+        stereo_sensor = pipeline.get_active_profile().get_device().query_sensors()[0]
+        stereo_sensor.set_option(rs.option.enable_auto_exposure, True)
+    else:
+        if args.exposure == 'low':
+            exposure_value = 33000
+        elif args.exposure == 'medium':
+            exposure_value = 85000
+        else:
+            exposure_value = int(args.exposure)
+
+        stereo_sensor = pipeline.get_active_profile().get_device().query_sensors()[0]
+        stereo_sensor.set_option(rs.option.exposure, exposure_value)
+
 start_capture_time_s = time.time()
 end_capture_time_color_s = start_capture_time_s
 end_capture_time_depth_s = start_capture_time_s
