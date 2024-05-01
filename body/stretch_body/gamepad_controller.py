@@ -334,7 +334,7 @@ def main():
             for k in state.keys():
                 print(k, ' : ', state[k])
             print('------------------------------')
-            time.sleep(1.0)
+            time.sleep(0.1)
     except (KeyboardInterrupt, SystemExit):
         pass
 

@@ -56,6 +56,14 @@ class Head(DynamixelXChain):
         """
         self.motors[joint].move_by(x_r,v_r,a_r)
 
+    def set_velocity(self, joint, v_r, a_r=None):
+        """
+        joint: name of joint (string)
+        v_r: commanded velocity (rad/s).
+        a_r: acceleration motion profile (rad/s^2)
+        """
+        self.motors[joint].set_velocity(v_r, a_r)
+
     def home(self):
         if self.motors['head_pan'].params['req_calibration']:
             with self.pt_lock:

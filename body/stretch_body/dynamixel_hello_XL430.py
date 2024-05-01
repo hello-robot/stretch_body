@@ -106,6 +106,8 @@ class DynamixelHelloXL430(Device):
             self.total_range = abs(self.ticks_to_world_rad(self.params['range_t'][0]) - self.ticks_to_world_rad(self.params['range_t'][1]))
             self.in_collision_stop = {'pos': False, 'neg': False}
             self.ts_collision_stop = {'pos': 0.0, 'neg': 0.0}
+            self.forced_collision_stop_override = {'pos': False, 'neg':False}
+            self._in_collision_stop_override = False
         except KeyError:
             self.motor=None
 
@@ -449,16 +451,28 @@ class DynamixelHelloXL430(Device):
         #     print('Invalid IN_COLLISION for joint %s'%self.name)
         #     return
 
+        if True in self.forced_collision_stop_override.values():
+            if not self._in_collision_stop_override:
+                self.quick_stop()
+                self._in_collision_stop_override = True
+                return
+        
+        if not True in self.forced_collision_stop_override.values():
+            self._in_collision_stop_override = False
+
+
         for dir in ['pos','neg']:
             if in_collision[dir] and not self.in_collision_stop[dir]:
                 # Stop current motion
                 self.ts_collision_stop[dir] = time.time()
-                self.quick_stop()
+                if not self.was_runstopped:
+                    self.quick_stop()
                 self.in_collision_stop[dir] = True
 
             #Reset if out of collision (at least 1s after collision)
-            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
+            if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1:
                 self.in_collision_stop[dir] = False
+
 
     def get_braking_distance(self,acc=None):
         """Compute distance to brake the joint from the current velocity"""
@@ -585,6 +599,14 @@ class DynamixelHelloXL430(Device):
             self.enable_torque()
         v = min(self.params['motion']['max']['vel'],abs(v_des))
 
+        if self.forced_collision_stop_override['pos'] and v_des>0:
+            self.logger.warning(f"set_velocity in Forced Collision stop. Motion disabled in direction {'pos'} for {self.name}. Not executing move_to")
+            return
+
+        if self.forced_collision_stop_override['neg'] and v_des<0:
+            self.logger.warning(f"set_velocity in Forced Collision stop. Motion disabled in direction {'neg'} for {self.name}. Not executing move_to")
+            return
+
         if self.in_collision_stop['pos'] and v_des>0:
             self.logger.warning('set_velocity in collision . Motion disabled in direction %s for %s. Not executing set_velocity'%('pos',self.name))
             return
@@ -707,6 +729,13 @@ class DynamixelHelloXL430(Device):
             print('Dynamixel not calibrated:', self.name)
             return
 
+        if self.forced_collision_stop_override['pos'] and self.status['pos']<x_des:
+            self.logger.warning(f"move_to in Forced Collision stop. Motion disabled in direction {'pos'} for {self.name}. Not executing move_to")
+            return
+
+        if self.forced_collision_stop_override['neg'] and self.status['pos']>x_des:
+            self.logger.warning(f"move_to in Forced Collision stop. Motion disabled in direction {'neg'} for {self.name}. Not executing move_to")
+            return
 
         if self.in_collision_stop['pos'] and self.status['pos']<x_des:
             self.logger.warning('move_to in collision. Motion disabled in direction %s for %s. Not executing move_to'%('pos',self.name))

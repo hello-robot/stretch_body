@@ -156,8 +156,8 @@ class SystemMonitorThread(threading.Thread):
         if self.robot.params['use_sentry']:
             if (self.titr % self.sentry_downrate_int) == 0:
                 self.robot._step_sentry()
-        if self.robot.is_homed():
-            self.robot.collision.step()
+        # if self.robot.is_homed():
+        #     self.robot.collision.step()
         if (self.titr % self.trajectory_downrate_int) == 0:
             self.robot._update_trajectory_non_dynamixel()
         self.stats.mark_loop_end()
@@ -169,6 +169,36 @@ class SystemMonitorThread(threading.Thread):
             if not self.shutdown_flag.is_set():
                 self.step()
         self.robot.logger.debug('Shutting down SystemMonitorThread')
+
+class CollisionMonitorThread(threading.Thread):
+    """
+    This thread runs at 25Hz.
+    It updates the status data of the Devices.
+    It also steps the Sentry, Monitor, and Collision functions
+    """
+    def __init__(self, robot, target_rate_hz=25.0):
+        threading.Thread.__init__(self, name = self.__class__.__name__)
+        self.robot=robot
+        self.robot_update_rate_hz = target_rate_hz
+        self.shutdown_flag = threading.Event()
+        self.stats = hello_utils.LoopStats(loop_name='CollisionMonitorThread',target_loop_rate=self.robot_update_rate_hz)
+        self.titr=0
+        self.running=False
+
+    def step(self):
+        self.titr = self.titr + 1
+        self.stats.mark_loop_start()
+        if self.robot.is_homed():
+            self.robot.collision.step()
+        self.stats.mark_loop_end()
+
+    def run(self):
+        self.running=True
+        while not self.shutdown_flag.is_set():
+            self.stats.wait_until_ready_to_run()
+            if not self.shutdown_flag.is_set():
+                self.step()
+        self.robot.logger.debug('Shutting down CollisionMonitorThread')
 
 class Robot(Device):
     """
@@ -228,6 +258,7 @@ class Robot(Device):
         self.sys_thread = None
         self.dxl_head_thread = None
         self.event_loop_thread = None
+        self.collision_mgmt_thread = None
 
         self.eoa_name= self.params['tool']
         module_name = self.robot_params[self.eoa_name]['py_module_name']
@@ -309,6 +340,7 @@ class Robot(Device):
         self.dxl_end_of_arm_thread = DXLEndOfArmStatusThread(self,target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
         self.sys_thread = SystemMonitorThread(self, target_rate_hz=self.params['rates']['SystemMonitorThread_Hz'])
         self.dxl_head_thread = DXLHeadStatusThread(self, target_rate_hz=self.params['rates']['DXLStatusThread_Hz'])
+        self.collision_mgmt_thread = CollisionMonitorThread(self, target_rate_hz=100)
 
         if start_non_dxl_thread:
             self.non_dxl_thread.setDaemon(True)
@@ -326,6 +358,10 @@ class Robot(Device):
         if start_sys_mon_thread:
             self.sys_thread.setDaemon(True)
             self.sys_thread.start()
+
+        if start_sys_mon_thread and self.collision_mgmt_thread:
+            self.collision_mgmt_thread.setDaemon(True)
+            self.collision_mgmt_thread.start()
 
         return success
 
@@ -352,6 +388,10 @@ class Robot(Device):
             if self.sys_thread.running:
                 self.sys_thread.shutdown_flag.set()
                 self.sys_thread.join(1)
+        if self.collision_mgmt_thread:
+            if self.collision_mgmt_thread.running:
+                self.collision_mgmt_thread.shutdown_flag.set()
+                self.collision_mgmt_thread.join(1)
         for k in self.devices:
             if self.devices[k] is not None:
                 self.logger.debug('Shutting down %s'%k)
@@ -526,6 +566,7 @@ class Robot(Device):
         Cause the robot to move to its stow position
         Blocking.
         """
+        self.disable_collision_mgmt()
         self.head.move_to('head_pan', self.get_stow_pos('head_pan'))
         self.head.move_to('head_tilt',self.get_stow_pos('head_pan'))
 
@@ -540,10 +581,9 @@ class Robot(Device):
             while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 4.0:
                 time.sleep(0.1)
             lift_stowed=True
-
-        # Wrist pitch should be lifted up before closing the arm
-        if 'wrist_pitch' in self.end_of_arm.joints:
-            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+        
+        # Run pre stow specific to each end of arm
+        self.end_of_arm.pre_stow(self)
 
         #Bring in arm before bring down
         print('--------- Stowing Arm ----')
@@ -569,23 +609,32 @@ class Robot(Device):
         #Make sure wrist yaw is done before exiting
         while self.end_of_arm.motors['wrist_yaw'].motor.is_moving():
             time.sleep(0.1)
+        self.enable_collision_mgmt()
 
     def home(self):
         """
         Cause the robot to home its joints by moving to hardstops
         Blocking.
         """
+        self.disable_collision_mgmt()
         if self.head is not None:
             print('--------- Homing Head ----')
             self.head.home()
 
         # Wrist pitch should be angled somewhere in between the lift leaving
         # the base of its range and before it reaches the top of its range.
-        def _angle_pitch():
+        def _angle_pitch(angle):
             time.sleep(1) # wait 1 sec to leave bottom of lift's range
             if 'wrist_pitch' in self.end_of_arm.joints:
-                self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
-        threading.Thread(target=_angle_pitch).start()
+                self.end_of_arm.move_to('wrist_pitch', angle)
+        
+        # If gripper present
+        if 'stretch_gripper' in self.end_of_arm.joints:
+            threading.Thread(target=_angle_pitch,args=(self.end_of_arm.params['stow']['wrist_pitch'],)).start()
+
+        # No gripper but tablet or accessory present in dw3 wrist, wrist pitch should face downward
+        elif 'wrist_pitch' in self.end_of_arm.joints:
+            threading.Thread(target=_angle_pitch,args=(-1.57,)).start()
 
         # Home the lift
         if self.lift is not None:
@@ -600,6 +649,8 @@ class Robot(Device):
         # Home the end-of-arm
         if self.end_of_arm is not None:
             self.end_of_arm.home()
+        
+        self.enable_collision_mgmt()
         #Let user know it is done
         self.pimu.trigger_beep()
         self.push_command()

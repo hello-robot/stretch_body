@@ -439,10 +439,6 @@ class CommandDxlJoint:
             x (float): Range [-1.0,+1.0], control servo speed
             robot (robot.Robot): Valid robot instance
         """
-        if 'wrist' in self.name:
-            motor = robot.end_of_arm.get_joint(self.name)
-        if 'head' in self.name:
-            motor = robot.head.get_joint(self.name)
         if abs(x)<self.dead_zone:
             x = 0
         acc = self.acc
@@ -452,7 +448,10 @@ class CommandDxlJoint:
         v = self._process_stick_to_vel(x)
         if self.precision_mode:
             v = v*self.precision_scale_down
-        motor.set_velocity(v, acc)
+        if 'wrist' in self.name:
+            robot.end_of_arm.set_velocity(self.name,v, acc)
+        if 'head' in self.name:
+            robot.head.set_velocity(self.name,v, acc)
         self._prev_set_vel_ts = time.time()
 
     def command_button_to_motion(self,direction, robot):
@@ -462,17 +461,19 @@ class CommandDxlJoint:
             direction (int): Direction integer -1 or +1
             robot (robot.Robot): Valid robot instance
         """
-        if 'wrist' in self.name:
-            motor = robot.end_of_arm.get_joint(self.name)
-        if 'head' in self.name:
-            motor = robot.head.get_joint(self.name)
         vel = self.max_vel
         if self.precision_mode:
             vel = vel*self.precision_scale_down
         if direction==1:
-            motor.set_velocity(vel, self.acc)
+            if 'head' in self.name:
+                robot.head.set_velocity(self.name, vel, self.acc)
+            if 'wrist' in self.name:
+                robot.end_of_arm.set_velocity(self.name, vel, self.acc)
         elif direction==-1:
-            motor.set_velocity(-1*vel, self.acc)
+            if 'head' in self.name:
+                robot.head.set_velocity(self.name, -1*vel, self.acc)
+            if 'wrist' in self.name:
+                robot.end_of_arm.set_velocity(self.name, -1*vel, self.acc)
         self._prev_set_vel_ts = time.time()
     
     def stop_motion(self, robot):
@@ -483,11 +484,9 @@ class CommandDxlJoint:
             robot (robot.Robot): Valid robot instance
         """
         if 'wrist' in self.name:
-            motor = robot.end_of_arm.get_joint(self.name)
+            robot.end_of_arm.set_velocity(self.name,0,self.params['motion']['max']['accel'])
         if 'head' in self.name:
-            motor = robot.head.get_joint(self.name)
-        
-        motor.set_velocity(0,self.params['motion']['max']['accel'])
+            robot.head.set_velocity(self.name,0,self.params['motion']['max']['accel'])
     
     def _process_stick_to_vel(self, x):
         x = -1*x

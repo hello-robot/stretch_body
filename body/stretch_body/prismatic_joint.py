@@ -39,6 +39,7 @@ class PrismaticJoint(Device):
         self.dist_to_min_max = None # track dist to min,max limits
         self.vel_brake_zone_thresh = 0.02 # initial/minimum brake zone thresh value
         self._prev_set_vel_ts = None
+        self._prev_collision_update_ts = None
         self.watchdog_enabled = False
         self.total_range = abs(self.params['range_m'][1] - self.params['range_m'][0])
         self.in_collision_stop = {'pos': False, 'neg': False}
@@ -590,7 +591,7 @@ class PrismaticJoint(Device):
         # if in_collision['pos'] and in_collision['neg']:
         #     print('Invalid IN_COLLISION for joint %s'%self.name)
         #     return
-
+        
         for dir in ['pos','neg']:
             if in_collision[dir] and not self.in_collision_stop[dir]:
                 # Stop current motion
@@ -598,10 +599,12 @@ class PrismaticJoint(Device):
                 self.push_command()
                 self.in_collision_stop[dir] = True
                 self.ts_collision_stop[dir]=time.time()
+                self.collision_till_zero_vel_counter = 0
 
             #Reset if out of collision (at least 1s after collision)
             if self.in_collision_stop[dir]  and not in_collision[dir] and time.time()-self.ts_collision_stop[dir]>1.0:
                 self.in_collision_stop[dir] = False
+ 
 
 
 

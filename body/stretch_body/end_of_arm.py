@@ -62,6 +62,15 @@ class EndOfArm(DynamixelXChain):
         """
         with self.pt_lock:
             self.motors[joint].move_by(x_r, v_r, a_r)
+    
+    def set_velocity(self, joint, v_r, a_r=None):
+        """
+        joint: name of joint (string)
+        v_r: commanded velocity (rad/s).
+        a_r: acceleration motion profile (rad/s^2)
+        """
+        with self.pt_lock:
+            self.motors[joint].set_velocity(v_r, a_r)
 
     def pose(self,joint, p,v_r=None, a_r=None):
         """
@@ -74,6 +83,9 @@ class EndOfArm(DynamixelXChain):
             self.motors[joint].pose(p, v_r, a_r)
 
     def stow(self):
+        pass #Override by specific tool
+
+    def pre_stow(self,robot=None):
         pass #Override by specific tool
 
     def home(self, joint=None):
@@ -98,7 +110,7 @@ class EndOfArm(DynamixelXChain):
                 return True
         return False
 
-    def get_joint_configuration(self,braked=False):
+    def get_joint_configuration(self,brake_joints={}):
         """
         Construct a dictionary of tools current pose (for robot_collision_mgmt)
         Keys match joint names in URDF
@@ -109,14 +121,16 @@ class EndOfArm(DynamixelXChain):
             jn = self.urdf_map[j]
             motor = self.get_joint(jn)
             dx = 0.0
-            if braked:
-                try:
+            try:
+                if brake_joints[j]:
                     dx = self.params['collision_mgmt']['k_brake_distance'][jn] * motor.get_braking_distance()
-                except KeyError:
-                    dx=0
+            except KeyError:
+                dx=0
             ret[j] = motor.status['pos'] + dx
         return ret
-
+    
+    def pre_stow(self,robot=None):
+        pass
 
 
 
