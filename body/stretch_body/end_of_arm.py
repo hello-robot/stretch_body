@@ -127,6 +127,14 @@ class EndOfArm(DynamixelXChain):
             except KeyError:
                 dx=0
             ret[j] = motor.status['pos'] + dx
+        gripper_joint = None
+        for j in self.joints:
+            if 'gripper' in j:
+                gripper_joint = j
+        if gripper_joint:
+            ret['joint_gripper_finger_left'] = self.get_joint(gripper_joint).status['gripper_conversion']['finger_rad']/2
+            ret['joint_gripper_finger_right'] = self.get_joint(gripper_joint).status['gripper_conversion']['finger_rad']/2
+
         return ret
     
     def pre_stow(self,robot=None):

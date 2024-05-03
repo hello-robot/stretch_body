@@ -12,6 +12,7 @@ from stretch_body.robot_params import RobotParams
 import multiprocessing
 import signal
 import ctypes
+import pyrender
 
 try:
     # works on ubunut 22.04
@@ -84,8 +85,8 @@ def check_pts_in_AABB_cube(cube, pts):
     for p in pts:
         inside = p[0] <= xmax and p[0] >= xmin and p[1] <= ymax and p[1] >= ymin and p[2] <= zmax and p[2] >= zmin
         if inside:
-            return True
-    return False
+            return True, p
+    return False, None
 
 def check_AABB_in_AABB_from_pts(pts1, pts2):
     """
@@ -121,9 +122,10 @@ def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
         points = mesh_triangles[random_index]
         mesh_triangles.pop(random_index)
         # Barycentric Coordinates based points based edge points interpolation
-        if check_pts_in_AABB_cube(cube,sample_points_on_triangle_edges(np.array(points))):
-            return True
-    return False
+        c,p = check_pts_in_AABB_cube(cube,sample_points_on_triangle_edges(np.array(points)))
+        if c:
+            return True, p
+    return False, None
 
 def get_triangle_edge_barycentric_coords(N):
     """
@@ -444,36 +446,6 @@ class RobotCollisionMgmt(Device):
             return self.robot.head.get_joint('head_tilt')
         #Try the tool
         return self.robot.end_of_arm.get_joint(joint_name)
-    
-    # def get_joint_configuration(self,braked=False):
-    #     """
-    #     Construct a dictionary of robot's current pose
-    #     """
-    #     s = self.robot.get_status()
-    #     kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
-    #     if braked:
-    #         da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
-    #         dl=kbd['lift']*self.robot.lift.get_braking_distance()
-    #         dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
-    #         dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
-    #     else:
-    #         da=0.0
-    #         dl=0.0
-    #         dhp=0.0
-    #         dht=0.0
-
-    #     configuration = {
-    #         'joint_lift': dl+s['lift']['pos'],
-    #         'joint_arm_l0': da+s['arm']['pos']/4.0,
-    #         'joint_arm_l1': da+s['arm']['pos']/4.0,
-    #         'joint_arm_l2': da+s['arm']['pos']/4.0,
-    #         'joint_arm_l3': da+s['arm']['pos']/4.0,
-    #         'joint_head_pan': dhp+s['head']['head_pan']['pos'],
-    #         'joint_head_tilt': dht+s['head']['head_tilt']['pos']
-    #         }
-
-    #     configuration.update(self.robot.end_of_arm.get_joint_configuration(braked))
-    #     return configuration
 
     def get_joint_configuration(self,brake_joints={}):
         """
@@ -547,6 +519,9 @@ class RobotCollisionCompute(Device):
         self.urdf=None
         self.prev_loop_start_ts = None
         self.robot_params = RobotParams().get_params()[1]
+        self.viz = True
+        if self.viz:
+            self.first_frame = False
 
     def pretty_print(self):
         for j in self.collision_joints:
@@ -569,6 +544,9 @@ class RobotCollisionCompute(Device):
 
         try:
             self.urdf = urdf_loader.URDF.load(urdf_name)
+            if self.viz:
+                print("Starting CollisionMgmt Debug Visualizer...")
+                self.urf_viz = URDFVisualizer(self.urdf)
         except ValueError:
             print('Unable to load URDF: %s. Disabling collision system.' % urdf_name)
             self.urdf = None
@@ -620,7 +598,7 @@ class RobotCollisionCompute(Device):
         """
         # if self.prev_loop_start_ts:
         #     print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
-            
+        
         if self.urdf is None:
             return
 
@@ -629,6 +607,12 @@ class RobotCollisionCompute(Device):
 
         # Update forward kinematics of links
         _cfg = cfg.get()
+        if self.viz:
+            if not self.first_frame:
+                self.urf_viz.show(cfg=_cfg, use_collision=True)
+                self.first_frame = True
+        if self.urf_viz.viewer.is_active:
+            self.urf_viz.update_pose(cfg=_cfg, use_collision=True)
         lfk = self.urdf.link_fk(cfg=_cfg, links=self.collision_links.keys(), use_names=True)
 
         # Update poses of links based on fk
@@ -658,11 +642,11 @@ class RobotCollisionCompute(Device):
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
                 if cp.detect_as=='pts':
-                    cp.in_collision=check_pts_in_AABB_cube(cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale),
+                    cp.in_collision, collision_point =check_pts_in_AABB_cube(cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale),
                                                            pts = cp.link_pts.pose)
                     # cp.in_collision=check_AABB_in_AABB_from_pts(pts1=cp.link_cube.pose,pts2=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
-                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles = cp.link_pts.get_triangles(), 
+                    cp.in_collision, collision_point = check_mesh_triangle_edges_in_cube(mesh_triangles = cp.link_pts.get_triangles(), 
                                                                         cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale))
                 else:
                     cp.in_collision =False
@@ -674,7 +658,7 @@ class RobotCollisionCompute(Device):
 
                 # Beep on new collision
                 if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
-                    print(f'New collision pair event: {pair_name} [{time.time()}]' )
+                    print(f'New collision pair event: {pair_name} [{time.time()}] GOTHAAAAA' )
                     self.alert()
 
         # print(f"From Process: Normal CFG = {normalized_joint_status_thresh}")
@@ -708,6 +692,58 @@ class RobotCollisionCompute(Device):
         except KeyError: #Not all links will be monitored
             return False
 
+class URDFVisualizer:
+    """The `show` method in this class is modified from the
+    original implementation of `urdf_loader.URDF.show`. This class
+    exists temporarily while the PR for this modification is
+    in review.
+    """
+
+    def __init__(self, urdf):
+        self.urdf = urdf
+        self.nodes = None
+        self.scene = None
+        self.viewer = None
+
+    def show(self, cfg=None, use_collision=False):
+        """Visualize the URDF in a given configuration.
+        Parameters
+        ----------
+        cfg : dict or (n), float
+            A map from joints or joint names to configuration values for
+            each joint, or a list containing a value for each actuated joint
+            in sorted order from the base link.
+            If not specified, all joints are assumed to be in their default
+            configurations.
+        use_collision : bool
+            If True, the collision geometry is visualized instead of
+            the visual geometry.
+        """
+        if use_collision:
+            fk = self.urdf.collision_trimesh_fk(cfg=cfg)
+        else:
+            fk = self.urdf.visual_trimesh_fk(cfg=cfg)
+
+        self.scene = pyrender.Scene(ambient_light = [0,0,0, 0.5])
+        self.nodes = []
+        for tm in fk:
+            pose = fk[tm]
+            mesh = pyrender.Mesh.from_trimesh(tm, smooth=False)
+            mesh_node = self.scene.add(mesh, pose=pose)
+            self.nodes.append(mesh_node)
+        self.viewer = pyrender.Viewer(self.scene, run_in_thread=True, use_raymond_lighting=True)
+
+    def update_pose(self, cfg=None, use_collision=False):
+        if use_collision:
+            fk = self.urdf.collision_trimesh_fk(cfg=cfg)
+        else:
+            fk = self.urdf.visual_trimesh_fk(cfg=cfg)
+
+        self.viewer.render_lock.acquire()
+        for i, tm in enumerate(fk):
+            pose = fk[tm]
+            self.scene.set_pose(self.nodes[i], pose=pose)
+        self.viewer.render_lock.release()
 
 class RobotCollision(Device):
     """

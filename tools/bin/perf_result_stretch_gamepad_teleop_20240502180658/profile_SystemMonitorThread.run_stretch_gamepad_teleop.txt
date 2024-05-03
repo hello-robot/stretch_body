@@ -1,0 +1,127 @@
+         207606 function calls in 28.386 seconds
+
+   Ordered by: internal time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    33456   27.976    0.001   27.976    0.001 {built-in method time.sleep}
+      945    0.115    0.000    0.115    0.000 {method 'flush' of '_io.TextIOWrapper' objects}
+      424    0.090    0.000   28.084    0.066 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:278(wait_until_ready_to_run)
+    37689    0.019    0.000    0.019    0.000 {built-in method time.time}
+      430    0.011    0.000    0.018    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:196(_var)
+      944    0.010    0.000    0.021    0.000 /usr/lib/python3.10/logging/__init__.py:283(__init__)
+     1704    0.009    0.000    0.009    0.000 {built-in method numpy.asanyarray}
+     2538    0.009    0.000    0.099    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:486(step_sentry)
+     1704    0.008    0.000    0.008    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     1274    0.005    0.000    0.006    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:66(_count_reduce_items)
+      423    0.005    0.000    0.066    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:208(mark_loop_start)
+      844    0.005    0.000    0.022    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:163(_mean)
+     2022    0.004    0.000    0.006    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:522(_update_safety_vel_brake_zone)
+      844    0.004    0.000    0.026    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3313(mean)
+     1894    0.004    0.000    0.004    0.000 {method 'acquire' of '_thread.RLock' objects}
+     2538    0.004    0.000    0.005    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:539(get_dist_to_limits)
+     1692    0.004    0.000    0.006    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stepper.py:290(step_sentry)
+      423    0.003    0.000    0.298    0.001 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/perf_timer.py:54(wrapper)
+      944    0.003    0.000    0.149    0.000 /usr/lib/python3.10/logging/__init__.py:1680(callHandlers)
+        1    0.003    0.003   28.386   28.386 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:176(run)
+      944    0.003    0.000    0.005    0.000 /usr/lib/python3.10/logging/__init__.py:1549(findCaller)
+      944    0.003    0.000    0.003    0.000 {built-in method time.localtime}
+      945    0.003    0.000    0.003    0.000 /usr/lib/python3.10/logging/__init__.py:431(_format)
+      846    0.003    0.000    0.104    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_X_chain.py:276(step_sentry)
+      846    0.003    0.000    0.106    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:621(step_sentry)
+      943    0.003    0.000    0.183    0.000 /usr/lib/python3.10/logging/__init__.py:1455(debug)
+      423    0.003    0.000    0.294    0.001 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:157(step)
+      944    0.002    0.000    0.002    0.000 {built-in method time.strftime}
+      211    0.002    0.000    0.002    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:101(monitor_dynamixel_flags)
+      945    0.002    0.000    0.015    0.000 /usr/lib/python3.10/logging/__init__.py:665(format)
+      846    0.002    0.000    0.003    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:635(_update_safety_vel_brake_zone)
+      944    0.002    0.000    0.179    0.000 /usr/lib/python3.10/logging/__init__.py:1600(_log)
+      945    0.002    0.000    0.119    0.000 /usr/lib/python3.10/logging/__init__.py:1077(flush)
+      430    0.002    0.000    0.020    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:263(_std)
+      423    0.002    0.000    0.006    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/base.py:516(step_sentry)
+      945    0.002    0.000    0.137    0.000 /usr/lib/python3.10/logging/__init__.py:1088(emit)
+      945    0.002    0.000    0.145    0.000 /usr/lib/python3.10/logging/__init__.py:955(handle)
+      423    0.002    0.000    0.217    0.001 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:708(_step_sentry)
+     2114    0.002    0.000    0.002    0.000 {built-in method builtins.max}
+     4960    0.002    0.000    0.002    0.000 {built-in method builtins.hasattr}
+      944    0.002    0.000    0.002    0.000 /usr/lib/python3.10/genericpath.py:121(_splitext)
+      944    0.002    0.000    0.003    0.000 /usr/lib/python3.10/posixpath.py:140(basename)
+      430    0.002    0.000    0.022    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3441(std)
+      846    0.002    0.000    0.002    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:652(get_dist_to_limits)
+     1274    0.001    0.000    0.049    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}
+      211    0.001    0.000    0.006    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:38(step)
+     3290    0.001    0.000    0.001    0.000 {built-in method builtins.min}
+      944    0.001    0.000    0.022    0.000 /usr/lib/python3.10/logging/__init__.py:1585(makeRecord)
+     5076    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:134(get_soft_motion_limits)
+      944    0.001    0.000    0.003    0.000 /usr/lib/python3.10/posixpath.py:117(splitext)
+      944    0.001    0.000    0.007    0.000 /usr/lib/python3.10/logging/__init__.py:597(formatTime)
+     1890    0.001    0.000    0.005    0.000 /usr/lib/python3.10/logging/__init__.py:912(acquire)
+      944    0.001    0.000    0.150    0.000 /usr/lib/python3.10/logging/__init__.py:1626(handle)
+      844    0.001    0.000    0.029    0.000 <__array_function__ internals>:177(mean)
+     1890    0.001    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:919(release)
+      944    0.001    0.000    0.138    0.000 /usr/lib/python3.10/logging/__init__.py:1204(emit)
+     1889    0.001    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:806(filter)
+      422    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:517(update_trajectory)
+     4022    0.001    0.000    0.001    0.000 {built-in method builtins.isinstance}
+     9636    0.001    0.000    0.001    0.000 {built-in method builtins.abs}
+      944    0.001    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:119(getLevelName)
+      944    0.001    0.000    0.001    0.000 /usr/lib/python3.10/threading.py:1430(current_thread)
+     2832    0.001    0.000    0.001    0.000 {method 'rfind' of 'str' objects}
+      211    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:88(monitor_guarded_contact)
+      945    0.001    0.000    0.002    0.000 /usr/lib/python3.10/logging/__init__.py:643(usesTime)
+     2336    0.001    0.000    0.001    0.000 {method 'pop' of 'list' objects}
+      945    0.001    0.000    0.016    0.000 /usr/lib/python3.10/logging/__init__.py:932(format)
+      944    0.001    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:1724(isEnabledFor)
+      945    0.001    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:423(usesTime)
+      944    0.001    0.000    0.001    0.000 {built-in method posix.getpid}
+      423    0.001    0.000    0.005    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/wrist_pitch.py:58(step_sentry)
+      944    0.001    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:160(<lambda>)
+      211    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:131(monitor_voltage)
+     2022    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:433(bound_value)
+      423    0.001    0.000    0.080    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stretch_gripper.py:87(step_sentry)
+     2548    0.001    0.000    0.001    0.000 {built-in method builtins.issubclass}
+     1888    0.001    0.000    0.001    0.000 {method 'get' of 'dict' objects}
+      945    0.001    0.000    0.001    0.000 {method 'find' of 'str' objects}
+     1692    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:101(get_soft_motion_limits)
+      945    0.001    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:359(getMessage)
+      945    0.001    0.000    0.004    0.000 /usr/lib/python3.10/logging/__init__.py:649(formatMessage)
+      211    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/base.py:473(update_trajectory)
+      423    0.000    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:255(mark_loop_end)
+     1274    0.000    0.000    0.000    0.000 {built-in method numpy.core._multiarray_umath.normalize_axis_index}
+      423    0.000    0.000    0.003    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/wrist_yaw.py:35(step_sentry)
+      944    0.000    0.000    0.001    0.000 /usr/lib/python3.10/posixpath.py:52(normcase)
+      423    0.000    0.000    0.004    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/wrist_roll.py:58(step_sentry)
+      945    0.000    0.000    0.003    0.000 /usr/lib/python3.10/logging/__init__.py:438(format)
+      944    0.000    0.000    0.001    0.000 /usr/lib/python3.10/posixpath.py:41(_get_sep)
+      430    0.000    0.000    0.023    0.000 <__array_function__ internals>:177(std)
+      944    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:1129(name)
+      211    0.000    0.000    0.002    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:703(_update_trajectory_non_dynamixel)
+     2022    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:536(_set_vel_brake_thresh)
+     2116    0.000    0.000    0.000    0.000 {method 'keys' of 'dict' objects}
+     2832    0.000    0.000    0.000    0.000 {built-in method posix.fspath}
+      944    0.000    0.000    0.000    0.000 {built-in method sys._getframe}
+      849    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:553(is_set)
+     1888    0.000    0.000    0.000    0.000 {built-in method _thread.get_ident}
+     1894    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+      944    0.000    0.000    0.000    0.000 /usr/lib/python3.10/multiprocessing/process.py:189(name)
+     2536    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+     1267    0.000    0.000    0.000    0.000 {built-in method builtins.len}
+      944    0.000    0.000    0.000    0.000 /usr/lib/python3.10/multiprocessing/process.py:37(current_process)
+      844    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3308(_mean_dispatcher)
+      846    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:278(bound_value)
+      945    0.000    0.000    0.000    0.000 {method 'write' of '_io.TextIOWrapper' objects}
+      846    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:649(_set_vel_brake_thresh)
+      211    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:81(monitor_wrist_single_tap)
+      211    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:122(monitor_runstop)
+      211    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:67(monitor_base_bump_event)
+      211    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:60(monitor_base_cliff_event)
+      211    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:141(monitor_current)
+      211    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot_monitor.py:74(monitor_over_tilt_alert)
+      430    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3436(_std_dispatcher)
+        4    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1710(getEffectiveLevel)
+        4    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:219(_acquireLock)
+        4    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:228(_releaseLock)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1467(info)
+        4    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1307(disable)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+

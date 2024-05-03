@@ -1,0 +1,277 @@
+         2835808 function calls in 27.758 seconds
+
+   Ordered by: internal time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    42904   21.246    0.000   21.246    0.000 {built-in method time.sleep}
+    19044    3.204    0.000    3.204    0.000 {method 'poll' of 'select.epoll' objects}
+    15682    1.135    0.000    1.135    0.000 {method 'recv' of '_socket.socket' objects}
+    10928    0.259    0.000    0.259    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/cobbs_framing.py:42(_calc_crc)
+    19044    0.111    0.000    8.643    0.000 /usr/lib/python3.10/asyncio/base_events.py:1832(_run_once)
+    24556    0.105    0.000    0.105    0.000 {built-in method fcntl.ioctl}
+    10928    0.087    0.000    3.166    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:467(receiveFramedData)
+     5464    0.070    0.000    0.071    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/cobbs_framing.py:86(_decode)
+      684    0.063    0.000   18.893    0.028 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:278(wait_until_ready_to_run)
+    19044    0.044    0.000    3.261    0.000 /usr/lib/python3.10/selectors.py:452(select)
+    15026    0.043    0.000    0.166    0.000 /usr/lib/python3.10/concurrent/futures/thread.py:161(submit)
+    59769    0.042    0.000    5.191    0.000 {method 'run' of '_contextvars.Context' objects}
+    15026    0.038    0.000    0.113    0.000 /usr/lib/python3.10/asyncio/futures.py:363(_chain_future)
+    59769    0.036    0.000    5.227    0.000 /usr/lib/python3.10/asyncio/events.py:78(_run)
+    15026    0.034    0.000    0.230    0.000 /usr/lib/python3.10/asyncio/futures.py:343(_copy_future_state)
+      144    0.034    0.000    0.034    0.000 {method 'flush' of '_io.TextIOWrapper' objects}
+    15026    0.034    0.000    3.546    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:517(do_pull_transaction_v1)
+    37573    0.031    0.000    0.066    0.000 /usr/lib/python3.10/asyncio/base_events.py:772(_call_soon)
+     2732    0.029    0.000    0.058    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stepper.py:1195(unpack_status)
+    90173    0.028    0.000    0.044    0.000 /usr/lib/python3.10/threading.py:264(__enter__)
+    15044    0.028    0.000    0.035    0.000 /usr/lib/python3.10/threading.py:236(__init__)
+    94937    0.027    0.000    0.051    0.000 /usr/lib/python3.10/asyncio/base_futures.py:14(isfuture)
+    90173    0.027    0.000    0.037    0.000 /usr/lib/python3.10/threading.py:267(__exit__)
+    15026    0.027    0.000    0.361    0.000 /usr/lib/python3.10/asyncio/base_events.py:807(run_in_executor)
+    37573    0.026    0.000    0.030    0.000 /usr/lib/python3.10/asyncio/events.py:31(__init__)
+    98806    0.025    0.000    0.025    0.000 {built-in method builtins.hasattr}
+    37565    0.024    0.000    0.095    0.000 /usr/lib/python3.10/asyncio/base_events.py:743(call_soon)
+    15026    0.023    0.000    0.165    0.000 /usr/lib/python3.10/asyncio/futures.py:407(wrap_future)
+   304956    0.020    0.000    0.020    0.000 {method 'append' of 'list' objects}
+    58073    0.019    0.000    0.019    0.000 {built-in method time.time}
+    15709    0.018    0.000    0.093    0.000 {method 'set_result' of '_asyncio.Future' objects}
+    24556    0.018    0.000    0.129    0.000 /usr/lib/python3/dist-packages/serial/serialposix.py:545(in_waiting)
+    15026    0.018    0.000    0.036    0.000 /usr/lib/python3.10/concurrent/futures/_base.py:410(add_done_callback)
+    15026    0.017    0.000    0.034    0.000 /usr/lib/python3.10/threading.py:428(acquire)
+     7178    0.017    0.000    1.157    0.000 /usr/lib/python3.10/asyncio/selector_events.py:112(_read_from_self)
+    85343    0.017    0.000    0.017    0.000 {built-in method _struct.unpack}
+    19124    0.017    0.000    3.672    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:870(do_pull_rpc_async)
+    10928    0.016    0.000    0.163    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/aioserial/aioserial.py:139(write_async)
+      695    0.016    0.000    0.026    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:196(_var)
+    10928    0.015    0.000    0.171    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/aioserial/aioserial.py:91(read_async)
+    15026    0.015    0.000    0.050    0.000 /usr/lib/python3.10/concurrent/futures/_base.py:330(__init__)
+    15026    0.015    0.000    0.032    0.000 /usr/lib/python3.10/concurrent/futures/_base.py:395(done)
+     5464    0.015    0.000    0.015    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/cobbs_framing.py:55(_encode)
+    15026    0.014    0.000    0.028    0.000 /usr/lib/python3.10/concurrent/futures/_base.py:430(result)
+    15026    0.014    0.000    0.014    0.000 {method 'put' of '_queue.SimpleQueue' objects}
+    19044    0.014    0.000    0.020    0.000 /usr/lib/python3.10/asyncio/selector_events.py:600(_process_events)
+     2754    0.013    0.000    0.013    0.000 {built-in method numpy.asanyarray}
+    75130    0.012    0.000    0.012    0.000 {method '__enter__' of '_thread.RLock' objects}
+    10928    0.012    0.000    0.223    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:462(sendFramedData)
+    36199    0.012    0.000    0.017    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:979(unpack_float_t)
+    15026    0.012    0.000    0.014    0.000 /usr/lib/python3.10/asyncio/base_events.py:427(create_future)
+      683    0.012    0.000    8.660    0.013 /usr/lib/python3.10/asyncio/base_events.py:589(run_forever)
+     2754    0.011    0.000    0.011    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     3415    0.011    0.000    0.025    0.000 /usr/lib/python3.10/asyncio/base_events.py:431(create_task)
+    15026    0.011    0.000    0.021    0.000 /usr/lib/python3.10/concurrent/futures/_base.py:465(exception)
+     5464    0.011    0.000    0.046    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/cobbs_framing.py:17(encode_data)
+    15026    0.011    0.000    3.556    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:489(do_rpc)
+    15026    0.011    0.000    0.048    0.000 /usr/lib/python3.10/concurrent/futures/thread.py:180(_adjust_thread_count)
+    81054    0.010    0.000    0.010    0.000 {built-in method builtins.len}
+      683    0.010    0.000    0.028    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:737(unpack_status)
+    24556    0.010    0.000    0.139    0.000 /usr/lib/python3/dist-packages/serial/serialutil.py:593(inWaiting)
+    15026    0.010    0.000    0.021    0.000 /usr/lib/python3.10/concurrent/futures/_base.py:385(cancelled)
+      683    0.009    0.000    8.855    0.013 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:105(step)
+    15026    0.009    0.000    0.247    0.000 /usr/lib/python3.10/asyncio/futures.py:379(_set_state)
+    10928    0.009    0.000    0.014    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/aioserial/aioserial.py:66(loop)
+    57380    0.009    0.000    0.009    0.000 /usr/lib/python3.10/asyncio/base_events.py:513(_check_closed)
+     3415    0.009    0.000    0.013    0.000 /usr/lib/python3.10/asyncio/tasks.py:720(_done_callback)
+    10928    0.009    0.000    2.099    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stepper.py:266(pull_status_async)
+    19044    0.008    0.000    0.012    0.000 /usr/lib/python3.10/asyncio/base_events.py:696(time)
+    75147    0.008    0.000    0.008    0.000 {method '__exit__' of '_thread.RLock' objects}
+      683    0.008    0.000    0.047    0.000 /usr/lib/python3.10/asyncio/tasks.py:684(gather)
+    17075    0.008    0.000    0.010    0.000 /usr/lib/python3.10/asyncio/futures.py:297(_get_loop)
+    15026    0.007    0.000    0.007    0.000 /usr/lib/python3.10/threading.py:90(RLock)
+    56697    0.007    0.000    0.007    0.000 /usr/lib/python3.10/asyncio/base_events.py:1927(get_debug)
+     2059    0.007    0.000    0.008    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:66(_count_reduce_items)
+      683    0.007    0.000    0.121    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:208(mark_loop_start)
+    59769    0.007    0.000    0.007    0.000 {method 'popleft' of 'collections.deque' objects}
+     1364    0.007    0.000    0.031    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:163(_mean)
+    15026    0.007    0.000    0.007    0.000 /usr/lib/python3.10/concurrent/futures/thread.py:47(__init__)
+      683    0.007    0.000    0.008    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/base.py:564(__update_status)
+    22458    0.006    0.000    0.006    0.000 {built-in method builtins.max}
+    10928    0.006    0.000    0.009    0.000 /usr/lib/python3.10/asyncio/locks.py:125(release)
+    15026    0.006    0.000    0.008    0.000 /usr/lib/python3.10/asyncio/futures.py:385(_call_check_cancel)
+    10928    0.006    0.000    0.011    0.000 /usr/lib/python3.10/asyncio/locks.py:13(__aenter__)
+     5464    0.006    0.000    0.319    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/cobbs_framing.py:30(decode_data)
+      683    0.006    0.000    0.012    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/wacc.py:327(unpack_status)
+     4098    0.006    0.000    0.037    0.000 /usr/lib/python3.10/asyncio/tasks.py:618(_ensure_future)
+    45095    0.006    0.000    0.006    0.000 {method '__exit__' of '_thread.lock' objects}
+      683    0.006    0.000    0.011    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:59(unpack_status)
+     4098    0.006    0.000    0.006    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/device.py:20(set)
+     1364    0.005    0.000    0.037    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3313(mean)
+     2732    0.005    0.000    0.065    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stepper.py:1326(unpack_status)
+    44786    0.005    0.000    0.005    0.000 {method 'append' of 'collections.deque' objects}
+     8504    0.005    0.000    0.005    0.000 /usr/lib/python3.10/asyncio/unix_events.py:81(_process_self_data)
+    10928    0.005    0.000    0.005    0.000 {built-in method _asyncio.get_running_loop}
+    10928    0.005    0.000    0.005    0.000 /usr/lib/python3.10/asyncio/locks.py:93(acquire)
+    10928    0.005    0.000    0.013    0.000 /usr/lib/python3.10/asyncio/locks.py:19(__aexit__)
+     7178    0.005    0.000    0.006    0.000 /usr/lib/python3.10/asyncio/base_events.py:1817(_add_callback)
+        1    0.005    0.005   27.758   27.758 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:120(run)
+    35156    0.004    0.000    0.004    0.000 {built-in method builtins.isinstance}
+      683    0.004    0.000    8.860    0.013 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/perf_timer.py:54(wrapper)
+     2732    0.004    0.000    0.573    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/wacc.py:118(pull_status_async)
+     5464    0.004    0.000    0.809    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:69(pull_status_async)
+     5464    0.004    0.000    1.017    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:245(pull_status_async)
+    19080    0.004    0.000    0.004    0.000 {built-in method time.monotonic}
+    30743    0.004    0.000    0.004    0.000 {method 'cancelled' of '_asyncio.Future' objects}
+     4781    0.004    0.000    1.312    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/base.py:556(pull_status_async)
+    16392    0.004    0.000    0.004    0.000 {method 'append' of 'array.array' objects}
+     7178    0.004    0.000    0.004    0.000 /usr/lib/python3.10/selectors.py:276(_key_from_fd)
+     2732    0.004    0.000    0.069    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stepper.py:820(rpc_status_reply)
+     2732    0.003    0.000    0.005    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stepper.py:522(current_to_effort_pct)
+    15709    0.003    0.000    0.003    0.000 {method 'add_done_callback' of '_asyncio.Future' objects}
+    15026    0.003    0.000    0.003    0.000 /usr/lib/python3.10/concurrent/futures/_base.py:400(__get_result)
+     5464    0.003    0.000    0.003    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:109(handle_pull_ack_v1)
+     8879    0.003    0.000    0.003    0.000 {built-in method builtins.min}
+      683    0.003    0.000    8.667    0.013 /usr/lib/python3.10/asyncio/base_events.py:613(run_until_complete)
+    15043    0.003    0.000    0.003    0.000 {method '__enter__' of '_thread.lock' objects}
+     1366    0.003    0.000    0.007    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/prismatic_joint.py:73(__update_status)
+     4781    0.003    0.000    0.004    0.000 {built-in method _asyncio.get_event_loop}
+      695    0.003    0.000    0.029    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:263(_std)
+     8196    0.003    0.000    0.004    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:955(unpack_uint32_t)
+     5464    0.003    0.000    0.004    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:975(unpack_uint8_t)
+     3432    0.003    0.000    0.003    0.000 /usr/lib/python3.10/_weakrefset.py:86(add)
+     4098    0.003    0.000    0.003    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:89(get_empty_frame)
+      140    0.003    0.000    0.003    0.000 {method 'acquire' of '_thread.lock' objects}
+    10928    0.002    0.000    0.002    0.000 /usr/lib/python3.10/asyncio/locks.py:142(_wake_up_first)
+     2732    0.002    0.000    0.002    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stepper.py:513(effort_ticks_to_current)
+    17075    0.002    0.000    0.002    0.000 {method 'get_loop' of '_asyncio.Future' objects}
+      695    0.002    0.000    0.031    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3441(std)
+    19124    0.002    0.000    0.002    0.000 {method 'done' of '_asyncio.Future' objects}
+     2059    0.002    0.000    0.070    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}
+     1366    0.002    0.000    0.002    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/lift.py:19(motor_rad_to_translate_m)
+     3415    0.002    0.000    0.003    0.000 /usr/lib/python3.10/_weakrefset.py:39(_remove)
+      683    0.002    0.000    0.003    0.000 /usr/lib/python3.10/asyncio/base_events.py:184(_run_until_complete_cb)
+    10928    0.002    0.000    0.002    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/cobbs_framing.py:14(__init__)
+      683    0.002    0.000    0.032    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:881(unpack_status)
+      683    0.002    0.000    0.002    0.000 /usr/lib/python3.10/asyncio/tasks.py:663(__init__)
+      683    0.002    0.000    0.031    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:871(unpack_status)
+      683    0.002    0.000    0.003    0.000 /usr/lib/python3.10/asyncio/unix_events.py:1430(set_event_loop)
+     4098    0.002    0.000    0.003    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:963(unpack_uint64_t)
+      683    0.002    0.000    0.002    0.000 /usr/lib/python3.10/asyncio/events.py:661(set_event_loop)
+     1364    0.001    0.000    0.040    0.000 <__array_function__ internals>:177(mean)
+     1366    0.001    0.000    0.001    0.000 {built-in method sys.set_asyncgen_hooks}
+     1366    0.001    0.000    0.002    0.000 /usr/lib/python3.10/asyncio/base_events.py:582(_check_running)
+     3415    0.001    0.000    0.002    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:971(unpack_uint16_t)
+     2732    0.001    0.000    0.002    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:983(unpack_double_t)
+     1366    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/arm.py:19(motor_rad_to_translate_m)
+     1366    0.001    0.000    0.001    0.000 {built-in method _asyncio._set_running_loop}
+      683    0.001    0.000    0.005    0.000 /usr/lib/python3.10/asyncio/events.py:776(set_event_loop)
+     3415    0.001    0.000    0.001    0.000 /usr/lib/python3.10/asyncio/coroutines.py:177(iscoroutine)
+      144    0.001    0.000    0.002    0.000 /usr/lib/python3.10/logging/__init__.py:283(__init__)
+     1366    0.001    0.000    0.001    0.000 /usr/lib/python3.10/asyncio/events.py:645(get_event_loop)
+     4133    0.001    0.000    0.001    0.000 {method 'release' of '_thread.lock' objects}
+     2732    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/stepper.py:1334(get_voltage)
+      683    0.001    0.000    0.033    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:555(rpc_status_reply)
+      683    0.001    0.000    0.013    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/wacc.py:272(rpc_status_reply)
+     1366    0.001    0.000    0.001    0.000 /usr/lib/python3.10/asyncio/base_events.py:1912(_set_coroutine_origin_tracking)
+      683    0.001    0.000    0.012    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:94(unpack_status)
+     4118    0.001    0.000    0.001    0.000 {built-in method builtins.issubclass}
+     2049    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:33(deg_to_rad)
+      683    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:255(mark_loop_end)
+     2059    0.001    0.000    0.001    0.000 {built-in method numpy.core._multiarray_umath.normalize_axis_index}
+     3415    0.001    0.000    0.001    0.000 {method 'discard' of 'set' objects}
+      683    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:418(get_current)
+     6830    0.001    0.000    0.001    0.000 {method 'exception' of '_asyncio.Task' objects}
+     6830    0.001    0.000    0.001    0.000 {method 'cancelled' of '_asyncio.Task' objects}
+      695    0.001    0.000    0.032    0.000 <__array_function__ internals>:177(std)
+      683    0.001    0.000    0.001    0.000 {built-in method _asyncio._get_event_loop}
+     3450    0.001    0.000    0.001    0.000 {method 'add' of 'set' objects}
+     2049    0.001    0.000    0.001    0.000 /usr/lib/python3.10/asyncio/events.py:736(get_event_loop_policy)
+     3415    0.001    0.000    0.001    0.000 {method 'add_done_callback' of '_asyncio.Task' objects}
+     4098    0.001    0.000    0.001    0.000 /usr/lib/python3.10/asyncio/base_events.py:517(_check_default_executor)
+       17    0.001    0.000    0.001    0.000 {built-in method _thread.start_new_thread}
+     1995    0.001    0.000    0.001    0.000 {built-in method math.sin}
+        8    0.001    0.000    0.001    0.000 {method 'send' of '_socket.socket' objects}
+     1386    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:553(is_set)
+     1164    0.000    0.000    0.000    0.000 {method 'pop' of 'list' objects}
+      683    0.000    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/transport.py:967(unpack_int16_t)
+      683    0.000    0.000    0.000    0.000 {built-in method sys.get_asyncgen_hooks}
+     1995    0.000    0.000    0.000    0.000 {built-in method math.cos}
+     1364    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3308(_mean_dispatcher)
+     1366    0.000    0.000    0.000    0.000 /usr/lib/python3.10/asyncio/base_events.py:692(is_running)
+      144    0.000    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:1549(findCaller)
+      683    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:412(get_temp)
+     3415    0.000    0.000    0.000    0.000 {method 'result' of '_asyncio.Task' objects}
+      683    0.000    0.000    0.002    0.000 /usr/lib/python3.10/asyncio/tasks.py:610(ensure_future)
+      144    0.000    0.000    0.037    0.000 /usr/lib/python3.10/logging/__init__.py:1680(callHandlers)
+      144    0.000    0.000    0.041    0.000 /usr/lib/python3.10/logging/__init__.py:1455(debug)
+     1366    0.000    0.000    0.000    0.000 {built-in method math.degrees}
+      144    0.000    0.000    0.002    0.000 /usr/lib/python3.10/logging/__init__.py:665(format)
+      289    0.000    0.000    0.000    0.000 {method 'acquire' of '_thread.RLock' objects}
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:431(_format)
+     1366    0.000    0.000    0.000    0.000 {method 'keys' of 'dict' objects}
+     1366    0.000    0.000    0.000    0.000 {built-in method _asyncio._get_running_loop}
+      144    0.000    0.000    0.034    0.000 /usr/lib/python3.10/logging/__init__.py:1077(flush)
+      683    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:441(get_current_charge)
+      683    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:432(get_current_efuse)
+      161    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:1430(current_thread)
+      144    0.000    0.000    0.000    0.000 {built-in method time.localtime}
+      144    0.000    0.000    0.041    0.000 /usr/lib/python3.10/logging/__init__.py:1600(_log)
+      144    0.000    0.000    0.037    0.000 /usr/lib/python3.10/logging/__init__.py:955(handle)
+      144    0.000    0.000    0.000    0.000 {built-in method time.strftime}
+      988    0.000    0.000    0.000    0.000 {built-in method _thread.get_ident}
+      684    0.000    0.000    0.000    0.000 /usr/lib/python3.10/asyncio/base_events.py:651(stop)
+      144    0.000    0.000    0.036    0.000 /usr/lib/python3.10/logging/__init__.py:1088(emit)
+      683    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/pimu.py:407(get_voltage)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/posixpath.py:140(basename)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/genericpath.py:121(_splitext)
+      911    0.000    0.000    0.000    0.000 {built-in method builtins.abs}
+      695    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3436(_std_dispatcher)
+      144    0.000    0.000    0.003    0.000 /usr/lib/python3.10/logging/__init__.py:1585(makeRecord)
+      144    0.000    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:597(formatTime)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/posixpath.py:117(splitext)
+      288    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:912(acquire)
+      683    0.000    0.000    0.000    0.000 {method 'remove_done_callback' of '_asyncio.Future' objects}
+      288    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:919(release)
+      144    0.000    0.000    0.037    0.000 /usr/lib/python3.10/logging/__init__.py:1626(handle)
+       17    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:827(__init__)
+       35    0.000    0.000    0.003    0.000 /usr/lib/python3.10/threading.py:288(wait)
+      144    0.000    0.000    0.036    0.000 /usr/lib/python3.10/logging/__init__.py:1204(emit)
+      288    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:806(filter)
+      432    0.000    0.000    0.000    0.000 {method 'rfind' of 'str' objects}
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:119(getLevelName)
+      144    0.000    0.000    0.002    0.000 /usr/lib/python3.10/logging/__init__.py:932(format)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:160(<lambda>)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:423(usesTime)
+      683    0.000    0.000    0.000    0.000 {method 'exception' of '_asyncio.Future' objects}
+      683    0.000    0.000    0.000    0.000 {method 'result' of '_asyncio.Future' objects}
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:649(formatMessage)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:438(format)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:643(usesTime)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:359(getMessage)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1724(isEnabledFor)
+      144    0.000    0.000    0.000    0.000 {built-in method posix.getpid}
+      288    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/posixpath.py:52(normcase)
+      432    0.000    0.000    0.000    0.000 {built-in method posix.fspath}
+      144    0.000    0.000    0.000    0.000 {method 'find' of 'str' objects}
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/posixpath.py:41(_get_sep)
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:1129(name)
+       17    0.000    0.000    0.003    0.000 /usr/lib/python3.10/threading.py:916(start)
+      289    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+      144    0.000    0.000    0.000    0.000 {built-in method sys._getframe}
+       17    0.000    0.000    0.003    0.000 /usr/lib/python3.10/threading.py:589(wait)
+        1    0.000    0.000    0.000    0.000 {built-in method posix.cpu_count}
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/multiprocessing/process.py:189(name)
+      144    0.000    0.000    0.000    0.000 {method 'write' of '_io.TextIOWrapper' objects}
+      144    0.000    0.000    0.000    0.000 /usr/lib/python3.10/multiprocessing/process.py:37(current_process)
+       17    0.000    0.000    0.000    0.000 /usr/lib/python3.10/weakref.py:428(__setitem__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/concurrent/futures/thread.py:123(__init__)
+       17    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:1301(_make_invoke_excepthook)
+       17    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:545(__init__)
+        8    0.000    0.000    0.001    0.000 /usr/lib/python3.10/asyncio/futures.py:392(_call_set_state)
+       35    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:276(_acquire_restore)
+       35    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:279(_is_owned)
+       35    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:273(_release_save)
+       54    0.000    0.000    0.000    0.000 {built-in method _thread.allocate_lock}
+        8    0.000    0.000    0.001    0.000 /usr/lib/python3.10/asyncio/selector_events.py:124(_write_to_self)
+        8    0.000    0.000    0.001    0.000 /usr/lib/python3.10/asyncio/base_events.py:796(call_soon_threadsafe)
+       17    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:1183(daemon)
+       18    0.000    0.000    0.000    0.000 {method 'remove' of 'collections.deque' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:422(__init__)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:219(_acquireLock)
+        1    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:131(stop)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1710(getEffectiveLevel)
+        8    0.000    0.000    0.000    0.000 {built-in method _contextvars.copy_context}
+        8    0.000    0.000    0.000    0.000 /usr/lib/python3.10/asyncio/base_events.py:682(is_closed)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:228(_releaseLock)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1307(disable)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+

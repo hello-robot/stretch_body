@@ -1,0 +1,152 @@
+         7163118 function calls in 16.441 seconds
+
+   Ordered by: internal time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    15722   12.099    0.001   12.099    0.001 {built-in method time.sleep}
+   501792    1.112    0.000    1.112    0.000 {built-in method select.select}
+   501057    0.561    0.000    2.103    0.000 /usr/lib/python3/dist-packages/serial/serialposix.py:553(read)
+     1470    0.409    0.000    0.416    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_X_chain.py:246(get_val)
+     1470    0.343    0.000    3.358    0.002 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/protocol2_packet_handler.py:249(rxPacket)
+   498852    0.224    0.000    0.344    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/port_handler.py:100(getCurrentTime)
+   501057    0.201    0.000    2.305    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/port_handler.py:76(readPort)
+   501792    0.193    0.000    0.256    0.000 /usr/lib/python3/dist-packages/serial/serialutil.py:127(__init__)
+      735    0.193    0.000    4.246    0.006 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_X_chain.py:236(sync_read)
+      735    0.170    0.000    0.170    0.000 {built-in method termios.tcdrain}
+   498117    0.144    0.000    0.487    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/port_handler.py:103(getTimeSinceStart)
+   498117    0.122    0.000    0.609    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/port_handler.py:93(isPacketTimeout)
+     4498    0.097    0.000    0.097    0.000 {built-in method posix.read}
+  1011020    0.079    0.000    0.079    0.000 {built-in method builtins.len}
+   498852    0.068    0.000    0.068    0.000 {built-in method builtins.round}
+   501057    0.063    0.000    0.063    0.000 {built-in method time.monotonic}
+   516089    0.061    0.000    0.061    0.000 {built-in method time.time}
+      735    0.055    0.000    0.055    0.000 {built-in method posix.write}
+   502527    0.051    0.000    0.051    0.000 {method 'extend' of 'list' objects}
+   506290    0.046    0.000    0.046    0.000 /usr/lib/python3/dist-packages/serial/serialutil.py:141(time_left)
+      246    0.038    0.000   12.146    0.049 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:278(wait_until_ready_to_run)
+     2205    0.009    0.000    0.009    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/protocol2_packet_handler.py:108(updateCRC)
+      248    0.005    0.000    0.009    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:196(_var)
+      984    0.004    0.000    0.004    0.000 {built-in method numpy.asanyarray}
+      735    0.004    0.000    0.076    0.000 /usr/lib/python3/dist-packages/serial/serialposix.py:612(write)
+    13882    0.004    0.000    0.004    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/robotis_def.py:54(DXL_MAKEWORD)
+      984    0.004    0.000    0.004    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     1470    0.004    0.000    0.005    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/protocol2_packet_handler.py:190(removeStuffing)
+       45    0.004    0.000    0.004    0.000 {method 'flush' of '_io.TextIOWrapper' objects}
+      735    0.004    0.000    0.004    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/protocol2_packet_handler.py:154(addStuffing)
+      735    0.004    0.000    0.260    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/protocol2_packet_handler.py:212(txPacket)
+      735    0.003    0.000    0.266    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/protocol2_packet_handler.py:710(syncReadTx)
+      735    0.003    0.000    3.364    0.005 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/group_sync_read.py:90(rxPacket)
+      245    0.003    0.000    4.254    0.017 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_X_chain.py:146(pull_status)
+      490    0.003    0.000    0.005    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:260(pull_status)
+      736    0.003    0.000    0.003    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:66(_count_reduce_items)
+     1470    0.003    0.000    3.361    0.002 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/protocol2_packet_handler.py:528(readRx)
+      735    0.002    0.000    0.270    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/group_sync_read.py:80(txPacket)
+      488    0.002    0.000    0.011    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:163(_mean)
+      245    0.002    0.000    0.035    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:208(mark_loop_start)
+     1470    0.002    0.000    0.004    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/group_sync_read.py:130(getData)
+       91    0.002    0.000    0.002    0.000 {method 'acquire' of '_thread.RLock' objects}
+     5233    0.002    0.000    0.003    0.000 /usr/lib/python3/dist-packages/serial/serialutil.py:137(expired)
+      488    0.002    0.000    0.013    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3313(mean)
+      735    0.002    0.000    0.002    0.000 /usr/lib/python3/dist-packages/serial/serialutil.py:56(to_bytes)
+      245    0.002    0.000    4.293    0.018 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/perf_timer.py:54(wrapper)
+        1    0.002    0.002   16.441   16.441 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:50(run)
+      735    0.001    0.000    0.002    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/group_sync_read.py:39(makeParam)
+      735    0.001    0.000    0.417    0.001 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_X_chain.py:272(<listcomp>)
+     7267    0.001    0.000    0.001    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/robotis_def.py:74(DXL_HIBYTE)
+     1470    0.001    0.000    0.002    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/group_sync_read.py:121(isAvailable)
+      735    0.001    0.000    3.636    0.005 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/group_sync_read.py:111(txRxPacket)
+     7267    0.001    0.000    0.001    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/robotis_def.py:70(DXL_LOBYTE)
+      248    0.001    0.000    0.010    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/_methods.py:263(_std)
+     4498    0.001    0.000    0.001    0.000 {method 'extend' of 'bytearray' objects}
+      248    0.001    0.000    0.011    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3441(std)
+      735    0.001    0.000    0.002    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/port_handler.py:85(setPacketTimeout)
+      735    0.001    0.000    0.171    0.000 /usr/lib/python3/dist-packages/serial/serialposix.py:666(flush)
+      245    0.001    0.000    4.291    0.018 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:43(step)
+     4262    0.001    0.000    0.001    0.000 {built-in method builtins.isinstance}
+      736    0.001    0.000    0.024    0.000 {built-in method numpy.core._multiarray_umath.implement_array_function}
+     1470    0.001    0.000    0.001    0.000 {built-in method _struct.unpack}
+     2205    0.001    0.000    0.001    0.000 {method '__exit__' of '_thread.RLock' objects}
+      735    0.001    0.000    0.077    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/port_handler.py:82(writePort)
+      735    0.001    0.000    0.171    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/port_handler.py:50(clearPort)
+     4410    0.001    0.000    0.001    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/protocol2_packet_handler.py:52(getProtocolVersion)
+      490    0.001    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:1225(ticks_to_world_rad)
+     3675    0.001    0.000    0.001    0.000 {method 'keys' of 'dict' objects}
+      488    0.000    0.000    0.014    0.000 <__array_function__ internals>:177(mean)
+      245    0.000    0.000    4.254    0.017 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:671(_pull_status_head_dynamixel)
+     1364    0.000    0.000    0.000    0.000 {built-in method builtins.hasattr}
+      490    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:1245(ticks_to_rad)
+     1472    0.000    0.000    0.000    0.000 {built-in method builtins.issubclass}
+       45    0.000    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:283(__init__)
+      245    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_X_chain.py:138(update_trajectory)
+     1958    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+      980    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:33(deg_to_rad)
+      493    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:553(is_set)
+     1960    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/robotis_def.py:66(DXL_HIWORD)
+      490    0.000    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:1221(ticks_to_world_rad_per_sec)
+     1960    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/robotis_def.py:62(DXL_LOWORD)
+      490    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:1251(ticks_to_rad_per_sec)
+      980    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/dynamixel_sdk/robotis_def.py:58(DXL_MAKEDWORD)
+      736    0.000    0.000    0.000    0.000 {built-in method numpy.core._multiarray_umath.normalize_axis_index}
+      245    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/hello_utils.py:255(mark_loop_end)
+      248    0.000    0.000    0.011    0.000 <__array_function__ internals>:177(std)
+      245    0.000    0.000    0.001    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/robot.py:677(_update_trajectory_head_dynamixel)
+      244    0.000    0.000    0.000    0.000 {built-in method builtins.min}
+      490    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:982(update_trajectory)
+      488    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3308(_mean_dispatcher)
+      288    0.000    0.000    0.000    0.000 {method 'pop' of 'list' objects}
+      980    0.000    0.000    0.000    0.000 {built-in method builtins.abs}
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1549(findCaller)
+      490    0.000    0.000    0.000    0.000 /home/hello-robot/repos/stretch_body_sandbox/stretch_body/body/stretch_body/dynamixel_hello_XL430.py:1267(ticks_to_pct_load)
+       45    0.000    0.000    0.007    0.000 /usr/lib/python3.10/logging/__init__.py:1680(callHandlers)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:665(format)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:431(_format)
+       45    0.000    0.000    0.008    0.000 /usr/lib/python3.10/logging/__init__.py:1600(_log)
+      244    0.000    0.000    0.000    0.000 {built-in method builtins.max}
+       45    0.000    0.000    0.008    0.000 /usr/lib/python3.10/logging/__init__.py:1455(debug)
+       45    0.000    0.000    0.004    0.000 /usr/lib/python3.10/logging/__init__.py:1077(flush)
+       45    0.000    0.000    0.000    0.000 {built-in method time.localtime}
+       45    0.000    0.000    0.007    0.000 /usr/lib/python3.10/logging/__init__.py:955(handle)
+       45    0.000    0.000    0.004    0.000 /usr/lib/python3.10/logging/__init__.py:1088(emit)
+       45    0.000    0.000    0.000    0.000 {built-in method time.strftime}
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/posixpath.py:140(basename)
+      248    0.000    0.000    0.000    0.000 /home/hello-robot/.local/lib/python3.10/site-packages/numpy/core/fromnumeric.py:3436(_std_dispatcher)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/genericpath.py:121(_splitext)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/posixpath.py:117(splitext)
+       90    0.000    0.000    0.002    0.000 /usr/lib/python3.10/logging/__init__.py:912(acquire)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:597(formatTime)
+       45    0.000    0.000    0.001    0.000 /usr/lib/python3.10/logging/__init__.py:1585(makeRecord)
+       90    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:919(release)
+       45    0.000    0.000    0.004    0.000 /usr/lib/python3.10/logging/__init__.py:1204(emit)
+       45    0.000    0.000    0.007    0.000 /usr/lib/python3.10/logging/__init__.py:1626(handle)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:160(<lambda>)
+       90    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:806(filter)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:119(getLevelName)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:1430(current_thread)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1724(isEnabledFor)
+      135    0.000    0.000    0.000    0.000 {method 'rfind' of 'str' objects}
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:932(format)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:649(formatMessage)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:423(usesTime)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:359(getMessage)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:438(format)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/posixpath.py:52(normcase)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:643(usesTime)
+       45    0.000    0.000    0.000    0.000 {built-in method posix.getpid}
+       90    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/posixpath.py:41(_get_sep)
+       45    0.000    0.000    0.000    0.000 {method 'find' of 'str' objects}
+      135    0.000    0.000    0.000    0.000 {built-in method posix.fspath}
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/threading.py:1129(name)
+       91    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+       90    0.000    0.000    0.000    0.000 {built-in method _thread.get_ident}
+       45    0.000    0.000    0.000    0.000 {built-in method sys._getframe}
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/multiprocessing/process.py:189(name)
+       45    0.000    0.000    0.000    0.000 /usr/lib/python3.10/multiprocessing/process.py:37(current_process)
+       45    0.000    0.000    0.000    0.000 {method 'write' of '_io.TextIOWrapper' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:219(_acquireLock)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:228(_releaseLock)
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1710(getEffectiveLevel)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 /usr/lib/python3.10/logging/__init__.py:1307(disable)
+
+
