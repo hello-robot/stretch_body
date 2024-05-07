@@ -716,4 +716,6 @@ def free_body_filelock():
             except PermissionError:
                 # 5. os.kill will fail to kill PIDs not owned by this user. Root user can kill anything.
                 return False
+            except ProcessLookupError:
+                pass
     return True
