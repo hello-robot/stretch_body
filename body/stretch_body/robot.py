@@ -4,10 +4,6 @@ import time
 import signal
 import importlib
 import asyncio
-import os
-import sys
-from IPython import get_ipython
-from filelock import FileLock, Timeout
 import traceback
 
 from stretch_body.device import Device
@@ -206,22 +202,6 @@ class Robot(Device):
     """
     def __init__(self):
         Device.__init__(self, 'robot')
-
-        # TODO: Move filelocking to the startup() method after dxl
-        # devices move init usb comm out of their __init__ methods.
-        # https://github.com/hello-robot/stretch_body/issues/217
-        pid_file = "/tmp/stretch_body_robot_pid.txt"
-        self._file_lock = FileLock(f"{pid_file}.lock")
-        try:
-            self._file_lock.acquire(timeout=1)
-            with open(pid_file, 'w') as f:
-                f.write(str(os.getpid()))
-        except Timeout:
-            print('Another process is already using Stretch. Try running "stretch_free_robot_process.py"')
-            if get_ipython():
-                raise
-            sys.exit(1)
-
         self.monitor = RobotMonitor(self)
         self.trace = RobotTrace(self)
         self.collision = RobotCollisionMgmt(self)
@@ -307,6 +287,11 @@ class Robot(Device):
         bool
             true if startup of robot succeeded
         """
+        did_acquire = hello_utils.acquire_body_filelock()
+        if not did_acquire:
+            print('Another process is already using Stretch. Try running "stretch_free_robot_process.py"')
+            return False
+
         self.logger.debug('Starting up Robot {0} of batch {1}'.format(self.params['serial_no'], self.params['batch_name']))
         success = True
         for k in self.devices:
@@ -371,7 +356,6 @@ class Robot(Device):
         Cleanly stops down motion and communication
         """
         self.logger.debug('---- Shutting down robot ----')
-        self._file_lock.release()
         if self.non_dxl_thread:
             if self.non_dxl_thread.running:
                 self.non_dxl_thread.shutdown_flag.set()

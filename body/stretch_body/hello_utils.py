@@ -2,14 +2,19 @@ from __future__ import print_function
 import yaml
 import math
 import os
+import pwd
 import time
 import logging
 import numpy as np
 import sys
+import signal
+import pathlib
 import numbers
 import subprocess
 import pyrealsense2 as rs
 import cv2
+from filelock import FileLock, Timeout
+
 
 def print_stretch_re_use():
     print("For use with S T R E T C H (R) from Hello Robot Inc.")
@@ -646,3 +651,70 @@ def get_video_device_port(camera_name):
             return camera_device
     print('ERROR: Did not find the specified camera_name = ' + str(camera_name))
     return  camera_device
+
+BODY_FILE = '/tmp/stretch_pid_dir/stretch_body_robot_pid.txt'
+BODY_FILELOCK = f'{BODY_FILE}.lock'
+
+def acquire_body_filelock():
+    whoami = pwd.getpwuid(os.getuid()).pw_name
+    pid_file = pathlib.Path(BODY_FILE)
+    filelock_path = pathlib.Path(BODY_FILELOCK)
+    # 1. If the '/tmp/stretch_pid_dir' does not exist, make it. Note, it's important we create
+    #    these files within a subdirectory instead of /tmp directly because /tmp is a "sticky"
+    #    directory (i.e. only the user that created the file can edit it).
+    if not pid_file.parent.is_dir():
+        pid_file.parent.mkdir(parents=True, exist_ok=True)
+    file_lock = FileLock(BODY_FILELOCK)
+    try:
+        file_lock.acquire(timeout=1)
+        # 2. If we acquire the lock as the file's owner, the lock's permissions will have changed
+        #    to limit write privileges. We use chmod to enable all users to write to the file.
+        if filelock_path.owner() == whoami:
+            filelock_path.chmod(0o777)
+        # 3. Write this process's PID to a file so this process can be freed by others.
+        with open(str(pid_file), 'w') as f:
+            f.write(str(os.getpid()))
+        if pid_file.owner() == whoami:
+            pid_file.chmod(0o777)
+    except Timeout:
+        # 4. If we failed to acquire the lock as the file's owner, the lock's permissions will have
+        #    changed to limit write privileges. We use chmod to enable all users to write to the file.
+        if filelock_path.owner() == whoami:
+            filelock_path.chmod(0o777)
+        print('Another process is already using Stretch. Try running "stretch_free_robot_process.py"')
+        return False
+    return True
+
+def free_body_filelock():
+    whoami = pwd.getpwuid(os.getuid()).pw_name
+    pid_file = pathlib.Path(BODY_FILE)
+    filelock_path = pathlib.Path(BODY_FILELOCK)
+    # 1. If the '/tmp/stretch_pid_dir' does not exist, no robot process has created it.
+    if not pid_file.parent.is_dir():
+        return True
+    file_lock = FileLock(BODY_FILELOCK)
+    try:
+        file_lock.acquire(timeout=1)
+        file_lock.release()
+        # 2. If we acquire the lock as the file's owner, the lock's permissions will have changed
+        #    to limit write privileges. We use chmod to enable all users to write to the file.
+        if filelock_path.owner() == whoami:
+            filelock_path.chmod(0o777)
+    except Timeout:
+        # 3. If we failed to acquire the lock as the file's owner, the lock's permissions will have
+        #    changed to limit write privileges. We use chmod to enable all users to write to the file.
+        if filelock_path.owner() == whoami:
+            filelock_path.chmod(0o777)
+        with open(pid_file, 'r') as f:
+            tokill_pid = int(f.read())
+            # 4. Send SIGTERM a few times because some processes (e.g. ipython) try to stall on exit.
+            try:
+                os.kill(tokill_pid, signal.SIGTERM)
+                time.sleep(0.2)
+                os.kill(tokill_pid, signal.SIGTERM)
+                time.sleep(0.2)
+                os.kill(tokill_pid, signal.SIGTERM)
+            except:
+                # 5. os.kill will fail to kill PIDs not owned by this user. Root user can kill anything.
+                return False
+    return True
