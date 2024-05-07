@@ -669,17 +669,17 @@ def acquire_body_filelock():
         file_lock.acquire(timeout=1)
         # 2. If we acquire the lock as the file's owner, the lock's permissions will have changed
         #    to limit write privileges. We use chmod to enable all users to write to the file.
-        if filelock_path.owner() == whoami:
+        if filelock_path.owner() == whoami or whoami == "root":
             filelock_path.chmod(0o777)
         # 3. Write this process's PID to a file so this process can be freed by others.
         with open(str(pid_file), 'w') as f:
             f.write(str(os.getpid()))
-        if pid_file.owner() == whoami:
+        if pid_file.owner() == whoami or whoami == "root":
             pid_file.chmod(0o777)
     except Timeout:
         # 4. If we failed to acquire the lock as the file's owner, the lock's permissions will have
         #    changed to limit write privileges. We use chmod to enable all users to write to the file.
-        if filelock_path.owner() == whoami:
+        if filelock_path.owner() == whoami or whoami == "root":
             filelock_path.chmod(0o777)
         return False, file_lock
     return True, file_lock
@@ -697,12 +697,12 @@ def free_body_filelock():
         file_lock.release()
         # 2. If we acquire the lock as the file's owner, the lock's permissions will have changed
         #    to limit write privileges. We use chmod to enable all users to write to the file.
-        if filelock_path.owner() == whoami:
+        if filelock_path.owner() == whoami or whoami == "root":
             filelock_path.chmod(0o777)
     except Timeout:
         # 3. If we failed to acquire the lock as the file's owner, the lock's permissions will have
         #    changed to limit write privileges. We use chmod to enable all users to write to the file.
-        if filelock_path.owner() == whoami:
+        if filelock_path.owner() == whoami or whoami == "root":
             filelock_path.chmod(0o777)
         with open(pid_file, 'r') as f:
             tokill_pid = int(f.read())
