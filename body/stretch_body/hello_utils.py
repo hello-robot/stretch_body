@@ -713,7 +713,7 @@ def free_body_filelock():
                 os.kill(tokill_pid, signal.SIGTERM)
                 time.sleep(0.2)
                 os.kill(tokill_pid, signal.SIGTERM)
-            except:
+            except PermissionError:
                 # 5. os.kill will fail to kill PIDs not owned by this user. Root user can kill anything.
                 return False
     return True
