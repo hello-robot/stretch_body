@@ -6,6 +6,7 @@ hu.print_stretch_re_use()
 import os
 import sh
 import re
+import sys
 import apt
 import git
 import yaml
@@ -68,8 +69,11 @@ if args.verbose:
     print(Fore.LIGHTBLUE_EX + 'Batch = ' + Fore.CYAN + stretch_batch)
 print(Fore.LIGHTBLUE_EX + 'Serial Number = ' + Fore.CYAN + stretch_serial_no)
 # create robot instance
+print(Style.RESET_ALL)
 r=robot.Robot()
-r.startup()
+if not r.startup():
+    sys.exit(1)
+
 r.monitor.logger.setLevel('WARN')
 
 # ###################  HARDWARE  ######################
