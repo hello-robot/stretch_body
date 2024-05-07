@@ -26,6 +26,6 @@ if not r.startup():
 r.pimu.pull_status()
 val_in_range('Voltage',r.pimu.status['voltage'], vmin=r.pimu.config['low_voltage_alert'], vmax=14.0)
 val_in_range('Current',r.pimu.status['current'], vmin=0.1, vmax=r.pimu.config['high_current_alert'])
-val_in_range('CPU Temp',r.pimu.status['cpu_temp'], vmin=15, vmax=80)
+# val_in_range('CPU Temp',r.pimu.status['cpu_temp'], vmin=15, vmax=80)
 print(Style.RESET_ALL)
 r.stop()
