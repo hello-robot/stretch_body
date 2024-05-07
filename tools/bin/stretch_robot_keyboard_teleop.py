@@ -4,6 +4,7 @@ import sys, tty, termios
 import stretch_body.robot as hello_robot
 from stretch_body.hello_utils import *
 import argparse
+import sys
 print_stretch_re_use()
 
 
@@ -12,7 +13,8 @@ args=parser.parse_args()
 
 
 robot=hello_robot.Robot()
-robot.startup()
+if not robot.startup():
+    sys.exit(1)
 
 small_move_m=.01
 large_move_m=0.1
