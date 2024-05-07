@@ -287,7 +287,7 @@ class Robot(Device):
         bool
             true if startup of robot succeeded
         """
-        did_acquire = hello_utils.acquire_body_filelock()
+        did_acquire, self._file_lock = hello_utils.acquire_body_filelock()
         if not did_acquire:
             print('Another process is already using Stretch. Try running "stretch_free_robot_process.py"')
             return False
@@ -356,6 +356,7 @@ class Robot(Device):
         Cleanly stops down motion and communication
         """
         self.logger.debug('---- Shutting down robot ----')
+        self._file_lock.release()
         if self.non_dxl_thread:
             if self.non_dxl_thread.running:
                 self.non_dxl_thread.shutdown_flag.set()

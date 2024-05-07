@@ -681,9 +681,8 @@ def acquire_body_filelock():
         #    changed to limit write privileges. We use chmod to enable all users to write to the file.
         if filelock_path.owner() == whoami:
             filelock_path.chmod(0o777)
-        print('Another process is already using Stretch. Try running "stretch_free_robot_process.py"')
-        return False
-    return True
+        return False, file_lock
+    return True, file_lock
 
 def free_body_filelock():
     whoami = pwd.getpwuid(os.getuid()).pw_name
