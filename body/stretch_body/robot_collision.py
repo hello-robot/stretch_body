@@ -12,6 +12,7 @@ from stretch_body.robot_params import RobotParams
 import multiprocessing
 import signal
 import ctypes
+import sys
 
 try:
     # works on ubunut 22.04
@@ -385,7 +386,7 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
             pass
 
 def signal_handler(signal_received, frame):
-    exit(0)
+    sys.exit(0)
 
 class RobotCollisionMgmt(Device):
     def __init__(self,robot,name='robot_collision_mgmt'):

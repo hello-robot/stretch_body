@@ -836,6 +836,11 @@ class Transport():
     def stop(self):
         if self.ser:
             self.logger.debug('Shutting down TransportConnection on: ' + self.port_name)
+            try:
+                fcntl.flock(self.ser.fileno(), fcntl.LOCK_UN | fcntl.LOCK_NB)
+            except IOError:
+                self.logger.error(
+                    'Port %s is busy. Check if another Stretch Body process is already running' % self.port_name)
             self.ser.close()
             self.ser = None
 

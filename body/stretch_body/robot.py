@@ -356,7 +356,7 @@ class Robot(Device):
         Cleanly stops down motion and communication
         """
         self.logger.debug('---- Shutting down robot ----')
-        self._file_lock.release()
+        # self._file_lock.release()
         if self.non_dxl_thread:
             if self.non_dxl_thread.running:
                 self.non_dxl_thread.shutdown_flag.set()
