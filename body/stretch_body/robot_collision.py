@@ -563,8 +563,8 @@ class RobotCollisionCompute(Device):
             if not self.first_frame:
                 self.urf_viz.show(cfg=_cfg, use_collision=True)
                 self.first_frame = True
-        if self.urf_viz.viewer.is_active:
-            self.urf_viz.update_pose(cfg=_cfg, use_collision=True)
+            if self.urf_viz.viewer.is_active:
+                self.urf_viz.update_pose(cfg=_cfg, use_collision=True)
         lfk = self.urdf.link_fk(cfg=_cfg, links=self.collision_links.keys(), use_names=True)
 
         # Update poses of links based on fk
