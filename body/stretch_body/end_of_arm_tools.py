@@ -76,8 +76,10 @@ class ToolStretchDexWrist(EndOfArm):
         self.motors['wrist_yaw'].home()
 
     def pre_stow(self,robot=None):
-        if 'wrist_pitch' in self.end_of_arm.joints:
-            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+        if robot:
+            robot.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+        else:
+            self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
 
 # ##########################################################3#
 class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
@@ -109,7 +111,7 @@ class EOA_Wrist_DW3_Tool_NIL(EndOfArm):
         if robot:
             robot.end_of_arm.move_to('wrist_pitch', robot.end_of_arm.params['stow']['wrist_pitch'])
         else:
-            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+            self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
 
 class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
     """
@@ -144,7 +146,7 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
         if robot:
             robot.end_of_arm.move_to('wrist_pitch', robot.end_of_arm.params['stow']['wrist_pitch'])
         else:
-            self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+            self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
 
 class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
     """
