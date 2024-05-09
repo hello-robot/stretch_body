@@ -208,9 +208,10 @@ class GamePadTeleop(Device):
                 print("Switch D-Pad to Head Control")
                 self.do_single_beep(robot)
                 self.skip_x_button = True
-        # skip x button press by N cycles after a toggle 
+            self.time_since_dexwrist_switch = time.time()
+        # skip x button press for 1 second after a toggle 
         if self.skip_x_button:
-            if self._i % 10 == 0:
+            if (self.time_since_dexwrist_switch - time.time()) > 1:
                 self.skip_x_button = False
 
             
