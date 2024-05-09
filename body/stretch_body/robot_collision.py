@@ -16,7 +16,7 @@ import pyrender
 import trimesh
 import sys
 
-ENABLE_COLLISION_VISUALIZER = True
+ENABLE_COLLISION_VISUALIZER = False
 
 try:
     # works on ubunut 22.04
