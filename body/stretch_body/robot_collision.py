@@ -13,6 +13,7 @@ import multiprocessing
 import signal
 import ctypes
 import pyrender
+import trimesh
 
 try:
     # works on ubunut 22.04
@@ -644,10 +645,14 @@ class RobotCollisionCompute(Device):
                 if cp.detect_as=='pts':
                     cp.in_collision, collision_point =check_pts_in_AABB_cube(cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale),
                                                            pts = cp.link_pts.pose)
+                    if cp.in_collision and self.viz:
+                        self.urf_viz.collision_sphere(collision_point)
                     # cp.in_collision=check_AABB_in_AABB_from_pts(pts1=cp.link_cube.pose,pts2=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
                     cp.in_collision, collision_point = check_mesh_triangle_edges_in_cube(mesh_triangles = cp.link_pts.get_triangles(), 
                                                                         cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale))
+                    if cp.in_collision and self.viz:
+                        self.urf_viz.collision_sphere(collision_point)
                 else:
                     cp.in_collision =False
                     #cp.pretty_print()
@@ -658,7 +663,7 @@ class RobotCollisionCompute(Device):
 
                 # Beep on new collision
                 if not self.collision_pairs[pair_name].was_in_collision and self.collision_pairs[pair_name].in_collision:
-                    print(f'New collision pair event: {pair_name} [{time.time()}] GOTHAAAAA' )
+                    print(f'New collision pair event: {pair_name} [{time.time()}]' )
                     self.alert()
 
         # print(f"From Process: Normal CFG = {normalized_joint_status_thresh}")
@@ -705,6 +710,8 @@ class URDFVisualizer:
         self.scene = None
         self.viewer = None
 
+        self.collision_points = []
+
     def show(self, cfg=None, use_collision=False):
         """Visualize the URDF in a given configuration.
         Parameters
@@ -743,7 +750,32 @@ class URDFVisualizer:
         for i, tm in enumerate(fk):
             pose = fk[tm]
             self.scene.set_pose(self.nodes[i], pose=pose)
+        
+        self.clean_collision_points()
         self.viewer.render_lock.release()
+    
+    def clean_collision_points(self):
+        if len(self.collision_points):
+            for c,t in self.collision_points:
+                if time.perf_counter() - t > 1:
+                    if self.scene.has_node(c):
+                        self.scene.remove_node(c)
+                        self.collision_points.remove((c,t))
+                    else:
+                        print(f"Unable to find {c}")
+                        
+
+    def collision_sphere(self, point):
+        p = np.identity(4)
+        p[:,3] = point
+        mesh = trimesh.creation.icosphere(radius=0.015,subdivisions=1)
+        mesh.visual.face_colors = np.random.randint(low=0,high=255,size=4)
+        pmesh = pyrender.Mesh.from_trimesh(mesh,smooth=False)
+        self.viewer.render_lock.acquire()
+        mesh_node = self.scene.add(pmesh,pose=p)
+        self.collision_points.append((mesh_node,time.perf_counter()))
+        self.viewer.render_lock.release()
+        
 
 class RobotCollision(Device):
     """
