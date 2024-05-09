@@ -211,7 +211,7 @@ class GamePadTeleop(Device):
             self.time_since_dexwrist_switch = time.time()
         # skip x button press for 1 second after a toggle 
         if self.skip_x_button:
-            if (self.time_since_dexwrist_switch - time.time()) > 1:
+            if (time.time() - self.time_since_dexwrist_switch) > 1:
                 self.skip_x_button = False
 
             
