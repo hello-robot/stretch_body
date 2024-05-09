@@ -146,6 +146,19 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
         else:
             self.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
 
+    def step_sentry(self, robot):
+        super().step_sentry(robot)
+        if robot.collision.running:
+            wrist_p = self.get_joint('wrist_pitch').status['pos']
+            wrist_y = self.get_joint('wrist_yaw').status['pos']
+            if wrist_p > -0.2 and wrist_y < -0.2:
+                # print("In Special Stop")
+                self.get_joint('wrist_yaw').forced_collision_stop_override = {'pos': False, 'neg':True}
+                
+            else:
+                # print("Out Special Stop")
+                self.get_joint('wrist_yaw').forced_collision_stop_override = {'pos': False, 'neg':False}
+
 class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
     """
     Wrist Yaw / Pitch / Roll + 12in Tablet
