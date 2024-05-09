@@ -77,7 +77,7 @@ class ToolStretchDexWrist(EndOfArm):
 
     def pre_stow(self,robot=None):
         if robot:
-            robot.end_of_arm.move_to('wrist_pitch', self.end_of_arm.params['stow']['wrist_pitch'])
+            robot.end_of_arm.move_to('wrist_pitch', robot.end_of_arm.params['stow']['wrist_pitch'])
         else:
             self.move_to('wrist_pitch', self.params['stow']['wrist_pitch'])
 
