@@ -14,6 +14,9 @@ import signal
 import ctypes
 import pyrender
 import trimesh
+import sys
+
+ENABLE_COLLISION_VISUALIZER = True
 
 try:
     # works on ubunut 22.04
@@ -223,8 +226,6 @@ class CollisionLink:
             print('Ignoring collision link %s' % link_name)
             self.is_valid=False
         self.pose=None
-        #self.edge_indices_ppd=self.find_edge_indices_PPD()
-
 
     def is_ppd(self):
         return self.points.shape[0]==8
@@ -239,42 +240,6 @@ class CollisionLink:
         print('In collision',self.in_collision)
         print('Was in collision',self.was_in_collision)
         print('Mesh size',self.points.shape)
-
-    def find_edge_indices_PPD(self):
-        """
-        Return the indices for each edge assuming the link is a parallelpiped (PPD)
-        """
-
-        triangles=self.mesh.cells_dict['triangle']
-
-        for t in triangles:
-            idx_pairs=[[0,1],[0,2],[1,2]]
-            edge_lens=[]
-            for ii in idx_pairs:
-                edge_lens.append(np.linalg.norm(self.points[ii[0]]-self.points[ii[2]]))
-            exterior_edges = np.array(idx_pairs)[np.argsort(np.array(edge_lens))][0:2] #indices of two shortest legs of triangle
-
-
-
-
-        px=self.points.shape[0]
-        # if not self.is_ppd():
-        #     return np.array([])
-        idx=[]
-        lens=[]
-        #Toss out really short edge as is a mesh file artifact
-
-        for i in range(px):
-            for j in range(i+1,px):
-                ll = np.linalg.norm(self.points[i] - self.points[j])
-                if ll>eps:
-                    idx.append([i,j])
-                    lens.append(ll)
-        #return 12 shortest lengths of all possible combinations
-        q= np.array(idx)[np.argsort(np.array(lens))][0:12]
-        lens.sort()
-        print('LENS',lens)
-        return q
     
     def get_triangles(self):
         triangles_idx=self.mesh.cells_dict['triangle']
@@ -348,17 +313,6 @@ class CollisionJoint:
     def add_collision_pair(self,motion_dir, collision_pair):
         self.collision_pairs.append(collision_pair)
         self.collision_dirs[collision_pair.name]=motion_dir
-    
-    def update_last_joint_cfg_thresh(self,thresh):
-        self.in_collision['last_joint_cfg_thresh'] = thresh
-
-
-    def update_collision_pair_min_dist(self,pair_name):
-        for cp in self.collision_pairs:
-            if cp.name == pair_name:
-                _,dist = closest_pair_3d(cp.link_cube.pose,cp.link_pts.pose)
-                self.in_collision['las_cp_min_dist'] = {'pair_name':pair_name,'dist':dist}
-                return
 
     def pretty_print(self):
         print('-------Collision Joint: %s-----------------'%self.name)
@@ -388,7 +342,7 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
             pass
 
 def signal_handler(signal_received, frame):
-    exit(0)
+    sys.exit(0)
 
 class RobotCollisionMgmt(Device):
     def __init__(self,robot,name='robot_collision_mgmt'):
@@ -428,10 +382,10 @@ class RobotCollisionMgmt(Device):
                 for j in self.collision_status.keys():
                     jm = self.get_joint_motor(j)
                     jm.step_collision_avoidance(self.collision_status[j])
-                    if True in self.collision_status[j].values():
-                        self.brake_joints[j] = True
-                    else:
-                        self.brake_joints[j] = False
+                    # if True in self.collision_status[j].values():
+                    #     self.brake_joints[j] = True
+                    # else:
+                    #     self.brake_joints[j] = False
 
         except (BrokenPipeError,ConnectionResetError):
             pass
@@ -520,7 +474,7 @@ class RobotCollisionCompute(Device):
         self.urdf=None
         self.prev_loop_start_ts = None
         self.robot_params = RobotParams().get_params()[1]
-        self.viz = True
+        self.viz = ENABLE_COLLISION_VISUALIZER
         if self.viz:
             self.first_frame = False
 
@@ -603,9 +557,6 @@ class RobotCollisionCompute(Device):
         if self.urdf is None:
             return
 
-        # if cfg is None:
-        #     cfg = self.get_joint_configuration(braked=True)#_braked()
-
         # Update forward kinematics of links
         _cfg = cfg.get()
         if self.viz:
@@ -629,7 +580,6 @@ class RobotCollisionCompute(Device):
             self.collision_joints[joint_name].active_collisions=[]
             self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
 
-            # print(f"[{joint_name}] Was in Collision cnt: {self.collision_joints[joint_name].last_in_collision_cnt}")
             # Release Collision Joints in_collision mode onlt after 100 cycles
             if self.collision_joints[joint_name].in_collision['pos'] or self.collision_joints[joint_name].in_collision['neg']:
                 self.collision_joints[joint_name].last_in_collision_cnt = self.collision_joints[joint_name].last_in_collision_cnt + 1
@@ -666,7 +616,6 @@ class RobotCollisionCompute(Device):
                     print(f'New collision pair event: {pair_name} [{time.time()}]' )
                     self.alert()
 
-        # print(f"From Process: Normal CFG = {normalized_joint_status_thresh}")
         #Now update joint state
         for joint_name in self.collision_joints:
             cj = self.collision_joints[joint_name]
@@ -674,8 +623,6 @@ class RobotCollisionCompute(Device):
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
                     cj.in_collision[cj.collision_dirs[cp.name]] = True
-            # print(f"From Process: {joint_name} = {self.collision_joints[joint_name].in_collision}")
-            # self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
         self.prev_loop_start_ts = time.perf_counter()
         
     def alert(self):
@@ -699,9 +646,7 @@ class RobotCollisionCompute(Device):
 
 class URDFVisualizer:
     """The `show` method in this class is modified from the
-    original implementation of `urdf_loader.URDF.show`. This class
-    exists temporarily while the PR for this modification is
-    in review.
+    original implementation of `urdf_loader.URDF.show`.
     """
 
     def __init__(self, urdf):
