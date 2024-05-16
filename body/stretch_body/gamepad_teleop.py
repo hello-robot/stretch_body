@@ -245,7 +245,7 @@ class GamePadTeleop(Device):
                 self.do_single_beep(robot)
                 robot.home()
             if robot.is_homed() and not self.currently_stowing:
-                if self.gamepad_controller.is_gamepad_dongle:
+                if self.gamepad_controller.is_gamepad_dongle or state:
                     self.command_robot_joints(robot)
                 else:
                     self._safety_stop(robot)
