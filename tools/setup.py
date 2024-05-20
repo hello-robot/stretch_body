@@ -10,8 +10,8 @@ ex_scripts = glob.glob(script_path+'/*.py') + glob.glob(script_path+'/*.sh')
 stretch_scripts=[f for f in ex_scripts if isfile(f)]
 
 setuptools.setup(
-    name="hello_robot_stretch_body_tools",
-    version="0.7.8",
+    name="hello-robot-stretch-body-tools",
+    version="0.7.9",
     author="Hello Robot Inc",
     author_email="support@hello-robot.com",
     description="Stretch Body Tools",
