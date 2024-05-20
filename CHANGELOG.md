@@ -2,6 +2,10 @@
 
 The changes between releases of Stretch Body are documented here.
 
+## [0.7.13](https://pypi.org/project/hello-robot-stretch-body/0.7.13/) - May 7, 2024
+ - This PR robot process protection to multi-user setup. Currently, if you have an ongoing connection to the robot, and attempt to launch another application that needs to connect to the USB hardware, the second attempt will not connect and will let the user know that an ongoing connection already exists. This is because only one connection to the hardware can safely communicate at a time. Therefore, this protects the first connection from experiencing dropouts or interruptions. The warning also informs the user that they can kill the first connection using the `stretch_free_robot_process.py` CLI.
+ - All of the above protections work well on single user set-ups, which is the default Stretch ships with. However, it's common in developer teams that are sharing the robot to want to create multiple Unix users on the robot. This PR enables all of the same protections and CLIs that worked previously to now work with multi-user setups.
+
 ## [0.7.11](https://pypi.org/project/hello-robot-stretch-body/0.7.11/) - Feburary 20, 2024
  - Introduce the `stretch_configure_tool.py` tool (pr [#287](https://github.com/hello-robot/stretch_body/pull/287))
     - This PR introduces a new CLI called stretch_configure_tool.py. It eliminates a pain point around changing the robot.tool parameter and updating the URDF (and exported URDF).

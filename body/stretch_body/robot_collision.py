@@ -18,6 +18,7 @@ import sys
 
 ENABLE_COLLISION_VISUALIZER = False
 
+
 try:
     # works on ubunut 22.04
     import importlib.resources as importlib_resources
