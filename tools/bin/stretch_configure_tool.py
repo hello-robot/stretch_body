@@ -85,7 +85,6 @@ def does_tool_need_to_change():
         cli_device.logger.info(f"But {Fore.CYAN + stretch_tool + Style.RESET_ALL} isn't a supported tool for your robot")
         cli_device.logger.debug(f"The supported tools for your robot are: {Fore.YELLOW + str(supported_tools) + Style.RESET_ALL}")
         return True
-
     # check if the existing hardware, num dxls, matches the current tool
     tool_numdxls_d405_map = {
         'tool_none': (1, False),
@@ -93,6 +92,7 @@ def does_tool_need_to_change():
         'tool_stretch_dex_wrist': (4, False),
         'eoa_wrist_dw3_tool_nil': (3, True),
         'eoa_wrist_dw3_tool_sg3': (4, True),
+        'eoa_wrist_dw3_tool_tablet_12in': (3, True),
     }
     expected_num_wrist_dxls, expected_d405_present = tool_numdxls_d405_map.get(stretch_tool, (-1, False))
     if num_wrist_dxls != expected_num_wrist_dxls:
@@ -120,7 +120,7 @@ def determine_what_tool_is_correct():
     numdxls_tool_map = {
         1: ['tool_none'],
         2: ['tool_stretch_gripper'],
-        3: ['eoa_wrist_dw3_tool_nil'],
+        3: ['eoa_wrist_dw3_tool_nil', 'eoa_wrist_dw3_tool_tablet_12in'],
         4: ['tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_sg3']
     }
     numdxls_match = numdxls_tool_map.get(num_wrist_dxls, [])
@@ -130,7 +130,7 @@ def determine_what_tool_is_correct():
 
     # filter by d405 present
     d405_tool_map = {
-        False: ['tool_none', 'tool_stretch_gripper', 'tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_nil'],
+        False: ['tool_none', 'tool_stretch_gripper', 'tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_nil', 'eoa_wrist_dw3_tool_tablet_12in'],
         True: ['eoa_wrist_dw3_tool_sg3'],
     }
     d405_match = d405_tool_map.get(d405_present, [])
@@ -218,6 +218,7 @@ def configure_tool(target_tool_name):
             'tool_stretch_gripper': 0.4,
             'tool_stretch_dex_wrist': 0.75,
             'eoa_wrist_dw3_tool_nil': 0.75,
+            'eoa_wrist_dw3_tool_tablet_12in': 0.75,
             'eoa_wrist_dw3_tool_sg3': 0.75,
         }
         feedforward_value = tool_feedforward_map.get(target_tool_name, 0.8)
@@ -234,6 +235,7 @@ def configure_tool(target_tool_name):
             'tool_stretch_gripper': 1.2,
             'tool_stretch_dex_wrist': 1.8,
             'eoa_wrist_dw3_tool_nil': 1.8,
+            'eoa_wrist_dw3_tool_tablet_12in': 1.8,
             'eoa_wrist_dw3_tool_sg3': 1.8,
         }
         feedforward_value = tool_feedforward_map.get(target_tool_name, 1.9)
