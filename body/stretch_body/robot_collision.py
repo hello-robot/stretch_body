@@ -12,7 +12,12 @@ from stretch_body.robot_params import RobotParams
 import multiprocessing
 import signal
 import ctypes
+import pyrender
+import trimesh
 import sys
+
+ENABLE_COLLISION_VISUALIZER = False
+
 
 try:
     # works on ubunut 22.04
@@ -85,8 +90,8 @@ def check_pts_in_AABB_cube(cube, pts):
     for p in pts:
         inside = p[0] <= xmax and p[0] >= xmin and p[1] <= ymax and p[1] >= ymin and p[2] <= zmax and p[2] >= zmin
         if inside:
-            return True
-    return False
+            return True, p
+    return False, None
 
 def check_AABB_in_AABB_from_pts(pts1, pts2):
     """
@@ -122,9 +127,10 @@ def check_mesh_triangle_edges_in_cube(mesh_triangles,cube):
         points = mesh_triangles[random_index]
         mesh_triangles.pop(random_index)
         # Barycentric Coordinates based points based edge points interpolation
-        if check_pts_in_AABB_cube(cube,sample_points_on_triangle_edges(np.array(points))):
-            return True
-    return False
+        c,p = check_pts_in_AABB_cube(cube,sample_points_on_triangle_edges(np.array(points)))
+        if c:
+            return True, p
+    return False, None
 
 def get_triangle_edge_barycentric_coords(N):
     """
@@ -221,8 +227,6 @@ class CollisionLink:
             print('Ignoring collision link %s' % link_name)
             self.is_valid=False
         self.pose=None
-        #self.edge_indices_ppd=self.find_edge_indices_PPD()
-
 
     def is_ppd(self):
         return self.points.shape[0]==8
@@ -237,42 +241,6 @@ class CollisionLink:
         print('In collision',self.in_collision)
         print('Was in collision',self.was_in_collision)
         print('Mesh size',self.points.shape)
-
-    def find_edge_indices_PPD(self):
-        """
-        Return the indices for each edge assuming the link is a parallelpiped (PPD)
-        """
-
-        triangles=self.mesh.cells_dict['triangle']
-
-        for t in triangles:
-            idx_pairs=[[0,1],[0,2],[1,2]]
-            edge_lens=[]
-            for ii in idx_pairs:
-                edge_lens.append(np.linalg.norm(self.points[ii[0]]-self.points[ii[2]]))
-            exterior_edges = np.array(idx_pairs)[np.argsort(np.array(edge_lens))][0:2] #indices of two shortest legs of triangle
-
-
-
-
-        px=self.points.shape[0]
-        # if not self.is_ppd():
-        #     return np.array([])
-        idx=[]
-        lens=[]
-        #Toss out really short edge as is a mesh file artifact
-
-        for i in range(px):
-            for j in range(i+1,px):
-                ll = np.linalg.norm(self.points[i] - self.points[j])
-                if ll>eps:
-                    idx.append([i,j])
-                    lens.append(ll)
-        #return 12 shortest lengths of all possible combinations
-        q= np.array(idx)[np.argsort(np.array(lens))][0:12]
-        lens.sort()
-        print('LENS',lens)
-        return q
     
     def get_triangles(self):
         triangles_idx=self.mesh.cells_dict['triangle']
@@ -346,17 +314,6 @@ class CollisionJoint:
     def add_collision_pair(self,motion_dir, collision_pair):
         self.collision_pairs.append(collision_pair)
         self.collision_dirs[collision_pair.name]=motion_dir
-    
-    def update_last_joint_cfg_thresh(self,thresh):
-        self.in_collision['last_joint_cfg_thresh'] = thresh
-
-
-    def update_collision_pair_min_dist(self,pair_name):
-        for cp in self.collision_pairs:
-            if cp.name == pair_name:
-                _,dist = closest_pair_3d(cp.link_cube.pose,cp.link_pts.pose)
-                self.in_collision['las_cp_min_dist'] = {'pair_name':pair_name,'dist':dist}
-                return
 
     def pretty_print(self):
         print('-------Collision Joint: %s-----------------'%self.name)
@@ -426,10 +383,10 @@ class RobotCollisionMgmt(Device):
                 for j in self.collision_status.keys():
                     jm = self.get_joint_motor(j)
                     jm.step_collision_avoidance(self.collision_status[j])
-                    if True in self.collision_status[j].values():
-                        self.brake_joints[j] = True
-                    else:
-                        self.brake_joints[j] = False
+                    # if True in self.collision_status[j].values():
+                    #     self.brake_joints[j] = True
+                    # else:
+                    #     self.brake_joints[j] = False
 
         except (BrokenPipeError,ConnectionResetError):
             pass
@@ -445,36 +402,6 @@ class RobotCollisionMgmt(Device):
             return self.robot.head.get_joint('head_tilt')
         #Try the tool
         return self.robot.end_of_arm.get_joint(joint_name)
-    
-    # def get_joint_configuration(self,braked=False):
-    #     """
-    #     Construct a dictionary of robot's current pose
-    #     """
-    #     s = self.robot.get_status()
-    #     kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
-    #     if braked:
-    #         da=kbd['arm']*self.robot.arm.get_braking_distance()/4.0
-    #         dl=kbd['lift']*self.robot.lift.get_braking_distance()
-    #         dhp = kbd['head_pan'] * self.robot.head.get_joint('head_pan').get_braking_distance()
-    #         dht = kbd['head_tilt'] * self.robot.head.get_joint('head_tilt').get_braking_distance()
-    #     else:
-    #         da=0.0
-    #         dl=0.0
-    #         dhp=0.0
-    #         dht=0.0
-
-    #     configuration = {
-    #         'joint_lift': dl+s['lift']['pos'],
-    #         'joint_arm_l0': da+s['arm']['pos']/4.0,
-    #         'joint_arm_l1': da+s['arm']['pos']/4.0,
-    #         'joint_arm_l2': da+s['arm']['pos']/4.0,
-    #         'joint_arm_l3': da+s['arm']['pos']/4.0,
-    #         'joint_head_pan': dhp+s['head']['head_pan']['pos'],
-    #         'joint_head_tilt': dht+s['head']['head_tilt']['pos']
-    #         }
-
-    #     configuration.update(self.robot.end_of_arm.get_joint_configuration(braked))
-    #     return configuration
 
     def get_joint_configuration(self,brake_joints={}):
         """
@@ -548,6 +475,9 @@ class RobotCollisionCompute(Device):
         self.urdf=None
         self.prev_loop_start_ts = None
         self.robot_params = RobotParams().get_params()[1]
+        self.viz = ENABLE_COLLISION_VISUALIZER
+        if self.viz:
+            self.first_frame = False
 
     def pretty_print(self):
         for j in self.collision_joints:
@@ -570,6 +500,9 @@ class RobotCollisionCompute(Device):
 
         try:
             self.urdf = urdf_loader.URDF.load(urdf_name)
+            if self.viz:
+                print("Starting CollisionMgmt Debug Visualizer...")
+                self.urf_viz = URDFVisualizer(self.urdf)
         except ValueError:
             print('Unable to load URDF: %s. Disabling collision system.' % urdf_name)
             self.urdf = None
@@ -621,15 +554,18 @@ class RobotCollisionCompute(Device):
         """
         # if self.prev_loop_start_ts:
         #     print(f"[{self.name}] Step exec time: {(time.perf_counter()-self.prev_loop_start_ts)*1000}ms")
-            
+        
         if self.urdf is None:
             return
 
-        # if cfg is None:
-        #     cfg = self.get_joint_configuration(braked=True)#_braked()
-
         # Update forward kinematics of links
         _cfg = cfg.get()
+        if self.viz:
+            if not self.first_frame:
+                self.urf_viz.show(cfg=_cfg, use_collision=True)
+                self.first_frame = True
+            if self.urf_viz.viewer.is_active:
+                self.urf_viz.update_pose(cfg=_cfg, use_collision=True)
         lfk = self.urdf.link_fk(cfg=_cfg, links=self.collision_links.keys(), use_names=True)
 
         # Update poses of links based on fk
@@ -645,7 +581,6 @@ class RobotCollisionCompute(Device):
             self.collision_joints[joint_name].active_collisions=[]
             self.collision_joints[joint_name].was_in_collision = self.collision_joints[joint_name].in_collision.copy()
 
-            # print(f"[{joint_name}] Was in Collision cnt: {self.collision_joints[joint_name].last_in_collision_cnt}")
             # Release Collision Joints in_collision mode onlt after 100 cycles
             if self.collision_joints[joint_name].in_collision['pos'] or self.collision_joints[joint_name].in_collision['neg']:
                 self.collision_joints[joint_name].last_in_collision_cnt = self.collision_joints[joint_name].last_in_collision_cnt + 1
@@ -659,12 +594,16 @@ class RobotCollisionCompute(Device):
             if cp.is_valid:
                 cp.was_in_collision=cp.in_collision
                 if cp.detect_as=='pts':
-                    cp.in_collision=check_pts_in_AABB_cube(cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale),
+                    cp.in_collision, collision_point =check_pts_in_AABB_cube(cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale),
                                                            pts = cp.link_pts.pose)
+                    if cp.in_collision and self.viz:
+                        self.urf_viz.collision_sphere(collision_point)
                     # cp.in_collision=check_AABB_in_AABB_from_pts(pts1=cp.link_cube.pose,pts2=cp.link_pts.pose)
                 elif cp.detect_as=='edges':
-                    cp.in_collision = check_mesh_triangle_edges_in_cube(mesh_triangles = cp.link_pts.get_triangles(), 
+                    cp.in_collision, collision_point = check_mesh_triangle_edges_in_cube(mesh_triangles = cp.link_pts.get_triangles(), 
                                                                         cube = scale_cuboid_points(cp.link_cube.pose,cp.cube_scale))
+                    if cp.in_collision and self.viz:
+                        self.urf_viz.collision_sphere(collision_point)
                 else:
                     cp.in_collision =False
                     #cp.pretty_print()
@@ -678,7 +617,6 @@ class RobotCollisionCompute(Device):
                     print(f'New collision pair event: {pair_name} [{time.time()}]' )
                     self.alert()
 
-        # print(f"From Process: Normal CFG = {normalized_joint_status_thresh}")
         #Now update joint state
         for joint_name in self.collision_joints:
             cj = self.collision_joints[joint_name]
@@ -686,8 +624,6 @@ class RobotCollisionCompute(Device):
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
                     cj.in_collision[cj.collision_dirs[cp.name]] = True
-            # print(f"From Process: {joint_name} = {self.collision_joints[joint_name].in_collision}")
-            # self.collision_joints[joint_name].motor.step_collision_avoidance(self.collision_joints[joint_name].in_collision)
         self.prev_loop_start_ts = time.perf_counter()
         
     def alert(self):
@@ -709,6 +645,83 @@ class RobotCollisionCompute(Device):
         except KeyError: #Not all links will be monitored
             return False
 
+class URDFVisualizer:
+    """The `show` method in this class is modified from the
+    original implementation of `urdf_loader.URDF.show`.
+    """
+
+    def __init__(self, urdf):
+        self.urdf = urdf
+        self.nodes = None
+        self.scene = None
+        self.viewer = None
+
+        self.collision_points = []
+
+    def show(self, cfg=None, use_collision=False):
+        """Visualize the URDF in a given configuration.
+        Parameters
+        ----------
+        cfg : dict or (n), float
+            A map from joints or joint names to configuration values for
+            each joint, or a list containing a value for each actuated joint
+            in sorted order from the base link.
+            If not specified, all joints are assumed to be in their default
+            configurations.
+        use_collision : bool
+            If True, the collision geometry is visualized instead of
+            the visual geometry.
+        """
+        if use_collision:
+            fk = self.urdf.collision_trimesh_fk(cfg=cfg)
+        else:
+            fk = self.urdf.visual_trimesh_fk(cfg=cfg)
+
+        self.scene = pyrender.Scene(ambient_light = [0,0,0, 0.5])
+        self.nodes = []
+        for tm in fk:
+            pose = fk[tm]
+            mesh = pyrender.Mesh.from_trimesh(tm, smooth=False)
+            mesh_node = self.scene.add(mesh, pose=pose)
+            self.nodes.append(mesh_node)
+        self.viewer = pyrender.Viewer(self.scene, run_in_thread=True, use_raymond_lighting=True)
+
+    def update_pose(self, cfg=None, use_collision=False):
+        if use_collision:
+            fk = self.urdf.collision_trimesh_fk(cfg=cfg)
+        else:
+            fk = self.urdf.visual_trimesh_fk(cfg=cfg)
+
+        self.viewer.render_lock.acquire()
+        for i, tm in enumerate(fk):
+            pose = fk[tm]
+            self.scene.set_pose(self.nodes[i], pose=pose)
+        
+        self.clean_collision_points()
+        self.viewer.render_lock.release()
+    
+    def clean_collision_points(self):
+        if len(self.collision_points):
+            for c,t in self.collision_points:
+                if time.perf_counter() - t > 1:
+                    if self.scene.has_node(c):
+                        self.scene.remove_node(c)
+                        self.collision_points.remove((c,t))
+                    else:
+                        print(f"Unable to find {c}")
+                        
+
+    def collision_sphere(self, point):
+        p = np.identity(4)
+        p[:,3] = point
+        mesh = trimesh.creation.icosphere(radius=0.015,subdivisions=1)
+        mesh.visual.face_colors = np.random.randint(low=0,high=255,size=4)
+        pmesh = pyrender.Mesh.from_trimesh(mesh,smooth=False)
+        self.viewer.render_lock.acquire()
+        mesh_node = self.scene.add(pmesh,pose=p)
+        self.collision_points.append((mesh_node,time.perf_counter()))
+        self.viewer.render_lock.release()
+        
 
 class RobotCollision(Device):
     """
