@@ -253,8 +253,8 @@ class Robot(Device):
         
     def custom_excepthook(self, args):
         thread_name = args.thread.name
-        exec = {}
-        exec[thread_name] = {
+        Exec = {}
+        Exec[thread_name] = {
             'thread': args.thread,
             'exception': {
                 'type': args.exc_type,
@@ -264,7 +264,7 @@ class Robot(Device):
         }
 
         # Filter RuntimeError
-        if exec[thread_name]['exception']['type'] == RuntimeError:
+        if Exec[thread_name]['exception']['type'] == RuntimeError:
             pass
         else:
             print(f"Caught Exception in Thread: {thread_name}")
@@ -273,7 +273,7 @@ class Robot(Device):
         self.logger.debug(f"Caught Exception in Thread: {thread_name}")
         self.logger.debug(traceback.format_exception(args.exc_value))
 
-        self.GLOBAL_EXCEPTIONS_LIST.append(exec[thread_name])
+        self.GLOBAL_EXCEPTIONS_LIST.append(Exec[thread_name])
 
     # ###########  Device Methods #############
 
@@ -614,7 +614,7 @@ class Robot(Device):
                 self.end_of_arm.move_to('wrist_pitch', angle)
         
         # If gripper present
-        if 'stretch_gripper' in self.end_of_arm.joints:
+        if 'stretch_gripper' in self.end_of_arm.joints and 'wrist_pitch' in self.end_of_arm.joints:
             threading.Thread(target=_angle_pitch,args=(self.end_of_arm.params['stow']['wrist_pitch'],)).start()
 
         # No gripper but tablet or accessory present in dw3 wrist, wrist pitch should face downward
