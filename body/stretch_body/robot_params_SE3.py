@@ -248,7 +248,7 @@ SE3_wrist_roll_DW3={
         'baud': 115200,
         'retry_on_comm_failure': 1,
         'disable_torque_on_stop': 0,
-        'float_on_stop': 1,
+        'float_on_stop': 0,
         'current_float_A': 0.04,
         'current_limit_A': 1.0}
 
