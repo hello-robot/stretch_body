@@ -271,7 +271,7 @@ SE3_eoa_wrist_dw3_tool_sg3={
         'stow': {
             'arm': 0.0,
             'lift': 0.3,
-            'wrist_pitch': -0.52,
+            'wrist_pitch': -0.62,
             'wrist_roll': 0.0,
             'wrist_yaw': 3.0,
             'stretch_gripper':0.0
@@ -387,7 +387,7 @@ SE3_eoa_wrist_dw3_tool_nil={
         'stow': {
             'arm': 0.0,
             'lift': 0.3,
-            'wrist_pitch': -0.52,
+            'wrist_pitch': -0.62,
             'wrist_roll': 0.0,
             'wrist_yaw': 3.0
         },
