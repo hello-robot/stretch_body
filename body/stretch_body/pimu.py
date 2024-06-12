@@ -107,7 +107,8 @@ class IMU(IMUBase):
                                     'p2': (IMU_Protocol_P1,IMU_Protocol_P0,),
                                     'p3': (IMU_Protocol_P1,IMU_Protocol_P0,),
                                     'p4': (IMU_Protocol_P1,IMU_Protocol_P0,),
-                                    'p5': (IMU_Protocol_P1,IMU_Protocol_P0,)}
+                                    'p5': (IMU_Protocol_P1,IMU_Protocol_P0,),
+                                    'p6': (IMU_Protocol_P1,IMU_Protocol_P0,)}
 
 # ##################################################################################
 class PimuBase(Device):
@@ -185,7 +186,7 @@ class PimuBase(Device):
                        'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
                        'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'trace_on':0,
                        'motor_sync_rate': 0, 'motor_sync_cnt': 0, 'motor_sync_queues': 0, 'motor_sync_drop': 0,
-                       'transport': self.transport.status, 'current_charge':0, 'charger_is_charging':False}
+                       'transport': self.transport.status, 'current_charge':0, 'charger_is_charging':False, 'over_tilt_type':0}
 
         self.status_zero=self.status.copy()
         self.status_aux = {'foo': 0}
@@ -446,6 +447,14 @@ class PimuBase(Device):
         mV = raw * raw_to_mV
         mA = mV/.215 # conversion per circuit
         return mA/1000.0
+    
+    def get_tilt_type(self, raw):
+        tilt_type = {
+            1: 'Left Tilt',
+            2: 'Right Tilt',
+            3: 'Front Tilt'
+        }
+        return tilt_type.get(raw, None)
     # ################Data Packing #####################
 
     def unpack_board_info(self,s):
@@ -885,6 +894,16 @@ class Pimu_Protocol_P5(PimuBase):
         sidx = sidx + Pimu_Protocol_P4.unpack_status(self, s, unpack_to)
         unpack_to['charger_is_charging'] = (unpack_to['state'] & self.STATE_IS_CHARGER_CHARGING) != 0
         return sidx
+
+# ######################## PIMU PROTOCOL P6 #################################
+class Pimu_Protocol_P6(PimuBase):
+    def unpack_status(self, s, unpack_to=None):  # P6
+        if unpack_to is None:
+            unpack_to = self.status
+        sidx = 0
+        sidx = sidx + Pimu_Protocol_P5.unpack_status(self, s, unpack_to)
+        unpack_to['over_tilt_type'] = self.get_tilt_type(unpack_uint8_t(s[sidx:]));sidx += 1
+        return sidx
 # ######################## PIMU #################################
 class Pimu(PimuBase):
     """
@@ -898,7 +917,9 @@ class Pimu(PimuBase):
                                     'p2': (Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
                                     'p3': (Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
                                     'p4': (Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
-                                    'p5': (Pimu_Protocol_P5, Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,)}
+                                    'p5': (Pimu_Protocol_P5, Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,),
+                                    'p6': (Pimu_Protocol_P6, Pimu_Protocol_P5, Pimu_Protocol_P4, Pimu_Protocol_P3, Pimu_Protocol_P2, Pimu_Protocol_P1, Pimu_Protocol_P0,)
+                                    }
 
     def startup(self, threaded=False):
         """
