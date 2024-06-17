@@ -283,13 +283,13 @@ SE3_eoa_wrist_dw3_tool_sg3={
                 'link_gripper_fingertip_right_TO_link_lift': {'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'link_lift','detect_as': 'edges', 'cube_scale': 1.3},
                 'link_gripper_fingertip_left_TO_link_arm_l1': {'link_pts': 'link_gripper_fingertip_left', 'link_cube': 'link_arm_l1','detect_as': 'edges', 'cube_scale': 1.6},
                 'link_gripper_fingertip_right_TO_link_arm_l1': {'link_pts': 'link_gripper_fingertip_right', 'link_cube': 'link_arm_l1','detect_as': 'edges', 'cube_scale': 1.6},
-                'link_gripper_s3_body_TO_base_link': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'base_link','detect_as': 'edges'},
-                'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'edges'},
-                'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'edges'},
-                'link_gripper_finger_left_TO_base_link': {'link_pts': 'link_gripper_finger_left','link_cube': 'base_link', 'detect_as': 'edges'},
-                'link_gripper_finger_right_TO_base_link': {'link_pts': 'link_gripper_finger_right','link_cube': 'base_link', 'detect_as': 'edges'},
-                'link_gripper_fingertip_left_TO_base_link': {'link_pts': 'link_gripper_fingertip_left','link_cube': 'base_link', 'detect_as': 'edges', 'cube_scale': 1.3},
-                'link_gripper_fingertip_right_TO_base_link': {'link_pts': 'link_gripper_fingertip_right','link_cube': 'base_link', 'detect_as': 'edges', 'cube_scale': 1.3},
+                'link_gripper_s3_body_TO_base_link': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'base_link','detect_as': 'edges', 'cube_scale': 1.0},
+                'link_wrist_pitch_TO_base_link': {'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'edges', 'cube_scale': 1.0},
+                'link_wrist_yaw_bottom_TO_base_link': {'link_pts': 'link_wrist_yaw_bottom', 'link_cube': 'base_link','detect_as': 'edges', 'cube_scale': 1.0},
+                'link_gripper_finger_left_TO_base_link': {'link_pts': 'link_gripper_finger_left','link_cube': 'base_link', 'detect_as': 'edges', 'cube_scale': 1.0},
+                'link_gripper_finger_right_TO_base_link': {'link_pts': 'link_gripper_finger_right','link_cube': 'base_link', 'detect_as': 'edges', 'cube_scale': 1.0},
+                'link_gripper_fingertip_left_TO_base_link': {'link_pts': 'link_gripper_fingertip_left','link_cube': 'base_link', 'detect_as': 'edges', 'cube_scale': 1.0},
+                'link_gripper_fingertip_right_TO_base_link': {'link_pts': 'link_gripper_fingertip_right','link_cube': 'base_link', 'detect_as': 'edges', 'cube_scale': 1.0},
                 'link_gripper_s3_body_TO_link_arm_l0': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l0','detect_as': 'edges','cube_scale': 1.2},
                 'link_gripper_s3_body_TO_link_arm_l1': {'link_pts': 'link_gripper_s3_body', 'link_cube': 'link_arm_l1','detect_as': 'edges'},
                 'link_gripper_s3_body_TO_link_head_tilt': {'link_cube': 'link_head_tilt', 'link_pts': 'link_gripper_s3_body','detect_as': 'edges'},
@@ -298,8 +298,8 @@ SE3_eoa_wrist_dw3_tool_sg3={
                 'link_gripper_finger_right_link_arm_l0': {'link_pts': 'link_gripper_finger_right', 'link_cube': 'link_arm_l0','detect_as': 'edges'},
                 'link_gripper_finger_left_TO_link_arm_l1': {'link_pts': 'link_gripper_finger_left', 'link_cube': 'link_arm_l1','detect_as': 'edges'},
                 'link_gripper_finger_right_TO_link_arm_l1': {'link_pts': 'link_gripper_finger_right', 'link_cube': 'link_arm_l1','detect_as': 'edges'},
-                'link_arm_l0_TO_base_link':{'link_pts': 'link_arm_l0', 'link_cube': 'base_link','detect_as': 'edges'},
-                'link_wrist_pitch_TO_base_link':{'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'edges', 'cube_scale': 1.3}},
+                'link_arm_l0_TO_base_link':{'link_pts': 'link_arm_l0', 'link_cube': 'base_link','detect_as': 'edges', 'cube_scale': 1.0},
+                'link_wrist_pitch_TO_base_link':{'link_pts': 'link_wrist_pitch', 'link_cube': 'base_link','detect_as': 'edges', 'cube_scale': 1.0}},
 
             'joints': {'arm': [{'motion_dir': 'neg', 'collision_pair': 'link_gripper_fingertip_right_TO_base_link'},
                                 {'motion_dir': 'neg', 'collision_pair': 'link_gripper_s3_body_TO_base_link'},
@@ -938,13 +938,14 @@ nominal_params={
         'max_mesh_points': 48,
         'SE3': {
             'k_brake_distance': {'lift': 1.75, 'arm': 1.125, 'wrist_yaw': 0.125, 'head_pan': 0.125, 'head_tilt': 0.125},
-            'collision_pairs':{'link_head_tilt_TO_link_arm_l4':{'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'},
-                               'link_arm_l0_TO_base_link':{'link_pts': 'link_arm_l0', 'link_cube': 'base_link','detect_as':'pts'}},
-
-            'joints':{
-                'lift': [{'motion_dir': 'pos', 'collision_pair': 'link_head_tilt_TO_link_arm_l4'},
-                         {'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}],
-                'arm': [{'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}]}
+            # 'collision_pairs':{'link_head_tilt_TO_link_arm_l4':{'link_pts': 'link_head_tilt', 'link_cube': 'link_arm_l4','detect_as':'pts'},
+            #                    'link_arm_l0_TO_base_link':{'link_pts': 'link_arm_l0', 'link_cube': 'base_link','detect_as':'pts'}},
+            # 'joints':{
+            #     'lift': [{'motion_dir': 'pos', 'collision_pair': 'link_head_tilt_TO_link_arm_l4'},
+            #              {'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}],
+            #     'arm': [{'motion_dir': 'neg', 'collision_pair': 'link_arm_l0_TO_base_link'}]}
+            'collision_pairs':{},
+            'joints':{}
     }},
     'wacc':{
         'usb_name': '/dev/hello-wacc',
