@@ -168,6 +168,7 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
     def __init__(self, name='eoa_wrist_dw3_tool_tablet_12in'):
         EndOfArm.__init__(self, name)
         self.portrait_orientation = self.params['portrait_orientation']
+        self.lock_roll_joint = self.params['lock_wrist_roll']
         #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
         #It is used by CollisionMgmt
         self.urdf_map={
@@ -177,27 +178,30 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
         }
 
     def move_by(self, joint, x_r, v_r=None, a_r=None, enable_wrist_roll = False):
-        # Lock wrist roll by default
         if joint=='wrist_roll':
-            if enable_wrist_roll:
+            if not self.lock_roll_joint:
+                return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
+            elif self.lock_roll_joint and enable_wrist_roll:
                 return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
             else:
                 return None
         return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
     
     def move_to(self, joint, x_r, v_r=None, a_r=None, enable_wrist_roll = False):
-        # Lock wrist roll by default
         if joint=='wrist_roll':
-            if enable_wrist_roll:
-                return EndOfArm.move_by(self, joint, x_r, v_r, a_r)
+            if not self.lock_roll_joint:
+                return EndOfArm.move_to(self, joint, x_r, v_r, a_r)
+            elif self.lock_roll_joint and enable_wrist_roll:
+                return EndOfArm.move_to(self, joint, x_r, v_r, a_r)
             else:
                 return None
         return EndOfArm.move_to(self, joint, x_r, v_r, a_r)
 
     def set_velocity(self, joint, v_r, a_r=None, enable_wrist_roll = False):
-        # Lock wrist roll by default
         if joint=='wrist_roll':
-            if enable_wrist_roll:
+            if not self.lock_roll_joint:
+                return EndOfArm.set_velocity(self, joint, v_r, a_r)
+            elif self.lock_roll_joint and enable_wrist_roll:
                 return EndOfArm.set_velocity(self, joint, v_r, a_r)
             else:
                 return None
