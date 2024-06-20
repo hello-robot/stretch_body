@@ -452,6 +452,10 @@ class RobotCollisionMgmt(Device):
 
     def disable(self):
         self.running=False
+        for j in self.collision_status.keys():
+            jm = self.get_joint_motor(j)
+            jm.step_collision_avoidance({'pos':False,'neg':False})
+            jm.forced_collision_stop_override = {'pos':False,'neg':False}
 
 class RobotCollisionCompute(Device):
     def __init__(self,name='robot_collision_mgmt'):
