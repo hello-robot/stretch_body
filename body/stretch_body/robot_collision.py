@@ -329,18 +329,18 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     collision_compute = RobotCollisionCompute(name)
-    collision_compute.startup()
-    collision_joints_status = {}
-    time.sleep(0.5)
-    while not exit_event.is_set():
-        try:
-            if shared_is_running.value:
-                collision_compute.step(shared_joint_cfg)
-                for joint_name in collision_compute.collision_joints:
-                    collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
-                shared_collision_status.put(collision_joints_status)
-        except (BrokenPipeError,ConnectionResetError):
-            pass
+    if collision_compute.startup():
+        collision_joints_status = {}
+        time.sleep(0.5)
+        while not exit_event.is_set():
+            try:
+                if shared_is_running.value:
+                    collision_compute.step(shared_joint_cfg)
+                    for joint_name in collision_compute.collision_joints:
+                        collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
+                    shared_collision_status.put(collision_joints_status)
+            except (BrokenPipeError,ConnectionResetError):
+                pass
 
 def signal_handler(signal_received, frame):
     sys.exit(0)
@@ -368,10 +368,13 @@ class RobotCollisionMgmt(Device):
         self.collision_compute_proccess.start()
     
     def stop(self):
-        self.exit_event.set()
-        self.shared_is_running.set(False)
-        self.collision_compute_proccess.terminate()
-        self.collision_compute_proccess.join()
+        try:
+            self.exit_event.set()
+            self.shared_is_running.value = False
+            self.collision_compute_proccess.terminate()
+            self.collision_compute_proccess.join()
+        except Exception:
+            pass
     
     def step(self):
         try:
@@ -500,7 +503,7 @@ class RobotCollisionCompute(Device):
         if self.params[model_name]=={}:
             #self.logger.warning('Collision parameters not present. Disabling collision system.')
             self.running = False
-            return
+            return False
 
         try:
             self.urdf = urdf_loader.URDF.load(urdf_name)
@@ -511,7 +514,7 @@ class RobotCollisionCompute(Device):
             print('Unable to load URDF: %s. Disabling collision system.' % urdf_name)
             self.urdf = None
             self.running = False
-            return
+            return False
 
         #Construct collision pairs
         cp_dict = self.params[model_name]['collision_pairs']
@@ -550,6 +553,7 @@ class RobotCollisionCompute(Device):
             for cp in cp_list: #eg cp={'motion_dir': 'pos', 'collision_pair': 'link_head_tilt_TO_link_arm_l4'}
                 self.collision_joints[joint_name].add_collision_pair(motion_dir=cp['motion_dir'],
                                                                      collision_pair=self.collision_pairs[cp['collision_pair']])
+        return True
     
 
     def step(self,cfg=None):
