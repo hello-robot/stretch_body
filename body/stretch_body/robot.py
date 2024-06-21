@@ -377,6 +377,7 @@ class Robot(Device):
             if self.collision_mgmt_thread.running:
                 self.collision_mgmt_thread.shutdown_flag.set()
                 self.collision_mgmt_thread.join(1)
+                self.collision.stop()
         for k in self.devices:
             if self.devices[k] is not None:
                 self.logger.debug('Shutting down %s'%k)
