@@ -424,6 +424,7 @@ SE3_eoa_wrist_dw3_tool_tablet_12in={
         'use_group_sync_read': 1,
         'retry_on_comm_failure': 1,
         'portrait_orientation': 0,
+        'lock_wrist_roll': 0,
         'baud': 115200,
         'dxl_latency_timer': 64,
         'wrist': 'eoaw_dw3',

@@ -130,8 +130,8 @@ def determine_what_tool_is_correct():
 
     # filter by d405 present
     d405_tool_map = {
-        False: ['tool_none', 'tool_stretch_gripper', 'tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_nil', 'eoa_wrist_dw3_tool_tablet_12in'],
-        True: ['eoa_wrist_dw3_tool_sg3'],
+        False: ['tool_none', 'tool_stretch_gripper', 'tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_nil'],
+        True: ['eoa_wrist_dw3_tool_sg3','eoa_wrist_dw3_tool_tablet_12in'],
     }
     d405_match = d405_tool_map.get(d405_present, [])
     cli_device.logger.debug(f"These tools match based on present={d405_present} gripper camera: {Fore.YELLOW + str(d405_match) + Style.RESET_ALL}")
