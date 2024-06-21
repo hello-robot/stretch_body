@@ -12,8 +12,6 @@ from stretch_body.robot_params import RobotParams
 import multiprocessing
 import signal
 import ctypes
-import pyrender
-import trimesh
 import sys
 
 ENABLE_COLLISION_VISUALIZER = False
@@ -27,6 +25,10 @@ except AttributeError as e:
     # works on ubuntu 20.04
     import importlib_resources
     str(importlib_resources.files("stretch_body"))
+
+if ENABLE_COLLISION_VISUALIZER:
+    import pyrender
+    import trimesh
 
 # #######################################################################
 
