@@ -37,6 +37,12 @@ The Dynamixel joints on the robot have a "multiturn" or "Extended Position Contr
 
 \* `head_pan.use_multiturn` is `0` for most Stretch robots, except for some early RE1s. For those robots, the parameter is set to `1` in "stretch_configuration_params.yaml". 
 
+### i_feedforward and i_safety_feedforward
+
+Gravity compensation adds a fixed ‘feedforward’ current to the motor controller to support the lift against gravity. This allows the lift to ‘float’ when the runstop is enabled, for example. If the feedforward current is too low, the lift will drift downward. If it is too high, it will drift upward. The `i_safety_feedforward` is the amount of current (A) applied when the motor is in safety mode (eg, runstop enabled). The `i_feedforward` term is applied when the lift is in normal operation. Generally the two parameters will be identical.
+
+There’s a simple tool to calibrate these values. `REx_calibrate_gravity_comp.py` will move the lift to a few positions, sampled the applied motor currents, and update your gravity compensation parameters. More details can be found in this [knowledge base post](https://forum.hello-robot.com/t/practical-guide-to-lift-gravity-compensation/657).
+
 ## Parameters for Command Line Tools
 
 ### show_sw_exc
