@@ -575,6 +575,11 @@ def main():
             use_stretch_gripper_mapping = True
             use_dex_wrist_mapping = True
 
+        if robot.end_of_arm.name == 'eoa_wrist_dw3_tool_tablet_12in':
+            use_head_mapping = False
+            use_stretch_gripper_mapping = False
+            use_dex_wrist_mapping = True
+
         do_double_beep(robot)
 
         while True:
