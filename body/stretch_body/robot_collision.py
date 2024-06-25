@@ -14,7 +14,7 @@ import signal
 import ctypes
 import sys
 
-ENABLE_COLLISION_VISUALIZER = False
+ENABLE_COLLISION_VISUALIZER = True
 
 
 try:
@@ -290,10 +290,10 @@ class CollisionPair:
         self.cube_scale = cube_scale 
         self.is_valid=self.link_cube.is_valid and self.link_pts.is_valid and self.link_cube.is_aabb
         if not self.is_valid:
-            print('Dropping monitor of collision pair %s'%self.name_id)
+            print('Dropping monitor of collision pair %s'%self.name)
 
     def pretty_print(self):
-        print('-------- Collision Pair %s ----------------'%self.name_id.upper())
+        print('-------- Collision Pair %s ----------------'%self.name.upper())
         print('In collision',self.in_collision)
         print('Was in collision',self.was_in_collision)
         print('Is Valid',self.is_valid)
@@ -663,6 +663,7 @@ class URDFVisualizer:
     def __init__(self, urdf):
         self.urdf = urdf
         self.nodes = None
+        self.collision_nodes = None
         self.scene = None
         self.viewer = None
 
@@ -682,31 +683,35 @@ class URDFVisualizer:
             If True, the collision geometry is visualized instead of
             the visual geometry.
         """
-        if use_collision:
-            fk = self.urdf.collision_trimesh_fk(cfg=cfg)
-        else:
-            fk = self.urdf.visual_trimesh_fk(cfg=cfg)
+        fk_collision = self.urdf.collision_trimesh_fk(cfg=cfg)
+        fk = self.urdf.visual_trimesh_fk(cfg=cfg)
 
         self.scene = pyrender.Scene(ambient_light = [0,0,0, 0.5])
         self.nodes = []
+        self.collision_nodes = []
         for tm in fk:
             pose = fk[tm]
             mesh = pyrender.Mesh.from_trimesh(tm, smooth=False)
             mesh_node = self.scene.add(mesh, pose=pose)
             self.nodes.append(mesh_node)
+        for tm in fk_collision:
+            pose = fk_collision[tm]
+            mesh = pyrender.Mesh.from_trimesh(tm, smooth=False, wireframe=True)
+            mesh_node = self.scene.add(mesh, pose=pose)
+            self.collision_nodes.append(mesh_node)
         self.viewer = pyrender.Viewer(self.scene, run_in_thread=True, use_raymond_lighting=True)
 
     def update_pose(self, cfg=None, use_collision=False):
-        if use_collision:
-            fk = self.urdf.collision_trimesh_fk(cfg=cfg)
-        else:
-            fk = self.urdf.visual_trimesh_fk(cfg=cfg)
+        fk_collision = self.urdf.collision_trimesh_fk(cfg=cfg)
+        fk = self.urdf.visual_trimesh_fk(cfg=cfg)
 
         self.viewer.render_lock.acquire()
         for i, tm in enumerate(fk):
             pose = fk[tm]
             self.scene.set_pose(self.nodes[i], pose=pose)
-        
+        for i, tm in enumerate(fk_collision):
+            pose = fk_collision[tm]
+            self.scene.set_pose(self.collision_nodes[i], pose=pose)
         self.clean_collision_points()
         self.viewer.render_lock.release()
     
