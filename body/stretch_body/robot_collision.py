@@ -14,7 +14,7 @@ import signal
 import ctypes
 import sys
 
-ENABLE_COLLISION_VISUALIZER = True
+ENABLE_COLLISION_VISUALIZER = False
 
 
 try:
@@ -413,7 +413,10 @@ class RobotCollisionMgmt(Device):
         Construct a dictionary of robot's current pose
         """
         s = self.robot.get_status()
-        kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
+        try:
+            kbd = self.robot_params['robot_collision_mgmt'][self.robot.params['model_name']]['k_brake_distance']
+        except KeyError:
+            kbd = {}
         da=0.0
         dl=0.0
         dhp=0.0
