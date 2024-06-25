@@ -144,6 +144,30 @@ class EndOfArm(DynamixelXChain):
             ret['joint_gripper_finger_right'] = finger_angle/2
 
         return ret
+
+    def get_joint_velocities(self,brake_joints={}):
+        """
+        Construct a dictionary of tools current velocities (for robot_collision_mgmt)
+        Keys match joint names in URDF
+        Specific tools should define urdf_map
+        """
+        ret = {}
+        for j in self.urdf_map:
+            jn = self.urdf_map[j]
+            motor = self.get_joint(jn)
+            ret[jn] = motor.status['vel']
+
+        gripper_joint = None
+        for j in self.joints:
+            if 'gripper' in j:
+                gripper_joint = j
+
+        if gripper_joint:
+            finger_vel = self.get_joint(gripper_joint).status['gripper_conversion']['finger_vel']
+            ret['joint_gripper_finger_left'] = finger_vel
+            ret['joint_gripper_finger_right'] = finger_vel
+
+        return ret
     
     def pre_stow(self,robot=None):
         pass

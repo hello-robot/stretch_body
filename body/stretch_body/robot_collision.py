@@ -312,6 +312,9 @@ class CollisionJoint:
         self.in_collision={'pos':False,'neg':False}
         self.was_in_collision = {'pos': False, 'neg': False}
         self.last_in_collision_cnt = 0
+        self.last_vels = []
+        self.max_vels_cnt = 50
+        self.last_joint_dir = None
 
     def add_collision_pair(self,motion_dir, collision_pair):
         self.collision_pairs.append(collision_pair)
@@ -327,7 +330,7 @@ class CollisionJoint:
         for ac in self.active_collisions:
             print('Active Collision: %s' % ac)
 
-def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_collision_status, exit_event):
+def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_joint_vel, shared_collision_status, exit_event):
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     collision_compute = RobotCollisionCompute(name)
@@ -337,7 +340,7 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
         while not exit_event.is_set():
             try:
                 if shared_is_running.value:
-                    collision_compute.step(shared_joint_cfg)
+                    collision_compute.step(shared_joint_cfg, shared_joint_vel)
                     for joint_name in collision_compute.collision_joints:
                         collision_joints_status[joint_name] = collision_compute.collision_joints[joint_name].in_collision
                     shared_collision_status.put(collision_joints_status)
@@ -352,6 +355,7 @@ class RobotCollisionMgmt(Device):
         self.name = name
         self.robot = robot
         self.shared_joint_cfg = multiprocessing.Queue()
+        self.shared_joint_vel = multiprocessing.Queue()
         self.shared_collision_status = multiprocessing.Queue()
         self.shared_is_running = multiprocessing.Value(ctypes.c_bool, False)
         self.exit_event = multiprocessing.Event()
@@ -359,6 +363,7 @@ class RobotCollisionMgmt(Device):
                                                                args=(self.name,
                                                                      self.shared_is_running,
                                                                      self.shared_joint_cfg,
+                                                                     self.shared_joint_vel,
                                                                      self.shared_collision_status,
                                                                      self.exit_event,),daemon=True)
         self.running = False
@@ -383,7 +388,9 @@ class RobotCollisionMgmt(Device):
             self.shared_is_running.value = self.running
             if self.running:
                 config = self.get_joint_configuration(self.brake_joints)
+                vel = self.get_joint_velocities()
                 self.shared_joint_cfg.put(config)
+                self.shared_joint_vel.put(vel)
                 self.collision_status.update(self.shared_collision_status.get())
                 for j in self.collision_status.keys():
                     jm = self.get_joint_motor(j)
@@ -453,6 +460,21 @@ class RobotCollisionMgmt(Device):
             }
 
         configuration.update(self.robot.end_of_arm.get_joint_configuration(brake_joints))
+        return configuration
+    
+    def get_joint_velocities(self):
+        """
+        Construct a dictionary of robot's current velocities
+        """
+        s = self.robot.get_status()
+        configuration = {
+            'lift': s['lift']['vel'],
+            'arm': s['arm']['vel'],
+            'head_pan': s['head']['head_pan']['vel'],
+            'head_tilt': s['head']['head_tilt']['vel']
+            }
+
+        configuration.update(self.robot.end_of_arm.get_joint_velocities())
         return configuration
     
     def enable(self):
@@ -561,7 +583,7 @@ class RobotCollisionCompute(Device):
         return True
     
 
-    def step(self,cfg=None):
+    def step(self,cfg=None,vel=None):
         """
                 Check for interference between cube pairs
         """
@@ -580,6 +602,13 @@ class RobotCollisionCompute(Device):
             if self.urf_viz.viewer.is_active:
                 self.urf_viz.update_pose(cfg=_cfg, use_collision=True)
         lfk = self.urdf.link_fk(cfg=_cfg, links=self.collision_links.keys(), use_names=True)
+
+        # Update joint velocities
+        joint_velocities = vel.get()
+        for joint_name in self.collision_joints:
+            self.collision_joints[joint_name].last_vels.append(joint_velocities[joint_name])
+            if len(self.collision_joints[joint_name].last_vels)>self.collision_joints[joint_name].max_vels_cnt:
+                self.collision_joints[joint_name].last_vels.pop(0)
 
         # Update poses of links based on fk
         for link_name in lfk: 
@@ -636,9 +665,29 @@ class RobotCollisionCompute(Device):
             for cp in cj.collision_pairs:
                 if cp.in_collision:
                     cj.active_collisions.append(cp.name) #Add collision to joint
-                    cj.in_collision[cj.collision_dirs[cp.name]] = True
+                    # cj.in_collision[cj.collision_dirs[cp.name]] = True
+                    print(f"Collision Joint [{cj.name}] in_collision={cj.in_collision}")
+                    cj.last_joint_dir  = self.predict_joint_direction(cj.last_vels)
+                    cj.in_collision[cj.last_joint_dir] = True
+
         self.prev_loop_start_ts = time.perf_counter()
+
+    def moving_average(self, data, window_size):
+        return np.convolve(data, np.ones(window_size)/window_size, mode='valid')
+
+    def predict_joint_direction(self, noisy_velocities, window_size=3):
+        # Apply moving average filter to smooth out noise
+        smoothed_velocities = self.moving_average(noisy_velocities, window_size)
         
+        # Calculate the average velocity from the smoothed velocities
+        avg_velocity = np.mean(smoothed_velocities)
+        
+        # Determine the direction based on the average velocity
+        if avg_velocity > 0:
+            return "neg"  # Moving in the positive direction
+        elif avg_velocity < 0:
+            return "pos"  # Moving in the negative direction
+
     def alert(self):
         threading.Thread(target=chime.warning,daemon=True).start()
 
