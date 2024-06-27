@@ -472,7 +472,7 @@ class StepperBase(Device):
         self._dirty_command=True
 
 
-    def wait_while_is_moving(self,timeout=15.0):
+    def wait_while_is_moving(self,timeout=15.0, use_motion_generator=True):
         """
         Poll until is moving flag is false
         Return True if success
@@ -480,10 +480,11 @@ class StepperBase(Device):
         """
         ts = time.time()
         self.pull_status()
-        while self.status['is_moving_filtered'] and time.time() - ts < timeout:
+        s = 'is_mg_moving' if use_motion_generator else 'is_moving_filtered'
+        while self.status[s] and time.time() - ts < timeout:
             time.sleep(0.1)
             self.pull_status()
-        return not self.status['is_moving_filtered']
+        return not self.status[s]
 
     def wait_until_at_setpoint(self,timeout=15.0):
         """
