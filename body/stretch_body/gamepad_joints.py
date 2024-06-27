@@ -40,7 +40,7 @@ class CommandBase:
         """
         self.params = RobotParams().get_params()[1]['base']
         self.dead_zone = 0.0001
-        self._prev_set_vel_ts = None
+        self._prev_set_vel_ts = time.time()
         self.max_linear_vel = self.params['motion']['max']['vel_m']
         self.max_rotation_vel = 1.90241 # rad/s
         self.normal_linear_vel = self.params['motion']['default']['vel_m']
@@ -49,6 +49,7 @@ class CommandBase:
         self.precision_mode = False 
         self.fast_base_mode = False
         self.acc = self.params['motion']['max']['accel_m']
+        self.start_pos = None
 
         # Precision mode params
         self.precision_max_linear_vel = 0.05 #0.02 m/s Very precise: 0.01
@@ -66,6 +67,14 @@ class CommandBase:
             x = 0
         if abs(y) < self.dead_zone:
             y = 0
+
+        # Only allow forward motion when docked
+        if robot.status["pimu"]["charger_connected"]:
+            y = 0 if y < 0.0 else y
+            x = 0
+            if y == 0:
+                self.precision_mode = True
+
         x = to_parabola_transform(x)
         # y = to_parabola_transform(y) 
         

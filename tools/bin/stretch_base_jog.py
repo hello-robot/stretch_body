@@ -61,6 +61,7 @@ def menu():
     print('f / b / l / r : small forward / back / left / right')
     print('F / B / L / R : large forward / back / left / right')
     print('o: freewheel')
+    print('s: safety mode')
     print('p: pretty print')
     print('q: quit')
     print('')
@@ -161,6 +162,9 @@ try:
                 b.rotate_by(-1*large_rotate_rad, v_r=v_r[rate], a_r=a_r[rate])
             if c == 'o':
                 b.enable_freewheel_mode()
+            if c == 's':
+                b.left_wheel.enable_safety()
+                b.right_wheel.enable_safety()
             if c=='m':
                 menu()
             if c=="Q" or c=='q':
