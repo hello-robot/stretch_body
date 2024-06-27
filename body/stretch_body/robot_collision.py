@@ -343,6 +343,7 @@ def _collision_compute_worker(name, shared_is_running, shared_joint_cfg, shared_
                     shared_collision_status.put(collision_joints_status)
             except (BrokenPipeError,ConnectionResetError):
                 pass
+            time.sleep(collision_compute.sleep_time)
 
 def signal_handler(signal_received, frame):
     sys.exit(0)
@@ -485,6 +486,7 @@ class RobotCollisionCompute(Device):
         self.prev_loop_start_ts = None
         self.robot_params = RobotParams().get_params()[1]
         self.viz = ENABLE_COLLISION_VISUALIZER
+        self.sleep_time = 0.01
         if self.viz:
             self.first_frame = False
 
