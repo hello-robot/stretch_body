@@ -383,6 +383,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         }
         for line in sh.pip.list(_iter=True):
             pip_pkg_data = re.split(r'\s+(?=[\d/])', line.strip())
+            pip_pkg_data[0] = pip_pkg_data[0].replace('_', '-')
             if len(pip_pkg_data) >= 2 and pip_pkg_data[0] in pip_versions:
                 pip_versions[pip_pkg_data[0]] = pip_pkg_data[1]
                 if len(pip_pkg_data) >= 3:
