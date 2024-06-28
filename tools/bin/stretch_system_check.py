@@ -122,6 +122,20 @@ def is_comms_ready():
 
     return True, "", usb_device_seen, ping_list
 def are_actuators_ready():
+    # Check hello steppers' self recognized type matches SDK's expectation
+    if 'stepper_type' in r.lift.motor.board_info and r.lift.motor.board_info['stepper_type'] != 0 and r.lift.motor.board_info['stepper_type'] != None:
+        if r.lift.motor.board_info['stepper_type'] != 'hello-motor-lift':
+            return False, "stepper type mismatch on lift motor"
+    if 'stepper_type' in r.arm.motor.board_info and r.arm.motor.board_info['stepper_type'] != 0 and r.arm.motor.board_info['stepper_type'] != None:
+        if r.arm.motor.board_info['stepper_type'] != 'hello-motor-arm':
+            return False, "stepper type mismatch on arm motor"
+    if 'stepper_type' in r.base.left_wheel.board_info and r.base.left_wheel.board_info['stepper_type'] != 0 and r.base.left_wheel.board_info['stepper_type'] != None:
+        if r.base.left_wheel.board_info['stepper_type'] != 'hello-motor-left-wheel':
+            return False, "stepper type mismatch on left wheel motor"
+    if 'stepper_type' in r.base.right_wheel.board_info and r.base.right_wheel.board_info['stepper_type'] != 0 and r.base.right_wheel.board_info['stepper_type'] != None:
+        if r.base.right_wheel.board_info['stepper_type'] != 'hello-motor-right-wheel':
+            return False, "stepper type mismatch on right wheel motor"
+
     # Check dxl motors homed
     for chain in [r.end_of_arm, r.head]:
         for mk in chain.motors.keys():
@@ -136,20 +150,6 @@ def are_actuators_ready():
     # Check robot agrees everything homed
     if not r.is_homed():
         return False, "robot not homed, run stretch_robot_home.py"
-
-    # Check hello steppers' self recognized type matches SDK's expectation
-    if 'stepper_type' in r.lift.motor.board_info and r.lift.motor.board_info['stepper_type'] != 0 and r.lift.motor.board_info['stepper_type'] != None:
-        if r.lift.motor.board_info['stepper_type'] != 'hello-motor-lift':
-            return False, "stepper type mismatch on lift motor"
-    if 'stepper_type' in r.arm.motor.board_info and r.arm.motor.board_info['stepper_type'] != 0 and r.arm.motor.board_info['stepper_type'] != None:
-        if r.arm.motor.board_info['stepper_type'] != 'hello-motor-arm':
-            return False, "stepper type mismatch on arm motor"
-    if 'stepper_type' in r.base.left_wheel.board_info and r.base.left_wheel.board_info['stepper_type'] != 0 and r.base.left_wheel.board_info['stepper_type'] != None:
-        if r.base.left_wheel.board_info['stepper_type'] != 'hello-motor-left-wheel':
-            return False, "stepper type mismatch on left wheel motor"
-    if 'stepper_type' in r.base.right_wheel.board_info and r.base.right_wheel.board_info['stepper_type'] != 0 and r.base.right_wheel.board_info['stepper_type'] != None:
-        if r.base.right_wheel.board_info['stepper_type'] != 'hello-motor-right-wheel':
-            return False, "stepper type mismatch on right wheel motor"
 
     return True, ""
 def are_sensors_ready():
@@ -383,6 +383,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         }
         for line in sh.pip.list(_iter=True):
             pip_pkg_data = re.split(r'\s+(?=[\d/])', line.strip())
+            pip_pkg_data[0] = pip_pkg_data[0].replace('_', '-')
             if len(pip_pkg_data) >= 2 and pip_pkg_data[0] in pip_versions:
                 pip_versions[pip_pkg_data[0]] = pip_pkg_data[1]
                 if len(pip_pkg_data) >= 3:
