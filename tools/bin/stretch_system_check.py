@@ -200,7 +200,7 @@ def are_sensors_ready():
     checks = [
         # val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.5),
         val_in_range('Current',p.status['current'], vmin=0.5, vmax=p.config['high_current_alert']),
-        val_in_range('Temperature',p.status['temp'], vmin=10, vmax=40),
+        val_in_range('Temperature',p.status['temp'], vmin=10, vmax=45),
         val_in_range('IMU AZ',p.status['imu']['az'], vmin=-10.1, vmax=-9.5),
         # val_in_range('IMU Pitch', hu.rad_to_deg(p.status['imu']['pitch']), vmin=-12, vmax=12), # TODO
         # val_in_range('IMU Roll', hu.rad_to_deg(p.status['imu']['roll']), vmin=-12, vmax=12), # TODO
