@@ -22,7 +22,7 @@ args=parser.parse_args()
 try:
     lidar_dev = Device('lidar')
     lidar_usb = lidar_dev.params['usb_name']
-    lidar = RPLidar(lidar_usb,baudrate=115200)
+    lidar = RPLidar(lidar_usb,baudrate=lidar_dev.params['baud'])
 except RPLidarException:
     print ('RPLidar not present')
     exit()
