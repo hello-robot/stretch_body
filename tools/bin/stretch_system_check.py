@@ -187,7 +187,7 @@ def are_sensors_ready():
     try:
         lidar_dev = stretch_body.device.Device('lidar')
         lidar_usb = lidar_dev.params['usb_name']
-        lidar = rplidar.RPLidar(lidar_usb, baudrate=115200)
+        lidar = rplidar.RPLidar(lidar_usb, baudrate=lidar_dev.params['baud'])
         lidar.stop_motor()
     except rplidar.RPLidarException:
         return False, False, "missing lidar"

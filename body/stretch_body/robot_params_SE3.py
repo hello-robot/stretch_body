@@ -957,7 +957,8 @@ nominal_params={
         'ana_LPF': 10.0,
         'accel_gravity_scale': 1.0}},
     'respeaker': {'usb_name': '/dev/hello-respeaker'},
-    'lidar': {'usb_name': '/dev/hello-lrf'},
+    'lidar': {'usb_name': '/dev/hello-lrf',
+              'baud':115200},
     'stretch_gamepad':{
         'enable_fn_button': 0,
         'function_cmd':'',
