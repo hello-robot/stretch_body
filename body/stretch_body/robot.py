@@ -445,7 +445,7 @@ class Robot(Device):
     def disable_collision_mgmt(self):
         self.collision.disable()
 
-    def wait_command(self, timeout=15.0):
+    def wait_command(self, timeout=15.0, use_motion_generator=True):
         """Pause program execution until all motion complete.
 
         Queuing up motion and pushing it to the hardware with
@@ -469,7 +469,7 @@ class Robot(Device):
         timeout = max(0.0, timeout - 0.1)
         done = []
         def check_wait(wait_method):
-            done.append(wait_method(timeout))
+            done.append(wait_method(timeout, use_motion_generator))
         start = time.time()
         threads = []
         threads.append(threading.Thread(target=check_wait, args=(self.base.wait_while_is_moving,)))

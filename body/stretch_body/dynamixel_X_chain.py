@@ -112,10 +112,10 @@ class DynamixelXChain(Device):
         self.port_handler.closePort()
         self.hw_valid = False
 
-    def wait_until_at_setpoint(self, timeout=15.0):
+    def wait_until_at_setpoint(self, timeout=15.0, use_motion_generator=True):
         at_setpoint = []
         def check_wait(wait_method):
-            at_setpoint.append(wait_method(timeout))
+            at_setpoint.append(wait_method(timeout,use_motion_generator))
         threads = []
         for motor in self.motors:
             threads.append(threading.Thread(target=check_wait, args=(self.motors[motor].wait_until_at_setpoint,)))

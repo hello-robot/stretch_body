@@ -11,7 +11,7 @@ class TestRobotMovement(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.robot.stop()  # Assuming there's a stop method to safely shutdown the robot
+        cls.robot.stop() 
 
     def test_movement_accuracy(self):
         lift_inc = 0.4
@@ -29,6 +29,7 @@ class TestRobotMovement(unittest.TestCase):
         self.robot.end_of_arm.move_by('wrist_pitch', wrist_inc, 0.05)
         self.robot.end_of_arm.move_by('wrist_roll', wrist_inc, 0.05)
         self.robot.push_command()
+        
         self.robot.wait_command()
 
         self.robot.pull_status()

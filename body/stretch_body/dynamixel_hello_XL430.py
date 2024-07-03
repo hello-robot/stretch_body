@@ -384,7 +384,7 @@ class DynamixelHelloXL430(Device):
         self.params['zero_t']=x
         self.write_device_params(self.name, self.params)
 
-    def wait_until_at_setpoint(self,timeout=15.0):
+    def wait_until_at_setpoint(self,timeout=15.0, use_motion_generator=True):
         """Polls for moving status to wait until at commanded position goal
 
         Returns
@@ -394,8 +394,12 @@ class DynamixelHelloXL430(Device):
         """
         ts = time.time()
         while time.time() - ts < timeout:
-            if  self.motor.get_moving_status() & (1 << 1) == 0:
-                return True
+            if use_motion_generator:
+                if  self.motor.get_moving_status() & (1 << 1) == 0:
+                    return True
+            else:
+                if self.motor.is_moving() == False:
+                    return True
             time.sleep(0.1)
         return False
 

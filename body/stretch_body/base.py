@@ -101,10 +101,10 @@ class Base(Device):
             time.sleep(0.01)
         return False
 
-    def wait_while_is_moving(self,timeout=15.0):
+    def wait_while_is_moving(self,timeout=15.0, use_motion_generator=True):
         done = []
         def check_wait(wait_method):
-            done.append(wait_method(timeout))
+            done.append(wait_method(timeout,use_motion_generator))
         threads = []
         threads.append(threading.Thread(target=check_wait, args=(self.left_wheel.wait_while_is_moving,)))
         threads.append(threading.Thread(target=check_wait, args=(self.right_wheel.wait_while_is_moving,)))
