@@ -328,24 +328,24 @@ class Robot(Device):
         self.collision_mgmt_thread = CollisionMonitorThread(self, target_rate_hz=100)
 
         if start_non_dxl_thread:
-            self.non_dxl_thread.setDaemon(True)
+            self.non_dxl_thread.daemon = True
             self.non_dxl_thread.start()
             ts = time.time()
             while not self.non_dxl_thread.first_status and time.time() - ts < 3.0:
                 time.sleep(0.01)
 
         if start_dxl_thread:
-            self.dxl_head_thread.setDaemon(True)
+            self.dxl_head_thread.daemon = True
             self.dxl_head_thread.start()
-            self.dxl_end_of_arm_thread.setDaemon(True)
+            self.dxl_end_of_arm_thread.daemon = True
             self.dxl_end_of_arm_thread.start()
 
         if start_sys_mon_thread:
-            self.sys_thread.setDaemon(True)
+            self.sys_thread.daemon = True
             self.sys_thread.start()
 
         if start_sys_mon_thread and self.collision_mgmt_thread:
-            self.collision_mgmt_thread.setDaemon(True)
+            self.collision_mgmt_thread.daemon = True
             self.collision_mgmt_thread.start()
 
         return success
@@ -445,7 +445,7 @@ class Robot(Device):
     def disable_collision_mgmt(self):
         self.collision.disable()
 
-    def wait_command(self, timeout=15.0):
+    def wait_command(self, timeout=15.0, use_motion_generator=True):
         """Pause program execution until all motion complete.
 
         Queuing up motion and pushing it to the hardware with
@@ -469,7 +469,7 @@ class Robot(Device):
         timeout = max(0.0, timeout - 0.1)
         done = []
         def check_wait(wait_method):
-            done.append(wait_method(timeout))
+            done.append(wait_method(timeout, use_motion_generator))
         start = time.time()
         threads = []
         threads.append(threading.Thread(target=check_wait, args=(self.base.wait_while_is_moving,)))
@@ -689,7 +689,7 @@ class Robot(Device):
     def start_event_loop(self):
         self.async_event_loop = asyncio.new_event_loop()
         self.event_loop_thread = threading.Thread(target=self._event_loop, name='AsyncEvenLoopThread')
-        self.event_loop_thread.setDaemon(True)
+        self.event_loop_thread.daemon = True
         self.event_loop_thread.start()
         
     def _event_loop(self):
