@@ -877,7 +877,7 @@ nominal_params={
         'cliff_LPF': 10.0,
         'cliff_thresh': -50,
         'current_LPF': 10.0,
-        'high_current_alert': 7.25,
+        'high_current_alert': 8.5,
         'low_voltage_alert': 10.5,
         'over_tilt_alert': 0.17,
         'stop_at_cliff': 0,
