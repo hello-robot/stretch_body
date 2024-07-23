@@ -68,13 +68,6 @@ class CommandBase:
         if abs(y) < self.dead_zone:
             y = 0
 
-        # Only allow forward motion when docked
-        if robot.status["pimu"]["charger_connected"]:
-            y = 0 if y < 0.0 else y
-            x = 0
-            if y == 0:
-                self.precision_mode = True
-
         x = to_parabola_transform(x)
         # y = to_parabola_transform(y) 
         
