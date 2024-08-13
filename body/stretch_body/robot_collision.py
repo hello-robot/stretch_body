@@ -21,7 +21,7 @@ try:
     # works on ubunut 22.04
     import importlib.resources as importlib_resources
     str(importlib_resources.files("stretch_body"))
-except AttributeError, ModuleNotFoundError as e:
+except Exception as e:
     # works on ubuntu 20.04
     import importlib_resources
     str(importlib_resources.files("stretch_body"))
