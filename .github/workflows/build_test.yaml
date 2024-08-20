@@ -21,6 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade setuptools wheel
+        apt-get install portaudio19-dev python-pyaudio python3-pyaudio
         python -m pip install -e body/
 
     - name: Run tests
