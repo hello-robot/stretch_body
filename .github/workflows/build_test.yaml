@@ -6,15 +6,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
+    strategy:
+      fail-fast: false
+      matrix:
+        # TODO: for now I have to comment out the latest version of Python
+        # This is because Open3d and scikit-fmm aren't supported on 3.12 yet
+        # python-version: ["3.9", "3.10", "3.11", "3.12"]
         python-version: ["3.9", "3.10", "3.11"]
+        
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
       run: |
