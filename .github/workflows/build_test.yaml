@@ -1,9 +1,7 @@
-name: Run Specific Unit Tests
+name: Run Tests on Push
 
 on:
-  pull_request:
-    branches:
-      - master
+  push:
 
 jobs:
   test:
@@ -23,6 +21,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run specific unit tests
+    - name: Run tests
       run: |
         pytest python/body/test_foo.py
