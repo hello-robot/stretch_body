@@ -24,4 +24,4 @@ jobs:
         pip3 install -e body/
     - name: Run Stretch Body Tests
       run: |
-        pytest-3 body/test/test_foo.py
+        pytest-3 body/test/robot_tests
