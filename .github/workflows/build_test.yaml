@@ -15,7 +15,9 @@ jobs:
     steps:
     - run: |
         echo "Current directory is $(pwd)"
-        echo "Present files in home are $(ls /home/hello-robot)" 
+        echo "Present files in home are $(ls /home/hello-robot)"
+        echo "($ls -l /__w)"
+
     - uses: actions/checkout@v4
     - name: Configure working direcotry
       run: |
