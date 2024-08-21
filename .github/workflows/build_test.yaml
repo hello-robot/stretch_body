@@ -18,6 +18,7 @@ jobs:
         echo "Present files in home are $(ls /home/hello-robot)"
         ls /dev/hello*
         more /home/hello-robot/.bashrc
+        whoami
         stretch_params.py
         ls -l /__w/
 
