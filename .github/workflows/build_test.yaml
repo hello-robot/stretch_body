@@ -14,13 +14,13 @@ jobs:
 
     steps:
       # The "cleanup old checkout" step is needed because of this bug: https://github.com/actions/checkout/issues/1014
-    - name: cleanup old checkout  
-      run: |
-        echo "Current directory is $(pwd)"
-        echo "Present files are $(ls)"
-        echo "Github workspace is ${GITHUB_WORKSPACE}"
-        sudo chmod +w -R ${GITHUB_WORKSPACE}; rm -rf ${GITHUB_WORKSPACE}/*;
-    - uses: actions/checkout@v4
+    # - name: cleanup old checkout  
+    #   run: |
+    #     echo "Current directory is $(pwd)"
+    #     echo "Present files are $(ls)"
+    #     echo "Github workspace is ${GITHUB_WORKSPACE}"
+    #     sudo chmod +w -R ${GITHUB_WORKSPACE}; rm -rf ${GITHUB_WORKSPACE}/*;
+    # - uses: actions/checkout@v4
     - name: Configure working direcotry
       run: |
         echo "Current directory is $(pwd)"
