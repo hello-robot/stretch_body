@@ -16,6 +16,7 @@ jobs:
     - run: |
         echo "Current directory is $(pwd)"
         echo "Present files in home are $(ls /home/hello-robot)"
+        stretch_params.py
         ls -l /__w/
 
     - uses: actions/checkout@v4
