@@ -18,6 +18,7 @@ jobs:
       run: |
         echo "Current directory is $(pwd)"
         echo "Present files are $(ls)"
+        echo "Github workspace is ${GITHUB_WORKSPACE}"
         sudo chmod +w -R ${GITHUB_WORKSPACE}; rm -rf ${GITHUB_WORKSPACE}/*;
     - uses: actions/checkout@v4
     - name: Configure working direcotry
