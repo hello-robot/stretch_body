@@ -14,14 +14,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Configure Git to trust the directory
+    - name: Configure working direcotry
       run: |
         echo "Current directory is $(pwd)"
         echo "Present files are $(ls)"
         git config --global --add safe.directory `pwd`
-    - name: Install dependencies and code
+    - name: Install Stretch Body
       run: |
         pip3 install -e body/
-    - name: Run tests
+    - name: Run Stretch Body Tests
       run: |
         pytest-3 body/test/test_foo.py
