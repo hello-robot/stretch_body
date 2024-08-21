@@ -8,7 +8,7 @@ jobs:
     runs-on: self-hosted
     container:
       image: hellorobotinc/stretch-install-image
-      options: --user root 
+      options: --user hello-robot 
       volumes:
         - /dev:/dev
 
