@@ -96,8 +96,8 @@ class Test_BRI_robot_home_stow(unittest.TestCase):
 
         if self.robot.params['tool'] == 'eoa_wrist_dw3_tool_sg3':
             home_poses['wrist_yaw'] = 0
-            home_poses['wrist_roll'] = self.bringup_test.robot_params[self.robot.params['tool']]['stow']['wrist_roll']
-            home_poses['wrist_pitch'] = self.bringup_test.robot_params[self.robot.params['tool']]['stow']['wrist_pitch']
+            home_poses['wrist_roll'] = self.robot.params['stow']['wrist_roll']
+            home_poses['wrist_pitch'] = self.robot.params['stow']['wrist_pitch']
             home_poses['stretch_gripper'] = 0
 
         if self.robot.params['tool'] == 'tool_stretch_gripper':
@@ -106,10 +106,9 @@ class Test_BRI_robot_home_stow(unittest.TestCase):
 
         if self.robot.params['tool'] == 'eoa_wrist_dw3_tool_nil':
             home_poses['wrist_yaw'] = 0
-            home_poses['wrist_roll'] = self.bringup_test.robot_params[self.robot.params['tool']]['stow']['wrist_roll']
-            home_poses['wrist_pitch'] = self.bringup_test.robot_params[self.robot.params['tool']]['stow']['wrist_pitch']
+            home_poses['wrist_roll'] = self.robot.params['stow']['wrist_roll']
+            home_poses['wrist_pitch'] = self.robot.params['stow']['wrist_pitch']
 
-        self.bringup_test.log_params('home_poses', home_poses)
         self.check_joint_poses(home_poses, 'Homing')
 
     def test_robot_stow(self):
@@ -150,7 +149,6 @@ class Test_BRI_robot_home_stow(unittest.TestCase):
             stow_poses['wrist_roll'] = self.robot.get_stow_pos('wrist_roll')
             stow_poses['wrist_pitch'] = self.robot.get_stow_pos('wrist_pitch')
 
-        self.bringup_test.log_params('stow_poses', stow_poses)
         self.check_joint_poses(stow_poses, 'Stowing')
 
 
