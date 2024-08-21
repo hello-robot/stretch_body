@@ -16,6 +16,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Configure Git to trust the directory
       run: |
+        echo "Current directory is $(pwd)"
+        echo "Present files are $(ls)"
         echo "Installing current commit $GITHUB_SHA"
         git clone https://github.com/hello-robot/stretch_body -b $GITHUB_SHA
         git config --global --add safe.directory stretch_body
