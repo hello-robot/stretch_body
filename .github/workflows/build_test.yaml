@@ -4,27 +4,28 @@ on:
   push:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ "3.11"] # "3.9", "3.10",
-        
+  build:
+    runs-on: self-hosted
+    container:
+      image: hellorobotinc/stretch-install-image
+      volumes:
+        - /dev:/dev
+      network: host
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: Install dependencies
+    - name: Configure Git to trust the directory
+      run: git config --global --add safe.directory `pwd`
+    - name: Get LFS objects
+      run: git lfs pull
+    - name: Install dependencies and code
       run: |
-        pip install --upgrade setuptools wheel
-        sudo apt update
-        sudo apt-get install portaudio19-dev python-pyaudio python3-pyaudio
-        python -m pip install -e body/
-
+        python
+        python -m pip install -e ./src[dev]
     - name: Run tests
       run: |
         python -m pip install pytest
