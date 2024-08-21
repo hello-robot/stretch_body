@@ -10,7 +10,6 @@ jobs:
       image: hellorobotinc/stretch-install-image
       volumes:
         - /dev:/dev
-      network: host
 
     steps:
     - uses: actions/checkout@v4
