@@ -30,5 +30,4 @@ jobs:
       run: |
         export HELLO_FLEET_PATH=/home/hello-robot/stretch_user
         export HELLO_FLEET_ID=stretch-se3-3002
-        sudo chown -R hello-robot:hello-robot /dev/
         pytest-3 body/test/robot_tests/test_robot_home_stow.py

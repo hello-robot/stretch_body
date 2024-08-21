@@ -127,27 +127,27 @@ class Test_BRI_robot_home_stow(unittest.TestCase):
 
 
         if self.robot.params['tool'] == 'tool_stretch_dex_wrist':
-            stow_poses['wrist_yaw'] = self.robot.get_stow_pos('wrist_yaw')
-            stow_poses['wrist_roll'] = self.robot.get_stow_pos('wrist_roll')
-            stow_poses['wrist_pitch'] = self.robot.get_stow_pos('wrist_pitch')
-            stow_poses['stretch_gripper'] = self.robot.get_stow_pos('stretch_gripper')
+            stow_poses['wrist_yaw'] = self.robot.end_of_arm.params['stow']['wrist_yaw']
+            stow_poses['wrist_roll'] = self.robot.end_of_arm.params['stow']['wrist_roll']
+            stow_poses['wrist_pitch'] = self.robot.end_of_arm.params['stow']['wrist_pitch']
+            stow_poses['stretch_gripper'] = self.robot.end_of_arm.params['stow']['stretch_gripper']
 
 
         if self.robot.params['tool'] == 'eoa_wrist_dw3_tool_sg3':
-            stow_poses['wrist_yaw'] = self.robot.get_stow_pos('wrist_yaw')
-            stow_poses['wrist_roll'] = self.robot.get_stow_pos('wrist_roll')
-            stow_poses['wrist_pitch'] = self.robot.get_stow_pos('wrist_pitch')
-            stow_poses['stretch_gripper'] = self.robot.get_stow_pos('stretch_gripper')
+            stow_poses['wrist_yaw'] = self.robot.end_of_arm.params['stow']['wrist_yaw']
+            stow_poses['wrist_roll'] = self.robot.end_of_arm.params['stow']['wrist_roll']
+            stow_poses['wrist_pitch'] = self.robot.end_of_arm.params['stow']['wrist_pitch']
+            stow_poses['stretch_gripper'] = self.robot.end_of_arm.params['stow']['stretch_gripper']
             
 
         if self.robot.params['tool'] == 'tool_stretch_gripper':
-            stow_poses['wrist_yaw'] = self.robot.get_stow_pos('wrist_yaw')
-            stow_poses['stretch_gripper'] = self.robot.get_stow_pos('stretch_gripper')
+            stow_poses['wrist_yaw'] = self.robot.end_of_arm.params['stow']['wrist_yaw']
+            stow_poses['stretch_gripper'] = self.robot.end_of_arm.params['stow']['stretch_gripper']
 
         if self.robot.params['tool'] == 'eoa_wrist_dw3_tool_nil':
-            stow_poses['wrist_yaw'] = self.robot.get_stow_pos('wrist_yaw')
-            stow_poses['wrist_roll'] = self.robot.get_stow_pos('wrist_roll')
-            stow_poses['wrist_pitch'] = self.robot.get_stow_pos('wrist_pitch')
+            stow_poses['wrist_yaw'] = self.robot.end_of_arm.params['stow']['wrist_yaw']
+            stow_poses['wrist_roll'] = self.robot.end_of_arm.params['stow']['wrist_roll']
+            stow_poses['wrist_pitch'] = self.robot.end_of_arm.params['stow']['wrist_pitch']
 
         self.check_joint_poses(stow_poses, 'Stowing')
 
