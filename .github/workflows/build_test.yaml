@@ -13,17 +13,8 @@ jobs:
         - /dev:/dev
 
     steps:
-    # - run: |
-    #     echo "Current directory is $(pwd)"
-    #     echo "Present files in home are $(ls /home/hello-robot)"
-    #     ls /dev/hello*
-    #     more /home/hello-robot/.bashrc
-    #     whoami
-    #     pip3 list
-    #     cd /home/hello-robot
-    #     stretch_params.py
-    #     ls -l /__w/
-
+    - run: |
+        sudo chown -R hello-robot:hello-robot /__w/
     - uses: actions/checkout@v3.0.2
     - name: Configure working direcotry
       run: |
