@@ -10,7 +10,7 @@ jobs:
       image: hellorobotinc/stretch-install-image:0.0.1
       # options: --userns=host --privileged
       # options: --user 1000:1000
-      options: --user 1000:1000 --privileged
+      options: --user 1001:1001 --privileged
       volumes:
         - /dev:/dev
 
