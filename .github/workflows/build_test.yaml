@@ -25,9 +25,9 @@ jobs:
         git config --global --add safe.directory `pwd`
     - name: Install Stretch Body
       run: |
-        bash -leo pipefail /home/hello-robot/.bashrc
+        sh /home/hello-robot/.bashrc
         pip3 install -e body/
     - name: Run Stretch Body Tests
       run: |
-        bash -leo pipefail /home/hello-robot/.bashrc
+        sh /home/hello-robot/.bashrc
         pytest-3 body/test/robot_tests
