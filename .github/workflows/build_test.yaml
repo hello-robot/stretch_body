@@ -13,19 +13,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
     - name: Configure Git to trust the directory
-      run: git config --global --add safe.directory `pwd`
-    - name: Get LFS objects
-      run: git lfs pull
+      run: |
+        echo "Installing current commit $GITHUB_SHA"
+        git clone https://github.com/hello-robot/stretch_body -b $GITHUB_SHA
+        git config --global --add safe.directory stretch_body
     - name: Install dependencies and code
       run: |
-        python
-        python -m pip install -e ./src[dev]
+        cd stretch_body/body
+        python -m pip install -e .
     - name: Run tests
       run: |
         python -m pip install pytest
-        pytest body/test/test_foo.py
+        pytest test/test_foo.py
