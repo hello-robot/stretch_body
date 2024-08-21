@@ -16,6 +16,7 @@ jobs:
     - run: |
         echo "Current directory is $(pwd)"
         echo "Present files in home are $(ls /home/hello-robot)"
+        ls /dev/hello*
         stretch_params.py
         ls -l /__w/
 
