@@ -23,11 +23,11 @@ jobs:
         echo "Current directory is $(pwd)"
         echo "Present files are $(ls)"
         git config --global --add safe.directory `pwd`
+        export HELLO_FLEET_PATH=/home/hello-robot/stretch_user
+        export HELLO_FLEET_ID=stretch-se3-3002
     - name: Install Stretch Body
       run: |
-        source /home/hello-robot/.bashrc
         pip3 install -e body/
     - name: Run Stretch Body Tests
       run: |
-        source /home/hello-robot/.bashrc
         pytest-3 body/test/robot_tests
