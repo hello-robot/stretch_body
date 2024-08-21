@@ -15,9 +15,9 @@ jobs:
         - /dev:/dev
 
     steps:
-    - name: cleanup old checkout  
-      run: sudo chmod +w -R ${GITHUB_WORKSPACE}; sudo rm -rf ${GITHUB_WORKSPACE}/*;
-    - uses: actions/checkout@v4
+    # - name: cleanup old checkout  
+    #   run: sudo chmod +w -R ${GITHUB_WORKSPACE}; sudo rm -rf ${GITHUB_WORKSPACE}/*;
+    - uses: actions/checkout@v1
     - name: Configure working direcotry
       run: |
         echo "Current directory is $(pwd)"
