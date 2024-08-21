@@ -8,23 +8,23 @@ jobs:
     runs-on: self-hosted
     container:
       image: hellorobotinc/stretch-install-image:0.0.1
-      options: --userns=host --privileged --net=host
+      options: --userns=host --privileged
       volumes:
         - /dev:/dev
 
     steps:
-    - run: |
-        echo "Current directory is $(pwd)"
-        echo "Present files in home are $(ls /home/hello-robot)"
-        ls /dev/hello*
-        more /home/hello-robot/.bashrc
-        whoami
-        pip3 list
-        cd /home/hello-robot
-        stretch_params.py
-        ls -l /__w/
+    # - run: |
+    #     echo "Current directory is $(pwd)"
+    #     echo "Present files in home are $(ls /home/hello-robot)"
+    #     ls /dev/hello*
+    #     more /home/hello-robot/.bashrc
+    #     whoami
+    #     pip3 list
+    #     cd /home/hello-robot
+    #     stretch_params.py
+    #     ls -l /__w/
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
     - name: Configure working direcotry
       run: |
         echo "Current directory is $(pwd)"
