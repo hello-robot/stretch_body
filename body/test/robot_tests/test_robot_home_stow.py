@@ -96,8 +96,8 @@ class Test_BRI_robot_home_stow(unittest.TestCase):
 
         if self.robot.params['tool'] == 'eoa_wrist_dw3_tool_sg3':
             home_poses['wrist_yaw'] = 0
-            home_poses['wrist_roll'] = self.robot.params['stow']['wrist_roll']
-            home_poses['wrist_pitch'] = self.robot.params['stow']['wrist_pitch']
+            home_poses['wrist_roll'] = self.robot.end_of_arm.params['stow']['wrist_roll']
+            home_poses['wrist_pitch'] = self.robot.end_of_arm.params['stow']['wrist_pitch']
             home_poses['stretch_gripper'] = 0
 
         if self.robot.params['tool'] == 'tool_stretch_gripper':
@@ -106,8 +106,8 @@ class Test_BRI_robot_home_stow(unittest.TestCase):
 
         if self.robot.params['tool'] == 'eoa_wrist_dw3_tool_nil':
             home_poses['wrist_yaw'] = 0
-            home_poses['wrist_roll'] = self.robot.params['stow']['wrist_roll']
-            home_poses['wrist_pitch'] = self.robot.params['stow']['wrist_pitch']
+            home_poses['wrist_roll'] = self.robot.end_of_arm.params['stow']['wrist_roll']
+            home_poses['wrist_pitch'] = self.robot.end_of_arm.params['stow']['wrist_pitch']
 
         self.check_joint_poses(home_poses, 'Homing')
 
