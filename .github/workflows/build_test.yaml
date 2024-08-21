@@ -17,6 +17,7 @@ jobs:
         echo "Current directory is $(pwd)"
         echo "Present files in home are $(ls /home/hello-robot)"
         ls /dev/hello*
+        more /home/hello-robot/.bashrc
         stretch_params.py
         ls -l /__w/
 
