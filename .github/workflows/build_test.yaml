@@ -15,7 +15,6 @@ jobs:
 
     steps:
     - run: |
-        su - hello-robot
         echo "Current directory is $(pwd)"
         echo "Present files in home are $(ls /home/hello-robot)"
         ls /dev/hello*
