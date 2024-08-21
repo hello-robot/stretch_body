@@ -11,6 +11,7 @@ jobs:
       options: --userns=host --privileged
       volumes:
         - /dev:/dev
+        
     steps:
     - name: Setup User permissions
       run: |
