@@ -12,6 +12,9 @@ jobs:
       volumes:
         - /dev:/dev
     steps:
+    - name: Setup User permissions
+      run: |
+        sudo chown -R hello-robot:hello-robot /__w/
     - uses: actions/checkout@v4
     - name: Configure working direcotry
       run: |
