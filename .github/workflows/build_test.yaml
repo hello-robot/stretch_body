@@ -20,6 +20,7 @@ jobs:
         ls /dev/hello*
         more /home/hello-robot/.bashrc
         whoami
+        pip3 list
         cd /home/hello-robot
         stretch_params.py
         ls -l /__w/
