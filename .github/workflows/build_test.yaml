@@ -15,6 +15,7 @@ jobs:
     steps:
     - run: |
         sudo chown -R hello-robot:hello-robot /__w/
+         sudo chown -R hello-robot:hello-robot /home/hello-robot/actions-runner
     - uses: actions/checkout@v3.0.2
     - name: Configure working direcotry
       run: |
