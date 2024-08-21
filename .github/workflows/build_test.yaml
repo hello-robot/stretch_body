@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - name: cleanup old checkout  
-      run: sudo chmod +w -R ${GITHUB_WORKSPACE}; rm -rf ${GITHUB_WORKSPACE}/*;
+      run: sudo chmod +w -R ${GITHUB_WORKSPACE}; sudo rm -rf ${GITHUB_WORKSPACE}/*;
     - uses: actions/checkout@v4
     - name: Configure working direcotry
       run: |
