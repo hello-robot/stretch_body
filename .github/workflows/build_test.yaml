@@ -9,7 +9,7 @@ jobs:
     container:
       image: hellorobotinc/stretch-install-image:0.0.1
       # options: --userns=host --privileged
-      options: --user:root --privileged
+      options: --user:root
       volumes:
         - /dev:/dev
 
