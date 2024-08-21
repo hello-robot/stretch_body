@@ -8,18 +8,11 @@ jobs:
     runs-on: self-hosted
     container:
       image: hellorobotinc/stretch-install-image:0.0.1
-      options: --user hello-robot
+      options: --user root
       volumes:
         - /dev:/dev
 
     steps:
-      # The "cleanup old checkout" step is needed because of this bug: https://github.com/actions/checkout/issues/1014
-    - name: cleanup old checkout  
-      run: |
-        echo "Current directory is $(pwd)"
-        echo "Present files are $(ls)"
-        echo "Github workspace is ${GITHUB_WORKSPACE}"
-        sudo chmod +w -R ${GITHUB_WORKSPACE};
     - uses: actions/checkout@v4
     - name: Configure working direcotry
       run: |
@@ -28,6 +21,7 @@ jobs:
         git config --global --add safe.directory `pwd`
     - name: Install Stretch Body
       run: |
+        source /home/hello-robot/.bashrc
         pip3 install -e body/
     - name: Run Stretch Body Tests
       run: |
