@@ -24,10 +24,9 @@ setuptools.setup(
                       'click', 'cma', 'colorama', 'filelock',
                       'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'psutil', 'gitpython', 'urchin', 'urdf_parser_py', # urdfpy ==> urchin
                       'opencv-contrib-python', 'renamed-opencv-python-inference-engine; python_version >= "3.0.0"', # resolve cv2 conflict for py3
-                      'jsonschema==2.6.0; python_version < "3.0"', 'qtconsole==4.7.7; python_version < "3.0"', 'jupyter', # required by juypter
-                      'llvmlite==0.31.0; python_version < "3.0"', 'numba', # numba required by stretch_funmap, depends on old llvmlite for py2
-                      'terminado==0.8.3; python_version < "3.0"', # depend on old terminado for py2
-                      'dynamixel-sdk>=3.1; python_version >= "3.0.0"', # py2 gets dynamixel-sdk through ROS
+                      'jupyter',
+                      'numba', # numba required by stretch_funmap
+                      'dynamixel-sdk',
                       'pyyaml>=5.1', # required for yaml.FullLoader
                       'hello-robot-stretch-tool-share>=0.3.3', # defines other Stretch end effectors
                       'hello-robot-stretch-factory>=0.3.5','hello-robot-stretch-body-tools>=0.4.2',
