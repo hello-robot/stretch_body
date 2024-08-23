@@ -29,7 +29,7 @@ setuptools.setup(
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'scikit-image', 'open3d', 'pyrealsense2', 'gitpython',
                       'xmltodict', 'filelock', 'pyaudio',
-                      'pyglet == 1.4.10; python_version < "3.0"', 'trimesh', 'urchin', # urdfpy ==> urchin
+                      'pyglet == 1.4.10; python_version < "3.0"', 'trimesh==4.4.7', 'urchin', # urdfpy ==> urchin
                       'pyyaml>=5.1', # required for yaml.FullLoader
                      ]
 )
