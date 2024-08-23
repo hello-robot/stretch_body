@@ -19,15 +19,15 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
     ],
-    install_requires=['numpy<=1.23.2', 'scipy', 'matplotlib<=3.5.0', 'ipython', 'pandas', 'sympy', 'nose',
+    install_requires=['numpy==1.26.4', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'colorama', 'filelock',
                       'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'psutil', 'gitpython', 'urchin', 'urdf_parser_py', # urdfpy ==> urchin
                       'opencv-contrib-python', 'renamed-opencv-python-inference-engine; python_version >= "3.0.0"', # resolve cv2 conflict for py3
-                      'jsonschema==2.6.0; python_version < "3.0"', 'qtconsole==4.7.7; python_version < "3.0"', 'jupyter', # required by juypter
-                      'llvmlite==0.31.0; python_version < "3.0"', 'numba', # numba required by stretch_funmap, depends on old llvmlite for py2
-                      'terminado==0.8.3; python_version < "3.0"', # depend on old terminado for py2
-                      'dynamixel-sdk>=3.1; python_version >= "3.0.0"', # py2 gets dynamixel-sdk through ROS
+                      'jupyter',
+                      'numba', # numba required by stretch_funmap
+                      'transforms3d>=0.4.2', # required by stretch_core
+                      'dynamixel-sdk',
                       'pyyaml>=5.1', # required for yaml.FullLoader
                       'hello-robot-stretch-tool-share>=0.3.3', # defines other Stretch end effectors
                       'hello-robot-stretch-factory>=0.3.5','hello-robot-stretch-body-tools>=0.4.2',
