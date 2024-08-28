@@ -2,6 +2,14 @@
 
 The behavior of Stretch's hardware and software is tweakable through "robot parameters", which are dozens of key-value pairs stored in YAML files and read into Stretch Body when the Python SDK is used. To learn about the parameter system and tweaking the values, follow the [Parameter Management Tutorial](../../stretch_tutorials/stretch_body/tutorial_parameter_management.md). In this document, a description of every parameter and its default value is provided.
 
+### use_asyncio
+
+A boolean to toggle the use of Asyncio for coordination serial communication with the stepper motors. Using asyncio enables the program flow to move onto other computation while waiting for a reply from a stepper.
+
+| Parameter         | Default Value |
+|-------------------|---------------|
+| robot.use_asyncio | `1`           |
+
 ### params
 
 Additional sources of parameters for Stretch Body to import in when organizing the robot's complete set of parameters. This parameter is an array of strings, where each string is an importable Python module. Therefore, it's important that your additional source of parameters is on the "Python Path" (i.e. you can import it from Python).
