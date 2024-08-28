@@ -58,4 +58,6 @@ def ro_woplotter_runner():
 
 if __name__ == "__main__":
     import threading
-    threading.Thread(target=ro_woplotter_runner).start()
+    threading.Thread(target=rw_runner).start()
+    threading.Thread(target=rw_runner).start()
+    #wo_runner()
