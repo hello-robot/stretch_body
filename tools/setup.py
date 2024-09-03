@@ -25,7 +25,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: Apache Software License"
     ],
-    install_requires=['numpy==1.26.4', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose', 'sh', 'packaging',
+    install_requires=['numpy>=1.24', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose', 'sh', 'packaging',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
                       'click', 'cma', 'opencv-contrib-python', 'colorama', 'scikit-image', 'open3d', 'pyrealsense2', 'gitpython',
                       'xmltodict', 'filelock', 'pyaudio',
