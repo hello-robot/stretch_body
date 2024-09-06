@@ -75,8 +75,5 @@ extra:
       link: https://linkedin.com/company/hello-robot-inc
 
 nav:
- - Overview: README.md
- - Documentation:
-    - Robot Parameters: docs/robot_parameters.md
- - Tutorials: https://docs.hello-robot.com/0.2/stretch-tutorials/stretch_body/
- - Changelog: CHANGELOG.md
+ - Robot Parameters: docs/robot_parameters.md
+ - Thread-safety Tutorial: docs/is_thread_safe/README.md
