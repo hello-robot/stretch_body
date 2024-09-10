@@ -63,6 +63,8 @@ elif stretch_tool == "eoa_wrist_dw3_tool_nil":
     print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + 'DexWrist 3 w/ no attached tool')
 elif stretch_tool == "eoa_wrist_dw3_tool_sg3":
     print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + 'DexWrist 3 w/ Gripper')
+elif stretch_tool == "eoa_wrist_dw3_tool_tablet_12in":
+    print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + 'DexWrist 3 w/ 12" Tablet')
 else:
     print(Fore.LIGHTBLUE_EX + 'Tool = ' + Fore.CYAN + stretch_tool)
 if args.verbose:
