@@ -10,6 +10,14 @@ A boolean to toggle the use of Asyncio for coordination serial communication wit
 |-------------------|---------------|
 | robot.use_asyncio | `1`           |
 
+### use_collision_manager
+
+A boolean to toggle the use of the collision manager, which prevents self-collisions between the robot's arm and body. For example, this can be helpful for novice users during gamepad teleop because they can figure out the controls without fear of teleoperating the robot into collisions.
+
+| Parameter         | Default Value |
+|-------------------|---------------|
+| robot.use_collision_manager | `0`           |
+
 ### params
 
 Additional sources of parameters for Stretch Body to import in when organizing the robot's complete set of parameters. This parameter is an array of strings, where each string is an importable Python module. Therefore, it's important that your additional source of parameters is on the "Python Path" (i.e. you can import it from Python).
