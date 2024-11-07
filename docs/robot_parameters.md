@@ -59,6 +59,14 @@ Gravity compensation adds a fixed ‘feedforward’ current to the motor control
 
 There’s a simple tool to calibrate these values. `REx_calibrate_gravity_comp.py` will move the lift to a few positions, sampled the applied motor currents, and update your gravity compensation parameters. More details can be found in this [knowledge base post](https://forum.hello-robot.com/t/practical-guide-to-lift-gravity-compensation/657).
 
+### stretch_gripper_overload
+
+A boolean to toggle whether a sentry monitors the gripper servo for risk of "overloading", a hardware protection state the servo goes into when it cannot provide the torque being asked for, and backs off the commands to reduce the amount of torque being asked for. In effect, this sentry enables the gripper to keep its grip on objects without overloading.
+
+| Parameter         | Default Value |
+|-------------------|---------------|
+| robot_sentry.stretch_gripper_overload | `1`           |
+
 ## Parameters for Command Line Tools
 
 ### show_sw_exc
