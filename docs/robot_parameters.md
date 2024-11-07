@@ -67,6 +67,14 @@ A boolean to toggle whether a sentry monitors the gripper servo for risk of "ove
 |-------------------|---------------|
 | robot_sentry.stretch_gripper_overload | `1`           |
 
+### base_max_velocity
+
+A boolean to toggle whether a sentry monitors the robot's center of mass and limits max allowable speed of the mobile base to prevent unstable behavior resulting from fast motion paired with a high center of mass. Disabling this safety feature means the base will not limit its speed and will travel at the speed you've commanded it.
+
+| Parameter         | Default Value |
+|-------------------|---------------|
+| robot_sentry.base_max_velocity | `1`           |
+
 ## Parameters for Command Line Tools
 
 ### show_sw_exc
