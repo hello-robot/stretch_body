@@ -438,7 +438,7 @@ class PrismaticJoint(Device):
 
         # check if joint valid, homed, and right protocol
         if not self.motor.hw_valid:
-            self.logger.warning('%s connection to hardware not valid'%self.name.upper)
+            self.logger.warning('%s connection to hardware not valid'%self.name.upper())
             return False
         if req_calibration:
             if not self.motor.status['pos_calibrated']:
