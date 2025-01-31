@@ -543,7 +543,7 @@ nominal_params={
                 'vel_brakezone_factor': 0.03},
                 'set_safe_velocity': 1},
     'omnibase': {
-        'gr': 4.73684,
+        'gr': 6.31579,
         'use_vel_traj': 0,
         'motion': {
             'default': {
@@ -561,8 +561,8 @@ nominal_params={
             'trajectory_max': {
                 'vel_r': 50.0,
                 'accel_r': 30.0}},
-        'wheel_diameter_m': 0.1524,
-        'base_radius_m':0.185},
+        'wheel_diameter_m': 0.16,
+        'base_radius_m':0.167},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
         'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
