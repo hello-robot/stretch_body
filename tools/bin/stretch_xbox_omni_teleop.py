@@ -143,7 +143,7 @@ fast_accel_rad = 0.8
 fast_command_to_rotary_motion = CommandToRotaryMotion(dead_zone, fast_move_s, fast_max_dist_rad, fast_accel_rad)
 
 
-def manage_base(b,p,controller_state):
+def manage_base2(b,p,controller_state):
     # side_command = controller_state['left_stick_y']
     # forward_command = controller_state['left_stick_x']
     rotate_command = controller_state['right_stick_x']
@@ -176,23 +176,38 @@ def manage_base(b,p,controller_state):
     p.trigger_motor_sync()
     p.push_command()
 
-def manage_base2(b,p,controller_state):
+def manage_base(b,p,controller_state):
+    ax = 0
+    ay = 0
+    w = 0
+    a_scale = 1.0  # 0.5
+    w_scale = 3.0
+    a_xy_des = 1.0
+    a_w_des = 1.0
+
     side_command = controller_state['left_stick_y']
     forward_command = controller_state['left_stick_x']
     rotate_command = controller_state['right_stick_x']
-    ax=0
-    ay = 0
-    w = 0
-    a_scale=0.5
-    w_scale=3.0
 
-    if abs(forward_command) > dead_zone:
-        ax=a_scale*forward_command
-    if abs(side_command) > dead_zone:
-        ay=a_scale*side_command
-    if abs(rotate_command) > dead_zone:
-        w=w_scale*rotate_command
-    b.set_omni_velocity(ax,ay,w)
+    go_forward= abs(forward_command)>abs(side_command) and abs(forward_command)>abs(rotate_command)
+    go_side = abs(side_command) > abs(forward_command) and abs(side_command) > abs(rotate_command)
+    go_rotate = abs(rotate_command) > abs(side_command) and abs(rotate_command) > abs(forward_command)
+
+    if go_forward:# and abs(forward_command) > dead_zone:
+        b.set_omni_velocity(dir='x', v_des=a_scale*forward_command,a_des=a_xy_des)
+
+    if go_side:# and abs(side_command) > dead_zone:
+        b.set_omni_velocity(dir='y', v_des=a_scale*side_command,a_des=a_xy_des)
+
+    if go_rotate:# and abs(rotate_command) > dead_zone:
+        b.set_omni_velocity(dir='w', v_des=w_scale*rotate_command,a_des=a_w_des)
+
+    #
+    # if abs(side_command) > dead_zone:
+    #     ay=a_scale*side_command
+    # if abs(rotate_command) > dead_zone:
+    #     w=w_scale*rotate_command
+    # b.set_omni_velocity(ax,ay,w,a_des)
     p.trigger_motor_sync()
     p.push_command()
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 from __future__ import print_function
+
+import math
 from math import *
 from stretch_body.stepper import *
 from stretch_body.device import Device
-from stretch_body.trajectories import DiffDriveTrajectory
 from stretch_body.hello_utils import *
 import time
 import logging
@@ -28,8 +29,8 @@ class OmniBase(Device):
 
         # Default controller params
         self.stiffness=1.0
-        self.vel_mr=self.translate_to_motor_rad(self.params['motion']['default']['vel_m'])
-        self.accel_mr=self.translate_to_motor_rad(self.params['motion']['default']['accel_m'])
+        self.vel_mr=self.translate_to_motor_rad(self.params['motion']['default']['vel_xy_m'])
+        self.accel_mr=self.translate_to_motor_rad(self.params['motion']['default']['accel_xy_m'])
         self.fast_motion_allowed = True
     # ###########  Device Methods #############
 
@@ -71,7 +72,7 @@ class OmniBase(Device):
         for w in self.wheels:
             w.enable_pos_traj_incr()
 
-    def set_omni_velocity(self,ax,ay,w):
+    def set_omni_velocity2(self,ax,ay,w,a_des=None):
         '''
         ax: linear velocity m/s
         at: linear velocity m/s
@@ -82,12 +83,65 @@ class OmniBase(Device):
         else:
             ctrl_mode =Stepper.MODE_VEL_PID
         u=self.v_base_to_motor_rad(ax,ay,w)
-        self.wheels[0].set_command(mode=ctrl_mode, v_des=u[0])
-        self.wheels[1].set_command(mode=ctrl_mode, v_des=u[1])
-        self.wheels[2].set_command(mode=ctrl_mode, v_des=u[2])
+        self.wheels[0].set_command(mode=ctrl_mode, v_des=u[0],a_des=a_des)
+        self.wheels[1].set_command(mode=ctrl_mode, v_des=u[1],a_des=a_des)
+        self.wheels[2].set_command(mode=ctrl_mode, v_des=u[2],a_des=a_des)
+
+    def set_omni_velocity(self,dir,v_des,a_des):
+        '''
+        dir: x,y,w for direction
+        v_des: m/s or rad/s
+        a_des: m/s^2 or rad/s^2
+        '''
+        if self.params['use_vel_traj']:
+            ctrl_mode =Stepper.MODE_VEL_TRAJ
+        else:
+            ctrl_mode =Stepper.MODE_VEL_PID
+        if dir=='x':
+            [u0,u1,u2]=self.v_base_to_motor_rad(v_des,0,0)
+            [a0,a1,a2]=self.v_base_to_motor_rad(a_des,0,0)
+        if dir=='y':
+            [u0,u1,u2]=self.v_base_to_motor_rad(0,v_des,0)
+            [a0,a1,a2]=self.v_base_to_motor_rad(0,a_des,0)
+        if dir=='w':
+            [u0,u1,u2]=self.v_base_to_motor_rad(0,0,v_des)
+            [a0,a1,a2]=self.v_base_to_motor_rad(0,0,a_des)
+        self.wheels[0].set_command(mode=ctrl_mode, v_des=u0,a_des=abs(a0))
+        self.wheels[1].set_command(mode=ctrl_mode, v_des=u1,a_des=abs(a1))
+        self.wheels[2].set_command(mode=ctrl_mode, v_des=u2,a_des=abs(a2))
 
 
+    def translate_by(self, x_m, y_m, v_m=None, a_m=None): #, stiffness=None, contact_thresh_N=None,contact_thresh=None):
+        """
+        Incremental translation of the base
+        x_m, y_m: desired motion (m)
+        v_m: velocity for trapezoidal motion profile (m/s) in direction of translation
+        a_m: acceleration for trapezoidal motion profile (m/s^2) in direction of translation
+        """
 
+        if v_m is not None:
+            v_m = min(abs(v_m), self.params['motion']['max']['vel_xy_m'])
+        else:
+            v_m =  self.params['motion']['default']['vel_xy_m']
+
+        if a_m is not None:
+            a_m = min(abs(a_m), self.params['motion']['max']['accel_xy_m'])
+        else:
+            a_m =  self.params['motion']['default']['accel_xy_m']
+
+        theta=math.atan2(y_m,x_m)#Angle headed
+        v_x = v_m*math.cos(theta)
+        v_y = v_m*math.sin(theta)
+        a_x = a_m*math.cos(theta)
+        a_y = a_m*math.sin(theta)
+
+        [x0, x1, x2] = self.v_base_to_motor_rad(x_m, y_m, 0)
+        [u0, u1, u2] = self.v_base_to_motor_rad(v_x, v_y, 0)
+        [a0, a1, a2] = self.v_base_to_motor_rad(a_x, a_y, 0)
+
+        self.wheels[0].set_command(mode=Stepper.MODE_POS_TRAJ_INCR, v_des=abs(u0), a_des=abs(a0))
+        self.wheels[1].set_command(mode=Stepper.MODE_POS_TRAJ_INCR, v_des=abs(u1), a_des=abs(a1))
+        self.wheels[2].set_command(mode=Stepper.MODE_POS_TRAJ_INCR, v_des=abs(u2), a_des=abs(a2))
 
     # ###################################################
     def push_command(self):
@@ -136,8 +190,8 @@ class OmniBase(Device):
         u1=self.params['gr']*(0.58*ax  -0.33*ay + 0.33*w)/r
         u2=self.params['gr']*(-0.58*ax -0.33*ay + 0.33*w)/r
         u3=self.params['gr']*(0        +0.67*ay + 0.33*w)/r
-        print('IN',ax,ay,w)
-        print('Out',u1,u2,u3)
+        # print('IN',ax,ay,w)
+        # print('Out',u1,u2,u3)
         return [u1,u2,u3]
 
     def v_base_to_motor_rad2(self,wz,vx,vy):

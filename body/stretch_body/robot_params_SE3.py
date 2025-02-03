@@ -547,17 +547,17 @@ nominal_params={
         'use_vel_traj': 0,
         'motion': {
             'default': {
-                'accel_m': 0.12,
-                'vel_m': 0.12},
+                'accel_xy_m': 0.12,
+                'vel_xy_m': 0.12},
             'fast': {
-                'accel_m': 0.25,
-                'vel_m': 0.25},
+                'accel_xy_m': 0.25,
+                'vel_xy_m': 0.25},
             'max': {
-                'accel_m': 0.3,
-                'vel_m': 0.3},
+                'accel_xy_m': 0.3,
+                'vel_xy_m': 0.3},
             'slow': {
-                'accel_m': 0.06,
-                'vel_m': 0.04},
+                'accel_xy_m': 0.06,
+                'vel_xy_m': 0.04},
             'trajectory_max': {
                 'vel_r': 50.0,
                 'accel_r': 30.0}},
