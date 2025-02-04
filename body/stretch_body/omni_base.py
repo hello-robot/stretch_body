@@ -10,6 +10,9 @@ from stretch_body.hello_utils import *
 import time
 import logging
 import numpy
+import numpy as np
+from stretch_body.hello_utils import rad_to_deg
+
 
 class OmniBase(Device):
     """
@@ -29,8 +32,8 @@ class OmniBase(Device):
 
         # Default controller params
         self.stiffness=1.0
-        self.vel_mr=self.translate_to_motor_rad(self.params['motion']['default']['vel_xy_m'])
-        self.accel_mr=self.translate_to_motor_rad(self.params['motion']['default']['accel_xy_m'])
+        # self.vel_mr=self.translate_to_motor_rad(self.params['motion']['default']['vel_xy_m'])
+        # self.accel_mr=self.translate_to_motor_rad(self.params['motion']['default']['accel_xy_m'])
         self.fast_motion_allowed = True
     # ###########  Device Methods #############
 
@@ -139,9 +142,34 @@ class OmniBase(Device):
         [u0, u1, u2] = self.v_base_to_motor_rad(v_x, v_y, 0)
         [a0, a1, a2] = self.v_base_to_motor_rad(a_x, a_y, 0)
 
-        self.wheels[0].set_command(mode=Stepper.MODE_POS_TRAJ_INCR, v_des=abs(u0), a_des=abs(a0))
-        self.wheels[1].set_command(mode=Stepper.MODE_POS_TRAJ_INCR, v_des=abs(u1), a_des=abs(a1))
-        self.wheels[2].set_command(mode=Stepper.MODE_POS_TRAJ_INCR, v_des=abs(u2), a_des=abs(a2))
+        #print('M0',x0,u0,a0)
+        #print('M1', x1, u1, a1)
+        #Hack to avoid drift, fix in firmware
+        if abs(x0)<.000001:
+            x0=0
+        if abs(x1)<.000001:
+            x1=0
+        if abs(x2)<.000001:
+            x2=0
+        self.wheels[0].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x0, v_des=max(0.001,abs(u0)), a_des=max(0.001,abs(a0)))
+        self.wheels[1].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x1, v_des=max(0.001,abs(u1)), a_des=max(0.001,abs(a1)))
+        self.wheels[2].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x2, v_des=max(0.001,abs(u2)), a_des=max(0.001,abs(a2)))
+
+    #Hack for drift, temp
+    def enable_hold_mode(self):
+        self.wheels[0].set_command(mode=Stepper.MODE_HOLD)
+        self.wheels[1].set_command(mode=Stepper.MODE_HOLD)
+        self.wheels[2].set_command(mode=Stepper.MODE_HOLD)
+
+    def enable_freewheel_mode(self):
+        self.wheels[0].set_command(mode=Stepper.MODE_FREEWHEEL)
+        self.wheels[1].set_command(mode=Stepper.MODE_FREEWHEEL)
+        self.wheels[2].set_command(mode=Stepper.MODE_FREEWHEEL)
+
+    def enable_freewheel_mode(self):
+        self.wheels[0].set_command(mode=Stepper.MODE_FREEWHEEL)
+        self.wheels[1].set_command(mode=Stepper.MODE_FREEWHEEL)
+        self.wheels[2].set_command(mode=Stepper.MODE_FREEWHEEL)
 
     # ###################################################
     def push_command(self):
@@ -167,10 +195,44 @@ class OmniBase(Device):
         self.__update_status()
 
     def __update_status(self):
+        # update the robot's velocity estimates
+        base_vel=self.v_motor_rad_to_base([self.wheels[0].status['vel'],self.wheels[1].status['vel'],self.wheels[2].status['vel']])
+        self.status['x_vel'] = base_vel[0]
+        self.status['y_vel'] = base_vel[1]
+        self.status['theta_vel'] = base_vel[2]
         self.status['timestamp_pc'] = time.time()
 
 
     # ########### Kinematic Conversions ####################
+
+    def v_motor_rad_to_base (self,wheel_velocities):
+        """
+        NOTE: Copilot code not yet tested for accuracy/ calibration
+
+
+        Convert the wheel velocities of a 3-wheel omnidirectional robot to the base velocities.
+
+        Parameters:
+        wheel_velocities (list or numpy array): Velocities of the three wheels [V1, V2, V3]
+        Returns:
+        numpy array: Base velocities [Vx, Vy, Vtheta]
+        """
+        r = self.params['wheel_diameter_m'] / 2
+        d = self.params['base_radius_m']
+
+        # Coefficients for the transformation matrix
+        a = r / (3 * d)
+        b = np.sqrt(3) * a
+
+        # Transformation matrix from wheel velocities to base velocities
+        T_inv = np.array([
+            [-0.5, -0.5, -0.5],
+            [b, -b, 0],
+            [a, a, a]
+        ])
+        # Convert wheel velocities to base velocities
+        base_velocities = np.matmul(T_inv, np.array(wheel_velocities)/self.params['gr'])
+        return base_velocities
 
     # def pos_base_to_motor_rad(self,dw,dx,dy):
     #     r = self.params['wheel_diameter_m'] / 2
@@ -207,34 +269,34 @@ class OmniBase(Device):
         print('U',u1,u2,u3)
         return [u1,u2,u3]
 
-    def translate_to_motor_rad(self,x_m):
-        circ=self.params['wheel_diameter_m']*math.pi
-        return deg_to_rad(360*self.params['gr']*x_m/circ)
-
-    def motor_rad_to_translate(self,x_r):
-        circ = self.params['wheel_diameter_m'] * math.pi
-        return rad_to_deg(x_r)*circ/360/self.params['gr']
-
-    def rotate_to_motor_rad(self,x_r):
-        r = self.params['wheel_separation_m'] / 2.0
-        c = r * x_r #distance wheel travels (m)
-        return self.translate_to_motor_rad(c)
-
-    def motor_rad_to_rotate(self, x_r):
-        c = self.motor_rad_to_translate(x_r)
-        r = self.params['wheel_separation_m'] / 2.0
-        ang_rad = c /r
-        return ang_rad
-
-    def translation_to_rotation(self,x_m):
-        x_mr=self.translate_to_motor_rad(x_m)
-        x_r=self.motor_rad_to_rotate(x_mr)
-        return x_r
-
-    def rotation_to_translation(self,x_r):
-        x_mr=self.rotate_to_motor_rad(x_r)
-        x_m=self.motor_rad_to_translate(x_mr)
-        return x_m
+    # def translate_to_motor_rad(self,x_m):
+    #     circ=self.params['wheel_diameter_m']*math.pi
+    #     return deg_to_rad(360*self.params['gr']*x_m/circ)
+    #
+    # def motor_rad_to_translate(self,x_r):
+    #     circ = self.params['wheel_diameter_m'] * math.pi
+    #     return rad_to_deg(x_r)*circ/360/self.params['gr']
+    #
+    # def rotate_to_motor_rad(self,x_r):
+    #     r = self.params['wheel_separation_m'] / 2.0
+    #     c = r * x_r #distance wheel travels (m)
+    #     return self.translate_to_motor_rad(c)
+    #
+    # def motor_rad_to_rotate(self, x_r):
+    #     c = self.motor_rad_to_translate(x_r)
+    #     r = self.params['wheel_separation_m'] / 2.0
+    #     ang_rad = c /r
+    #     return ang_rad
+    #
+    # def translation_to_rotation(self,x_m):
+    #     x_mr=self.translate_to_motor_rad(x_m)
+    #     x_r=self.motor_rad_to_rotate(x_mr)
+    #     return x_r
+    #
+    # def rotation_to_translation(self,x_r):
+    #     x_mr=self.rotate_to_motor_rad(x_r)
+    #     x_m=self.motor_rad_to_translate(x_mr)
+    #     return x_m
 
 
 

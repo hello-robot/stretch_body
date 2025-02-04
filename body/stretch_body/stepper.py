@@ -440,6 +440,7 @@ class StepperBase(Device):
                 self._command['v_des'] = self.params['motion']['vel']
 
         if a_des is not None:
+            #Hack to avoid drift bug in firmware motion gen. Need to fix in stretch_firmware
             self._command['a_des'] = a_des
         else:
             self._command['a_des'] = self.params['motion']['accel']
