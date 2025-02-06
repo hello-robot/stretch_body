@@ -102,34 +102,24 @@ class OmniBase(Device):
         ax = self.v_base_to_motor_rad(a_des, 0, 0)
         ay = self.v_base_to_motor_rad(0, a_des, 0)
         aw = self.v_base_to_motor_rad(0, 0, a_des)
-        print('AX',ax)
-        print('AY',ay)
+
         #Workaround accel to zero bug when switching from X to Y dir
         if dir=='x':
             a0=abs(ax[0])
             a1 = abs(ax[1])
             a2 = abs(ax[2])
+            [u0, u1, u2] = self.v_base_to_motor_rad(v_des, 0, 0)
         if dir=='y':
             a0=abs(ay[0])
             a1 = abs(ay[1])
             a2 = abs(ax[2])
+            [u0, u1, u2] = self.v_base_to_motor_rad(0, v_des, 0)
         if dir=='w':
             a0=abs(aw[0])
             a1 = abs(aw[1])
             a2 = abs(aw[2])
+            [u0, u1, u2] = self.v_base_to_motor_rad(0, 0, v_des)
 
-
-        if dir=='x':
-            print('X')
-            [u0,u1,u2]=self.v_base_to_motor_rad(v_des,0,0)
-        if dir=='y':
-            print('Y')
-            [u0,u1,u2]=self.v_base_to_motor_rad(0,v_des,0)
-        if dir=='w':
-            print('W')
-            [u0,u1,u2]=self.v_base_to_motor_rad(0,0,v_des)
-        #if abs(a0)<1.0:
-        print('ZERO!!! Ades',a_des,'A',a0,a1,a2)
         self.wheels[0].set_command(mode=ctrl_mode, v_des=u0,a_des=a0)
         self.wheels[1].set_command(mode=ctrl_mode, v_des=u1,a_des=a1)
         self.wheels[2].set_command(mode=ctrl_mode, v_des=u2,a_des=a2)
@@ -163,18 +153,17 @@ class OmniBase(Device):
         [u0, u1, u2] = self.v_base_to_motor_rad(v_x, v_y, 0)
         [a0, a1, a2] = self.v_base_to_motor_rad(a_x, a_y, 0)
 
+        print('X',[x0, x1, x2])
+        print('V',[u0, u1, u2])
+        print('A',[a0, a1, a2])
         #print('M0',x0,u0,a0)
         #print('M1', x1, u1, a1)
         #Hack to avoid drift, fix in firmware
-        if abs(x0)<.000001:
-            x0=0
-        if abs(x1)<.000001:
-            x1=0
-        if abs(x2)<.000001:
-            x2=0
-        self.wheels[0].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x0, v_des=max(0.001,abs(u0)), a_des=max(0.001,abs(a0)))
-        self.wheels[1].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x1, v_des=max(0.001,abs(u1)), a_des=max(0.001,abs(a1)))
-        self.wheels[2].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x2, v_des=max(0.001,abs(u2)), a_des=max(0.001,abs(a2)))
+
+        self.wheels[0].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x0, v_des=abs(u0), a_des=abs(a0))
+        self.wheels[1].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x1, v_des=abs(u1), a_des=abs(a1))
+        if (abs(x2)>.0001): #Hack for now to fix drift on back wheel
+            self.wheels[2].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x2, v_des=abs(u2), a_des=abs(a2))
 
     #Hack for drift, temp
     def enable_hold_mode(self):
@@ -186,8 +175,6 @@ class OmniBase(Device):
         self.wheels[0].set_command(mode=Stepper.MODE_FREEWHEEL)
         self.wheels[1].set_command(mode=Stepper.MODE_FREEWHEEL)
         self.wheels[2].set_command(mode=Stepper.MODE_FREEWHEEL)
-
-
 
     # ###################################################
     def push_command(self):

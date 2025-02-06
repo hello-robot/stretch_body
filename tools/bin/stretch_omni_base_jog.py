@@ -17,16 +17,16 @@ large_rotate_rad=deg_to_rad(10.0)
 
 b=base.OmniBase()
 
-pKd_d=100.0
-pKi_d=0.0#.01
-pKi_limit=50.0
-pKp_d=24.0 #12.0
-
-for i in range(3):
-    b.wheels[i].gains['pKd_d']=pKd_d
-    b.wheels[i].gains['pKi_d']=pKi_d
-    b.wheels[i].gains['pKi_limit']=pKi_limit
-    b.wheels[i].gains['pKp_d']=pKp_d
+# pKd_d=100.0
+# pKi_d=0.0#.01
+# pKi_limit=50.0
+# pKp_d=24.0 #12.0
+#
+# for i in range(3):
+#     b.wheels[i].gains['pKd_d']=pKd_d
+#     b.wheels[i].gains['pKi_d']=pKi_d
+#     b.wheels[i].gains['pKi_limit']=pKi_limit
+#     b.wheels[i].gains['pKp_d']=pKp_d
 
 
 if not b.startup(threaded=False):
@@ -122,8 +122,6 @@ try:
                             b.push_command()
                             p.trigger_motor_sync()
                             time.sleep(2.5)
-
-
             if c =='x':
                     print('Enter num cycles [10]')
                     try:
@@ -203,21 +201,21 @@ try:
             #     b.push_command()
             #     p.trigger_motor_sync()
             #     menu()
-            if c == 'f':
-                b.translate_by(x_m=small_move_m, y_m=0,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'b':
-                b.translate_by(x_m=-1*small_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'F':
-                b.translate_by(x_m=large_move_m, y_m=0,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'B':
-                b.translate_by(x_m=-1*large_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'l':
-                b.translate_by(x_m=0, y_m=-1*small_move_m,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
             if c == 'r':
-                b.translate_by(x_m=0, y_m=small_move_m, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'L':
-                b.translate_by(x_m=0, y_m=-1*large_move_m,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
+                b.translate_by(x_m=small_move_m, y_m=0,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'l':
+                b.translate_by(x_m=-1*small_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
             if c == 'R':
+                b.translate_by(x_m=large_move_m, y_m=0,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'L':
+                b.translate_by(x_m=-1*large_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'b':
+                b.translate_by(x_m=0, y_m=-1*small_move_m,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'f':
+                b.translate_by(x_m=0, y_m=small_move_m, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'B':
+                b.translate_by(x_m=0, y_m=-1*large_move_m,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'F':
                 b.translate_by(x_m=0, y_m=large_move_m, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
             # if c == 'l':
             #     b.rotate_by(small_rotate_rad, v_r=v_r[rate], a_r=a_r[rate])
