@@ -547,11 +547,11 @@ nominal_params={
         'use_vel_traj': 0,
         'motion': {
             'default': {
-                'accel_xy_m': 0.2,
-                'vel_xy_m': 0.2},
-            'fast': {
                 'accel_xy_m': 0.3,
                 'vel_xy_m': 0.3},
+            'fast': {
+                'accel_xy_m': 0.4,
+                'vel_xy_m': 0.4},
             'max': {
                 'accel_xy_m': 1.0,
                 'vel_xy_m': 1.0},
@@ -864,7 +864,7 @@ nominal_params={
             'effort_LPF': 2.0,
             'enable_guarded_mode': 0,
             'enable_runstop': 0,
-            'enable_sync_mode': 0,
+            'enable_sync_mode': 1,
             'enable_vel_watchdog':0,
             'flip_effort_polarity': 0,
             'flip_encoder_polarity': 0,
@@ -901,7 +901,7 @@ nominal_params={
             'effort_LPF': 2.0,
             'enable_guarded_mode': 0,
             'enable_runstop': 0,
-            'enable_sync_mode': 0,
+            'enable_sync_mode': 1,
             'enable_vel_watchdog':0,
             'flip_effort_polarity': 0,
             'flip_encoder_polarity': 0,
@@ -938,7 +938,7 @@ nominal_params={
             'effort_LPF': 2.0,
             'enable_guarded_mode': 0,
             'enable_runstop': 0,
-            'enable_sync_mode': 0,
+            'enable_sync_mode': 1,
             'enable_vel_watchdog':0,
             'flip_effort_polarity': 0,
             'flip_encoder_polarity': 0,

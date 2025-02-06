@@ -181,9 +181,9 @@ def manage_base(b,p,controller_state):
     ay = 0
     w = 0
     a_scale = 1.0  # 0.5
-    w_scale = 3.0
-    a_xy_des = 1.0
-    a_w_des = 1.0
+    w_scale = 2.0
+    a_xy_des = 0.5
+    a_w_des = 0.5
 
     side_command = controller_state['left_stick_y']
     forward_command = controller_state['left_stick_x']
