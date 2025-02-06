@@ -9,6 +9,7 @@ import argparse
 import random
 import math
 
+
 print_stretch_re_use()
 
 parser = argparse.ArgumentParser(description=
@@ -143,64 +144,63 @@ fast_accel_rad = 0.8
 fast_command_to_rotary_motion = CommandToRotaryMotion(dead_zone, fast_move_s, fast_max_dist_rad, fast_accel_rad)
 
 
-def manage_base2(b,p,controller_state):
-    # side_command = controller_state['left_stick_y']
-    # forward_command = controller_state['left_stick_x']
+loop_itr=0
+last_dir='x'
+def manage_base(b,controller_state):
+    global loop_itr, last_dir
+
+    xy_scale = 0.5  # 0.5
+    w_scale = 3.0
+    a_xy_des = 0.75
+    a_w_des = 6.0
+
+    if controller_state['right_trigger_pulled']>0.5: #slow mode
+        scale=0.25
+        xy_scale=xy_scale*scale
+        w_scale = w_scale * scale
+        a_xy_des=a_xy_des*scale
+        a_w_des=a_w_des*scale
+
+
+    loop_itr=loop_itr+1
+    print('----------------- %d ----------------'%loop_itr)
+    side_command = controller_state['left_stick_x']
+    forward_command = controller_state['left_stick_y']
     rotate_command = controller_state['right_stick_x']
-    ax=0
-    ay = 0
-    w = 0
-    vv=0.1
-    if controller_state['right_pad_pressed']:
-        ax=vv
-    if controller_state['left_pad_pressed']:
-        ax=-vv
-    if controller_state['top_pad_pressed']:
-        ay=vv
-    if controller_state['bottom_pad_pressed']:
-        ay=-vv
-
-    # ax=0
-    # ay = 0
-    # w = 0
-    # a_scale=0.5
-    w_scale=3.0
-    #
-    # if abs(forward_command) > dead_zone:
-    #     ax=a_scale*forward_command
-    # if abs(side_command) > dead_zone:
-    #     ay=a_scale*side_command
-    if abs(rotate_command) > dead_zone:
-        w=w_scale*rotate_command
-    b.set_omni_velocity(ax,ay,w)
-    p.trigger_motor_sync()
-    p.push_command()
-
-def manage_base(b,p,controller_state):
-    ax = 0
-    ay = 0
-    w = 0
-    a_scale = 1.0  # 0.5
-    w_scale = 2.0
-    a_xy_des = 0.5
-    a_w_des = 0.5
-
-    side_command = controller_state['left_stick_y']
-    forward_command = controller_state['left_stick_x']
-    rotate_command = controller_state['right_stick_x']
+    if abs(side_command)<dead_zone:
+        side_command=0
+    if abs(forward_command)<dead_zone:
+        forward_command=0
+    if abs(rotate_command)<dead_zone:
+        rotate_command=0
 
     go_forward= abs(forward_command)>abs(side_command) and abs(forward_command)>abs(rotate_command)
     go_side = abs(side_command) > abs(forward_command) and abs(side_command) > abs(rotate_command)
     go_rotate = abs(rotate_command) > abs(side_command) and abs(rotate_command) > abs(forward_command)
 
-    if go_forward:# and abs(forward_command) > dead_zone:
-        b.set_omni_velocity(dir='x', v_des=a_scale*forward_command,a_des=a_xy_des)
+    #Note: Bug as we're hacking the handling of accel/decel
+    #If the below is dir 'y' then one wheel will keep spinning as deccel u0=0
+    #Keep as x until we handle motion planning correctly
+    if not go_forward and not go_side and not go_rotate:
+        if last_dir=='w':
+            b.set_omni_velocity(dir=last_dir, v_des=0, a_des=a_w_des)
+        else:
+            b.set_omni_velocity(dir=last_dir, v_des=0, a_des=a_xy_des)
 
-    if go_side:# and abs(side_command) > dead_zone:
-        b.set_omni_velocity(dir='y', v_des=a_scale*side_command,a_des=a_xy_des)
+
+    if go_forward:# and abs(forward_command) > dead_zone:
+        #print("Forward",a_scale*forward_command,a_xy_des)
+        b.set_omni_velocity(dir='y', v_des=xy_scale*forward_command,a_des=a_xy_des)
+        last_dir='y'
+
+    if go_side:
+            #print("Side",a_scale*side_command,a_xy_des)
+            b.set_omni_velocity(dir='x', v_des=xy_scale*side_command,a_des=a_xy_des)
+            last_dir='x'
 
     if go_rotate:# and abs(rotate_command) > dead_zone:
         b.set_omni_velocity(dir='w', v_des=w_scale*rotate_command,a_des=a_w_des)
+        last_dir='w'
 
     #
     # if abs(side_command) > dead_zone:
@@ -208,8 +208,7 @@ def manage_base(b,p,controller_state):
     # if abs(rotate_command) > dead_zone:
     #     w=w_scale*rotate_command
     # b.set_omni_velocity(ax,ay,w,a_des)
-    p.trigger_motor_sync()
-    p.push_command()
+
 
 # ######################### SHUTDOWN  ########################################
 shutdown_pc = False
@@ -284,8 +283,10 @@ def main():
     try:
         while True:
             controller_state = xbox_controller.get_state()
-            manage_base(b,p,controller_state)
+            manage_base(b,controller_state)
             b.push_command()
+            p.trigger_motor_sync()
+            p.push_command()
             time.sleep(0.05)
     except (ThreadServiceExit, KeyboardInterrupt, SystemExit):
         b.stop()

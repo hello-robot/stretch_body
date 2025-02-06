@@ -7,6 +7,7 @@ from math import *
 from stretch_body.stepper import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
+from stretch_body.pimu import Pimu
 import time
 import logging
 import numpy
@@ -26,9 +27,6 @@ class OmniBase(Device):
         self.status = {'timestamp_pc':0}
         self.thread_rate_hz = 5.0
         self.first_step=True
-        # wheel_circumference_m = self.params['wheel_diameter_m'] * pi
-        # self.meters_per_motor_rad = (wheel_circumference_m / (2.0 * pi)) / self.params['gr']
-        # self.wheel_separation_m = self.params['wheel_separation_m']
 
         # Default controller params
         self.stiffness=1.0
@@ -90,7 +88,7 @@ class OmniBase(Device):
         self.wheels[1].set_command(mode=ctrl_mode, v_des=u[1],a_des=a_des)
         self.wheels[2].set_command(mode=ctrl_mode, v_des=u[2],a_des=a_des)
 
-    def set_omni_velocity(self,dir,v_des,a_des):
+    def set_omni_velocity(self,dir,v_des,a_des):#xy_des,a_w_des):
         '''
         dir: x,y,w for direction
         v_des: m/s or rad/s
@@ -100,18 +98,41 @@ class OmniBase(Device):
             ctrl_mode =Stepper.MODE_VEL_TRAJ
         else:
             ctrl_mode =Stepper.MODE_VEL_PID
+
+        ax = self.v_base_to_motor_rad(a_des, 0, 0)
+        ay = self.v_base_to_motor_rad(0, a_des, 0)
+        aw = self.v_base_to_motor_rad(0, 0, a_des)
+        print('AX',ax)
+        print('AY',ay)
+        #Workaround accel to zero bug when switching from X to Y dir
         if dir=='x':
-            [u0,u1,u2]=self.v_base_to_motor_rad(v_des,0,0)
-            [a0,a1,a2]=self.v_base_to_motor_rad(a_des,0,0)
+            a0=abs(ax[0])
+            a1 = abs(ax[1])
+            a2 = abs(ax[2])
         if dir=='y':
-            [u0,u1,u2]=self.v_base_to_motor_rad(0,v_des,0)
-            [a0,a1,a2]=self.v_base_to_motor_rad(0,a_des,0)
+            a0=abs(ay[0])
+            a1 = abs(ay[1])
+            a2 = abs(ax[2])
         if dir=='w':
+            a0=abs(aw[0])
+            a1 = abs(aw[1])
+            a2 = abs(aw[2])
+
+
+        if dir=='x':
+            print('X')
+            [u0,u1,u2]=self.v_base_to_motor_rad(v_des,0,0)
+        if dir=='y':
+            print('Y')
+            [u0,u1,u2]=self.v_base_to_motor_rad(0,v_des,0)
+        if dir=='w':
+            print('W')
             [u0,u1,u2]=self.v_base_to_motor_rad(0,0,v_des)
-            [a0,a1,a2]=self.v_base_to_motor_rad(0,0,a_des)
-        self.wheels[0].set_command(mode=ctrl_mode, v_des=u0,a_des=abs(a0))
-        self.wheels[1].set_command(mode=ctrl_mode, v_des=u1,a_des=abs(a1))
-        self.wheels[2].set_command(mode=ctrl_mode, v_des=u2,a_des=abs(a2))
+        #if abs(a0)<1.0:
+        print('ZERO!!! Ades',a_des,'A',a0,a1,a2)
+        self.wheels[0].set_command(mode=ctrl_mode, v_des=u0,a_des=a0)
+        self.wheels[1].set_command(mode=ctrl_mode, v_des=u1,a_des=a1)
+        self.wheels[2].set_command(mode=ctrl_mode, v_des=u2,a_des=a2)
 
 
     def translate_by(self, x_m, y_m, v_m=None, a_m=None): #, stiffness=None, contact_thresh_N=None,contact_thresh=None):
@@ -166,16 +187,12 @@ class OmniBase(Device):
         self.wheels[1].set_command(mode=Stepper.MODE_FREEWHEEL)
         self.wheels[2].set_command(mode=Stepper.MODE_FREEWHEEL)
 
-    def enable_freewheel_mode(self):
-        self.wheels[0].set_command(mode=Stepper.MODE_FREEWHEEL)
-        self.wheels[1].set_command(mode=Stepper.MODE_FREEWHEEL)
-        self.wheels[2].set_command(mode=Stepper.MODE_FREEWHEEL)
+
 
     # ###################################################
     def push_command(self):
         for w in self.wheels:
             w.push_command()
-
 
     def pull_status(self):
         """
@@ -244,30 +261,36 @@ class OmniBase(Device):
     #     print('U', u1, u2, u3)
     #     return [u1, u2, u3]
 
-    def v_base_to_motor_rad(self,ax, ay, w):
-        #https: // www.youtube.com / watch?v = ULQLD6VvXio
+
+
+    def v_base_to_motor_rad4(self,ax, ay, w):
+        wheel_speeds=self.convert_velocity_to_wheel_speeds(ax,ay,w,r=self.params['wheel_diameter_m']/2,l=self.params['base_radius_m'],gear_ratios=[self.params['gr'],self.params['gr'],self.params['gr']])
+
+        return wheel_speeds
+    def v_base_to_motor_rad2(self,ax, ay, w):
+        #https://www.youtube.com/watch?v=ULQLD6VvXio
         r=self.params['wheel_diameter_m']/2
         d=self.params['base_radius_m']
 
         u1=self.params['gr']*(0.58*ax  -0.33*ay + 0.33*w)/r
         u2=self.params['gr']*(-0.58*ax -0.33*ay + 0.33*w)/r
-        u3=self.params['gr']*(0        +0.67*ay + 0.33*w)/r
+        u3=self.params['gr']*(0            +0.67*ay + 0.33*w)/r
         # print('IN',ax,ay,w)
         # print('Out',u1,u2,u3)
         return [u1,u2,u3]
 
-    def v_base_to_motor_rad2(self,wz,vx,vy):
+    def v_base_to_motor_rad(self,vx,vy,wz):
         # https://modernrobotics.northwestern.edu/nu-gm-book-resource/13-2-omnidirectional-wheeled-mobile-robots-part-1-of-2/
         #Kinematics and Control A Three-wheeled Mobile Robot with Omni-directional Wheels
         r=self.params['wheel_diameter_m']/2
         d=self.params['base_radius_m']
 
-        u1=self.params['gr']*(-d*wz + vx  )/r
+        u1=self.params['gr']*(-d*wz + 1.0*vx + 0 *vy)/r
         u2=self.params['gr']*(-d*wz -0.5*vx - sin(math.pi/3)*vy)/r
         u3=self.params['gr']*(-d*wz -0.5*vx +sin(math.pi/3)*vy)/r
-        print('IN',wz,vx,vy)
-        print('U',u1,u2,u3)
-        return [u1,u2,u3]
+
+        #Flip sign so Y+ is base forward in direction of arm, X+ is right
+        return [-1*u2,-1*u3,-1*u1]
 
     # def translate_to_motor_rad(self,x_m):
     #     circ=self.params['wheel_diameter_m']*math.pi
@@ -303,11 +326,19 @@ class OmniBase(Device):
 if __name__ == "__main__":
     b=OmniBase()
     b.startup()
-    b.set_omni_velocity(3.0,0.0,0.0)
+    p=Pimu()
+    p.startup()
+
+    b.set_omni_velocity(dir='x', v_des=-0.1, a_des=0.25)
+    #b.set_omni_velocity(3.0,0.0,0.0)
     b.push_command()
-    time.sleep(5.0)
+    p.trigger_motor_sync()
+    p.push_command()
+
+    time.sleep(6.0)
     # for i in range(1000):
     #     b.pull_status()
     #     b.pretty_print()
     #     time.sleep(.02)
     b.stop()
+    p.stop()
