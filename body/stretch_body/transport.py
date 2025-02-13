@@ -66,6 +66,7 @@ COBBS_FRAME_SIZE_V0 = 64
 
 # //////////////////////////////  Shared Defines ///////////////////////////////////////////////////
 RPC_DATA_MAX_BYTES = 1024
+RPC_DATA_MAX_BYTES_SAMD51 = 8194 #SAMD51 needs 8KB of space for 2048 floats + rpc ID
 RPC_MAX_FRAME_SIZE = 64  # Arduino and Linux USB Uart has a 64 byte buffer. When frame is >64 have seen issues.
 
 RPC_TRANSPORT_VERSION_0 = 0
@@ -804,7 +805,7 @@ class Transport():
         self.logger = logger
         self.lock = threading.Lock()
         self.status = {}
-        self.empty_payload = arr.array('B', [0] * (RPC_DATA_MAX_BYTES + 1))  # RPC ID + 1024 bytes of data
+        self.empty_payload = arr.array('B', [0] * (RPC_DATA_MAX_BYTES_SAMD51 + 1))  # RPC ID + 1024 bytes of data
         self.version = RPC_TRANSPORT_VERSION_0
 
     def startup(self):
