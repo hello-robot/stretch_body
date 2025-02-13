@@ -507,16 +507,19 @@ class StepperBase(Device):
     def current_to_effort_ticks(self,i_A):
         if self.board_info['hardware_id']==0: # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
-        if self.board_info['hardware_id']>=1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+        if self.board_info['hardware_id'] >= 1 and self.board_info['hardware_id'] <= 5: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
+
         effort_ticks = (i_A * 1000.0) / mA_per_tick
         return min(255,max(-255,int(effort_ticks)))
+
 
     def effort_ticks_to_current(self,e):
         if self.board_info['hardware_id'] == 0:  # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
-        if self.board_info['hardware_id'] >= 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+        if self.board_info['hardware_id'] >= 1 and self.board_info['hardware_id'] <= 5:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
+
         return e * mA_per_tick / 1000.0
 
     # Effort_pct is defined as a percentage of the maximum allowable motor winding current
@@ -601,15 +604,22 @@ class StepperBase(Device):
         else:
             self.logger.debug('Writing encoder calibration...')
             payload=self.transport.get_empty_payload()
-            for p in range(256):
+            if self.board_info['hardware_id'] < 5:
+                total_pages = 256
+                floats_per_page = 64
+            else:
+                #SAMD51 uses block erases, each block is 8kb large
+                total_pages = 8
+                floats_per_page = 2048
+            for p in range(total_pages):
                 if p%10==0:
                     sys.stdout.write('.')
                     sys.stdout.flush()
                 payload[0] = self.RPC_SET_ENC_CALIB
                 payload[1] = p
                 sidx=2
-                for i in range(64):
-                    pack_float_t(payload, sidx, data[p*64+i])
+                for i in range(floats_per_page):
+                    pack_float_t(payload, sidx, data[p*floats_per_page+i])
                     sidx += 4
                 # self.logger.debug('Sending encoder calibration rpc of size',sidx)
                 self.transport.do_push_rpc_sync(payload[:sidx], self.rpc_enc_calib_reply)
@@ -1334,8 +1344,13 @@ class Stepper_Protocol_P4(StepperBase):
         return sidx
 
     def get_voltage(self,raw):
-        raw_to_V = 20.0/1024 #10bit adc, 0-20V per 0-3.3V reading
-        v = (raw*raw_to_V)-0.3 #0.3 is needed to account for leakage current of TVS
+        if self.board_info['hardware_id'] < 5:
+            raw_to_V = 20.0/1024 #10bit adc, 0-20V per 0-3.3V reading
+            v = (raw*raw_to_V)-0.3 #0.3 is needed to account for leakage current of TVS
+        else:
+            #For stretch 4 Steppers
+            raw_to_V = (3.3/4095)*(11) #12bit adc,
+            v = (raw*raw_to_V)
         return v
 
     def pack_gains(self,s,sidx):
