@@ -73,20 +73,20 @@ class OmniBase(Device):
         for w in self.wheels:
             w.enable_pos_traj_incr()
 
-    def set_omni_velocity2(self,ax,ay,w,a_des=None):
-        '''
-        ax: linear velocity m/s
-        at: linear velocity m/s
-        w: rotation rad/s
-        '''
-        if self.params['use_vel_traj']:
-            ctrl_mode =Stepper.MODE_VEL_TRAJ
-        else:
-            ctrl_mode =Stepper.MODE_VEL_PID
-        u=self.v_base_to_motor_rad(ax,ay,w)
-        self.wheels[0].set_command(mode=ctrl_mode, v_des=u[0],a_des=a_des)
-        self.wheels[1].set_command(mode=ctrl_mode, v_des=u[1],a_des=a_des)
-        self.wheels[2].set_command(mode=ctrl_mode, v_des=u[2],a_des=a_des)
+    # def set_omni_velocity2(self,ax,ay,w,a_des=None):
+    #     '''
+    #     ax: linear velocity m/s
+    #     at: linear velocity m/s
+    #     w: rotation rad/s
+    #     '''
+    #     if self.params['use_vel_traj']:
+    #         ctrl_mode =Stepper.MODE_VEL_TRAJ
+    #     else:
+    #         ctrl_mode =Stepper.MODE_VEL_PID
+    #     u=self.v_base_to_motor_rad(ax,ay,w)
+    #     self.wheels[0].set_command(mode=ctrl_mode, v_des=u[0],a_des=a_des)
+    #     self.wheels[1].set_command(mode=ctrl_mode, v_des=u[1],a_des=a_des)
+    #     self.wheels[2].set_command(mode=ctrl_mode, v_des=u[2],a_des=a_des)
 
     def set_omni_velocity(self,dir,v_des,a_des):#xy_des,a_w_des):
         '''
@@ -108,12 +108,12 @@ class OmniBase(Device):
             a0=abs(ax[0])
             a1 = abs(ax[1])
             a2 = abs(ax[2])
-            [u0, u1, u2] = self.v_base_to_motor_rad(v_des, 0, 0)
+            [u0, u1, u2] = self.v_base_to_motor_rad(-v_des, 0, 0)
         if dir=='y':
             a0=abs(ay[0])
             a1 = abs(ay[1])
             a2 = abs(ax[2])
-            [u0, u1, u2] = self.v_base_to_motor_rad(0, v_des, 0)
+            [u0, u1, u2] = self.v_base_to_motor_rad(0, -1*v_des, 0) #Flip so +Y is forward in direction of arm
         if dir=='w':
             a0=abs(aw[0])
             a1 = abs(aw[1])
@@ -124,6 +124,38 @@ class OmniBase(Device):
         self.wheels[1].set_command(mode=ctrl_mode, v_des=u1,a_des=a1)
         self.wheels[2].set_command(mode=ctrl_mode, v_des=u2,a_des=a2)
 
+    def rotate_by(self, w_r, v_r=None, a_r=None):
+        """
+        Incremental translation of the base
+        w_r: rotation (rad)
+        v_r: rotational velocity max (v_r)
+        a_r: rotational acceleration (rad/s^2)
+        """
+
+        if v_r is not None:
+            v_r = min(abs(v_r), self.params['motion']['max']['vel_w_r'])
+        else:
+            v_r =  self.params['motion']['default']['vel_w_r']
+
+        if a_r is not None:
+            a_r = min(abs(a_r), self.params['motion']['max']['accel_w_r'])
+        else:
+            a_r =  self.params['motion']['default']['accel_w_r']
+
+
+        [x0, x1, x2] = self.v_base_to_motor_rad(0, 0, w_r)
+        [u0, u1, u2] = self.v_base_to_motor_rad(0, 0, v_r)
+        [a0, a1, a2] = self.v_base_to_motor_rad(0, 0, a_r)
+
+        # print('X',[x0, x1, x2])
+        # print('V',[u0, u1, u2])
+        # print('A',[a0, a1, a2])
+
+        self.wheels[0].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x0, v_des=abs(u0), a_des=abs(a0))
+        self.wheels[1].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x1, v_des=abs(u1), a_des=abs(a1))
+        #if (abs(x2)>.0001): #Hack for now to fix drift on back wheel
+        self.wheels[2].set_command(mode=Stepper.MODE_POS_TRAJ_INCR,x_des=x2, v_des=abs(u2), a_des=abs(a2))
+
 
     def translate_by(self, x_m, y_m, v_m=None, a_m=None): #, stiffness=None, contact_thresh_N=None,contact_thresh=None):
         """
@@ -132,7 +164,7 @@ class OmniBase(Device):
         v_m: velocity for trapezoidal motion profile (m/s) in direction of translation
         a_m: acceleration for trapezoidal motion profile (m/s^2) in direction of translation
         """
-
+        y_m=-1*y_m #Flip so positive is in direction of arm
         if v_m is not None:
             v_m = min(abs(v_m), self.params['motion']['max']['vel_xy_m'])
         else:
@@ -153,9 +185,9 @@ class OmniBase(Device):
         [u0, u1, u2] = self.v_base_to_motor_rad(v_x, v_y, 0)
         [a0, a1, a2] = self.v_base_to_motor_rad(a_x, a_y, 0)
 
-        print('X',[x0, x1, x2])
-        print('V',[u0, u1, u2])
-        print('A',[a0, a1, a2])
+        # print('X',[x0, x1, x2])
+        # print('V',[u0, u1, u2])
+        # print('A',[a0, a1, a2])
         #print('M0',x0,u0,a0)
         #print('M1', x1, u1, a1)
         #Hack to avoid drift, fix in firmware

@@ -163,7 +163,7 @@ def manage_base(b,controller_state):
 
 
     loop_itr=loop_itr+1
-    print('----------------- %d ----------------'%loop_itr)
+    #print('----------------- %d ----------------'%loop_itr)
     side_command = controller_state['left_stick_x']
     forward_command = controller_state['left_stick_y']
     rotate_command = controller_state['right_stick_x']
@@ -189,16 +189,17 @@ def manage_base(b,controller_state):
 
 
     if go_forward:# and abs(forward_command) > dead_zone:
-        #print("Forward",a_scale*forward_command,a_xy_des)
+        #print("Forward",forward_command)
         b.set_omni_velocity(dir='y', v_des=xy_scale*forward_command,a_des=a_xy_des)
         last_dir='y'
 
     if go_side:
-            #print("Side",a_scale*side_command,a_xy_des)
+            #print("Side",side_command)
             b.set_omni_velocity(dir='x', v_des=xy_scale*side_command,a_des=a_xy_des)
             last_dir='x'
 
     if go_rotate:# and abs(rotate_command) > dead_zone:
+        #print('Rotate',rotate_command)
         b.set_omni_velocity(dir='w', v_des=w_scale*rotate_command,a_des=a_w_des)
         last_dir='w'
 

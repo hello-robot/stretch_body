@@ -12,8 +12,7 @@ print_stretch_re_use()
 parser=argparse.ArgumentParser(description='Jog the base motion from the keyboard')
 args=parser.parse_args()
 
-small_rotate_rad=deg_to_rad(1.0)
-large_rotate_rad=deg_to_rad(10.0)
+
 
 b=base.OmniBase()
 
@@ -31,8 +30,11 @@ b=base.OmniBase()
 
 if not b.startup(threaded=False):
     exit()
+
 large_move_m=0.1
 small_move_m=large_move_m/8
+small_rotate_rad=deg_to_rad(1.0)
+large_rotate_rad=deg_to_rad(10.0)
 
 # v_r_slow = b.translation_to_rotation(b.params['motion']['slow']['vel_xy_m'])
 # v_r_def = b.translation_to_rotation(b.params['motion']['default']['vel_xy_m'])
@@ -67,16 +69,22 @@ def menu():
     print('2: rate default')
     print('3: rate fast')
     print('4: rate max')
-    print('w: CW/CCW 90 deg')
-    print('x: forward-> back 0.5m')
-    print('y: right-> left 0.5m')
-    print('z: spin at 22.5deg/s')
-    print('s: square of 0.5m')
+    print('o: freewheel')
+    print('h: hold')
     print('')
     print('f / b / l / r : small forward / back / left / right')
     print('F / B / L / R : large forward / back / left / right')
-    print('o: freewheel')
-    print('h: hold')
+    print('u / v : small rotate CW / CCW')
+    print('U / V : large rotate CW / CCW')
+    print('')
+    print('')
+    print('w: cycle CW/CCW 90 deg')
+    print('x: cycle forward-> back 0.5m')
+    print('y: cycle right-> left 0.5m')
+    print('s: cycle square of 0.5m')
+    print('z: spin at 22.5deg/s')
+    print('')
+
     print('p: pretty print')
     print('q: quit')
     print('')
@@ -95,11 +103,58 @@ try:
             #p.trigger_motor_sync()
             #time.sleep(0.1)
             b.pull_status()
-            #print('################################'
-            #b.pretty_print()
 
+            # ################################################################################################
             if c=='p':
                 b.pretty_print()
+            if c == 'o':
+                b.enable_freewheel_mode()
+            if c == 'h':
+                b.enable_hold_mode()
+            if c == 'm':
+                menu()
+            if c == "Q" or c == 'q':
+                break
+            # ################################################################################################
+            if c == 'r':
+                b.translate_by(x_m=small_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'],
+                               a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'l':
+                b.translate_by(x_m=-1 * small_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'],
+                               a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'R':
+                b.translate_by(x_m=large_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'],
+                               a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'L':
+                b.translate_by(x_m=-1 * large_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'],
+                               a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'b':
+                b.translate_by(x_m=0, y_m=-1 * small_move_m, v_m=b.params['motion'][rate]['vel_xy_m'],
+                               a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'f':
+                b.translate_by(x_m=0, y_m=small_move_m, v_m=b.params['motion'][rate]['vel_xy_m'],
+                               a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'B':
+                b.translate_by(x_m=0, y_m=-1 * large_move_m, v_m=b.params['motion'][rate]['vel_xy_m'],
+                               a_m=b.params['motion'][rate]['accel_xy_m'])
+            if c == 'F':
+                b.translate_by(x_m=0, y_m=large_move_m, v_m=b.params['motion'][rate]['vel_xy_m'],
+                               a_m=b.params['motion'][rate]['accel_xy_m'])
+
+            if c == 'u':
+                b.rotate_by(w_r=small_rotate_rad, v_r=b.params['motion'][rate]['vel_w_r'],
+                               a_r=b.params['motion'][rate]['accel_w_r'])
+            if c == 'v':
+                b.rotate_by(w_r=-1*small_rotate_rad, v_r=b.params['motion'][rate]['vel_w_r'],
+                               a_r=b.params['motion'][rate]['accel_w_r'])
+
+            if c == 'U':
+                b.rotate_by(w_r=large_rotate_rad, v_r=b.params['motion'][rate]['vel_w_r'],
+                               a_r=b.params['motion'][rate]['accel_w_r'])
+            if c == 'V':
+                b.rotate_by(w_r=-1*large_rotate_rad, v_r=b.params['motion'][rate]['vel_w_r'],
+                               a_r=b.params['motion'][rate]['accel_w_r'])
+            # ################################################################################################
             if c == '1':
                 rate = 'slow'
             if c == '2':
@@ -165,74 +220,22 @@ try:
                         b.push_command()
                         p.trigger_motor_sync()
                         time.sleep(4.0)
-            # if c =='w':
-            #     print('Enter pause before starting motion (s)[10]')
-            #     try:
-            #         x = float(input())
-            #     except ValueError:
-            #         x = 10.0
-            #     time.sleep(x)
-            #     b.rotate_by(x_r=deg_to_rad(90.0), v_r=v_r[rate], a_r=a_r[rate])
-            #     b.push_command()
-            #     p.trigger_motor_sync()
-            #     time.sleep(4.0)
-            #     b.rotate_by(x_r=deg_to_rad(-90.0), v_r=v_r[rate], a_r=a_r[rate])
-            #     b.push_command()
-            #     p.trigger_motor_sync()
-            #     time.sleep(4.0)
-            # if c =='y':
-            #     print('Enter pause before starting motion (s)[10]')
-            #     try:
-            #         x = float(input())
-            #     except ValueError:
-            #         x = 10.0
-            #     time.sleep(x)
-            #     b.set_rotational_velocity(v_r=deg_to_rad(90.0)/4.0)
-            #     b.push_command()
-            #     p.trigger_motor_sync()
-            #     ts=time.time()
-            #     print('Starting 30s turn at 90deg/sec')
-            #     tsl=time.time()
-            #     while time.time()-ts<30.0:
-            #         b.pull_status()
-            #         print('DT:',time.time()-ts,'Vel (deg/s)', rad_to_deg(b.status['theta_vel']))
-            #         time.sleep(0.5)
-            #     b.set_rotational_velocity(v_r=0)
-            #     b.push_command()
-            #     p.trigger_motor_sync()
-            #     menu()
-            if c == 'r':
-                b.translate_by(x_m=small_move_m, y_m=0,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'l':
-                b.translate_by(x_m=-1*small_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'R':
-                b.translate_by(x_m=large_move_m, y_m=0,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'L':
-                b.translate_by(x_m=-1*large_move_m, y_m=0, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'b':
-                b.translate_by(x_m=0, y_m=-1*small_move_m,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'f':
-                b.translate_by(x_m=0, y_m=small_move_m, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'B':
-                b.translate_by(x_m=0, y_m=-1*large_move_m,v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            if c == 'F':
-                b.translate_by(x_m=0, y_m=large_move_m, v_m=b.params['motion'][rate]['vel_xy_m'], a_m=b.params['motion'][rate]['accel_xy_m'])
-            # if c == 'l':
-            #     b.rotate_by(small_rotate_rad, v_r=v_r[rate], a_r=a_r[rate])
-            # if c == 'r':
-            #     b.rotate_by(-1*small_rotate_rad, v_r=v_r[rate], a_r=a_r[rate])
-            # if c == 'L':
-            #     b.rotate_by(large_rotate_rad, v_r=v_r[rate], a_r=a_r[rate])
-            # if c == 'R':
-            #     b.rotate_by(-1*large_rotate_rad, v_r=v_r[rate], a_r=a_r[rate])
-            if c == 'o':
-                b.enable_freewheel_mode()
-            if c == 'h':
-                b.enable_hold_mode()
-            if c=='m':
-                menu()
-            if c=="Q" or c=='q':
-                break
+            if c =='w':
+                print('Enter num cycles [10]')
+                try:
+                    x = int(input())
+                except ValueError:
+                    x = 10
+                for i in range(x):
+                    b.rotate_by(w_r=deg_to_rad(90.0), v_r=b.params['motion'][rate]['vel_w_r'],a_r=b.params['motion'][rate]['accel_w_r'])
+                    b.push_command()
+                    p.trigger_motor_sync()
+                    time.sleep(4.0)
+                    b.rotate_by(w_r=deg_to_rad(-90.0), v_r=b.params['motion'][rate]['vel_w_r'],a_r=b.params['motion'][rate]['accel_w_r'])
+                    b.push_command()
+                    p.trigger_motor_sync()
+                    time.sleep(4.0)
+
 
             b.push_command()
             p.trigger_motor_sync()
