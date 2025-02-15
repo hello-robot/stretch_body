@@ -82,7 +82,7 @@ def menu():
     print('x: cycle forward-> back 0.5m')
     print('y: cycle right-> left 0.5m')
     print('s: cycle square of 0.5m')
-    print('z: spin at 22.5deg/s')
+    print('z: spin at 90deg/s')
     print('')
 
     print('p: pretty print')
@@ -93,10 +93,10 @@ def menu():
 rate ='default'
 
 try:
-    menu()
     while True:
         if True:
-
+            menu()
+            print('---------')
             c=get_keystroke()
 
             #Read current motor positions when in sync mode
@@ -163,6 +163,23 @@ try:
                 rate = 'fast'
             if c == '4':
                 rate = 'max'
+
+            if c=='z':
+                print('Enter num revolutions [1]')
+                try:
+                    x = int(input())
+                except ValueError:
+                    x = 1
+                ts=time.time()
+                b.set_omni_velocity('w',v_des=deg_to_rad(90),a_des=b.params['motion'][rate]['accel_w_r'])
+                b.push_command()
+                p.trigger_motor_sync()
+                while time.time()-ts<(x*4+0.5):
+                    time.sleep(0.1)
+                b.set_omni_velocity('w',v_des=0,a_des=b.params['motion'][rate]['accel_w_r'])
+                b.push_command()
+                p.trigger_motor_sync()
+
             if c =='s':
                     print('Enter num cycles [10]')
 
@@ -235,7 +252,6 @@ try:
                     b.push_command()
                     p.trigger_motor_sync()
                     time.sleep(4.0)
-
 
             b.push_command()
             p.trigger_motor_sync()

@@ -150,8 +150,8 @@ def manage_base(b,controller_state):
     global loop_itr, last_dir
 
     xy_scale = 0.5  # 0.5
-    w_scale = 3.0
-    a_xy_des = 0.75
+    w_scale = 2.0
+    a_xy_des = 1.0
     a_w_des = 6.0
 
     if controller_state['right_trigger_pulled']>0.5: #slow mode

@@ -88,7 +88,7 @@ class OmniBase(Device):
     #     self.wheels[1].set_command(mode=ctrl_mode, v_des=u[1],a_des=a_des)
     #     self.wheels[2].set_command(mode=ctrl_mode, v_des=u[2],a_des=a_des)
 
-    def set_omni_velocity(self,dir,v_des,a_des):#xy_des,a_w_des):
+    def set_omni_velocity(self,dir,v_des,a_des=None):#xy_des,a_w_des):
         '''
         dir: x,y,w for direction
         v_des: m/s or rad/s
@@ -98,6 +98,18 @@ class OmniBase(Device):
             ctrl_mode =Stepper.MODE_VEL_TRAJ
         else:
             ctrl_mode =Stepper.MODE_VEL_PID
+
+        if dir =='x' or dir =='y':
+            if a_des is not None:
+                a_des = min(abs(a_des), self.params['motion']['max']['accel_xy_m'])
+            else:
+                a_des =  self.params['motion']['default']['accel_xy_m']
+        else:
+            if a_des is not None:
+                a_des = min(abs(a_des), self.params['motion']['max']['accel_w_r'])
+            else:
+                a_des =  self.params['motion']['default']['accel_w_r']
+
 
         ax = self.v_base_to_motor_rad(a_des, 0, 0)
         ay = self.v_base_to_motor_rad(0, a_des, 0)

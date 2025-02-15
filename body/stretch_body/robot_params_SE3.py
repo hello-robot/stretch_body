@@ -547,22 +547,22 @@ nominal_params={
         'use_vel_traj': 0,
         'motion': {
             'default': {
-                'accel_w_r': 1.0,
-                'vel_w_r': 1.0,
-                'accel_xy_m': 0.3,
+                'accel_w_r': 3.0,
+                'vel_w_r': 2.0,
+                'accel_xy_m': 0.5,
                 'vel_xy_m': 0.3},
             'fast': {
-                'accel_w_r':4.0,
+                'accel_w_r':6.0,
                 'vel_w_r':4.0,
-                'accel_xy_m': 0.4,
+                'accel_xy_m': 0.6,
                 'vel_xy_m': 0.4},
             'max': {
-                'accel_w_r': 4.0,
+                'accel_w_r': 6.0,
                 'vel_w_r': 4.0,
                 'accel_xy_m': 1.0,
                 'vel_xy_m': 1.0},
             'slow': {
-                'accel_w_r': 0.5,
+                'accel_w_r': 1.0,
                 'vel_w_r': 0.5,
                 'accel_xy_m': 0.06,
                 'vel_xy_m': 0.04},
