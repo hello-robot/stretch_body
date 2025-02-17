@@ -5,11 +5,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="hello-robot-stretch-body",
+    name="hello-robot-stretch-body-r2",
     version=__version__,
     author="Hello Robot Inc.",
     author_email="support@hello-robot.com",
-    description="Stretch Body low level Python API",
+    description="Stretch Body low level Python API for R2 hardware",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/hello-robot/stretch_body",
@@ -27,7 +27,6 @@ setuptools.setup(
                       'jupyter',
                       'numba', # numba required by stretch_funmap
                       'transforms3d>=0.4.2', # required by stretch_core
-                      'dynamixel-sdk',
                       'pyyaml>=5.1', # required for yaml.FullLoader
                       'hello-robot-stretch-tool-share>=0.3.3', # defines other Stretch end effectors
                       'hello-robot-stretch-factory>=0.3.5','hello-robot-stretch-body-tools>=0.4.2',
