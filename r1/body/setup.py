@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="hello-robot-stretch-body-r1",
+    name="hello-robot-stretch-body",
     version=__version__,
     author="Hello Robot Inc.",
     author_email="support@hello-robot.com",
