@@ -15,6 +15,8 @@ import pyrealsense2 as rs
 import cv2
 from filelock import FileLock, Timeout
 
+def get_revision_name():
+    return 'r1'
 
 def print_stretch_re_use():
     print("For use with S T R E T C H (R) from Hello Robot Inc.")

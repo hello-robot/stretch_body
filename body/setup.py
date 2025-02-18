@@ -1,5 +1,5 @@
 import setuptools
-from stretch_body.version import __version__
+from stretch_body.common.version import __version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()

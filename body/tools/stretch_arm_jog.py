@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-from __future__ import print_function
+
 import sys, tty, termios
 import time
-import stretch_body.arm as arm
+import stretch_body.api.arm as arm
 import argparse
-import stretch_body.hello_utils as hu
+import stretch_body.common.hello_utils as hu
 hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Jog the arm motion from the keyboard')
@@ -14,7 +14,8 @@ args=parser.parse_args()
 small_move_m=.01
 large_move_m=0.1
 
-a=arm.Arm()
+a=arm.ArmFactory()
+
 if not a.startup(threaded=False):
     exit()
 a.motor.disable_sync_mode()

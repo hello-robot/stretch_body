@@ -1,4 +1,4 @@
-from stretch_body.common import revision_name
+import stretch_body.common.hello_utils has hu
 import stretch_body.r1.arm
 import stretch_body.r2.arm
 
@@ -8,12 +8,12 @@ import stretch_body.r2.arm
 #Todo: expose splined trajectory
 
 
-revision_name='r1'
+
 
 def ArmFactory():
-    if revision_name == 'r1':
+    if hu.get_revision_name() == 'r1':
         return stretch_body.r1.arm.Arm()
-    if revision_name == 'r2':
+    if hu.get_revision_name == 'r2':
         return  stretch_body.r2.arm.Arm()
 
 class Arm(ArmFactory()):
@@ -34,11 +34,11 @@ class Arm(ArmFactory()):
     def home(self):
         super().home()
 
-    def _startup(self):
-        super().startup()
-    def _stop(self):
+    def startup(self,threaded=False):
+        super().startup(threaded)
+    def stop(self):
         super().stop()
-    def _push_command(self):
+    def push_command(self):
         super().push_command()
-    def _pull_status(self):
+    def pull_status(self):
         super().pull_status()
