@@ -53,6 +53,27 @@ The Dynamixel joints on the robot have a "multiturn" or "Extended Position Contr
 
 \* `head_pan.use_multiturn` is `0` for most Stretch robots, except for some early RE1s. For those robots, the parameter is set to `1` in "stretch_configuration_params.yaml". 
 
+### enable_runstop
+
+This parameter changes how a particular joint behaves when the robot is runstopped. Setting this parameter to `0` means the joint will not stop moving and continue tracking its commanded goal. This can be useful if, for example, you want the gripper to keep hold on what it's holding when the robot is runstopped.
+
+The Dynamixel joints on the robot handle runstop differently than the stepper joints do. Whereas the stepper joints receive a hardware pulse whenever the runstop button is pressed, the Dynamixel joints don't. When Stretch Body is running, a sentry monitors the runstop through the pimu and calls `disable_torque()` / `enable_torque()` on the dxl joints as needed. For stepper joints, this parameter gives you control over whether the stepper PCB respects the hardware pulse. For dxl joints, this parameter gives you control over whether the sentry will turn on/off torque of a joint in response to the runstop state.
+
+| Parameter                     | Default Value |
+|-------------------------------|---------------|
+| head_pan.enable_runstop        | `1`          |
+| head_tilt.enable_runstop       | `1`           |
+| stretch_gripper.enable_runstop | `1`           |
+| wrist_yaw.enable_runstop       | `1`           |
+| wrist_pitch.enable_runstop     | `1`           |
+| wrist_roll.enable_runstop      | `1`           |
+| hello-motor-arm.gains.enable_runstop | `1` |
+| hello-motor-lift.gains.enable_runstop | `1` |
+| hello-motor-left-wheel.gains.enable_runstop | `1` |
+| hello-motor-right-wheel.gains.enable_runstop | `1` |
+
+To disable the sentry, there's also the `robot_sentry.dynamixel_stop_on_runstop` parameter. To disable the hardware pulses, there's also the `pimu.config.stop_at_runstop` parameter. To disabling logging when runstop is enabled/disabled, there's also the `robot_monitor.monitor_runstop`.
+
 ### i_feedforward and i_safety_feedforward
 
 Gravity compensation adds a fixed ‘feedforward’ current to the motor controller to support the lift against gravity. This allows the lift to ‘float’ when the runstop is enabled, for example. If the feedforward current is too low, the lift will drift downward. If it is too high, it will drift upward. The `i_safety_feedforward` is the amount of current (A) applied when the motor is in safety mode (eg, runstop enabled). The `i_feedforward` term is applied when the lift is in normal operation. Generally the two parameters will be identical.
