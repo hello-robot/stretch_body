@@ -345,3 +345,17 @@ class TestDynamixelHelloXL430(unittest.TestCase):
         print('Measured',measured_traveled_distance)
         self.assertTrue(np.isclose(measured_traveled_distance, expected_traveled_distance, atol=0.3))
         s.stop()
+
+    def test_reject_invalid_first_waypoint(self):
+        print('\nUnittest: test_reject_invalid_first_waypoint')
+        s = stretch_body.dynamixel_hello_XL430.DynamixelHelloXL430(name="wrist_pitch")
+        self.assertTrue(s.startup(threaded=True))
+
+        s.move_to(0.0)
+        s.wait_until_at_setpoint()
+
+        s.trajectory.add(0, 0.25) # 0.25rad discrepancy between first waypoint and current joint pos
+        s.trajectory.add(3, 0.45)
+        self.assertFalse(s.follow_trajectory(move_to_start_point=False))
+
+        s.stop()

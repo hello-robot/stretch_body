@@ -137,3 +137,21 @@ class TestLift(unittest.TestCase):
         self.assertAlmostEqual(l.status['pos'], 0.25, places=2)
 
         l.stop()
+
+    def test_reject_invalid_first_waypoint(self):
+        print('\nUnittest: test_reject_invalid_first_waypoint')
+        l = stretch_body.lift.Lift()
+        l.motor.disable_sync_mode()
+        self.assertTrue(l.startup(threaded=True))
+        if not l.motor.status['pos_calibrated']:
+            self.fail('test requires lift to be homed')
+
+        l.move_to(0.4)
+        l.push_command()
+        l.wait_until_at_setpoint()
+
+        l.trajectory.add(0, 0.5) # 0.1m discrepancy between first waypoint and current joint pos
+        l.trajectory.add(3, 0.6)
+        self.assertFalse(l.follow_trajectory(move_to_start_point=False))
+
+        l.stop()
