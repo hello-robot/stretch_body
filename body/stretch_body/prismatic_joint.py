@@ -5,6 +5,7 @@ from stretch_body.trajectories import PrismaticTrajectory
 import stretch_body.hello_utils as hu
 import time
 import sys
+import numpy as np
 
 
 class PrismaticJoint(Device):
@@ -480,8 +481,10 @@ class PrismaticJoint(Device):
             if prev_sync_mode:
                 self.motor.enable_sync_mode()
                 self.push_command()
-            #print('WAIT')
-            #time.sleep(2.0)
+        else:
+            if not np.isclose(self.trajectory[0].position, self.status['pos'], atol=self.params['distance_tol']):
+                self.logger.warning("Can't start joint traj: first waypoint doesn't match current position")
+                return False
 
         self.traj_guarded_event=self.motor.status['guarded_event']
         # start trajectory

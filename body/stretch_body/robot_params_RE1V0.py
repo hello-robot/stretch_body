@@ -131,7 +131,8 @@ RE1V0_stretch_gripper={
         'retry_on_comm_failure': 1,
         'baud': 115200,
         'enable_runstop': 1,
-        'disable_torque_on_stop': 1}
+        'disable_torque_on_stop': 1,
+        'distance_tol': 0.015}
 
 RE1V0_wrist_yaw={
     'device_info': "Standard wrist yaw shipped with original RE1",
@@ -177,7 +178,8 @@ RE1V0_wrist_yaw={
     'baud': 115200,
     'enable_runstop': 1,
     'disable_torque_on_stop': 1,
-    'range_pad_t': [100.0, -100.0]}
+    'range_pad_t': [100.0, -100.0],
+    'distance_tol': 0.015}
 
 #Brought in from tool_share for DexWrist "2"
 RE1V0_wrist_pitch_DW2={
@@ -218,7 +220,8 @@ RE1V0_wrist_pitch_DW2={
         'disable_torque_on_stop': 0,
         'float_on_stop': 1,
         'current_float_A': -0.13,
-        'current_limit_A': 2.5
+        'current_limit_A': 2.5,
+        'distance_tol': 0.03
     }
 
 RE1V0_wrist_roll_DW2={
@@ -259,7 +262,8 @@ RE1V0_wrist_roll_DW2={
         'disable_torque_on_stop': 0,
         'float_on_stop': 1,
         'current_float_A': 0.04,
-        'current_limit_A': 1.0
+        'current_limit_A': 1.0,
+        'distance_tol': 0.015
     }
 
 # ######### EndOfArm Defn ##############
@@ -397,7 +401,8 @@ nominal_params={
                 'vel_m': 0.3,
                 'accel_m': 0.5},
                 'vel_brakezone_factor': 0.03},
-        'set_safe_velocity': 1},
+        'set_safe_velocity': 1,
+        'distance_tol': 0.008},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
         'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
@@ -496,7 +501,8 @@ nominal_params={
         'stall_max_effort': 20.0,
         'stall_backoff': 0.017,
         'stall_max_time': 1.0,
-        'stall_min_vel': 0.1},
+        'stall_min_vel': 0.1,
+        'distance_tol': 0.15},
     'head_tilt':{
         'range_pad_t': [50.0, -50.0],
         'flip_encoder_polarity': 1,
@@ -542,7 +548,8 @@ nominal_params={
         'stall_backoff': 0.017,
         'stall_max_effort': 20.0,
         'stall_max_time': 1.0,
-        'stall_min_vel': 0.1},
+        'stall_min_vel': 0.1,
+        'distance_tol': 0.52},
     'hello-motor-arm':{
         'gains':{
             'effort_LPF': 10.0,
@@ -719,7 +726,8 @@ nominal_params={
                 'accel_m': 0.3},
             'vel_brakezone_factor': 0.02},
         'set_safe_velocity': 1,
-        'pinion_t': 12},
+        'pinion_t': 12,
+        'distance_tol': 0.015},
     'pimu':{
       'usb_name': '/dev/hello-pimu',
       'base_fan_off': 70,

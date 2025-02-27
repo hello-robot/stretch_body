@@ -973,6 +973,10 @@ class DynamixelHelloXL430(Device):
             if not self.wait_until_at_setpoint():
                 self.logger.warning('Dynamixel unable to reach starting point')
                 return False
+        else:
+            if not np.isclose(self.trajectory[0].position, self.status['pos'], atol=self.params['distance_tol']):
+                self.logger.warning("Can't start joint traj: first waypoint doesn't match current position")
+                return False
 
         # start trajectory
         self._waypoint_ts = time.time()
