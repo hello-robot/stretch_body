@@ -425,6 +425,7 @@ class Spline:
             if waypoint.time < t:
                 return False, "time must increase for each subsequent waypoint"
             t = waypoint.time
+
         # verify spline adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
             success, v_max, a_max=hu.is_segment_feasible(self.get_segment(i).to_array(), v_des, a_des)
