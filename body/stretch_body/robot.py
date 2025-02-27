@@ -508,6 +508,15 @@ class Robot(Device):
 
         success = success and self.end_of_arm.follow_trajectory(move_to_start_point=move_to_start_point)
         success = success and self.head.follow_trajectory(move_to_start_point=move_to_start_point)
+
+        # TODO: HACK! We need a way to queue waypoint trajectories to
+        # joints before starting execution. Currently, each joint's
+        # `follow_trajectory` does both. If arm's traj is valid and
+        # starts executing, but lift's traj isn't, the arm doesn't
+        # know that the lift didn't start and keeps going.
+        if not success:
+            self.stop_trajectory()
+
         return success
 
     def stop_trajectory(self):
