@@ -154,3 +154,21 @@ class TestArm(unittest.TestCase):
         self.assertAlmostEqual(a.status['pos'], 0.15, places=2)
 
         a.stop()
+
+    def test_reject_invalid_first_waypoint(self):
+        print('\nUnittest: test_reject_invalid_first_waypoint')
+        a = stretch_body.arm.Arm()
+        a.motor.disable_sync_mode()
+        self.assertTrue(a.startup(threaded=True))
+        if not a.motor.status['pos_calibrated']:
+            self.fail('test requires arm to be homed')
+
+        a.move_to(0.0)
+        a.push_command()
+        a.wait_until_at_setpoint()
+
+        a.trajectory.add(0, 0.1) # 0.1m discrepancy between first waypoint and current joint pos
+        a.trajectory.add(3, 0.2)
+        self.assertFalse(a.follow_trajectory(move_to_start_point=False))
+
+        a.stop()

@@ -490,10 +490,10 @@ class Robot(Device):
                self.head.is_trajectory_active()
 
 
-    def follow_trajectory(self):
+    def follow_trajectory(self, move_to_start_point=False):
         success = True
-        success = success and self.arm.follow_trajectory(move_to_start_point=False)
-        success = success and self.lift.follow_trajectory(move_to_start_point=False)
+        success = success and self.arm.follow_trajectory(move_to_start_point=move_to_start_point)
+        success = success and self.lift.follow_trajectory(move_to_start_point=move_to_start_point)
         success = success and self.base.follow_trajectory()
 
         # Check if need to do a motor sync by looking at if there's been a pimu sync signal sent
@@ -506,8 +506,17 @@ class Robot(Device):
         if self.pimu.ts_last_motor_sync is None or sync_required:
             self.pimu.trigger_motor_sync()
 
-        success = success and self.end_of_arm.follow_trajectory(move_to_start_point=False)
-        success = success and self.head.follow_trajectory(move_to_start_point=False)
+        success = success and self.end_of_arm.follow_trajectory(move_to_start_point=move_to_start_point)
+        success = success and self.head.follow_trajectory(move_to_start_point=move_to_start_point)
+
+        # TODO: HACK! We need a way to queue waypoint trajectories to
+        # joints before starting execution. Currently, each joint's
+        # `follow_trajectory` does both. If arm's traj is valid and
+        # starts executing, but lift's traj isn't, the arm doesn't
+        # know that the lift didn't start and keeps going.
+        if not success:
+            self.stop_trajectory()
+
         return success
 
     def stop_trajectory(self):

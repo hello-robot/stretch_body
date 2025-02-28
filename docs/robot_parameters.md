@@ -14,8 +14,8 @@ A boolean to toggle the use of Asyncio for coordination serial communication wit
 
 A boolean to toggle the use of the collision manager, which prevents self-collisions between the robot's arm and body. For example, this can be helpful for novice users during gamepad teleop because they can figure out the controls without fear of teleoperating the robot into collisions.
 
-| Parameter         | Default Value |
-|-------------------|---------------|
+| Parameter                   | Default Value |
+|-----------------------------|---------------|
 | robot.use_collision_manager | `0`           |
 
 ### params
@@ -59,18 +59,18 @@ This parameter changes how a particular joint behaves when the robot is runstopp
 
 The Dynamixel joints on the robot handle runstop differently than the stepper joints do. Whereas the stepper joints receive a hardware pulse whenever the runstop button is pressed, the Dynamixel joints don't. When Stretch Body is running, a sentry monitors the runstop through the pimu and calls `disable_torque()` / `enable_torque()` on the dxl joints as needed. For stepper joints, this parameter gives you control over whether the stepper PCB respects the hardware pulse. For dxl joints, this parameter gives you control over whether the sentry will turn on/off torque of a joint in response to the runstop state.
 
-| Parameter                     | Default Value |
-|-------------------------------|---------------|
-| head_pan.enable_runstop        | `1`          |
-| head_tilt.enable_runstop       | `1`           |
-| stretch_gripper.enable_runstop | `1`           |
-| wrist_yaw.enable_runstop       | `1`           |
-| wrist_pitch.enable_runstop     | `1`           |
-| wrist_roll.enable_runstop      | `1`           |
-| hello-motor-arm.gains.enable_runstop | `1` |
-| hello-motor-lift.gains.enable_runstop | `1` |
-| hello-motor-left-wheel.gains.enable_runstop | `1` |
-| hello-motor-right-wheel.gains.enable_runstop | `1` |
+| Parameter                                    | Default Value |
+|----------------------------------------------|---------------|
+| head_pan.enable_runstop                      | `1`           |
+| head_tilt.enable_runstop                     | `1`           |
+| stretch_gripper.enable_runstop               | `1`           |
+| wrist_yaw.enable_runstop                     | `1`           |
+| wrist_pitch.enable_runstop                   | `1`           |
+| wrist_roll.enable_runstop                    | `1`           |
+| hello-motor-arm.gains.enable_runstop         | `1`           |
+| hello-motor-lift.gains.enable_runstop        | `1`           |
+| hello-motor-left-wheel.gains.enable_runstop  | `1`           |
+| hello-motor-right-wheel.gains.enable_runstop | `1`           |
 
 To disable the sentry, there's also the `robot_sentry.dynamixel_stop_on_runstop` parameter. To disable the hardware pulses, there's also the `pimu.config.stop_at_runstop` parameter. To disabling logging when runstop is enabled/disabled, there's also the `robot_monitor.monitor_runstop`.
 
@@ -84,17 +84,32 @@ There’s a simple tool to calibrate these values. `REx_calibrate_gravity_comp.p
 
 A boolean to toggle whether a sentry monitors the gripper servo for risk of "overloading", a hardware protection state the servo goes into when it cannot provide the torque being asked for, and backs off the commands to reduce the amount of torque being asked for. In effect, this sentry enables the gripper to keep its grip on objects without overloading.
 
-| Parameter         | Default Value |
-|-------------------|---------------|
+| Parameter                             | Default Value |
+|---------------------------------------|---------------|
 | robot_sentry.stretch_gripper_overload | `1`           |
 
 ### base_max_velocity
 
 A boolean to toggle whether a sentry monitors the robot's center of mass and limits max allowable speed of the mobile base to prevent unstable behavior resulting from fast motion paired with a high center of mass. Disabling this safety feature means the base will not limit its speed and will travel at the speed you've commanded it.
 
-| Parameter         | Default Value |
-|-------------------|---------------|
+| Parameter                      | Default Value |
+|--------------------------------|---------------|
 | robot_sentry.base_max_velocity | `1`           |
+
+### distance_tol
+
+A tolerance within which the first waypoint of a splined trajectory must be of the joint's current position when `follow_trajectory(move_to_first_point=False)`, or the trajectory won't start execution.
+
+| Parameter                    | Default Value |
+|------------------------------|---------------|
+| head_pan.distance_tol        | `0.15`        |
+| head_tilt.distance_tol       | `0.52`        |
+| stretch_gripper.distance_tol | `0.015`       |
+| wrist_yaw.distance_tol       | `0.015`       |
+| wrist_pitch.distance_tol     | `0.03`        |
+| wrist_roll.distance_tol      | `0.015`       |
+| arm.distance_tol             | `0.008`       |
+| lift.distance_tol            | `0.015`       |
 
 ## Parameters for Command Line Tools
 

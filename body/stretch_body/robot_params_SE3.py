@@ -124,7 +124,8 @@ SE3_stretch_gripper_SG3={
         'enable_runstop': 1,
         'disable_torque_on_stop': 1,
         'range_t': [0, 9102],
-        'zero_t': 3279}
+        'zero_t': 3279,
+        'distance_tol': 0.015}
 
 SE3_wrist_yaw_DW3={
         'flip_encoder_polarity': 1,
@@ -171,7 +172,8 @@ SE3_wrist_yaw_DW3={
         'disable_torque_on_stop': 1,
         'range_pad_t': [100.0, -100.0],
         'range_t': [0,9340],
-        'zero_t': 7136}
+        'zero_t': 7136,
+        'distance_tol': 0.015}
 
 SE3_wrist_pitch_DW3={
         'flip_encoder_polarity': 1,
@@ -210,7 +212,8 @@ SE3_wrist_pitch_DW3={
         'disable_torque_on_stop': 0,
         'float_on_stop': 1,
         'current_float_A': -0.13,
-        'current_limit_A': 2.5
+        'current_limit_A': 2.5,
+        'distance_tol': 0.03
     }
 
 SE3_wrist_roll_DW3={
@@ -250,7 +253,8 @@ SE3_wrist_roll_DW3={
         'disable_torque_on_stop': 0,
         'float_on_stop': 0,
         'current_float_A': 0.04,
-        'current_limit_A': 1.0}
+        'current_limit_A': 1.0,
+        'distance_tol': 0.015}
 
 SE3_wrist_roll_DW3_tablet = SE3_wrist_roll_DW3
 SE3_wrist_roll_DW3_tablet['float_on_stop'] = 0
@@ -540,8 +544,9 @@ nominal_params={
             'trajectory_max': {
                 'vel_m': 0.4,
                 'accel_m': 0.4},
-                'vel_brakezone_factor': 0.03},
-                'set_safe_velocity': 1},
+            'vel_brakezone_factor': 0.03},
+            'set_safe_velocity': 1,
+            'distance_tol': 0.008},
     'base':{
         'usb_name_left_wheel': '/dev/hello-motor-left-wheel',
         'usb_name_right_wheel': '/dev/hello-motor-right-wheel',
@@ -642,7 +647,8 @@ nominal_params={
         'stall_min_vel': 0.1,
         'range_pad_t':[50.0,-50.0],
         'range_t': [0, 3827],
-        'zero_t': 1250},
+        'zero_t': 1250,
+        'distance_tol': 0.15},
     'head_tilt':{
         'flip_encoder_polarity': 1,
         'gr': 1.0,
@@ -688,7 +694,8 @@ nominal_params={
         'stall_max_effort': 20.0,
         'stall_max_time': 1.0,
         'stall_min_vel': 0.1,
-        'range_pad_t': [50.0, -50.0]},
+        'range_pad_t': [50.0, -50.0],
+        'distance_tol': 0.52},
     'hello-motor-arm':{
         'gains':{
             'effort_LPF': 10.0,
@@ -865,7 +872,8 @@ nominal_params={
               'vel_m': 0.15},
         'vel_brakezone_factor': 0.01},
         'set_safe_velocity': 1,
-          'pinion_t': 12},
+        'pinion_t': 12,
+        'distance_tol': 0.015},
     'pimu':{
       'usb_name': '/dev/hello-pimu',
       'base_fan_off': 70,

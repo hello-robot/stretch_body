@@ -914,7 +914,7 @@ class DynamixelHelloXL430(Device):
         else:
             return max(0,self.trajectory.waypoints[-1].time - self.get_trajectory_ts())
 
-    def follow_trajectory(self, v_r=None, a_r=None, req_calibration=True, move_to_start_point=True):
+    def follow_trajectory(self, v_r=None, a_r=None, move_to_start_point=True):
         """Starts executing a waypoint trajectory
 
         `self.trajectory` must be populated with a valid trajectory before calling
@@ -926,8 +926,6 @@ class DynamixelHelloXL430(Device):
             velocity limit for trajectory in radians per second
         a_r : float
             acceleration limit for trajectory in radians per second squared
-        req_calibration : bool
-            whether to allow motion prior to homing
         move_to_start_point : bool
             whether to move to the trajectory's start to avoid a jump, this
             time to move doesn't count against the trajectory's timeline
@@ -936,10 +934,9 @@ class DynamixelHelloXL430(Device):
         if not self.hw_valid:
             self.logger.warning('Dynamixel connection to hardware not valid')
             return False
-        if req_calibration:
-            if not self.is_calibrated:
-                self.logger.warning('Dynamixel not homed')
-                return False
+        if self.params['req_calibration'] and not self.is_calibrated:
+            self.logger.warning('Dynamixel not homed')
+            return False
         if self._waypoint_ts is not None:
             self.logger.error('Dynamixel waypoint trajectory already active')
             return False
@@ -972,6 +969,10 @@ class DynamixelHelloXL430(Device):
             self.move_to(self.trajectory[0].position)
             if not self.wait_until_at_setpoint():
                 self.logger.warning('Dynamixel unable to reach starting point')
+                return False
+        else:
+            if not np.isclose(self.trajectory[0].position, self.status['pos'], atol=self.params['distance_tol']):
+                self.logger.warning("Can't start joint traj: first waypoint doesn't match current position")
                 return False
 
         # start trajectory

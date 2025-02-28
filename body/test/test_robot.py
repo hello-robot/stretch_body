@@ -218,3 +218,21 @@ class TestRobot(unittest.TestCase):
         time.sleep(26)
 
         r.stop()
+
+    def test_reject_invalid_first_waypoint(self):
+        print('\nUnittest: test_reject_invalid_first_waypoint')
+        r = stretch_body.robot.Robot()
+        r.arm.motor.disable_sync_mode()
+        r.startup()
+        r.stow()
+        time.sleep(1)
+
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(0, 3.14) # 0.14rad discrepancy between first waypoint and current joint pos (3.0)
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(6, 2.14)
+        r.end_of_arm.get_joint('wrist_yaw').trajectory.add(12, 3.14)
+        r.arm.trajectory.add(0, 0)
+        r.arm.trajectory.add(6, 0.1)
+        r.arm.trajectory.add(12, 0.0)
+        self.assertFalse(r.follow_trajectory(move_to_start_point=False))
+
+        r.stop()
