@@ -384,10 +384,22 @@ class StepperBase(Device):
         self.set_command(mode=self.MODE_CURRENT, i_des=0)
 
     def enable_sync_mode(self):
+        """
+        The power + imu (pimu) board in the robot issues motor sync pulses to each joint’s motor controller, which keeps the individual joints moving synchronously with each other. Therefore, a sync pulse is sent out for each robot.push_command() call from Stretch Body. 
+        
+        The Pimu throttles the rate at which sync pulses can be issued to 20hz, so the extra pulses aren’t sent and a warning is issued every time a user script calls robot.push_command() faster than this rate.
+        
+        Use this mode to ensure commands sent to multiple motors execute at the same time.
+        """
         self.gains['enable_sync_mode'] = 1
         self._dirty_gains = 1
 
     def disable_sync_mode(self):
+        """
+        Disabling sync mode could result in motors executing commands in a slightly staggered manner, instead of at the same time. See `enable_sync_mode()`.
+
+        This mode could be useful for making sure a motor receives and executes `push_command`s without the command waiting in a queue for sync.
+        """
         self.gains['enable_sync_mode']=0
         self._dirty_gains=1
 
