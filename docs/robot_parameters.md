@@ -96,6 +96,37 @@ A boolean to toggle whether a sentry monitors the robot's center of mass and lim
 |--------------------------------|---------------|
 | robot_sentry.base_max_velocity | `1`           |
 
+### motion
+
+A set of defaults for velocity and acceleration presets. The presets include "default", "slow", "fast", "max", and "trajectory_max". All move_by/move_to commands use "default" by default. These presets are available via `<joint>.params['motion']['<preset>']`, so e.g. to move the lift slowly, you could use:
+
+```python
+robot.lift.move_to(1.1, v_m=robot.lift.params['motion']['slow']['vel_m'], a_m=robot.lift.params['motion']['slow']['accel_m'])
+```
+
+| Parameter                    | Default Value |
+|------------------------------|---------------|
+| head_pan.motion.default.vel        | `3.0`        |
+| head_pan.motion.default.accel        | `8.0`        |
+| head_tilt.motion.default.vel        | `3.0`        |
+| head_tilt.motion.default.accel        | `8.0`        |
+| stretch_gripper.motion.default.vel        | `6.0`        |
+| stretch_gripper.motion.default.accel        | `10.0`        |
+| wrist_yaw.motion.default.vel        | `2.0`        |
+| wrist_yaw.motion.default.accel        | `3.0`        |
+| wrist_pitch.motion.default.vel        | `2.0`        |
+| wrist_pitch.motion.default.accel        | `6.0`        |
+| wrist_roll.motion.default.vel        | `2.0`        |
+| wrist_roll.motion.default.accel        | `8.0`        |
+| arm.motion.default.vel_m        | `0.14`        |
+| arm.motion.default.accel_m        | `0.14`        |
+| lift.motion.default.vel_m        | `0.11`        |
+| lift.motion.default.accel_m        | `0.2`        |
+| base.motion.default.vel_m        | `0.12`        |
+| lift.motion.default.accel_m        | `0.12`        |
+
+Units are m/s and m/s^2 for prismatic joints, and rad/s and rad/s^2 for rotary joints. To find the values of the other presets, use `stretch_params.py | grep <joint>.motion.<preset>` in the terminal.
+
 ### distance_tol
 
 A tolerance within which the first waypoint of a splined trajectory must be of the joint's current position when `follow_trajectory(move_to_first_point=False)`, or the trajectory won't start execution.
