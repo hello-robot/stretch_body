@@ -213,7 +213,7 @@ SE3_wrist_pitch_DW3={
         'float_on_stop': 1,
         'current_float_A': -0.13,
         'current_limit_A': 2.5,
-        'distance_tol': 0.03
+        'distance_tol': 0.1
     }
 
 SE3_wrist_roll_DW3={
