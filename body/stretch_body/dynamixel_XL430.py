@@ -320,6 +320,15 @@ class DynamixelXL430():
             self.logger.debug("[Dynamixel ID:%03d] Comm Error. Ping Failed." % (self.dxl_id))
             return False
 
+    def get_firmware_version(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                p, dxl_comm_result, dxl_error = self.packet_handler.read1ByteTxRx(self.port_handler, self.dxl_id, XL430_ADDR_FIRMWARE_VERSION)
+        self.handle_comm_result('XL430_ADDR_FIRMWARE_VERSION', dxl_comm_result, dxl_error)
+        return p
+
     def get_id(self):
         if not self.hw_valid:
             return 0
