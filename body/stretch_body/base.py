@@ -400,6 +400,7 @@ class Base(Device):
         if int(str(self.right_wheel.board_info['protocol_version'])[1:]) < 1:
             self.logger.warning("Base right motor firmware version doesn't support waypoint trajectories")
             return False
+            
 
         # check if trajectory valid
         vel_limit = v_r if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
@@ -565,6 +566,12 @@ class Base(Device):
         await self.right_wheel.pull_status_async()
         self.__update_status()
 
+    def _get_effort(self) -> tuple[float, float]:
+        return (
+            self.status['left_wheel']["effort_pct"],
+            self.status['right_wheel']["effort_pct"]
+        )
+
     def __update_status(self):
 
         self.status['timestamp_pc'] = time.time()
@@ -593,6 +600,8 @@ class Base(Device):
             self.status['x_vel'] = 0.0
             self.status['y_vel'] = 0.0
             self.status['theta_vel'] = 0.0
+
+            self.status['effort'] = self._get_effort()
 
         else:
             ######################################################
@@ -692,6 +701,8 @@ class Base(Device):
                 self.status['x'] = prev_x + delta_x
                 self.status['y'] = prev_y + delta_y
                 self.status['theta'] = (prev_theta + delta_theta) % (2.0 * pi)
+
+                self.status['effort'] = self._get_effort()
 
     # ############## Deprecated Contact API ##################
 
