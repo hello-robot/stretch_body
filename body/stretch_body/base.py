@@ -20,7 +20,7 @@ class Base(Device):
             usb_right = self.params['usb_name_right_wheel']
         self.left_wheel = Stepper(usb=usb_left, name='hello-motor-left-wheel')
         self.right_wheel = Stepper(usb=usb_right, name='hello-motor-right-wheel')
-        self.status = {'timestamp_pc':0,'x':0,'y':0,'theta':0,'x_vel':0,'y_vel':0,'theta_vel':0, 'pose_time_s':0,'effort': [0, 0], 'left_wheel': self.left_wheel.status, 'right_wheel': self.right_wheel.status, 'translation_force': 0, 'rotation_torque': 0}
+        self.status = {'timestamp_pc':0,'x':0,'y':0,'theta':0,'x_vel':0,'y_vel':0,'theta_vel':0, 'pose_time_s':0,'effort': (0, 0), 'left_wheel': self.left_wheel.status, 'right_wheel': self.right_wheel.status, 'translation_force': 0, 'rotation_torque': 0}
         self.trajectory = DiffDriveTrajectory()
         self._waypoint_lwpos = None
         self._waypoint_rwpos = None
