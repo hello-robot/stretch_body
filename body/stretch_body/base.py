@@ -513,6 +513,10 @@ class Base(Device):
         self.left_wheel.stop_waypoint_trajectory()
         self.right_wheel.stop_waypoint_trajectory()
 
+        # Reset the wheel positions:
+        self._waypoint_lwpos = None
+        self._waypoint_rwpos = None
+
     def step_sentry(self,robot):
         """
         Only allow fast mobile base motion if the lift is low,
