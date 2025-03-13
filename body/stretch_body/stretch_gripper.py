@@ -3,7 +3,82 @@ from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.device import Device
 from stretch_body.robot_params import RobotParams
 from stretch_body.gripper_conversion import GripperConversion
+import rerun as rr
+import rerun.blueprint as rrb
+import time
 
+
+class RRplot:
+    def __init__(self, 
+                 name,
+                 open_browser = False, 
+                 server_memory_limit="4GB",
+                 view_range_s=20,
+                 web_port=9090,
+                 ws_port=9877):
+        self.__reg_keys = {} 
+        self.__name = name
+        self.__view_range_s = view_range_s
+        self.color_palette = [
+            [255, 0, 0],    # Redimport rerun.blueprint as rrb
+            [0, 255, 255],  # Cyan
+            [128, 0, 0],    # Maroon
+            [0, 128, 0],    # Dark Green
+            [0, 0, 128],    # Navy
+            [128, 128, 0],  # Olive
+            [128, 0, 128],  # Purple
+            [0, 128, 128],  # Teal
+            [192, 192, 192],# Silver
+            [128, 128, 128],# Gray
+            [0, 0, 0]       # Black
+        ]
+        rr.init(name)
+        rr.serve_web(open_browser=open_browser,
+                     server_memory_limit=server_memory_limit,
+                     web_port=web_port,
+                     ws_port=ws_port)
+        self.__blueprint = None
+        self._start_ts = None
+    
+    def register(self, key, color_idx):
+        if color_idx >= len(self.color_palette):
+            raise ValueError(f"Color index out of range, max index is {len(self.color_palette) - 1}")
+        self.__reg_keys[key] = color_idx
+        rr.log(f"{self.__name}/{key}", rr.SeriesLine(color=self.color_palette[color_idx], name=key, width=2), static=True)
+
+
+    def log_scalar(self, key, value):
+        # if self.__blueprint is None:
+        #     raise ValueError("Blueprint not set up")
+        if not isinstance(value, (int, float)):
+            raise ValueError(f"Value must be a scalar (int or float), got {type(value)}")
+        if key not in self.__reg_keys.keys():
+            raise ValueError(f"Key {key} not registered")
+        if self._start_ts is None:
+            self._start_ts = time.perf_counter()
+        rr.set_time_seconds("realtime", time.perf_counter() - self._start_ts)
+        rr.log(f"{self.__name}/{key}", rr.Scalar(value))
+    
+    def setup_blueprint(self, collapse_panels: bool=False):
+        """Setup the blueprint for the visualizer
+        Args:
+            collapse_panels (bool): fully hides the blueprint/selection panels,
+                                    and shows the simplified time panel
+        """
+        views = []
+        for k in self.__reg_keys.keys():
+            range = rrb.VisibleTimeRange(
+                "realtime",
+                start=rrb.TimeRangeBoundary.cursor_relative(seconds=-1*abs(self.__view_range_s)),
+                end=rrb.TimeRangeBoundary.infinite(),
+            )
+            views.append(rrb.TimeSeriesView(name=k, origin=[f"{self.__name}/{k}"], time_ranges=[range,]))
+        my_blueprint = rrb.Blueprint(
+            rrb.Vertical(contents=views),
+            collapse_panels=collapse_panels,
+        )
+        self.__blueprint = my_blueprint
+        rr.send_blueprint(self.__blueprint)
 
 
 class StretchGripper(DynamixelHelloXL430):
@@ -28,6 +103,15 @@ class StretchGripper(DynamixelHelloXL430):
                                              'finger_effort':0.0,
                                              'finger_vel':0.0}
         self.gripper_conversion = GripperConversion(self.params['gripper_conversion'])
+
+        self.plt = RRplot("gripper")
+        self.plt.register("pos", 0)
+        self.plt.register("effort", 1)
+        self.plt.register("vel", 2)
+        self.plt.register("temp", 3)
+        self.plt.register("current", 4)
+        self.plt.register("stall", 5)
+        self.plt.setup_blueprint()
 
     def startup(self, threaded=True):
         return DynamixelHelloXL430.startup(self, threaded=threaded)
@@ -71,6 +155,13 @@ class StretchGripper(DynamixelHelloXL430):
         DynamixelHelloXL430.pull_status(self,data)
         self.status['pos_pct']=self.world_rad_to_pct(self.status['pos'])
         self.status['gripper_conversion']=self.gripper_conversion.get_status(self.status)
+
+        self.plt.log_scalar("pos", self.status['pos'])
+        self.plt.log_scalar("effort", self.status['effort'])
+        self.plt.log_scalar("vel", self.status['vel'])
+        self.plt.log_scalar("temp", self.status['temp'])
+        self.plt.log_scalar("current", self.motor.get_current())
+        self.plt.log_scalar("stall", 1 if self.status['stall_overload'] else 0)
 
     def pct_to_world_rad(self,pct):
         pct_to_tick = -1 * ((self.params['zero_t'] - self.params['range_t'][0]) / 100.0)
