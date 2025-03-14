@@ -20,7 +20,7 @@ class RRplot:
         self.__name = name
         self.__view_range_s = view_range_s
         self.color_palette = [
-            [255, 0, 0],    # Redimport rerun.blueprint as rrb
+            [255, 0, 0],    # Red
             [0, 255, 255],  # Cyan
             [128, 0, 0],    # Maroon
             [0, 128, 0],    # Dark Green
@@ -40,10 +40,12 @@ class RRplot:
         self.__blueprint = None
         self._start_ts = None
     
-    def register(self, key, color_idx):
+    def register(self, key, color_idx, range:tuple=None):
+        """
+        Register a datafield key to be logged"""
         if color_idx >= len(self.color_palette):
             raise ValueError(f"Color index out of range, max index is {len(self.color_palette) - 1}")
-        self.__reg_keys[key] = color_idx
+        self.__reg_keys[key] = {'color':color_idx, 'range':range}
         rr.log(f"{self.__name}/{key}", rr.SeriesLine(color=self.color_palette[color_idx], name=key, width=2), static=True)
 
 
@@ -72,7 +74,13 @@ class RRplot:
                 start=rrb.TimeRangeBoundary.cursor_relative(seconds=-1*abs(self.__view_range_s)),
                 end=rrb.TimeRangeBoundary.infinite(),
             )
-            views.append(rrb.TimeSeriesView(name=k, origin=[f"{self.__name}/{k}"], time_ranges=[range,]))
+            views.append(rrb.TimeSeriesView(name=k, 
+                                            origin=[f"{self.__name}/{k}"], 
+                                            time_ranges=[range,],
+                                            plot_legend=rrb.PlotLegend(visible=True),
+                                            axis_y=rrb.ScalarAxis(range=self.__reg_keys[k]['range'], zoom_lock=False)
+                                            ),
+                                            )
         my_blueprint = rrb.Blueprint(
             rrb.Vertical(contents=views),
             collapse_panels=collapse_panels,
@@ -105,12 +113,14 @@ class StretchGripper(DynamixelHelloXL430):
         self.gripper_conversion = GripperConversion(self.params['gripper_conversion'])
 
         self.plt = RRplot("gripper")
-        self.plt.register("pos", 0)
-        self.plt.register("effort", 1)
+        self.plt.register("pos", 0, (-10.5,10.5))
+        self.plt.register("effort", 1, (-100,100))
         self.plt.register("vel", 2)
-        self.plt.register("temp", 3)
-        self.plt.register("current", 4)
-        self.plt.register("stall", 5)
+        self.plt.register("temp", 3, (25, 100))
+        self.plt.register("stall_overload", 5, (0,1))
+        self.plt.register("overload_error", 6, (0,1))
+        self.plt.register("voltage", 7, (9,14))
+        self.plt.register("stalled", 8, (0,1))
         self.plt.setup_blueprint()
 
     def startup(self, threaded=True):
@@ -160,8 +170,10 @@ class StretchGripper(DynamixelHelloXL430):
         self.plt.log_scalar("effort", self.status['effort'])
         self.plt.log_scalar("vel", self.status['vel'])
         self.plt.log_scalar("temp", self.status['temp'])
-        self.plt.log_scalar("current", self.motor.get_current())
-        self.plt.log_scalar("stall", 1 if self.status['stall_overload'] else 0)
+        self.plt.log_scalar("stall_overload", int(self.status['stall_overload']))
+        self.plt.log_scalar("overload_error", int(self.status['overload_error']))
+        self.plt.log_scalar("voltage", self.motor.get_voltage()*0.1)
+        self.plt.log_scalar("stalled", int(self.status['stalled']))
 
     def pct_to_world_rad(self,pct):
         pct_to_tick = -1 * ((self.params['zero_t'] - self.params['range_t'][0]) / 100.0)

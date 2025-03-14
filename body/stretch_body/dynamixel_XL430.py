@@ -685,6 +685,15 @@ class DynamixelXL430():
                 xn, dxl_comm_result, dxl_error= self.read_int32_t(XL430_ADDR_PRESENT_POSITION)
         self.handle_comm_result('XL430_ADDR_PRESENT_POSITION', dxl_comm_result, dxl_error)
         return xn
+    
+    def get_voltage(self):
+        if not self.hw_valid:
+            return 0
+        with self.pt_lock:
+            with DelayedKeyboardInterrupt():
+                xn, dxl_comm_result, dxl_error= self.read_int16_t(XL430_ADDR_PRESENT_INPUT_VOLTATE)
+        self.handle_comm_result('XL430_ADDR_PRESENT_INPUT_VOLTATE', dxl_comm_result, dxl_error)
+        return xn
 
     def get_moving_status(self):
         if not self.hw_valid:
