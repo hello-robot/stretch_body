@@ -1122,6 +1122,8 @@ class DynamixelHelloXL430(Device):
             self.is_homing=True
             self.enable_pwm()
             print('Moving to first hardstop...')
+            if use_current_limit:
+                print('Using current limit for homing')
             self.set_pwm(self.params['pwm_homing'][0])
             ts=time.time()
             time.sleep(1.0)

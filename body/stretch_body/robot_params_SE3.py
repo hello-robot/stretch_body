@@ -1,5 +1,5 @@
 #Robot parameters for Stretch 3
-
+import copy
 # ######################### USER PARAMS ##################################################
 #Template for the generated file: stretch_user_params.yaml
 user_params_header='#User parameters\n' \
@@ -315,7 +315,7 @@ SE3_wrist_roll_DW3={
         'current_limit_A': 1.0,
         'distance_tol': 0.015}
 
-SE3_wrist_roll_DW3_tablet = SE3_wrist_roll_DW3
+SE3_wrist_roll_DW3_tablet = copy.deepcopy(SE3_wrist_roll_DW3)
 SE3_wrist_roll_DW3_tablet['float_on_stop'] = 0
 
 # ######### EndOfArm Defn ##############
@@ -437,7 +437,7 @@ SE3_eoa_wrist_dw3_tool_sg3={
             }
     }}
 
-SE3_eoa_wrist_dw3_tool_sg3_v2 = SE3_eoa_wrist_dw3_tool_sg3
+SE3_eoa_wrist_dw3_tool_sg3_v2 = copy.deepcopy(SE3_eoa_wrist_dw3_tool_sg3)
 SE3_eoa_wrist_dw3_tool_sg3_v2['devices']['stretch_gripper']['device_params'] = 'SE3_stretch_gripper_SG3_v2'
 SE3_eoa_wrist_dw3_tool_sg3_v2['devices']['stretch_gripper']['py_class_name'] = 'StretchGripper3v2'
 
