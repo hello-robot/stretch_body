@@ -8,8 +8,7 @@ hu.print_stretch_re_use()
 
 parser=argparse.ArgumentParser(description='Calibrate the gripper position by closing until motion stops')
 args=parser.parse_args()
-
-g=gripper.StretchGripper()
+g=gripper.StretchGripper3v2()
 if not g.startup(threaded=False):
     exit()
 g.home()

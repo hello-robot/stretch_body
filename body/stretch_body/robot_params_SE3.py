@@ -73,7 +73,7 @@ configuration_params_template={
 # Eg, which joints and tools and versions of hardware are present
 
 
-SE3_stretch_gripper_SG3_xc430={
+SE3_stretch_gripper_SG3_v2={
         'range_pad_t': [100.0, -100.0],
         'flip_encoder_polarity': 0,
         'gr': 1.0,
@@ -108,7 +108,7 @@ SE3_stretch_gripper_SG3_xc430={
             'vel_brakezone_factor': 1},
         'set_safe_velocity': 1,
         'pid': [640.0,0,0],
-        'pwm_homing': [-625, 0],
+        'pwm_homing': [-400, 0],
         'pwm_limit': 885,
         'req_calibration': 1,
         'return_delay_time': 0,
@@ -434,8 +434,9 @@ SE3_eoa_wrist_dw3_tool_sg3={
             }
     }}
 
-SE3_eoa_wrist_dw3_tool_sg3_xc430 = SE3_eoa_wrist_dw3_tool_sg3
-SE3_eoa_wrist_dw3_tool_sg3_xc430['devices']['stretch_gripper']['device_params'] = 'SE3_stretch_gripper_SG3_xc430'
+SE3_eoa_wrist_dw3_tool_sg3_v2 = SE3_eoa_wrist_dw3_tool_sg3
+SE3_eoa_wrist_dw3_tool_sg3_v2['devices']['stretch_gripper']['device_params'] = 'SE3_stretch_gripper_SG3_v2'
+SE3_eoa_wrist_dw3_tool_sg3_v2['devices']['stretch_gripper']['py_class_name'] = 'StretchGripper3v2'
 
 SE3_eoa_wrist_dw3_tool_nil={
         'py_class_name': 'EOA_Wrist_DW3_Tool_NIL',
@@ -571,11 +572,11 @@ nominal_params={
     #Each EOA will get expanded at runtime into its full parameter dictionary
     # Eg, supported_eoa.tool_none --> adds the wrist_yaw param dict to nominal_params
     # Add all formally supported EOA to this list
-    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_tablet_12in', 'eoa_wrist_dw3_tool_sg3_xc430'],
+    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_tablet_12in', 'eoa_wrist_dw3_tool_sg3_v2'],
     'eoa_wrist_dw3_tool_nil': SE3_eoa_wrist_dw3_tool_nil,
     'eoa_wrist_dw3_tool_sg3': SE3_eoa_wrist_dw3_tool_sg3,
     'eoa_wrist_dw3_tool_tablet_12in': SE3_eoa_wrist_dw3_tool_tablet_12in,
-    'eoa_wrist_dw3_tool_sg3_xc430': SE3_eoa_wrist_dw3_tool_sg3_xc430,
+    'eoa_wrist_dw3_tool_sg3_v2': SE3_eoa_wrist_dw3_tool_sg3_v2,
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
         'use_vel_traj': 1,
