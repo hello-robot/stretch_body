@@ -3,7 +3,7 @@ from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.device import Device
 from stretch_body.robot_params import RobotParams
 from stretch_body.gripper_conversion import GripperConversion
-from stretch_body.rerun_visualizer import RRplot
+from stretch_body.rerun_plot import RRplot
 
 
 class StretchGripper(DynamixelHelloXL430):
@@ -141,3 +141,10 @@ class StretchGripper3v2(StretchGripper, DynamixelHelloXL430):
         self.plt.log_scalar("stall_overload", self.status['stall_overload'])
         self.plt.log_scalar("overload_error", self.status['overload_error'])
         self.plt.log_scalar("current", self.ticks_to_current(self.status['effort_ticks']))
+
+    def step_sentry(self, robot):
+        """
+        For XM430-W350 gripper backing motion to release stall overload is not required,
+        therefore step only the DynamixelHelloXL430 sentry
+        """
+        DynamixelHelloXL430.step_sentry(self, robot)

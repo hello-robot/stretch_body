@@ -81,12 +81,13 @@ class RRplot:
         rr.log(f"{self.__name}/{key}", rr.SeriesLine(color=self.color_palette[color_idx], name=key, width=2), static=True)
 
 
-    def log_scalar(self, key:str, value:float|int):
+    def log_scalar(self, key:str, value:float|int, timestamp:float=None):
         """
         Log a scalar value to the registered key
         Args:
             key (str): registered key
             value (float|int): scalar value to be logged
+            timestamp (float): timestamp of the value (default is current time)
         """
         if not isinstance(value, (int, float)):
             raise ValueError(f"Value must be a scalar (int or float), got {type(value)}")
@@ -126,6 +127,9 @@ class RRplot:
 
 
 if __name__ == "__main__":
+    """
+    Example usage of the RRplot class
+    """
     n = 5  # Number of sine wave series
     rrplot = RRplot(name="SineWaveVisualizer")
 

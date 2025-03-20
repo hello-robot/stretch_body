@@ -1128,7 +1128,6 @@ class DynamixelHelloXL430(Device):
             timeout=False
             while self.motor.is_moving() and not timeout:
                 if use_current_limit:
-                    print('Moving unitl current limit is reached')
                     if self.status['effort_ticks']:
                         i = self.status['effort_ticks']
                     else: 
