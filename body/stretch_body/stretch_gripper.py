@@ -3,7 +3,6 @@ from stretch_body.dynamixel_hello_XL430 import DynamixelHelloXL430
 from stretch_body.device import Device
 from stretch_body.robot_params import RobotParams
 from stretch_body.gripper_conversion import GripperConversion
-from stretch_body.rerun_plot import RRplot
 
 
 class StretchGripper(DynamixelHelloXL430):
@@ -112,15 +111,6 @@ class StretchGripper3v2(StretchGripper, DynamixelHelloXL430):
     """
     def __init__(self, chain=None, usb=None):
         StretchGripper.__init__(self, chain, usb,'stretch_gripper')
-        self.plt = RRplot("stretch_gripper")
-        self.plt.register("pos", 0, (-10.5,10.5))
-        self.plt.register("effort", 1, (-100,100))
-        self.plt.register("vel", 2)
-        self.plt.register("temp", 3, (25, 100))
-        self.plt.register("stall_overload", 4, (0,1))
-        self.plt.register("overload_error", 5, (0,1))
-        self.plt.register("current", 8, (-10,10))
-        self.plt.setup_blueprint()
     
     def home(self,move_to_zero=True):
         DynamixelHelloXL430.home(self,
@@ -133,14 +123,6 @@ class StretchGripper3v2(StretchGripper, DynamixelHelloXL430):
         DynamixelHelloXL430.pull_status(self,data)
         self.status['pos_pct']=self.world_rad_to_pct(self.status['pos'])
         self.status['gripper_conversion']=self.gripper_conversion.get_status(self.status)
-
-        self.plt.log_scalar("pos", self.status['pos'])
-        self.plt.log_scalar("effort", self.status['effort'])
-        self.plt.log_scalar("vel", self.status['vel'])
-        self.plt.log_scalar("temp", self.status['temp'])
-        self.plt.log_scalar("stall_overload", self.status['stall_overload'])
-        self.plt.log_scalar("overload_error", self.status['overload_error'])
-        self.plt.log_scalar("current", self.ticks_to_current(self.status['effort_ticks']))
 
     def step_sentry(self, robot):
         """
