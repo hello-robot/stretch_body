@@ -505,7 +505,7 @@ class Base(Device):
                     self._waypoint_lwpos, self._waypoint_rwpos)
                 
                 if wheel_segments is None:
-                    # TODO: there are no wheel segments, how do we notify the user?
+                    self.logger.warn('unable to send next trajectory segment; received invalid index')
                     return
                 
                 ls1, rs1 = wheel_segments
