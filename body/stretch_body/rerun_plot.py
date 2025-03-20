@@ -22,13 +22,13 @@ class RRplot:
             web_port (int): port for the web server
             ws_port (int): port for the websocket server
         """
-        self.__reg_keys = {} 
-        self.__name = name
-        self.__view_range_s = view_range_s
-        self.__local_ip = self.get_local_ip()
-        if self.__local_ip is not None:
+        self._reg_keys = {} 
+        self._name = name
+        self._view_range_s = view_range_s
+        self._local_ip = self.get_local_ip()
+        if self._local_ip is not None:
             print('='*50)
-            print(f"Rerun plotter running at http://{self.__local_ip}:{web_port}/?url=ws://{self.__local_ip}:{ws_port}")
+            print(f"Rerun plotter running at http://{self._local_ip}:{web_port}/?url=ws://{self._local_ip}:{ws_port}")
             print('='*50)
 
         self.color_palette = [
@@ -49,7 +49,7 @@ class RRplot:
                      server_memory_limit=server_memory_limit,
                      web_port=web_port,
                      ws_port=ws_port)
-        self.__blueprint = None
+        self._blueprint = None
         self._start_ts = None
 
     def get_local_ip(self):
@@ -77,8 +77,8 @@ class RRplot:
         """
         if color_idx >= len(self.color_palette):
             raise ValueError(f"Color index out of range, max index value is {len(self.color_palette) - 1}")
-        self.__reg_keys[key] = {'color':color_idx, 'range':range}
-        rr.log(f"{self.__name}/{key}", rr.SeriesLine(color=self.color_palette[color_idx], name=key, width=2), static=True)
+        self._reg_keys[key] = {'color':color_idx, 'range':range}
+        rr.log(f"{self._name}/{key}", rr.SeriesLine(color=self.color_palette[color_idx], name=key, width=2), static=True)
 
 
     def log_scalar(self, key:str, value:float|int, timestamp:float=None):
@@ -91,12 +91,12 @@ class RRplot:
         """
         if not isinstance(value, (int, float)):
             raise ValueError(f"Value must be a scalar (int or float), got {type(value)}")
-        if key not in self.__reg_keys.keys():
+        if key not in self._reg_keys.keys():
             raise ValueError(f"Key {key} not registered")
         if self._start_ts is None:
             self._start_ts = time.perf_counter()
         rr.set_time_seconds("realtime", time.perf_counter() - self._start_ts)
-        rr.log(f"{self.__name}/{key}", rr.Scalar(value))
+        rr.log(f"{self._name}/{key}", rr.Scalar(value))
     
     def setup_blueprint(self, collapse_panels:bool=False):
         """Setup the blueprint for the visualizer
@@ -105,25 +105,25 @@ class RRplot:
                                     and shows the simplified time panel
         """
         views = []
-        for k in self.__reg_keys.keys():
+        for k in self._reg_keys.keys():
             range = rrb.VisibleTimeRange(
                 "realtime",
-                start=rrb.TimeRangeBoundary.cursor_relative(seconds=-1*abs(self.__view_range_s)),
+                start=rrb.TimeRangeBoundary.cursor_relative(seconds=-1*abs(self._view_range_s)),
                 end=rrb.TimeRangeBoundary.infinite(),
             )
             views.append(rrb.TimeSeriesView(name=k, 
-                                            origin=[f"{self.__name}/{k}"], 
+                                            origin=[f"{self._name}/{k}"], 
                                             time_ranges=[range,],
                                             plot_legend=rrb.PlotLegend(visible=True),
-                                            axis_y=rrb.ScalarAxis(range=self.__reg_keys[k]['range'], zoom_lock=False)
+                                            axis_y=rrb.ScalarAxis(range=self._reg_keys[k]['range'], zoom_lock=False)
                                             ),
                                             )
         my_blueprint = rrb.Blueprint(
             rrb.Vertical(contents=views),
             collapse_panels=collapse_panels,
         )
-        self.__blueprint = my_blueprint
-        rr.send_blueprint(self.__blueprint)
+        self._blueprint = my_blueprint
+        rr.send_blueprint(self._blueprint)
 
 
 if __name__ == "__main__":
