@@ -4,7 +4,6 @@ from stretch_body.device import Device
 from stretch_body.robot_params import RobotParams
 from stretch_body.gripper_conversion import GripperConversion
 
-
 class StretchGripper(DynamixelHelloXL430):
     """
     API to the Stretch Gripper
