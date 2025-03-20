@@ -444,7 +444,7 @@ class Base(Device):
         wheel_segments = self.trajectory.get_wheel_segments(0, self.translate_to_motor_rad, self.rotate_to_motor_rad,
             self._waypoint_lwpos, self._waypoint_rwpos)
         
-        if not wheel_segments:
+        if wheel_segments is None:
             return False
         
         ls0, rs0 = wheel_segments
@@ -504,7 +504,7 @@ class Base(Device):
                 wheel_segments = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
                     self._waypoint_lwpos, self._waypoint_rwpos)
                 
-                if not wheel_segments:
+                if wheel_segments is None:
                     # TODO: there are no wheel segments, how do we notify the user?
                     return
                 
