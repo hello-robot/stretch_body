@@ -4,8 +4,6 @@ from stretch_body.device import Device
 from stretch_body.robot_params import RobotParams
 from stretch_body.gripper_conversion import GripperConversion
 
-
-
 class StretchGripper(DynamixelHelloXL430):
     """
     API to the Stretch Gripper
@@ -105,3 +103,29 @@ class StretchGripper3(StretchGripper):
     """
     def __init__(self, chain=None, usb=None):
         StretchGripper.__init__(self, chain, usb,'stretch_gripper')
+
+class StretchGripper3v2(StretchGripper, DynamixelHelloXL430):
+    """
+        Wrapper for version 3.5 XM430-W350 gripper
+    """
+    def __init__(self, chain=None, usb=None):
+        StretchGripper.__init__(self, chain, usb,'stretch_gripper')
+    
+    def home(self,move_to_zero=True):
+        DynamixelHelloXL430.home(self,
+                                 single_stop=True,
+                                 move_to_zero=move_to_zero,
+                                 delay_at_stop=2.25,
+                                 use_current_limit=True)
+    
+    def pull_status(self,data=None):
+        DynamixelHelloXL430.pull_status(self,data)
+        self.status['pos_pct']=self.world_rad_to_pct(self.status['pos'])
+        self.status['gripper_conversion']=self.gripper_conversion.get_status(self.status)
+
+    def step_sentry(self, robot):
+        """
+        For XM430-W350 gripper backing motion to release stall overload is not required,
+        therefore step only the DynamixelHelloXL430 sentry
+        """
+        DynamixelHelloXL430.step_sentry(self, robot)

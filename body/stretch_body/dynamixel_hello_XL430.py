@@ -1098,7 +1098,7 @@ class DynamixelHelloXL430(Device):
     -- Also, homing shouldn't be necessary in single-turn mode as the position reporting is already absolute
     """
 
-    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0,save_calibration=False,set_homing_offset=True):
+    def home(self, single_stop=False, move_to_zero=True,delay_at_stop=0.0,save_calibration=False,set_homing_offset=True, use_current_limit=False):
         # Requires at least one hardstop in the pwm_homing[0] direction
         # Can be in multiturn or single turn mode
         # Mark the first hardstop as zero ticks on the Dynammixel
@@ -1122,13 +1122,24 @@ class DynamixelHelloXL430(Device):
             self.is_homing=True
             self.enable_pwm()
             print('Moving to first hardstop...')
+            if use_current_limit:
+                print('Using current limit for homing')
             self.set_pwm(self.params['pwm_homing'][0])
             ts=time.time()
             time.sleep(1.0)
             timeout=False
             while self.motor.is_moving() and not timeout:
+                if use_current_limit:
+                    if self.status['effort_ticks']:
+                        i = self.status['effort_ticks']
+                    else: 
+                        i = self.motor.get_current()
+                    if abs(self.ticks_to_current(i))>self.params['current_homing_limit_A']:
+                        print('Current limit reached. Stopping.')
+                        self.set_pwm(0)
+                        break
                 timeout=time.time()-ts>15.0
-                time.sleep(0.5)
+                time.sleep(0.1)#0.5
             time.sleep(delay_at_stop)
             self.set_pwm(0)
 

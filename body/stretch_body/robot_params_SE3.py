@@ -1,5 +1,5 @@
 #Robot parameters for Stretch 3
-
+import copy
 # ######################### USER PARAMS ##################################################
 #Template for the generated file: stretch_user_params.yaml
 user_params_header='#User parameters\n' \
@@ -71,6 +71,65 @@ configuration_params_template={
 # We use a modular design of dictionaries so that different parameter sets
 # can be easily managed depending on the configuation of the end-of-arm
 # Eg, which joints and tools and versions of hardware are present
+
+
+SE3_stretch_gripper_SG3_v2={
+        'range_pad_t': [100.0, -100.0],
+        'flip_encoder_polarity': 0,
+        'gr': 1.0,
+        'id': 14,
+        'max_voltage_limit': 15,
+        'min_grip_strength': -125,
+        'min_voltage_limit': 11,
+        'gripper_conversion':{
+            'finger_length_m':0.171,
+            'open_aperture_m':0.09,
+            'closed_aperture_m':0.0,
+            'open_robotis':70.0,
+            'closed_robotis':0.0},       
+        'motion':{
+            'trajectory_vel_ctrl':1,
+            'trajectory_vel_ctrl_kP':1.5,
+            'default':{
+              'accel': 10.0,
+              'vel': 6.0},
+            'fast':{
+              'accel': 10.0,
+              'vel': 8.0},
+            'max':{
+              'accel': 20,
+              'vel': 20},
+            'slow':{
+              'accel': 4.0,
+              'vel': 3.0},
+            'trajectory_max': {
+                'vel_r': 50.0,
+                'accel_r': 100.0},
+            'vel_brakezone_factor': 1},
+        'set_safe_velocity': 1,
+        'pid': [640.0,0,0],
+        'pwm_homing': [-400, 0],
+        'pwm_limit': 885,
+        'req_calibration': 1,
+        'return_delay_time': 0,
+        'stall_backoff': 2.0,
+        'stall_max_effort': 20.0,
+        'stall_max_time': 0.5,
+        'stall_min_vel': 0.1,
+        'temperature_limit': 72,
+        'usb_name': '/dev/hello-dynamixel-wrist',
+        'use_multiturn': 1,
+        'use_pos_current_ctrl':0,
+        'use_current_homing': 1,
+        'current_homing_limit_A': 0.18,
+        'current_limit_A': 1,
+        'retry_on_comm_failure': 1,
+        'baud': 115200,
+        'enable_runstop': 1,
+        'disable_torque_on_stop': 1,
+        'range_t': [0, 9102],
+        'zero_t': 3279,
+        'distance_tol': 0.015}
 
 SE3_stretch_gripper_SG3={
         'range_pad_t': [100.0, -100.0],
@@ -256,7 +315,7 @@ SE3_wrist_roll_DW3={
         'current_limit_A': 1.0,
         'distance_tol': 0.015}
 
-SE3_wrist_roll_DW3_tablet = SE3_wrist_roll_DW3
+SE3_wrist_roll_DW3_tablet = copy.deepcopy(SE3_wrist_roll_DW3)
 SE3_wrist_roll_DW3_tablet['float_on_stop'] = 0
 
 # ######### EndOfArm Defn ##############
@@ -378,6 +437,9 @@ SE3_eoa_wrist_dw3_tool_sg3={
             }
     }}
 
+SE3_eoa_wrist_dw3_tool_sg3_v2 = copy.deepcopy(SE3_eoa_wrist_dw3_tool_sg3)
+SE3_eoa_wrist_dw3_tool_sg3_v2['devices']['stretch_gripper']['device_params'] = 'SE3_stretch_gripper_SG3_v2'
+SE3_eoa_wrist_dw3_tool_sg3_v2['devices']['stretch_gripper']['py_class_name'] = 'StretchGripper3v2'
 
 SE3_eoa_wrist_dw3_tool_nil={
         'py_class_name': 'EOA_Wrist_DW3_Tool_NIL',
@@ -513,10 +575,11 @@ nominal_params={
     #Each EOA will get expanded at runtime into its full parameter dictionary
     # Eg, supported_eoa.tool_none --> adds the wrist_yaw param dict to nominal_params
     # Add all formally supported EOA to this list
-    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_tablet_12in'],
+    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_tablet_12in', 'eoa_wrist_dw3_tool_sg3_v2'],
     'eoa_wrist_dw3_tool_nil': SE3_eoa_wrist_dw3_tool_nil,
     'eoa_wrist_dw3_tool_sg3': SE3_eoa_wrist_dw3_tool_sg3,
     'eoa_wrist_dw3_tool_tablet_12in': SE3_eoa_wrist_dw3_tool_tablet_12in,
+    'eoa_wrist_dw3_tool_sg3_v2': SE3_eoa_wrist_dw3_tool_sg3_v2,
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
         'use_vel_traj': 1,

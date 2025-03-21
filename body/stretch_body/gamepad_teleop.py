@@ -96,10 +96,11 @@ class GamePadTeleop(Device):
 
     def using_stretch_gripper(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
-            or self.end_of_arm_tool == 'tool_stretch_gripper'
+            or self.end_of_arm_tool == 'tool_stretch_gripper' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_v2' 
     def using_dexwrist(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
-            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_nil' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_tablet_12in'
+            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_nil' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_tablet_12in' \
+            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_v2' 
 
     def command_robot_joints(self, robot):
         """
@@ -137,7 +138,6 @@ class GamePadTeleop(Device):
         else:
             if self._i % dxl_zero_vel_set_division_factor == 0:
                 self.wirst_yaw_command.stop_motion(robot)
-        
         if not self.using_dexwrist() or (self.using_dexwrist() and not self.dexwrist_ctrl_switch):
             # Head Control
             if self.controller_state['top_pad_pressed']:
