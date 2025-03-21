@@ -8,6 +8,8 @@ import time
 import logging
 import numpy
 
+from body.stretch_body.models.status_base import StatusBase
+
 class Base(Device):
     """
     API to the Stretch Mobile Base
@@ -20,7 +22,7 @@ class Base(Device):
             usb_right = self.params['usb_name_right_wheel']
         self.left_wheel = Stepper(usb=usb_left, name='hello-motor-left-wheel')
         self.right_wheel = Stepper(usb=usb_right, name='hello-motor-right-wheel')
-        self.status = {'timestamp_pc':0,'x':0,'y':0,'theta':0,'x_vel':0,'y_vel':0,'theta_vel':0, 'pose_time_s':0,'effort': [0, 0], 'left_wheel': self.left_wheel.status, 'right_wheel': self.right_wheel.status, 'translation_force': 0, 'rotation_torque': 0}
+        self.status = StatusBase.init(self.left_wheel.status, self.right_wheel.status)
         self.trajectory = DiffDriveTrajectory()
         self._waypoint_lwpos = None
         self._waypoint_rwpos = None
@@ -62,14 +64,14 @@ class Base(Device):
 
     def pretty_print(self):
         print('----------Base------')
-        print('X (m)',self.status['x'])
-        print('Y (m)',self.status['y'])
-        print('Theta (rad)',self.status['theta'])
-        print('X_vel (m/s)', self.status['x_vel'])
-        print('Y_vel (m/s)', self.status['y_vel'])
-        print('Theta_vel (rad/s)', self.status['theta_vel'])
-        print('Pose time (s)', self.status['pose_time_s'])
-        print('Timestamp PC (s):', self.status['timestamp_pc'])
+        print('X (m)',self.status.x)
+        print('Y (m)',self.status.y)
+        print('Theta (rad)',self.status.theta)
+        print('X_vel (m/s)', self.status.x_vel)
+        print('Y_vel (m/s)', self.status.y_vel)
+        print('Theta_vel (rad/s)', self.status.theta_vel)
+        print('Pose time (s)', self.status.pose_time_s)
+        print('Timestamp PC (s):', self.status.timestamp_pc)
         print('-----Left-Wheel-----')
         self.left_wheel.pretty_print()
         print('-----Right-Wheel-----')
@@ -96,7 +98,7 @@ class Base(Device):
         ts = time.time()
         while (time.time() - ts < timeout):
             self.pull_status()
-            if self.left_wheel.status['in_guarded_event'] or self.right_wheel.status['in_guarded_event']:
+            if self.left_wheel.status.in_guarded_event or self.right_wheel.status.in_guarded_event:
                 return True
             time.sleep(0.01)
         return False
@@ -439,8 +441,8 @@ class Base(Device):
         self.right_wheel.push_command()
         self.left_wheel.pull_status()
         self.right_wheel.pull_status()
-        self._waypoint_lwpos = self.left_wheel.status['pos']
-        self._waypoint_rwpos = self.right_wheel.status['pos']
+        self._waypoint_lwpos = self.left_wheel.status.pos
+        self._waypoint_rwpos = self.right_wheel.status.pos
         ls0, rs0 = self.trajectory.get_wheel_segments(0, self.translate_to_motor_rad, self.rotate_to_motor_rad,
             self._waypoint_lwpos, self._waypoint_rwpos)
         return self.left_wheel.start_waypoint_trajectory(ls0.to_array()) and \
@@ -453,7 +455,7 @@ class Base(Device):
         self.first_step = True
 
     def is_trajectory_active(self):
-        return (self.left_wheel.status['waypoint_traj']['state'] == 'active' or self.right_wheel.status['waypoint_traj']['state'] == 'active')
+        return (self.left_wheel.status.waypoint_traj.state == 'active' or self.right_wheel.status.waypoint_traj.state == 'active')
 
     def get_trajectory_ts(self):
         # Return trajectory execution time
@@ -485,22 +487,22 @@ class Base(Device):
             return
         if int(str(self.right_wheel.board_info['protocol_version'])[1:]) < 1:
             return
-        if self.left_wheel.status['mode'] != self.left_wheel.MODE_POS_TRAJ_WAYPOINT:
+        if self.left_wheel.status.mode != self.left_wheel.MODE_POS_TRAJ_WAYPOINT:
             return
-        if self.right_wheel.status['mode'] != self.right_wheel.MODE_POS_TRAJ_WAYPOINT:
+        if self.right_wheel.status.mode != self.right_wheel.MODE_POS_TRAJ_WAYPOINT:
             return
         if self._waypoint_lwpos is None or self._waypoint_rwpos is None:
             return
 
-        if self.left_wheel.status['waypoint_traj']['state'] == 'active' and self.right_wheel.status['waypoint_traj']['state'] == 'active':
-            next_segment_id = self.left_wheel.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
+        if self.left_wheel.status.waypoint_traj.state == 'active' and self.right_wheel.status.waypoint_traj.state == 'active':
+            next_segment_id = self.left_wheel.status.waypoint_traj.segment_id - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
             if next_segment_id < self.trajectory.get_num_segments():
                 ls1, rs1 = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
                     self._waypoint_lwpos, self._waypoint_rwpos)
                 self.left_wheel.set_next_trajectory_segment(ls1.to_array())
                 self.right_wheel.set_next_trajectory_segment(rs1.to_array())
-        elif self.left_wheel.status['waypoint_traj']['state'] == 'idle' and self.left_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT and \
-            self.right_wheel.status['waypoint_traj']['state'] == 'idle' and self.right_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+        elif self.left_wheel.status.waypoint_traj.state == 'idle' and self.left_wheel.status.mode == Stepper.MODE_POS_TRAJ_WAYPOINT and \
+            self.right_wheel.status.waypoint_traj.state == 'idle' and self.right_wheel.status.mode == Stepper.MODE_POS_TRAJ_WAYPOINT:
             self._waypoint_lwpos = None
             self._waypoint_rwpos = None
             self.left_wheel.enable_pos_traj()
@@ -526,9 +528,9 @@ class Base(Device):
         something.
         """
         if self.robot_params['robot_sentry']['base_max_velocity']:
-            x_lift=robot.lift.status['pos']
-            x_arm =robot.arm.status['pos']
-            x_wrist =robot.end_of_arm.motors['wrist_yaw'].status['pos']
+            x_lift=robot.lift.status.pos
+            x_arm =robot.arm.status.pos
+            x_wrist =robot.end_of_arm.motors['wrist_yaw'].status.pos
 
             if ((x_lift < self.params['sentry_max_velocity']['max_lift_height_m']) and
                     (x_arm < self.params['sentry_max_velocity']['max_arm_extension_m']) and
@@ -567,13 +569,13 @@ class Base(Device):
 
     def __update_status(self):
 
-        self.status['timestamp_pc'] = time.time()
-        p0 = self.status['left_wheel']['pos']
-        p1 = self.status['right_wheel']['pos']
-        t0 = self.status['left_wheel']['timestamp']
-        t1 = self.status['right_wheel']['timestamp']
-        self.status['translation_force'] = 0 #Deprecated
-        self.status['rotation_torque'] = 0 #Deprecated
+        self.status.timestamp_pc = time.time()
+        p0 = self.status.left_wheel['pos']
+        p1 = self.status.right_wheel['pos']
+        t0 = self.status.left_wheel['timestamp']
+        t1 = self.status.right_wheel['timestamp']
+        self.status.translation_force = 0 #Deprecated
+        self.status.rotation_torque = 0 #Deprecated
 
         if self.first_step:
             # Upon the first step, simply set the initial pose, since
@@ -586,13 +588,13 @@ class Base(Device):
             self.t0_s = t0
             self.t1_s = t1
 
-            self.status['x'] = 0.0
-            self.status['y'] = 0.0
-            self.status['theta'] = 0.0
+            self.status.x = 0.0
+            self.status.y = 0.0
+            self.status.theta = 0.0
 
-            self.status['x_vel'] = 0.0
-            self.status['y_vel'] = 0.0
-            self.status['theta_vel'] = 0.0
+            self.status.x_vel = 0.0
+            self.status.y_vel = 0.0
+            self.status.theta_vel = 0.0
 
         else:
             ######################################################
@@ -655,9 +657,9 @@ class Base(Device):
                 delta_travel = (delta_right_m + delta_left_m) / 2.0
                 delta_theta = (delta_right_m - delta_left_m) / self.wheel_separation_m
 
-                prev_x = self.status['x']
-                prev_y = self.status['y']
-                prev_theta = self.status['theta']
+                prev_x = self.status.x
+                prev_y = self.status.y
+                prev_theta = self.status.theta
 
                 if delta_left_m == delta_right_m:
                     # delta_theta is 0.0, which would result in a divide
@@ -681,17 +683,17 @@ class Base(Device):
                                + icc_y - prev_y)
 
                 # update the estimated total time passed since odometry started
-                self.status['pose_time_s'] = self.status['pose_time_s'] + average_delta_t_s
+                self.status.pose_time_s = self.status.pose_time_s + average_delta_t_s
 
                 # update the robot's velocity estimates
-                self.status['x_vel'] = delta_travel / average_delta_t_s
-                self.status['y_vel'] = 0.0
-                self.status['theta_vel'] = delta_theta / average_delta_t_s
+                self.status.x_vel = delta_travel / average_delta_t_s
+                self.status.y_vel = 0.0
+                self.status.theta_vel = delta_theta / average_delta_t_s
 
                 # update the robot's pose estimates
-                self.status['x'] = prev_x + delta_x
-                self.status['y'] = prev_y + delta_y
-                self.status['theta'] = (prev_theta + delta_theta) % (2.0 * pi)
+                self.status.x = prev_x + delta_x
+                self.status.y = prev_y + delta_y
+                self.status.theta = (prev_theta + delta_theta) % (2.0 * pi)
 
     # ############## Deprecated Contact API ##################
 

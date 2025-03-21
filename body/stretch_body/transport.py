@@ -4,13 +4,15 @@ import time
 import struct
 import array as arr
 import stretch_body.cobbs_framing as cobbs_framing
-import copy
 import fcntl
 import logging
 import math
 import threading
 import aioserial
 import asyncio
+
+from body.stretch_body.models.status_transaction_handler import StatusTransactionHandler
+from body.stretch_body.models.status_transport import StatusTransport
 
 """
 
@@ -73,12 +75,12 @@ RPC_TRANSPORT_VERSION_1 = 1
 
 
 class SyncTransactionHandler():
-    def __init__(self, port_name, ser, logger, lock):
+    def __init__(self, port_name:str, ser: aioserial.AioSerial, logger:logging.Logger, lock:threading.Lock):
         self.ser = ser
         self.logger = logger
         self.port_name = port_name
         self.empty_frame = arr.array('B', [0] * RPC_MAX_FRAME_SIZE)
-        self.status = {'read_error': 0, 'write_error': 0, 'transactions': 0}
+        self.status = StatusTransactionHandler.init()
         self.version = RPC_TRANSPORT_VERSION_0
         self.timeout = 1 # was .2  # Was .05 but on heavy loads can get starved
         self.packet_marker = 0
@@ -161,7 +163,7 @@ class SyncTransactionHandler():
     def do_rpc(self, push, payload, reply_callback, exiting=False):
         if not self.ser:
             return
-        self.status['transactions'] += 1
+        self.status.transactions += 1
         if exiting:
             time.sleep(0.1)  # May have been a hard exit, give time for bad data to land, remove, do final RPC
             self.ser.reset_output_buffer()
@@ -179,12 +181,12 @@ class SyncTransactionHandler():
                     self.do_transaction_v0(payload, reply_callback)
                 elif self.version == RPC_TRANSPORT_VERSION_1:
                     self.do_pull_transaction_v1(payload, reply_callback)
+        except serial.SerialTimeoutException as e:
+            self.status.write_error += 1
+            print("SerialException({0}): {1}".format(e.errno, e.strerror))
         except IOError as e:
             print("IOError({0}): {1}".format(e.errno, e.strerror))
-            self.status['read_error'] += 1
-        except serial.SerialTimeoutException as e:
-            self.status['write_error'] += 1
-            print("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.status.read_error += 1
 
     def do_push_transaction_v1(self, rpc_data, rpc_callback):
         """
@@ -253,20 +255,20 @@ class SyncTransactionHandler():
             if self.dbg_on:
                 print('---- Debug Exception')
                 print(self.dbg_buf)
-            self.status['read_error'] += 1
+            self.status.read_error += 1
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
             self.logger.error("TransportError: %s : %s" % (self.port_name, str(e)))
         except serial.SerialTimeoutException as e:
-            self.status['write_error'] += 1
-            self.ser = None
+            self.status.write_error += 1
+            self.ser.close()
             self.logger.error("SerialTimeoutException: %s : %s" % (self.port_name, str(e)))
         except serial.SerialException as e:
             self.logger.error("SerialException: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         except TypeError as e:
             self.logger.error("TypeError: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         return False
 
     def do_pull_transaction_v1(self, rpc_data, rpc_callback):
@@ -313,20 +315,20 @@ class SyncTransactionHandler():
             if self.dbg_on:
                 print('---- Debug Exception')
                 print(self.dbg_buf)
-            self.status['read_error'] += 1
+            self.status.read_error += 1
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
             self.logger.error("TransportError: %s : %s" % (self.port_name, str(e)))
         except serial.SerialTimeoutException as e:
-            self.status['write_error'] += 1
-            self.ser = None
+            self.status.write_error += 1
+            self.ser.close()
             self.logger.error("SerialTimeoutException: %s : %s" % (self.port_name, str(e)))
         except serial.SerialException as e:
             self.logger.error("SerialException: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         except TypeError as e:
             self.logger.error("TypeError: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         return False
 
     def do_transaction_v0(self, rpc, rpc_callback):  # Handle a single RPC transaction
@@ -439,17 +441,17 @@ class SyncTransactionHandler():
             if self.dbg_on:
                 print('---- Debug Exception')
                 print(self.dbg_buf)
-            self.status['read_error'] += 1
+            self.status.read_error += 1
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
             self.logger.error("TransportError: %s : %s" % (self.port_name, str(e)))
         except serial.SerialTimeoutException as e:
-            self.status['write_error'] += 1
-            self.ser = None
+            self.status.write_error += 1
+            self.ser.close()
             self.logger.error("SerialTimeoutException: %s : %s" % (self.port_name, str(e)))
         except serial.SerialException as e:
             self.logger.error("SerialException: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         # except TypeError as e:
         #     self.logger.error("TypeError: %s : %s" % (self.port_name, str(e)))
         #     self.ser=None
@@ -489,7 +491,7 @@ class AsyncTransactionHandler(SyncTransactionHandler):
     async def do_rpc(self, push, payload, reply_callback, exiting=False):
         if not self.ser:
             return
-        self.status['transactions'] += 1
+        self.status.transactions += 1
         # if exiting:
         #     time.sleep(0.1) #May have been a hard exit, give time for bad data to land, remove, do final RPC
         #     self.ser.reset_output_buffer()
@@ -507,12 +509,12 @@ class AsyncTransactionHandler(SyncTransactionHandler):
                     await self.do_transaction_v0(payload, reply_callback)
                 elif self.version == RPC_TRANSPORT_VERSION_1:
                     await self.do_pull_transaction_v1(payload, reply_callback)
+        except serial.SerialTimeoutException as e:
+            self.status.write_error += 1
+            print("SerialException({0}): {1}".format(e.errno, e.strerror))
         except IOError as e:
             print("IOError({0}): {1}".format(e.errno, e.strerror))
-            self.status['read_error'] += 1
-        except serial.SerialTimeoutException as e:
-            self.status['write_error'] += 1
-            print("SerialException({0}): {1}".format(e.errno, e.strerror))
+            self.status.read_error += 1
 
     async def do_pull_transaction_v1(self, rpc_data, rpc_callback):
         """
@@ -557,20 +559,20 @@ class AsyncTransactionHandler(SyncTransactionHandler):
             if self.dbg_on:
                 print('---- Debug Exception')
                 print(self.dbg_buf)
-            self.status['read_error'] += 1
+            self.status.read_error += 1
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
             self.logger.error("TransportError: %s : %s" % (self.port_name, str(e)))
         except serial.SerialTimeoutException as e:
-            self.status['write_error'] += 1
-            self.ser = None
+            self.status.write_error += 1
+            self.ser.close()
             self.logger.error("SerialTimeoutException: %s : %s" % (self.port_name, str(e)))
         except serial.SerialException as e:
             self.logger.error("SerialException: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         except TypeError as e:
             self.logger.error("TypeError: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         return False
 
     async def do_push_transaction_v1(self, rpc_data, rpc_callback):
@@ -645,20 +647,20 @@ class AsyncTransactionHandler(SyncTransactionHandler):
             if self.dbg_on:
                 print('---- Debug Exception')
                 print(self.dbg_buf)
-            self.status['read_error'] += 1
+            self.status.read_error += 1
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
             self.logger.error("TransportError: %s : %s" % (self.port_name, str(e)))
         except serial.SerialTimeoutException as e:
-            self.status['write_error'] += 1
-            self.ser = None
+            self.status.write_error += 1
+            self.ser.close()
             self.logger.error("SerialTimeoutException: %s : %s" % (self.port_name, str(e)))
         except serial.SerialException as e:
             self.logger.error("SerialException: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         except TypeError as e:
             self.logger.error("TypeError: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         return False
 
     async def do_transaction_v0(self, rpc, rpc_callback):  # Handle a single RPC transaction
@@ -773,20 +775,20 @@ class AsyncTransactionHandler(SyncTransactionHandler):
             if self.dbg_on:
                 print('---- Debug Exception')
                 print(self.dbg_buf)
-            self.status['read_error'] += 1
+            self.status.read_error += 1
             self.ser.reset_output_buffer()
             self.ser.reset_input_buffer()
             self.logger.error("TransportError: %s : %s" % (self.port_name, str(e)))
         except serial.SerialTimeoutException as e:
-            self.status['write_error'] += 1
-            self.ser = None
+            self.status.write_error += 1
+            self.ser.close()
             self.logger.error("SerialTimeoutException: %s : %s" % (self.port_name, str(e)))
         except serial.SerialException as e:
             self.logger.error("SerialException: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
         except TypeError as e:
             self.logger.error("TypeError: %s : %s" % (self.port_name, str(e)))
-            self.ser = None
+            self.ser.close()
 
 
 class Transport():
@@ -803,7 +805,7 @@ class Transport():
         self.port_name = usb
         self.logger = logger
         self.lock = threading.Lock()
-        self.status = {}
+        self.status = StatusTransport.init()
         self.empty_payload = arr.array('B', [0] * (RPC_DATA_MAX_BYTES + 1))  # RPC ID + 1024 bytes of data
         self.version = RPC_TRANSPORT_VERSION_0
 
@@ -816,20 +818,20 @@ class Transport():
                                                          lock=self.lock)
             self.sync_handler = SyncTransactionHandler(port_name=self.port_name, ser=self.ser, logger=self.logger,
                                                        lock=self.lock)
-            self.status['async'] = self.async_handler.status
-            self.status['sync'] = self.sync_handler.status
-            if self.ser.isOpen():
+            self.status.asyncHandler = self.async_handler.status
+            self.status.syncHandler = self.sync_handler.status
+            if self.ser.is_open:
                 try:
                     fcntl.flock(self.ser.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 except IOError:
                     self.logger.error(
                         'Port %s is busy. Check if another Stretch Body process is already running' % self.port_name)
                     self.ser.close()
-                    self.ser = None
+                    self.ser.close()
         except serial.SerialException as e:
             self.logger.error("SerialException({0}): {1}".format(e.errno, e.strerror))
-            self.ser = None
-        if self.ser == None:
+            self.ser.close()
+        if not self.ser.is_open:
             self.logger.warning('Unable to open serial port for device %s' % self.port_name)
         return self.ser is not None  # return if hardware connection valid
 
@@ -842,7 +844,7 @@ class Transport():
                 self.logger.error(
                     'Port %s is busy. Check if another Stretch Body process is already running' % self.port_name)
             self.ser.close()
-            self.ser = None
+            self.ser.close()
 
     def get_empty_payload(self):  # Just a fast convience function to create a large array of 'B'
         return self.empty_payload[:]
@@ -949,7 +951,7 @@ def pack_string_t(s, sidx, x):
     return struct.pack_into(str(n) + 's', s, sidx, x)
 
 
-def unpack_string_t(s, n):
+def unpack_string_t(s, n) -> str:
     return (struct.unpack(str(n) + 's', s[:n])[0].strip(b'\x00')).decode('utf-8')
 
 

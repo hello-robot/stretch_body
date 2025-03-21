@@ -152,7 +152,7 @@ class DynamixelXL430():
 
         # Allow sharing of port handler across multiple servos
         self.port_handler = port_handler
-        self.packet_handler= None
+        self.packet_handler:pch.Protocol1PacketHandler|pch.Protocol2PacketHandler
     
     def create_port_handler(self):
         try:

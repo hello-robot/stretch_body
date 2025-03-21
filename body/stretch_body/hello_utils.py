@@ -1,4 +1,5 @@
 from __future__ import print_function
+from dataclasses import dataclass
 import yaml
 import math
 import os
@@ -171,6 +172,17 @@ def pretty_print_dict(title, d):
             pretty_print_dict(k, d[k])
 
 
+@dataclass
+class StatusLoopStats:
+    execution_time_s: float
+    curr_rate_hz: float
+    avg_rate_hz: float
+    supportable_rate_hz: float
+    min_rate_hz: float
+    max_rate_hz: float
+    std_rate_hz: float
+    missed_loops: int
+    num_loops: int
 
 class LoopStats():
     """Track timing statistics for control loops
@@ -182,7 +194,7 @@ class LoopStats():
         self.ts_loop_start = None
         self.ts_loop_end = None
         self.last_ts_loop_start = None
-        self.status = {'execution_time_s': 0,
+        self.status = StatusLoopStats(**{'execution_time_s': 0,
                        'curr_rate_hz': 0,
                        'avg_rate_hz': 0,
                        'supportable_rate_hz': 0,
@@ -190,7 +202,7 @@ class LoopStats():
                        'max_rate_hz': 0,
                        'std_rate_hz': 0,
                        'missed_loops': 0,
-                       'num_loops': 0}
+                       'num_loops': 0})
         self.logger = logging.getLogger(self.loop_name)
         self.curr_rate_history = []
         self.supportable_rate_history = []
@@ -202,67 +214,67 @@ class LoopStats():
     def pretty_print(self):
         print('--------- TimingStats %s -----------' % self.loop_name)
         print('Target rate (Hz): %.2f' % self.target_loop_rate)
-        print('Current rate (Hz): %.2f' % self.status['curr_rate_hz'])
-        print('Average rate (Hz): %.2f' % self.status['avg_rate_hz'])
-        print('Standard deviation of rate history (Hz): %.2f' % self.status['std_rate_hz'])
-        print('Min rate (Hz): %.2f' % self.status['min_rate_hz'])
-        print('Max rate (Hz): %.2f' % self.status['max_rate_hz'])
-        print('Supportable rate (Hz): %.2f' % self.status['supportable_rate_hz'])
-        print('Warnings: %d out of %d' % (self.status['missed_loops'], self.status['num_loops']))
+        print('Current rate (Hz): %.2f' % self.status.curr_rate_hz)
+        print('Average rate (Hz): %.2f' % self.status.avg_rate_hz)
+        print('Standard deviation of rate history (Hz): %.2f' % self.status.std_rate_hz)
+        print('Min rate (Hz): %.2f' % self.status.min_rate_hz)
+        print('Max rate (Hz): %.2f' % self.status.max_rate_hz)
+        print('Supportable rate (Hz): %.2f' % self.status.supportable_rate_hz)
+        print('Warnings: %d out of %d' % (self.status.missed_loops, self.status.num_loops))
 
     def mark_loop_start(self):
-        self.status['num_loops'] += 1
+        self.status.num_loops += 1
         self.ts_loop_start=time.time()
 
         if self.last_ts_loop_start is None: #Wait until have sufficient data
             self.last_ts_loop_start=self.ts_loop_start
             return
 
-        self.status['curr_rate_hz'] = 1.0 / (self.ts_loop_start - self.last_ts_loop_start)
-        self.status['min_rate_hz'] = min(self.status['curr_rate_hz'], self.status['min_rate_hz'])
-        self.status['max_rate_hz'] = max(self.status['curr_rate_hz'], self.status['max_rate_hz'])
+        self.status.curr_rate_hz = 1.0 / (self.ts_loop_start - self.last_ts_loop_start)
+        self.status.min_rate_hz = min(self.status.curr_rate_hz, self.status.min_rate_hz)
+        self.status.max_rate_hz = max(self.status.curr_rate_hz, self.status.max_rate_hz)
 
 
         # Calculate average and supportable loop rate **must be done before marking loop end**
         if len(self.curr_rate_history) >= self.n_history:
             self.curr_rate_history.pop(0)
-        self.curr_rate_history.append(self.status['curr_rate_hz'])
-        self.status['avg_rate_hz'] = np.mean(self.curr_rate_history)
-        self.status['std_rate_hz'] = np.std(self.curr_rate_history)
+        self.curr_rate_history.append(self.status.curr_rate_hz)
+        self.status.avg_rate_hz = np.mean(self.curr_rate_history)
+        self.status.std_rate_hz = np.std(self.curr_rate_history)
         if len(self.supportable_rate_history) >= self.n_history:
             self.supportable_rate_history.pop(0)
-        self.supportable_rate_history.append(1.0 / self.status['execution_time_s'])
-        self.status['supportable_rate_hz'] = np.mean(self.supportable_rate_history)
+        self.supportable_rate_history.append(1.0 / self.status.execution_time_s)
+        self.status.supportable_rate_hz = np.mean(self.supportable_rate_history)
 
         # Log timing stats **must be done before marking loop end**
-        if self.status['num_loops'] % self.debug_freq == 0:
-            self.logger.debug('--------- TimingStats %s %d -----------' % (self.loop_name, self.status['num_loops']))
+        if self.status.num_loops % self.debug_freq == 0:
+            self.logger.debug('--------- TimingStats %s %d -----------' % (self.loop_name, self.status.num_loops))
             self.logger.debug('Target rate: %f' % self.target_loop_rate)
-            self.logger.debug('Current rate (Hz): %f' % self.status['curr_rate_hz'])
-            self.logger.debug('Average rate (Hz): %f' % self.status['avg_rate_hz'])
-            self.logger.debug('Standard deviation of rate history (Hz): %f' % self.status['std_rate_hz'])
-            self.logger.debug('Min rate (Hz): %f' % self.status['min_rate_hz'])
-            self.logger.debug('Max rate (Hz): %f' % self.status['max_rate_hz'])
-            self.logger.debug('Supportable rate (Hz): %f' % self.status['supportable_rate_hz'])
+            self.logger.debug('Current rate (Hz): %f' % self.status.curr_rate_hz)
+            self.logger.debug('Average rate (Hz): %f' % self.status.avg_rate_hz)
+            self.logger.debug('Standard deviation of rate history (Hz): %f' % self.status.std_rate_hz)
+            self.logger.debug('Min rate (Hz): %f' % self.status.min_rate_hz)
+            self.logger.debug('Max rate (Hz): %f' % self.status.max_rate_hz)
+            self.logger.debug('Supportable rate (Hz): %f' % self.status.supportable_rate_hz)
             self.logger.debug('Standard deviation of supportable rate history (Hz): %f' % np.std(self.supportable_rate_history))
-            self.logger.debug('Warnings: %d out of %d' % (self.status['missed_loops'], self.status['num_loops']))
+            self.logger.debug('Warnings: %d out of %d' % (self.status.missed_loops, self.status.num_loops))
             self.logger.debug('Sleep time (s): %f' % self.sleep_time_s)
 
         self.last_ts_loop_start = self.ts_loop_start
 
         # Calculate sleep time to achieve desired loop rate
-        self.sleep_time_s = (1 / self.target_loop_rate) - self.status['execution_time_s']
+        self.sleep_time_s = (1 / self.target_loop_rate) - self.status.execution_time_s
         if self.sleep_time_s < 0.0 and time.time()-self.ts_0>5.0: #Allow 5s for timing to stabilize on startup
-            self.status['missed_loops'] += 1
-            if self.status['missed_loops'] == 1:
-                self.logger.debug('Missed target loop rate of %.2f Hz for %s. Currently %.2f Hz' % (self.target_loop_rate, self.loop_name, self.status['curr_rate_hz']))
+            self.status.missed_loops += 1
+            if self.status.missed_loops == 1:
+                self.logger.debug('Missed target loop rate of %.2f Hz for %s. Currently %.2f Hz' % (self.target_loop_rate, self.loop_name, self.status.curr_rate_hz))
 
     def mark_loop_end(self):
         # First two cycles initialize vars / log
         if self.ts_loop_start is None:
             return
         self.ts_loop_end = time.time()
-        self.status['execution_time_s'] = self.ts_loop_end - self.ts_loop_start
+        self.status.execution_time_s = self.ts_loop_end - self.ts_loop_start
 
 
     def generate_rate_histogram(self, save=None):

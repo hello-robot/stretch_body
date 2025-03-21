@@ -1,4 +1,6 @@
 from __future__ import print_function
+from dataclasses import dataclass
+from body.stretch_body.models.status_dynamixel import StatusDynamixel
 from stretch_body.dynamixel_XL430 import *
 from stretch_body.device import Device
 from stretch_body.trajectories import RevoluteTrajectory
@@ -8,11 +10,17 @@ import termios
 import numpy
 import math
 
+@dataclass
+class StatusDynamixelCommErrorStats:
+    n_rx: int
+    n_tx: int
+    n_gsr: int
+    error_rate_avg_hz: np.floating
 class DynamixelCommErrorStats(Device):
     def __init__(self, name, logger):
         Device.__init__(self, name='dxl_comm_errors')
         self.name=name
-        self.status={'n_rx':0, 'n_tx':0, 'n_gsr': 0, 'error_rate_avg_hz':0}
+        self.status=StatusDynamixelCommErrorStats(**{'n_rx':0, 'n_tx':0, 'n_gsr': 0, 'error_rate_avg_hz':0.0})
         self.rate_log=None
         self.n_log=10
         self.log_idx =0
@@ -22,31 +30,31 @@ class DynamixelCommErrorStats(Device):
 
     def add_error(self,rx=True, gsr=False):
         t = time.time()
-        if type(self.rate_log)==type(None): #First error
+        if self.rate_log is None: #First error
             self.rate_log=numpy.array([0.0] * self.n_log)
         self.rate_log[self.log_idx]=1/(t-self.ts_error_last)
         self.log_idx = (self.log_idx + 1) % self.n_log
-        self.status['error_rate_avg_hz'] = numpy.average(self.rate_log)
+        self.status.error_rate_avg_hz = numpy.average(self.rate_log)
         if rx:
-            self.status['n_rx']+=1
+            self.status.n_rx+=1
         else:
-            self.status['n_tx'] += 1
+            self.status.n_tx += 1
         if gsr:
-            self.status['n_gsr'] += 1
+            self.status.n_gsr += 1
         if t-self.ts_warn_last>self.params['warn_every_s']:
             self.ts_warn_last=t
-            if self.status['error_rate_avg_hz']>self.params['warn_above_rate']:
-                self.logger.warning('Device %s generating %f errors per minute'%(self.name,(self.status['error_rate_avg_hz']*60)))
+            if self.status.error_rate_avg_hz>self.params['warn_above_rate']:
+                self.logger.warning('Device %s generating %f errors per minute'%(self.name,(self.status.error_rate_avg_hz*60)))
         if self.params['verbose']:
             self.pretty_print()
 
     def pretty_print(self):
         print('---- Dynamixel Comm Errors %s ----'%self.name)
-        print('Rate (Hz): %f' % self.status['error_rate_avg_hz'])
-        print('Rate (errors per minute): %f'%(self.status['error_rate_avg_hz']*60))
-        print('Num TX: %f'%self.status['n_tx'])
-        print('Num RX: %f' % self.status['n_rx'])
-        print('Num Group Sync RX: %f' % self.status['n_gsr'])
+        print('Rate (Hz): %f' % self.status.error_rate_avg_hz)
+        print('Rate (errors per minute): %f'%(self.status.error_rate_avg_hz*60))
+        print('Num TX: %f'%self.status.n_tx)
+        print('Num RX: %f' % self.status.n_rx)
+        print('Num Group Sync RX: %f' % self.status.n_gsr)
 
 
 
@@ -59,9 +67,8 @@ class DynamixelHelloXL430(Device):
         try:
             self.chain = chain
             self.hw_valid = False
-            self.status={'timestamp_pc':0,'comm_errors':0,'pos':0,'vel':0,'effort':0,'temp':0,'shutdown':0, 'hardware_error':0,
-                         'input_voltage_error':0,'overheating_error':0,'motor_encoder_error':0,'electrical_shock_error':0,'overload_error':0,
-                         'stalled':0,'stall_overload':0,'pos_ticks':0,'vel_ticks':0,'effort_ticks':0,'watchdog_errors':0}
+            self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
+            self.status= StatusDynamixel.init(self.comm_errors)
             self.thread_rate_hz = 15.0
             self.trajectory = RevoluteTrajectory()
             self._waypoint_ts = None
@@ -92,7 +99,6 @@ class DynamixelHelloXL430(Device):
             self.is_homing=False
             self.status_mux_id = 0
             self.was_runstopped = False
-            self.comm_errors = DynamixelCommErrorStats(name,logger=self.logger)
             self.v_des = None #Track the motion profile settings on servo
             self.a_des = None #Track the motion profile settings on servo
             self.warn_error=False
@@ -109,7 +115,8 @@ class DynamixelHelloXL430(Device):
             self.forced_collision_stop_override = {'pos': False, 'neg':False}
             self._in_collision_stop_override = False
         except KeyError:
-            self.motor=None
+            # self.motor=None
+            ...
 
     # ###########  Device Methods #############
 
@@ -173,13 +180,13 @@ class DynamixelHelloXL430(Device):
         return self.motor.do_ping(verbose)
 
     def check_servo_errors(self):
-        if self.status['overload_error']:
+        if self.status.overload_error:
             msg = 'WARNING: Servo %s in error state: overload_error. Reboot servo with stretch_robot_dynamixel_reboot.py' % self.name
             self.logger.warning(msg)
             self.warn_error = True
             return False
 
-        if self.status['overheating_error']:
+        if self.status.overheating_error:
             msg = 'WARNING: Servo %s in error state: overheating_error. Reboot servo with stretch_robot_dynamixel_reboot.py' % self.name
             self.logger.warning(msg)
             self.warn_error=True
@@ -257,7 +264,7 @@ class DynamixelHelloXL430(Device):
             self.motor.stop(close_port)
             self.hw_valid = False
 
-    def pull_status(self,data=None):
+    def pull_status(self,data:StatusDynamixel|None=None):
         if not self.hw_valid:
             return
 
@@ -287,7 +294,7 @@ class DynamixelHelloXL430(Device):
                         eff = self.motor.get_load()
                     eff_valid = self.motor.last_comm_success
                 else:
-                    eff = self.status['effort_ticks']
+                    eff = self.status.effort_ticks
 
                 if self.status_mux_id == 1:
                     temp = self.motor.get_temp()
@@ -295,7 +302,7 @@ class DynamixelHelloXL430(Device):
                         temp = self.motor.get_temp()
                     temp_valid = self.motor.last_comm_success
                 else:
-                    temp = self.status['temp']
+                    temp = self.status.temp
 
                 if self.status_mux_id == 2:
                     err = self.motor.get_hardware_error()
@@ -303,7 +310,7 @@ class DynamixelHelloXL430(Device):
                         err = self.motor.get_hardware_error()
                     err_valid = self.motor.last_comm_success
                 else:
-                    err = self.status['hardware_error']
+                    err = self.status.hardware_error
 
                 self.status_mux_id = (self.status_mux_id + 1) % 3
 
@@ -323,58 +330,58 @@ class DynamixelHelloXL430(Device):
                     raise DynamixelCommError
                 return
         else:
-            x = data['x']
+            x = data.pos_ticks
             pos_valid = x != None
-            v = data['v']
+            v = data.vel_ticks
             vel_valid = v != None
-            eff = data['eff']
+            eff = data.effort_ticks
             eff_valid = eff != None
-            temp = data['temp']
+            temp = data.temp
             temp_valid = temp != None
-            ts = data['ts']
-            err = data['err']
+            ts = data.timestamp_pc
+            err = data.hardware_error
             err_valid = err != None
 
         #Now update status dictionary
         if pos_valid:
-            self.status['pos_ticks'] = x
-            self.status['pos'] = self.ticks_to_world_rad(float(x))
+            self.status.pos_ticks = x
+            self.status.pos = self.ticks_to_world_rad(float(x))
         if vel_valid:
-            self.status['vel_ticks'] = v
-            self.status['vel'] = self.ticks_to_world_rad_per_sec(float(v))
+            self.status.vel_ticks = v
+            self.status.vel = self.ticks_to_world_rad_per_sec(float(v))
         if eff_valid:
-            self.status['effort_ticks'] = eff
-            self.status['effort'] = self.ticks_to_pct_load(float(eff))
+            self.status.effort_ticks = eff
+            self.status.effort = self.ticks_to_pct_load(float(eff))
         if temp_valid:
-            self.status['temp'] = float(temp)
+            self.status.temp = float(temp)
         if err_valid:
-            self.status['hardware_error'] = err
+            self.status.hardware_error = err
 
-        self.status['timestamp_pc'] = ts
+        self.status.timestamp_pc = ts
 
-        self.status['hardware_error'] = err
-        self.status['input_voltage_error'] = self.status['hardware_error'] & 1 != 0
-        self.status['overheating_error'] = self.status['hardware_error'] & 4 != 0
-        self.status['motor_encoder_error'] = self.status['hardware_error'] & 8 != 0
-        self.status['electrical_shock_error'] = self.status['hardware_error'] & 16 != 0
-        self.status['overload_error'] = self.status['hardware_error'] & 32 != 0
+        self.status.hardware_error = err
+        self.status.input_voltage_error = self.status.hardware_error & 1 != 0
+        self.status.overheating_error = self.status.hardware_error & 4 != 0
+        self.status.motor_encoder_error = self.status.hardware_error & 8 != 0
+        self.status.electrical_shock_error = self.status.hardware_error & 16 != 0
+        self.status.overload_error = self.status.hardware_error & 32 != 0
 
         #Finally flag if stalled at high effort for too long
-        self.status['stalled']=abs(self.status['vel'])<self.params['stall_min_vel']
-        over_eff=abs(self.status['effort']) > self.params['stall_max_effort']
+        self.status.stalled=abs(self.status.vel)<self.params['stall_min_vel']
+        over_eff=abs(self.status.effort) > self.params['stall_max_effort']
 
-        if self.status['stalled']:
+        if self.status.stalled:
             if not over_eff:
                 self.ts_over_eff_start = None
             if over_eff and self.ts_over_eff_start is None: #Mark the start of being stalled and over-effort
                 self.ts_over_eff_start = time.time()
             if self.ts_over_eff_start is not None and time.time()-self.ts_over_eff_start>self.params['stall_max_time']:
-                self.status['stall_overload'] = True
+                self.status.stall_overload = True
             else:
-                self.status['stall_overload'] = False
+                self.status.stall_overload = False
         else:
             self.ts_over_eff_start=None
-            self.status['stall_overload'] = False
+            self.status.stall_overload = False
 
     def mark_zero(self):
         if not self.hw_valid:
@@ -395,7 +402,7 @@ class DynamixelHelloXL430(Device):
         ts = time.time()
         while time.time() - ts < timeout:
             if use_motion_generator:
-                if  self.motor.get_moving_status() & (1 << 1) == 0:
+                if self.motor.get_moving_status() & (1 << 1) == 0:
                     return True
             else:
                 if self.motor.is_moving() == False:
@@ -410,27 +417,27 @@ class DynamixelHelloXL430(Device):
             return
         print('----- HelloXL430 ------ ')
         print('Name',self.name)
-        print('Position (rad)', self.status['pos'])
-        print('Position (deg)', rad_to_deg(self.status['pos']))
-        print('Position (ticks)', self.status['pos_ticks'])
-        print('Velocity (rad/s)', self.status['vel'])
-        print('Velocity (ticks/s)', self.status['vel_ticks'])
-        print('Effort (%)', self.status['effort'])
-        print('Effort (ticks)', self.status['effort_ticks'])
-        print('Temp', self.status['temp'])
+        print('Position (rad)', self.status.pos)
+        print('Position (deg)', rad_to_deg(self.status.pos))
+        print('Position (ticks)', self.status.pos_ticks)
+        print('Velocity (rad/s)', self.status.vel)
+        print('Velocity (ticks/s)', self.status.vel_ticks)
+        print('Effort (%)', self.status.effort)
+        print('Effort (ticks)', self.status.effort_ticks)
+        print('Temp', self.status.temp)
         print('Comm Errors', self.motor.comm_errors)
-        print('Hardware Error', self.status['hardware_error'])
-        print('Hardware Error: Input Voltage Error: ',self.status['input_voltage_error'])
-        print('Hardware Error: Overheating Error: ', self.status['overheating_error'])
-        print('Hardware Error: Motor Encoder Error: ',self.status['motor_encoder_error'])
-        print('Hardware Error: Electrical Shock Error: ', self.status['electrical_shock_error'])
-        print('Hardware Error: Overload Error: ', self.status['overload_error'])
-        print('Watchdog Errors: ',self.status['watchdog_errors'])
-        print('Timestamp PC', self.status['timestamp_pc'])
+        print('Hardware Error', self.status.hardware_error)
+        print('Hardware Error: Input Voltage Error: ',self.status.input_voltage_error)
+        print('Hardware Error: Overheating Error: ', self.status.overheating_error)
+        print('Hardware Error: Motor Encoder Error: ',self.status.motor_encoder_error)
+        print('Hardware Error: Electrical Shock Error: ', self.status.electrical_shock_error)
+        print('Hardware Error: Overload Error: ', self.status.overload_error)
+        print('Watchdog Errors: ',self.status.watchdog_errors)
+        print('Timestamp PC', self.status.timestamp_pc)
         print('Range (ticks)',self.params['range_t'])
         print('Range (rad) [',self.ticks_to_world_rad(self.params['range_t'][0]), ' , ',self.ticks_to_world_rad(self.params['range_t'][1]),']')
-        print('Stalled',self.status['stalled'])
-        print('Stall Overload',self.status['stall_overload'])
+        print('Stalled',self.status.stalled)
+        print('Stall Overload',self.status.stall_overload)
         print('Is Calibrated',self.is_calibrated)
         #self.motor.pretty_print()
 
@@ -480,7 +487,7 @@ class DynamixelHelloXL430(Device):
 
     def get_braking_distance(self,acc=None):
         """Compute distance to brake the joint from the current velocity"""
-        v_curr = self.status['vel']
+        v_curr = self.status.vel
         if acc is None:
             acc=self.params['motion']['max']['accel']
         t_brake = abs(v_curr / acc)  # How long to brake from current speed (s)
@@ -489,7 +496,7 @@ class DynamixelHelloXL430(Device):
 
     def step_sentry(self, robot):
         if self.hw_valid and self.robot_params['robot_sentry']['dynamixel_stop_on_runstop'] and self.params['enable_runstop']:
-            is_runstopped = robot.pimu.status['runstop_event']
+            is_runstopped = robot.pimu.status.runstop_event
             if is_runstopped is not self.was_runstopped:
                 if is_runstopped:
                     self.stop_trajectory()
@@ -519,7 +526,7 @@ class DynamixelHelloXL430(Device):
                         self.enable_torque()
                     if wd_error:
                         self.logger.warning(f'Watchdog error during Velocity control for {self.name}.')
-                        self.status['watchdog_errors']=self.status['watchdog_errors']+1
+                        self.status.watchdog_errors=self.status.watchdog_errors+1
 
             self._update_safety_vel_brake_zone()
     
@@ -532,7 +539,7 @@ class DynamixelHelloXL430(Device):
         distance_to_limit = min(delta1,delta2)
         brake_zone_factor = self.params['motion']['vel_brakezone_factor'] # Propotional value, for now value 1 seems to work fine with all Dxl joints
         if distance_to_limit!=0:
-            brake_zone_thresh = brake_zone_factor*abs(self.status['vel'])/distance_to_limit
+            brake_zone_thresh = brake_zone_factor*abs(self.status.vel)/distance_to_limit
             brake_zone_thresh =  self.bound_value(brake_zone_thresh,0,self.total_range/2)
             brake_zone_thresh = brake_zone_thresh + 0.3 #0.3 rad is minimum brake zone thresh  
             self._set_vel_brake_thresh(brake_zone_thresh)
@@ -541,7 +548,7 @@ class DynamixelHelloXL430(Device):
         self.vel_brake_zone_thresh = thresh
 
     def get_dist_to_limits(self,threshold=0.2):
-        current_position = self.status['pos']
+        current_position = self.status.pos
         min_position = self.get_soft_motion_limits()[0]
         max_position =self.get_soft_motion_limits()[1]
         delta1 = abs(current_position - min_position)
@@ -657,15 +664,15 @@ class DynamixelHelloXL430(Device):
         if self._prev_set_vel_ts is None:
             self._prev_set_vel_ts = time.time()
         
-        if self.status['timestamp_pc']>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency for accurate motion control
+        if self.status.timestamp_pc>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency for accurate motion control
             # Honor joint limits in velocity mode
             lim_lower = min(self.ticks_to_world_rad(self.params['range_t'][0]),
                             self.ticks_to_world_rad(self.params['range_t'][1]))
             lim_upper = max(self.ticks_to_world_rad(self.params['range_t'][0]),
                             self.ticks_to_world_rad(self.params['range_t'][1]))
             
-            v_curr = self.status['vel']
-            x_curr = self.status['pos']
+            v_curr = self.status.vel
+            x_curr = self.status.pos
 
             to_min = abs(x_curr - lim_lower)
             to_max = abs(x_curr - lim_upper)
@@ -733,19 +740,19 @@ class DynamixelHelloXL430(Device):
             print('Dynamixel not calibrated:', self.name)
             return
 
-        if self.forced_collision_stop_override['pos'] and self.status['pos']<x_des:
+        if self.forced_collision_stop_override['pos'] and self.status.pos<x_des:
             self.logger.warning(f"move_to in Forced Collision stop. Motion disabled in direction {'pos'} for {self.name}. Not executing move_to")
             return
 
-        if self.forced_collision_stop_override['neg'] and self.status['pos']>x_des:
+        if self.forced_collision_stop_override['neg'] and self.status.pos>x_des:
             self.logger.warning(f"move_to in Forced Collision stop. Motion disabled in direction {'neg'} for {self.name}. Not executing move_to")
             return
 
-        if self.in_collision_stop['pos'] and self.status['pos']<x_des:
+        if self.in_collision_stop['pos'] and self.status.pos<x_des:
             self.logger.warning('move_to in collision. Motion disabled in direction %s for %s. Not executing move_to'%('pos',self.name))
             return
 
-        if self.in_collision_stop['neg'] and self.status['pos']>x_des:
+        if self.in_collision_stop['neg'] and self.status.pos>x_des:
             self.logger.warning('move_to in collision. Motion disabled in direction %s for %s. Not executing move_to'%('neg',self.name))
             return
 
@@ -812,13 +819,13 @@ class DynamixelHelloXL430(Device):
                 if self.motor.last_comm_success:
                     cx=self.ticks_to_world_rad(x)
 
-                    if self.in_collision_stop['pos'] and self.status['pos'] < cx + x_des:
+                    if self.in_collision_stop['pos'] and self.status.pos < cx + x_des:
                         self.logger.warning(
                             'move_by in collision. Motion disabled in direction %s for %s. Not executing move_by' % (
                             'pos', self.name))
                         return
 
-                    if self.in_collision_stop['neg'] and self.status['pos'] > cx + x_des:
+                    if self.in_collision_stop['neg'] and self.status.pos > cx + x_des:
                         self.logger.warning(
                             'move_by in collision. Motion disabled in direction %s for %s. Not executing move_by' % (
                             'neg', self.name))
@@ -901,7 +908,7 @@ class DynamixelHelloXL430(Device):
 
     def get_trajectory_ts(self):
         #Return trajectory execution time
-        if self.is_trajectory_active():
+        if self.is_trajectory_active() and self._waypoint_ts:
             return time.time()-self._waypoint_ts
         elif len(self.trajectory.waypoints):
             return self.trajectory.waypoints[-1].time
@@ -971,7 +978,7 @@ class DynamixelHelloXL430(Device):
                 self.logger.warning('Dynamixel unable to reach starting point')
                 return False
         else:
-            if not np.isclose(self.trajectory[0].position, self.status['pos'], atol=self.params['distance_tol']):
+            if not np.isclose(self.trajectory[0].position, self.status.pos, atol=self.params['distance_tol']):
                 self.logger.warning("Can't start joint traj: first waypoint doesn't match current position")
                 return False
 
@@ -1025,8 +1032,8 @@ class DynamixelHelloXL430(Device):
     def _step_trajectory_vel_ctrl(self,p1, v1,a1):
         # Command the instantaneious spline velocity to the servo velocity controller
         # Add a proportional term on the position error to zero out small errors at low velocity
-        x_curr = self.status['pos']
-        v_curr = self.status['vel']
+        x_curr = self.status.pos
+        v_curr = self.status.vel
         v1=v1-self.params['motion']['trajectory_vel_ctrl_kP']*(x_curr-p1)
         v_des = self.world_rad_to_ticks_per_sec(v1)
         # Honor joint limits in velocity mode
@@ -1063,7 +1070,7 @@ class DynamixelHelloXL430(Device):
         self.enable_torque()
         if wd_error:
             self.logger.warning('Watchdog error during trajectory execution for %s. Unable to maintain update rates.' % self.name)
-            self.status['watchdog_errors']=self.status['watchdog_errors']+1
+            self.status.watchdog_errors=self.status.watchdog_errors+1
         return not wd_error
 
 # ##########################################
@@ -1073,14 +1080,14 @@ class DynamixelHelloXL430(Device):
     Homing
     ==============
     * Move with a fixed PWM to a hardstop
-    * Store the current position (ticks) in the EEPROM homing offset such that self.motor.status['pos']==0 at that hardstop
+    * Store the current position (ticks) in the EEPROM homing offset such that self.motor.status.pos==0 at that hardstop
     
     Calibration to SI / joint range:
     ===============
     Once homed, the servo can move to positions within self.params.range_t (ticks).
     The 'Joint Zero' (self.params.zero_t) is different than the 'Servo Zero'. Per the homing procedure, Servo Zero is at one hardstop
     Joint Zero is an offset (ticks) from Servo Zero that is added/subtracted to commanded/reported values
-    Thus when self.motor.status['pos']==self.params.zero_t, self.status['pos]=0 (rad)
+    Thus when self.motor.status.pos==self.params.zero_t, self.status.pos=0 (rad)
     
     There is an added complexity with how Dynamixels handle position reporting in multi-turn and single-turn mode
     In multi-turn mode, position values and homing values can be large (+/-2B, +/-1M)

@@ -82,7 +82,7 @@ class Device:
     def stop(self):
         """Shuts down machinery started in `startup()`
         """
-        if self.thread_active:
+        if self.thread_active and self.thread:
             self.thread_shutdown_flag.set()
             self.thread.join(1)
 
@@ -150,6 +150,8 @@ class Device:
         self.pull_status()
 
     def _thread_target(self):
+        if not self.thread_stats:
+            return
         self.logger.debug('Starting {0}'.format(self.thread_stats.loop_name))
         while not self.thread_shutdown_flag.is_set():
             self.thread_stats.mark_loop_start()

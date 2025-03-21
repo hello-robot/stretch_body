@@ -1,4 +1,6 @@
 from __future__ import print_function
+from body.stretch_body.models.command_stepper import CommandStepper
+from body.stretch_body.models.status_stepper import StatusStepper
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
@@ -128,13 +130,8 @@ class StepperBase(Device):
         self.usb=usb
         self.transport = Transport(usb=self.usb, logger=self.logger)
 
-        self._command = {'mode':0, 'x_des':0,'v_des':0,'a_des':0,'stiffness':1.0,'i_feedforward':0.0,'i_contact_pos':0,'i_contact_neg':0,'incr_trigger':0}
-        self.status = {'mode': 0, 'effort_ticks': 0, 'effort_pct':0,'current':0,'pos': 0, 'vel': 0, 'err':0,'diag': 0,'timestamp': 0, 'debug':0,'guarded_event':0,
-                       'transport': self.transport.status,'pos_calibrated':0,'runstop_on':0,'near_pos_setpoint':0,'near_vel_setpoint':0,
-                       'is_moving':0,'is_moving_filtered':0,'at_current_limit':0,'is_mg_accelerating':0,'is_mg_moving':0,'calibration_rcvd': 0,'in_guarded_event':0,
-                       'in_safety_event':0,'waiting_on_sync':0,'in_sync_mode':0,'trace_on':0,'ctrl_cycle_cnt':0,
-                       'waypoint_traj':{'state':'idle','setpoint':None, 'segment_id':0,},
-                       'voltage':0}
+        self._command = CommandStepper.init()
+        self.status = StatusStepper.init(self.transport.status)
 
         self.status_aux={'cmd_cnt_rpc':0,'cmd_cnt_exec':0,'cmd_rpc_overflow':0,'sync_irq_cnt':0,'sync_irq_overflow':0}
 
@@ -193,7 +190,7 @@ class StepperBase(Device):
         self.hw_valid = False
 
     def is_sync_required(self, ts_last_sync):
-        return self.status['in_sync_mode'] and self.ts_last_syncd_motion > ts_last_sync
+        return self.status.in_sync_mode and self.ts_last_syncd_motion > ts_last_sync
 
     def push_command(self, exiting=False):
         if not self.hw_valid:
@@ -214,7 +211,7 @@ class StepperBase(Device):
             self._dirty_gains = False
 
         if self._dirty_command:
-            if self.status['in_sync_mode']:  # Mark the time of latest new motion command sent
+            if self.status.in_sync_mode:  # Mark the time of latest new motion command sent
                 self.ts_last_syncd_motion = time.time()
             else:
                 self.ts_last_syncd_motion = 0
@@ -243,7 +240,7 @@ class StepperBase(Device):
             self._dirty_gains = False
 
         if self._dirty_command:
-            if self.status['in_sync_mode']: #Mark the time of latest new motion command sent
+            if self.status.in_sync_mode: #Mark the time of latest new motion command sent
                 self.ts_last_syncd_motion=time.time()
             else:
                 self.ts_last_syncd_motion = 0
@@ -290,8 +287,8 @@ class StepperBase(Device):
     def step_sentry(self, robot):
         if self.hw_valid and self.robot_params['robot_sentry']['stepper_is_moving_filter']:
             self.is_moving_history.pop(0)
-            self.is_moving_history.append(self.status['is_moving'])
-            self.status['is_moving_filtered'] = max(set(self.is_moving_history), key=self.is_moving_history.count)
+            self.is_moving_history.append(self.status.is_moving)
+            self.status.is_moving_filtered = max(set(self.is_moving_history), key=self.is_moving_history.count)
 
     # ###########################################################################
     # ###########################################################################
@@ -330,7 +327,7 @@ class StepperBase(Device):
         self._dirty_trigger=True
 
     def mark_position(self,x):
-        if self.status['mode']!=self.MODE_SAFETY:
+        if self.status.mode!=self.MODE_SAFETY:
             self.logger.warning('Can not mark position. Must be in MODE_SAFETY for %s'%self.usb)
             return
         self._trigger_data=x
@@ -365,13 +362,13 @@ class StepperBase(Device):
         self.set_command(mode=self.MODE_VEL_PID, v_des=0)
 
     def enable_pos_pid(self):
-        self.set_command(mode=self.MODE_POS_PID, x_des=self.status['pos'])
+        self.set_command(mode=self.MODE_POS_PID, x_des=self.status.pos)
 
     def enable_vel_traj(self):
         self.set_command(mode=self.MODE_VEL_TRAJ, v_des=0)
 
     def enable_pos_traj(self):
-        self.set_command(mode=self.MODE_POS_TRAJ, x_des=self.status['pos'])
+        self.set_command(mode=self.MODE_POS_TRAJ, x_des=self.status.pos)
 
     def enable_pos_traj_waypoint(self):
         raise NotImplementedError('This method not supported for firmware on protocol {0}.'
@@ -436,51 +433,51 @@ class StepperBase(Device):
             return
         
         if mode is not None:
-            self._command['mode'] = mode
+            self._command.mode = mode
 
         if x_des is not None:
-            self._command['x_des'] = x_des
-            if self._command['mode'] == self.MODE_POS_TRAJ_INCR:
-                self._command['incr_trigger'] = (self._command['incr_trigger']+1)%255
+            self._command.x_des = x_des
+            if self._command.mode == self.MODE_POS_TRAJ_INCR:
+                self._command.incr_trigger = (self._command.incr_trigger+1)%255
 
         if v_des is not None:
-            self._command['v_des'] = v_des
+            self._command.v_des = v_des
         else:
             if mode == self.MODE_VEL_PID or mode == self.MODE_VEL_TRAJ:
-                self._command['v_des'] = 0
+                self._command.v_des = 0
             else:
-                self._command['v_des'] = self.params['motion']['vel']
+                self._command.v_des = self.params['motion']['vel']
 
         if a_des is not None:
-            self._command['a_des'] = a_des
+            self._command.a_des = a_des
         else:
-            self._command['a_des'] = self.params['motion']['accel']
+            self._command.a_des = self.params['motion']['accel']
 
         if stiffness is not None:
-            self._command['stiffness'] = max(0.0, min(1.0, stiffness))
+            self._command.stiffness = max(0.0, min(1.0, stiffness))
         else:
-            self._command['stiffness'] =1
+            self._command.stiffness =1
 
         if i_feedforward is not None:
-            self._command['i_feedforward'] = i_feedforward
+            self._command.i_feedforward = i_feedforward
         else:
-            self._command['i_feedforward'] = 0
+            self._command.i_feedforward = 0
 
         if i_des is not None and mode == self.MODE_CURRENT:
-            self._command['i_feedforward'] =i_des
+            self._command.i_feedforward =i_des
 
 
         if i_contact_pos is not None:
-            self._command['i_contact_pos'] = i_contact_pos
+            self._command.i_contact_pos = i_contact_pos
         else:
-            self._command['i_contact_pos']=self.params['gains']['i_contact_pos']
+            self._command.i_contact_pos=self.params['gains']['i_contact_pos']
 
         if i_contact_neg is not None:
-            self._command['i_contact_neg'] = i_contact_neg
+            self._command.i_contact_neg = i_contact_neg
         else:
-            self._command['i_contact_neg'] = self.params['gains']['i_contact_neg']
-        #print(time.time(), i_des, self._command['i_feedforward'],mode == self.MODE_CURRENT)
-        #print(time.time(),self._command['x_des'],self._command['incr_trigger'],self._command['v_des'],self._command['a_des'])
+            self._command.i_contact_neg = self.params['gains']['i_contact_neg']
+        #print(time.time(), i_des, self._command.i_feedforward,mode == self.MODE_CURRENT)
+        #print(time.time(),self._command.x_des,self._command.incr_trigger,self._command.v_des,self._command.a_des)
         self._dirty_command=True
 
 
@@ -506,10 +503,10 @@ class StepperBase(Device):
         """
         ts = time.time()
         self.pull_status()
-        while not self.status['near_pos_setpoint'] and time.time() - ts < timeout:
+        while not self.status.near_pos_setpoint and time.time() - ts < timeout:
             time.sleep(0.1)
             self.pull_status()
-        return self.status['near_pos_setpoint']
+        return self.status.near_pos_setpoint
 
     ########### Handle current and effort conversions  ###########
 
@@ -518,16 +515,20 @@ class StepperBase(Device):
     def current_to_effort_ticks(self,i_A):
         if self.board_info['hardware_id']==0: # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
-        if self.board_info['hardware_id']>=1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+        elif self.board_info['hardware_id']>=1: # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
+        else:
+            raise NotImplementedError(f"Hardware is not supported {self.board_info['hardware_id']}")
         effort_ticks = (i_A * 1000.0) / mA_per_tick
         return min(255,max(-255,int(effort_ticks)))
 
     def effort_ticks_to_current(self,e):
         if self.board_info['hardware_id'] == 0:  # I = Vref / (10 * R), Rs = 0.10 Ohm, Vref = 3.3V -->3.3A
             mA_per_tick = (3300 / 255) / (10 * 0.1)
-        if self.board_info['hardware_id'] >= 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
+        elif self.board_info['hardware_id'] >= 1:  # I = Vref / (5 * R), Rs = 0.150 Ohm, Vref = 3.3V -->4.4A
             mA_per_tick = (3300 / 255) / (5 * 0.15)
+        else:
+            raise NotImplementedError(f"Hardware is not supported {self.board_info['hardware_id']}")
         return e * mA_per_tick / 1000.0
 
     # Effort_pct is defined as a percentage of the maximum allowable motor winding current
@@ -735,23 +736,23 @@ class StepperBase(Device):
         return sidx
 
     def pack_command(self, s, sidx):
-        pack_uint8_t(s, sidx, self._command['mode'])
+        pack_uint8_t(s, sidx, self._command.mode)
         sidx += 1
-        pack_float_t(s, sidx, self._command['x_des'])
+        pack_float_t(s, sidx, self._command.x_des)
         sidx += 4
-        pack_float_t(s, sidx, self._command['v_des'])
+        pack_float_t(s, sidx, self._command.v_des)
         sidx += 4
-        pack_float_t(s, sidx, self._command['a_des'])
+        pack_float_t(s, sidx, self._command.a_des)
         sidx += 4
-        pack_float_t(s, sidx, self._command['stiffness'])
+        pack_float_t(s, sidx, self._command.stiffness)
         sidx += 4
-        pack_float_t(s, sidx, self._command['i_feedforward'])
+        pack_float_t(s, sidx, self._command.i_feedforward)
         sidx += 4
-        pack_float_t(s, sidx, self._command['i_contact_pos'])
+        pack_float_t(s, sidx, self._command.i_contact_pos)
         sidx += 4
-        pack_float_t(s, sidx, self._command['i_contact_neg'])
+        pack_float_t(s, sidx, self._command.i_contact_neg)
         sidx += 4
-        pack_uint8_t(s, sidx, self._command['incr_trigger'])
+        pack_uint8_t(s, sidx, self._command.incr_trigger)
         sidx += 1
         return sidx
 
@@ -893,66 +894,66 @@ class Stepper_Protocol_P0(StepperBase):
         if unpack_to is None:
             unpack_to=self.status
         sidx=0
-        unpack_to['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
-        unpack_to['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['current']=self.effort_ticks_to_current(unpack_to['effort_ticks'])
-        unpack_to['effort_pct']=self.current_to_effort_pct(unpack_to['current'])
-        unpack_to['pos'] = unpack_double_t(s[sidx:]);sidx+=8
-        unpack_to['vel'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['err'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
-        unpack_to['debug'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.mode=unpack_uint8_t(s[sidx:]);sidx+=1
+        unpack_to.effort_ticks = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.current=self.effort_ticks_to_current(unpack_to.effort_ticks)
+        unpack_to.effort_pct=self.current_to_effort_pct(unpack_to.current)
+        unpack_to.pos = unpack_double_t(s[sidx:]);sidx+=8
+        unpack_to.vel = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.err = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.diag = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.timestamp = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+        unpack_to.debug = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.guarded_event = unpack_uint32_t(s[sidx:]);sidx += 4
 
-        unpack_to['pos_calibrated'] =unpack_to['diag'] & self.DIAG_POS_CALIBRATED > 0
-        unpack_to['runstop_on'] =unpack_to['diag'] & self.DIAG_RUNSTOP_ON > 0
-        unpack_to['near_pos_setpoint'] =unpack_to['diag'] & self.DIAG_NEAR_POS_SETPOINT > 0
-        unpack_to['near_vel_setpoint'] = unpack_to['diag'] & self.DIAG_NEAR_VEL_SETPOINT > 0
-        unpack_to['is_moving'] =unpack_to['diag'] & self.DIAG_IS_MOVING > 0
-        unpack_to['at_current_limit'] =unpack_to['diag'] & self.DIAG_AT_CURRENT_LIMIT > 0
-        unpack_to['is_mg_accelerating'] = unpack_to['diag'] & self.DIAG_IS_MG_ACCELERATING > 0
-        unpack_to['is_mg_moving'] =unpack_to['diag'] & self.DIAG_IS_MG_MOVING > 0
-        unpack_to['calibration_rcvd'] = unpack_to['diag'] & self.DIAG_CALIBRATION_RCVD > 0
-        unpack_to['in_guarded_event'] = unpack_to['diag'] & self.DIAG_IN_GUARDED_EVENT > 0
-        unpack_to['in_safety_event'] = unpack_to['diag'] & self.DIAG_IN_SAFETY_EVENT > 0
-        unpack_to['waiting_on_sync'] = unpack_to['diag'] & self.DIAG_WAITING_ON_SYNC > 0
+        unpack_to.pos_calibrated =unpack_to.diag & self.DIAG_POS_CALIBRATED > 0
+        unpack_to.runstop_on =unpack_to.diag & self.DIAG_RUNSTOP_ON > 0
+        unpack_to.near_pos_setpoint =unpack_to.diag & self.DIAG_NEAR_POS_SETPOINT > 0
+        unpack_to.near_vel_setpoint = unpack_to.diag & self.DIAG_NEAR_VEL_SETPOINT > 0
+        unpack_to.is_moving =unpack_to.diag & self.DIAG_IS_MOVING > 0
+        unpack_to.at_current_limit =unpack_to.diag & self.DIAG_AT_CURRENT_LIMIT > 0
+        unpack_to.is_mg_accelerating = unpack_to.diag & self.DIAG_IS_MG_ACCELERATING > 0
+        unpack_to.is_mg_moving =unpack_to.diag & self.DIAG_IS_MG_MOVING > 0
+        unpack_to.calibration_rcvd = unpack_to.diag & self.DIAG_CALIBRATION_RCVD > 0
+        unpack_to.in_guarded_event = unpack_to.diag & self.DIAG_IN_GUARDED_EVENT > 0
+        unpack_to.in_safety_event = unpack_to.diag & self.DIAG_IN_SAFETY_EVENT > 0
+        unpack_to.waiting_on_sync = unpack_to.diag & self.DIAG_WAITING_ON_SYNC > 0
         return sidx
 
     def pretty_print(self): #P0
         print('-----------')
-        print('Mode', self.MODE_NAMES[self.status['mode']])
-        print('x_des (rad)', self._command['x_des'], '(deg)',rad_to_deg(self._command['x_des']))
-        print('v_des (rad)', self._command['v_des'], '(deg)',rad_to_deg(self._command['v_des']))
-        print('a_des (rad)', self._command['a_des'], '(deg)',rad_to_deg(self._command['a_des']))
-        print('Stiffness',self._command['stiffness'])
-        print('Feedforward', self._command['i_feedforward'])
-        print('Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos']))
-        print('Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel']))
-        print('Effort (Ticks)', self.status['effort_ticks'])
-        print('Effort (Pct)',self.status['effort_pct'])
-        print('Current (A)', self.status['current'])
+        print('Mode', self.MODE_NAMES[self.status.mode])
+        print('x_des (rad)', self._command.x_des, '(deg)',rad_to_deg(self._command.x_des))
+        print('v_des (rad)', self._command.v_des, '(deg)',rad_to_deg(self._command.v_des))
+        print('a_des (rad)', self._command.a_des, '(deg)',rad_to_deg(self._command.a_des))
+        print('Stiffness',self._command.stiffness)
+        print('Feedforward', self._command.i_feedforward)
+        print('Pos (rad)', self.status.pos, '(deg)',rad_to_deg(self.status.pos))
+        print('Vel (rad/s)', self.status.vel, '(deg)',rad_to_deg(self.status.vel))
+        print('Effort (Ticks)', self.status.effort_ticks)
+        print('Effort (Pct)',self.status.effort_pct)
+        print('Current (A)', self.status.current)
         if self.board_info['hardware_id']>=3:
-            print('Voltage (V)',self.status['voltage'])
-        print('Error (deg)', rad_to_deg(self.status['err']))
-        print('Debug', self.status['debug'])
-        print('Guarded Events:', self.status['guarded_event'])
-        print('Diag', format(self.status['diag'], '032b'))
-        print('       Position Calibrated:', self.status['pos_calibrated'])
-        print('       Runstop on:', self.status['runstop_on'])
-        print('       Near Pos Setpoint:', self.status['near_pos_setpoint'])
-        print('       Near Vel Setpoint:', self.status['near_vel_setpoint'])
-        print('       Is Moving:', self.status['is_moving'])
-        print('       Is Moving Filtered:', self.status['is_moving_filtered'])
-        print('       At Current Limit:', self.status['at_current_limit'])
-        print('       Is MG Accelerating:', self.status['is_mg_accelerating'])
-        print('       Is MG Moving:', self.status['is_mg_moving'])
-        print('       Encoder Calibration in Flash:', self.status['calibration_rcvd'])
-        print('       In Guarded Event:', self.status['in_guarded_event'])
-        print('       In Safety Event:', self.status['in_safety_event'])
-        print('       Waiting on Sync:', self.status['waiting_on_sync'])
-        print('Timestamp (s)', self.status['timestamp'])
-        #print('Read error', self.transport.status['read_error'])
+            print('Voltage (V)',self.status.voltage)
+        print('Error (deg)', rad_to_deg(self.status.err))
+        print('Debug', self.status.debug)
+        print('Guarded Events:', self.status.guarded_event)
+        print('Diag', format(self.status.diag, '032b'))
+        print('       Position Calibrated:', self.status.pos_calibrated)
+        print('       Runstop on:', self.status.runstop_on)
+        print('       Near Pos Setpoint:', self.status.near_pos_setpoint)
+        print('       Near Vel Setpoint:', self.status.near_vel_setpoint)
+        print('       Is Moving:', self.status.is_moving)
+        print('       Is Moving Filtered:', self.status.is_moving_filtered)
+        print('       At Current Limit:', self.status.at_current_limit)
+        print('       Is MG Accelerating:', self.status.is_mg_accelerating)
+        print('       Is MG Moving:', self.status.is_mg_moving)
+        print('       Encoder Calibration in Flash:', self.status.calibration_rcvd)
+        print('       In Guarded Event:', self.status.in_guarded_event)
+        print('       In Safety Event:', self.status.in_safety_event)
+        print('       Waiting on Sync:', self.status.waiting_on_sync)
+        print('Timestamp (s)', self.status.timestamp)
+        #print('Read error', self.transport.status.read_error)
         print('Board variant:', self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
 
@@ -963,81 +964,81 @@ class Stepper_Protocol_P1(StepperBase):
         if unpack_to is None:
             unpack_to=self.status
         sidx=0
-        unpack_to['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
-        unpack_to['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['current']=self.effort_ticks_to_current(unpack_to['effort_ticks'])
-        unpack_to['effort_pct'] = self.current_to_effort_pct(unpack_to['current'])
-        unpack_to['pos'] = unpack_double_t(s[sidx:]);sidx+=8
-        unpack_to['vel'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['err'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-        unpack_to['debug'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        unpack_to['waypoint_traj']['setpoint'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['waypoint_traj']['segment_id'] = unpack_uint16_t(s[sidx:]);sidx += 2
+        unpack_to.mode=unpack_uint8_t(s[sidx:]);sidx+=1
+        unpack_to.effort_ticks = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.current=self.effort_ticks_to_current(unpack_to.effort_ticks)
+        unpack_to.effort_pct = self.current_to_effort_pct(unpack_to.current)
+        unpack_to.pos = unpack_double_t(s[sidx:]);sidx+=8
+        unpack_to.vel = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.err = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.diag = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.timestamp = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+        unpack_to.debug = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.guarded_event = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.waypoint_traj.setpoint = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.waypoint_traj.segment_id = unpack_uint16_t(s[sidx:]);sidx += 2
 
-        unpack_to['pos_calibrated'] =unpack_to['diag'] & self.DIAG_POS_CALIBRATED > 0
-        unpack_to['runstop_on'] =unpack_to['diag'] & self.DIAG_RUNSTOP_ON > 0
-        unpack_to['near_pos_setpoint'] =unpack_to['diag'] & self.DIAG_NEAR_POS_SETPOINT > 0
-        unpack_to['near_vel_setpoint'] = unpack_to['diag'] & self.DIAG_NEAR_VEL_SETPOINT > 0
-        unpack_to['is_moving'] =unpack_to['diag'] & self.DIAG_IS_MOVING > 0
-        unpack_to['at_current_limit'] =unpack_to['diag'] & self.DIAG_AT_CURRENT_LIMIT > 0
-        unpack_to['is_mg_accelerating'] = unpack_to['diag'] & self.DIAG_IS_MG_ACCELERATING > 0
-        unpack_to['is_mg_moving'] =unpack_to['diag'] & self.DIAG_IS_MG_MOVING > 0
-        unpack_to['calibration_rcvd'] = unpack_to['diag'] & self.DIAG_CALIBRATION_RCVD > 0
-        unpack_to['in_guarded_event'] = unpack_to['diag'] & self.DIAG_IN_GUARDED_EVENT > 0
-        unpack_to['in_safety_event'] = unpack_to['diag'] & self.DIAG_IN_SAFETY_EVENT > 0
-        unpack_to['waiting_on_sync'] = unpack_to['diag'] & self.DIAG_WAITING_ON_SYNC > 0
-        unpack_to['in_sync_mode'] = unpack_to['diag'] & self.DIAG_IN_SYNC_MODE > 0
-        if unpack_to['diag'] & self.DIAG_TRAJ_WAITING_ON_SYNC > 0:
-            unpack_to['waypoint_traj']['state']='waiting_on_sync'
-        elif unpack_to['diag'] & self.DIAG_TRAJ_ACTIVE > 0:
-            unpack_to['waypoint_traj']['state']='active'
+        unpack_to.pos_calibrated =unpack_to.diag & self.DIAG_POS_CALIBRATED > 0
+        unpack_to.runstop_on =unpack_to.diag & self.DIAG_RUNSTOP_ON > 0
+        unpack_to.near_pos_setpoint =unpack_to.diag & self.DIAG_NEAR_POS_SETPOINT > 0
+        unpack_to.near_vel_setpoint = unpack_to.diag & self.DIAG_NEAR_VEL_SETPOINT > 0
+        unpack_to.is_moving =unpack_to.diag & self.DIAG_IS_MOVING > 0
+        unpack_to.at_current_limit =unpack_to.diag & self.DIAG_AT_CURRENT_LIMIT > 0
+        unpack_to.is_mg_accelerating = unpack_to.diag & self.DIAG_IS_MG_ACCELERATING > 0
+        unpack_to.is_mg_moving =unpack_to.diag & self.DIAG_IS_MG_MOVING > 0
+        unpack_to.calibration_rcvd = unpack_to.diag & self.DIAG_CALIBRATION_RCVD > 0
+        unpack_to.in_guarded_event = unpack_to.diag & self.DIAG_IN_GUARDED_EVENT > 0
+        unpack_to.in_safety_event = unpack_to.diag & self.DIAG_IN_SAFETY_EVENT > 0
+        unpack_to.waiting_on_sync = unpack_to.diag & self.DIAG_WAITING_ON_SYNC > 0
+        unpack_to.in_sync_mode = unpack_to.diag & self.DIAG_IN_SYNC_MODE > 0
+        if unpack_to.diag & self.DIAG_TRAJ_WAITING_ON_SYNC > 0:
+            unpack_to.waypoint_traj.state='waiting_on_sync'
+        elif unpack_to.diag & self.DIAG_TRAJ_ACTIVE > 0:
+            unpack_to.waypoint_traj.state='active'
         else:
-            unpack_to['waypoint_traj']['state']='idle'
+            unpack_to.waypoint_traj.state='idle'
 
         return sidx
 
     def pretty_print(self): #P1
         print('-----------')
-        print('Mode', self.MODE_NAMES[self.status['mode']])
-        print('x_des (rad)', self._command['x_des'], '(deg)',rad_to_deg(self._command['x_des']))
-        print('v_des (rad)', self._command['v_des'], '(deg)',rad_to_deg(self._command['v_des']))
-        print('a_des (rad)', self._command['a_des'], '(deg)',rad_to_deg(self._command['a_des']))
-        print('Stiffness',self._command['stiffness'])
-        print('Feedforward', self._command['i_feedforward'])
-        print('Pos (rad)', self.status['pos'], '(deg)',rad_to_deg(self.status['pos']))
-        print('Vel (rad/s)', self.status['vel'], '(deg)',rad_to_deg(self.status['vel']))
-        print('Effort (Ticks)', self.status['effort_ticks'])
-        print('Effort (Pct)', self.status['effort_pct'])
-        print('Current (A)', self.status['current'])
+        print('Mode', self.MODE_NAMES[self.status.mode])
+        print('x_des (rad)', self._command.x_des, '(deg)',rad_to_deg(self._command.x_des))
+        print('v_des (rad)', self._command.v_des, '(deg)',rad_to_deg(self._command.v_des))
+        print('a_des (rad)', self._command.a_des, '(deg)',rad_to_deg(self._command.a_des))
+        print('Stiffness',self._command.stiffness)
+        print('Feedforward', self._command.i_feedforward)
+        print('Pos (rad)', self.status.pos, '(deg)',rad_to_deg(self.status.pos))
+        print('Vel (rad/s)', self.status.vel, '(deg)',rad_to_deg(self.status.vel))
+        print('Effort (Ticks)', self.status.effort_ticks)
+        print('Effort (Pct)', self.status.effort_pct)
+        print('Current (A)', self.status.current)
         if self.board_info['hardware_id'] >= 3:
-            print('Voltage (V)', self.status['voltage'])
-        print('Error (deg)', rad_to_deg(self.status['err']))
-        print('Debug', self.status['debug'])
-        print('Guarded Events:', self.status['guarded_event'])
-        print('Diag', format(self.status['diag'], '032b'))
-        print('       Position Calibrated:', self.status['pos_calibrated'])
-        print('       Runstop on:', self.status['runstop_on'])
-        print('       Near Pos Setpoint:', self.status['near_pos_setpoint'])
-        print('       Near Vel Setpoint:', self.status['near_vel_setpoint'])
-        print('       Is Moving:', self.status['is_moving'])
-        print('       Is Moving Filtered:', self.status['is_moving_filtered'])
-        print('       At Current Limit:', self.status['at_current_limit'])
-        print('       Is MG Accelerating:', self.status['is_mg_accelerating'])
-        print('       Is MG Moving:', self.status['is_mg_moving'])
-        print('       Encoder Calibration in Flash:', self.status['calibration_rcvd'])
-        print('       In Guarded Event:', self.status['in_guarded_event'])
-        print('       In Safety Event:', self.status['in_safety_event'])
-        print('       Waiting on Sync:', self.status['waiting_on_sync'])
-        print('       Trace recording:', self.status['trace_on'])
+            print('Voltage (V)', self.status.voltage)
+        print('Error (deg)', rad_to_deg(self.status.err))
+        print('Debug', self.status.debug)
+        print('Guarded Events:', self.status.guarded_event)
+        print('Diag', format(self.status.diag, '032b'))
+        print('       Position Calibrated:', self.status.pos_calibrated)
+        print('       Runstop on:', self.status.runstop_on)
+        print('       Near Pos Setpoint:', self.status.near_pos_setpoint)
+        print('       Near Vel Setpoint:', self.status.near_vel_setpoint)
+        print('       Is Moving:', self.status.is_moving)
+        print('       Is Moving Filtered:', self.status.is_moving_filtered)
+        print('       At Current Limit:', self.status.at_current_limit)
+        print('       Is MG Accelerating:', self.status.is_mg_accelerating)
+        print('       Is MG Moving:', self.status.is_mg_moving)
+        print('       Encoder Calibration in Flash:', self.status.calibration_rcvd)
+        print('       In Guarded Event:', self.status.in_guarded_event)
+        print('       In Safety Event:', self.status.in_safety_event)
+        print('       Waiting on Sync:', self.status.waiting_on_sync)
+        print('       Trace recording:', self.status.trace_on)
         print('Waypoint Trajectory')
-        print('       State:', self.status['waypoint_traj']['state'])
-        print('       Setpoint: (rad) %s | (deg) %s'%(self.status['waypoint_traj']['setpoint'],  rad_to_deg(self.status['waypoint_traj']['setpoint'])))
-        print('       Segment ID:', self.status['waypoint_traj']['segment_id'])
-        print('Timestamp (s)', self.status['timestamp'])
-        #print('Read error', self.transport.status['read_error'])
+        print('       State:', self.status.waypoint_traj.state)
+        print('       Setpoint: (rad) %s | (deg) %s'%(self.status.waypoint_traj.setpoint,  rad_to_deg(self.status.waypoint_traj.setpoint)))
+        print('       Segment ID:', self.status.waypoint_traj.segment_id)
+        print('Timestamp (s)', self.status.timestamp)
+        #print('Read error', self.transport.status.read_error)
         print('Board variant:', self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
 
@@ -1165,19 +1166,19 @@ class Stepper_Protocol_P2(StepperBase):
         return self.trace_buf
     def unpack_debug_trace(self,s,unpack_to):
         sidx=0
-        unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
-        unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
-        unpack_to['f_1'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['f_2'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['f_3'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.u8_1=unpack_uint8_t(s[sidx:]);sidx+=1
+        unpack_to.u8_2 = unpack_uint8_t(s[sidx:]);sidx += 1
+        unpack_to.f_1 = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.f_2 = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.f_3 = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
 
     def unpack_print_trace(self,s,unpack_to):
         sidx=0
         line_len=32
-        unpack_to['timestamp']=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-        unpack_to['line'] = unpack_string_t(s[sidx:], line_len); sidx += line_len
-        unpack_to['x'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.timestamp=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+        unpack_to.line = unpack_string_t(s[sidx:], line_len); sidx += line_len
+        unpack_to.x = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
     def rpc_read_firmware_trace_reply(self, reply):
         if len(reply)>0 and reply[0] == self.RPC_REPLY_READ_TRACE:
@@ -1209,41 +1210,41 @@ class Stepper_Protocol_P2(StepperBase):
         if unpack_to is None:
             unpack_to=self.status
         sidx=0
-        unpack_to['mode']=unpack_uint8_t(s[sidx:]);sidx+=1
-        unpack_to['effort_ticks'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['current']=self.effort_ticks_to_current(unpack_to['effort_ticks'])
-        unpack_to['effort_pct'] = self.current_to_effort_pct(unpack_to['current'])
-        unpack_to['pos'] = unpack_double_t(s[sidx:]);sidx+=8
-        unpack_to['vel'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['err'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['diag'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-        unpack_to['debug'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['guarded_event'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        unpack_to['waypoint_traj']['setpoint'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['waypoint_traj']['segment_id'] = unpack_uint16_t(s[sidx:]);sidx += 2
+        unpack_to.mode=unpack_uint8_t(s[sidx:]);sidx+=1
+        unpack_to.effort_ticks = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.current=self.effort_ticks_to_current(unpack_to.effort_ticks)
+        unpack_to.effort_pct = self.current_to_effort_pct(unpack_to.current)
+        unpack_to.pos = unpack_double_t(s[sidx:]);sidx+=8
+        unpack_to.vel = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.err = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.diag = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.timestamp = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+        unpack_to.debug = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.guarded_event = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.waypoint_traj.setpoint = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.waypoint_traj.segment_id = unpack_uint16_t(s[sidx:]);sidx += 2
 
-        unpack_to['pos_calibrated'] =unpack_to['diag'] & self.DIAG_POS_CALIBRATED > 0
-        unpack_to['runstop_on'] =unpack_to['diag'] & self.DIAG_RUNSTOP_ON > 0
-        unpack_to['near_pos_setpoint'] =unpack_to['diag'] & self.DIAG_NEAR_POS_SETPOINT > 0
-        unpack_to['near_vel_setpoint'] = unpack_to['diag'] & self.DIAG_NEAR_VEL_SETPOINT > 0
-        unpack_to['is_moving'] =unpack_to['diag'] & self.DIAG_IS_MOVING > 0
-        unpack_to['at_current_limit'] =unpack_to['diag'] & self.DIAG_AT_CURRENT_LIMIT > 0
-        unpack_to['is_mg_accelerating'] = unpack_to['diag'] & self.DIAG_IS_MG_ACCELERATING > 0
-        unpack_to['is_mg_moving'] =unpack_to['diag'] & self.DIAG_IS_MG_MOVING > 0
-        unpack_to['calibration_rcvd'] = unpack_to['diag'] & self.DIAG_CALIBRATION_RCVD > 0
-        unpack_to['in_guarded_event'] = unpack_to['diag'] & self.DIAG_IN_GUARDED_EVENT > 0
-        unpack_to['in_safety_event'] = unpack_to['diag'] & self.DIAG_IN_SAFETY_EVENT > 0
-        unpack_to['waiting_on_sync'] = unpack_to['diag'] & self.DIAG_WAITING_ON_SYNC > 0
-        unpack_to['in_sync_mode'] = unpack_to['diag'] & self.DIAG_IN_SYNC_MODE > 0
-        unpack_to['trace_on'] = unpack_to['diag'] & self.DIAG_IS_TRACE_ON > 0
+        unpack_to.pos_calibrated =unpack_to.diag & self.DIAG_POS_CALIBRATED > 0
+        unpack_to.runstop_on =unpack_to.diag & self.DIAG_RUNSTOP_ON > 0
+        unpack_to.near_pos_setpoint =unpack_to.diag & self.DIAG_NEAR_POS_SETPOINT > 0
+        unpack_to.near_vel_setpoint = unpack_to.diag & self.DIAG_NEAR_VEL_SETPOINT > 0
+        unpack_to.is_moving =unpack_to.diag & self.DIAG_IS_MOVING > 0
+        unpack_to.at_current_limit =unpack_to.diag & self.DIAG_AT_CURRENT_LIMIT > 0
+        unpack_to.is_mg_accelerating = unpack_to.diag & self.DIAG_IS_MG_ACCELERATING > 0
+        unpack_to.is_mg_moving =unpack_to.diag & self.DIAG_IS_MG_MOVING > 0
+        unpack_to.calibration_rcvd = unpack_to.diag & self.DIAG_CALIBRATION_RCVD > 0
+        unpack_to.in_guarded_event = unpack_to.diag & self.DIAG_IN_GUARDED_EVENT > 0
+        unpack_to.in_safety_event = unpack_to.diag & self.DIAG_IN_SAFETY_EVENT > 0
+        unpack_to.waiting_on_sync = unpack_to.diag & self.DIAG_WAITING_ON_SYNC > 0
+        unpack_to.in_sync_mode = unpack_to.diag & self.DIAG_IN_SYNC_MODE > 0
+        unpack_to.trace_on = unpack_to.diag & self.DIAG_IS_TRACE_ON > 0
 
-        if unpack_to['diag'] & self.DIAG_TRAJ_WAITING_ON_SYNC > 0:
-            unpack_to['waypoint_traj']['state']='waiting_on_sync'
-        elif unpack_to['diag'] & self.DIAG_TRAJ_ACTIVE > 0:
-            unpack_to['waypoint_traj']['state']='active'
+        if unpack_to.diag & self.DIAG_TRAJ_WAITING_ON_SYNC > 0:
+            unpack_to.waypoint_traj.state='waiting_on_sync'
+        elif unpack_to.diag & self.DIAG_TRAJ_ACTIVE > 0:
+            unpack_to.waypoint_traj.state='active'
         else:
-            unpack_to['waypoint_traj']['state']='idle'
+            unpack_to.waypoint_traj.state='idle'
 
         return sidx
 
@@ -1323,7 +1324,7 @@ class Stepper_Protocol_P3(StepperBase):
 
     def unpack_command_reply(self,s):
         sidx = 0
-        self.status['ctrl_cycle_cnt'] = unpack_uint16_t(s[sidx:])
+        self.status.ctrl_cycle_cnt = unpack_uint16_t(s[sidx:])
         sidx += 2
         return sidx
 
@@ -1341,7 +1342,7 @@ class Stepper_Protocol_P4(StepperBase):
             unpack_to=self.status
         sidx=0
         sidx=sidx+Stepper_Protocol_P2.unpack_status(self,s,unpack_to)
-        unpack_to['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.voltage=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
         return sidx
 
     def get_voltage(self,raw):

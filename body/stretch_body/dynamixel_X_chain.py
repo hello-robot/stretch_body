@@ -1,4 +1,5 @@
 from __future__ import print_function
+from body.stretch_body.models.status_dynamixel import StatusDynamixel
 import stretch_body.hello_utils as hello_utils
 from stretch_body.device import Device
 import time
@@ -7,7 +8,7 @@ import time
 # /opt/ros/melodic/lib/python2.7/dist-packages/dynamixel_sdk/
 from dynamixel_sdk.robotis_def import *
 from stretch_body.dynamixel_XL430 import *
-from stretch_body.dynamixel_hello_XL430 import DynamixelCommErrorStats
+from stretch_body.dynamixel_hello_XL430 import DynamixelCommErrorStats, DynamixelHelloXL430
 import dynamixel_sdk.port_handler as prh
 import dynamixel_sdk.packet_handler as pch
 import dynamixel_sdk.group_sync_read as gsr
@@ -30,12 +31,12 @@ class DynamixelXChain(Device):
         self.hw_valid = False
 
         self.status={}
-        self.motors = {}
+        self.motors:dict[str, DynamixelHelloXL430] = {}
         self.readers={}
         self.comm_errors = DynamixelCommErrorStats(name, logger=self.logger)
         self.status_mux_id = 0
 
-    def add_motor(self,m):
+    def add_motor(self,m : DynamixelHelloXL430):
         self.motors[m.name]=m
 
     def get_motor(self,motor_name):
@@ -196,27 +197,28 @@ class DynamixelXChain(Device):
                 # Build dictionary of status data and push to each motor status
                 # None may indicate comm error or the field wasn't read on this mux cycle
                 for mk in self.motors.keys():
-                    data = {'ts': time.time()}
+                    data = StatusDynamixel.init(self.comm_errors)
+                    data.timestamp_pc = time.time()
                     if pos is not None:
-                        data['x'] = pos[idx]
+                        data.pos_ticks = pos[idx]
                     else:
-                        data['x'] = self.motors[mk].status['pos_ticks']
+                        data.pos_ticks = self.motors[mk].status['pos_ticks']
                     if vel is not None:
-                        data['v'] = vel[idx]
+                        data.vel_ticks = vel[idx]
                     else:
-                        data['v'] = self.motors[mk].status['vel_ticks']
+                        data.vel_ticks = self.motors[mk].status['vel_ticks']
                     if effort is not None:
-                        data['eff'] = effort[idx]
+                        data.effort_ticks = effort[idx]
                     else:
-                        data['eff'] = self.motors[mk].status['effort_ticks']
+                        data.effort_ticks = self.motors[mk].status['effort_ticks']
                     if temp is not None:
-                        data['temp'] = temp[idx]
+                        data.temp = temp[idx]
                     else:
-                        data['temp'] = self.motors[mk].status['temp']
+                        data.temp = self.motors[mk].status['temp']
                     if hardware_error is not None:
-                        data['err'] = hardware_error[idx]
+                        data.hardware_error = hardware_error[idx]
                     else:
-                        data['err'] = self.motors[mk].status['hardware_error']
+                        data.hardware_error = self.motors[mk].status['hardware_error']
                     self.motors[mk].pull_status(data)
                     idx = idx + 1
             else:
@@ -264,10 +266,12 @@ class DynamixelXChain(Device):
             if reader.data_length == 4:
                 val = struct.unpack('i', arr.array('B', [DXL_LOBYTE(DXL_LOWORD(b)), DXL_HIBYTE(DXL_LOWORD(b)),
                                                          DXL_LOBYTE(DXL_HIWORD(b)), DXL_HIBYTE(DXL_HIWORD(b))]))[0]
-            if reader.data_length == 2:
+            elif reader.data_length == 2:
                 val = struct.unpack('h', arr.array('B', [DXL_LOBYTE(b), DXL_HIBYTE(b)]))[0]
-            if reader.data_length == 1:
+            elif reader.data_length == 1:
                 val = struct.unpack('b', arr.array('B', [b]))[0]
+            else:
+                raise ValueError("Unexpected data length.")
             return val
         values = [get_val(self.motors[mk].motor.dxl_id) for mk in self.motors.keys()]
         return values
