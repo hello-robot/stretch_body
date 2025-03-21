@@ -30,7 +30,7 @@ class DynamixelXChain(Device):
         self.port_handler = None
         self.hw_valid = False
 
-        self.status={}
+        self.status:dict[str, StatusDynamixel]={}
         self.motors:dict[str, DynamixelHelloXL430] = {}
         self.readers={}
         self.comm_errors = DynamixelCommErrorStats(name, logger=self.logger)
@@ -202,23 +202,23 @@ class DynamixelXChain(Device):
                     if pos is not None:
                         data.pos_ticks = pos[idx]
                     else:
-                        data.pos_ticks = self.motors[mk].status['pos_ticks']
+                        data.pos_ticks = self.motors[mk].status.pos_ticks
                     if vel is not None:
                         data.vel_ticks = vel[idx]
                     else:
-                        data.vel_ticks = self.motors[mk].status['vel_ticks']
+                        data.vel_ticks = self.motors[mk].status.vel_ticks
                     if effort is not None:
                         data.effort_ticks = effort[idx]
                     else:
-                        data.effort_ticks = self.motors[mk].status['effort_ticks']
+                        data.effort_ticks = self.motors[mk].status.effort_ticks
                     if temp is not None:
                         data.temp = temp[idx]
                     else:
-                        data.temp = self.motors[mk].status['temp']
+                        data.temp = self.motors[mk].status.temp
                     if hardware_error is not None:
                         data.hardware_error = hardware_error[idx]
                     else:
-                        data.hardware_error = self.motors[mk].status['hardware_error']
+                        data.hardware_error = self.motors[mk].status.hardware_error
                     self.motors[mk].pull_status(data)
                     idx = idx + 1
             else:

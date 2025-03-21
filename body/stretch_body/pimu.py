@@ -1,4 +1,6 @@
 from __future__ import print_function
+from body.stretch_body.models.status_imu import StatusImu
+from body.stretch_body.models.status_pimu_base import StatusPimuBase
 from stretch_body.transport import *
 from stretch_body.device import Device
 from stretch_body.hello_utils import *
@@ -24,59 +26,58 @@ class IMUBase(Device):
         #pitch; //-180 to 180, rolls over
         #roll; //-90 to  90, rolls over at 180
         #heading; //0-360.0, rolls over
-        self.status={'ax':0,'ay':0,'az':0,'gx':0,'gy':0,'gz':0,'mx':0,'my':0,'mz':0,'roll':0,'pitch':0,'heading':0,'timestamp':0,'qw':0,'qx':0,'qy':0,'qz':0,'bump':0}
-
+        self.status= StatusImu.init()
     def get_status(self):
         s=self.status.copy()
         return s
 
     def get_quaternion(self):
-        return [self.status['qw'],self.status['qx'],self.status['qy'],self.status['qz']]
+        return [self.status.qw,self.status.qx,self.status.qy,self.status.qz]
     # ####################################################
 
     def pretty_print(self):
         print('----------IMU -------------')
-        print('AX (m/s^2)', self.status['ax'])
-        print('AY (m/s^2)', self.status['ay'])
-        print('AZ (m/s^2)', self.status['az'])
-        print('GX (rad/s)', self.status['gx'])
-        print('GY (rad/s)', self.status['gy'])
-        print('GZ (rad/s)', self.status['gz'])
-        print('MX (uTesla)', self.status['mx'])
-        print('MY (uTesla)', self.status['my'])
-        print('MZ (uTesla)', self.status['mz'])
-        print('QW', self.status['qw'])
-        print('QX', self.status['qx'])
-        print('QY', self.status['qy'])
-        print('QZ', self.status['qz'])
-        print('Roll (deg)', rad_to_deg(self.status['roll']))
-        print('Pitch (deg)', rad_to_deg(self.status['pitch']))
-        print('Heading (deg)', rad_to_deg(self.status['heading']))
-        print('Bump', self.status['bump'])
-        print('Timestamp (s)', self.status['timestamp'])
+        print('AX (m/s^2)', self.status.ax)
+        print('AY (m/s^2)', self.status.ay)
+        print('AZ (m/s^2)', self.status.az)
+        print('GX (rad/s)', self.status.gx)
+        print('GY (rad/s)', self.status.gy)
+        print('GZ (rad/s)', self.status.gz)
+        print('MX (uTesla)', self.status.mx)
+        print('MY (uTesla)', self.status.my)
+        print('MZ (uTesla)', self.status.mz)
+        print('QW', self.status.qw)
+        print('QX', self.status.qx)
+        print('QY', self.status.qy)
+        print('QZ', self.status.qz)
+        print('Roll (deg)', rad_to_deg(self.status.roll))
+        print('Pitch (deg)', rad_to_deg(self.status.pitch))
+        print('Heading (deg)', rad_to_deg(self.status.heading))
+        print('Bump', self.status.bump)
+        print('Timestamp (s)', self.status.timestamp)
         print('-----------------------')
 
     def unpack_status(self, s, unpack_to=None):
         if unpack_to is None:
             unpack_to = self.status
         sidx = 0
-        unpack_to['ax'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['ay'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['az'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['gx'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['gy'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['gz'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['mx'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['my'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['mz'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['roll'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        unpack_to['pitch'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        unpack_to['heading'] = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
-        unpack_to['qw'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['qx'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['qy'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['qz'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['bump'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.ax = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.ay = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.az = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.gx = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.gy = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.gz = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.mx = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.my = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.mz = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.roll = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to.pitch = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to.heading = deg_to_rad(unpack_float_t(s[sidx:]));sidx += 4
+        unpack_to.qw = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.qx = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.qy = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.qz = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.bump = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
 
 
@@ -86,7 +87,7 @@ class IMU_Protocol_P0(IMUBase):
         if unpack_to is None:
             unpack_to = self.status
         sidx =  IMUBase.unpack_status(self, s, unpack_to)
-        self.status['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+        self.status.timestamp = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
         return sidx
 
 # ######################## IMU PROTOCOL P1 #################################
@@ -181,12 +182,7 @@ class PimuBase(Device):
         if usb is None:
             usb = self.params['usb_name']
         self.transport = Transport(usb=usb, logger=self.logger)
-        self.status = {'voltage': 0, 'current': 0, 'temp': 0,'cpu_temp': 0, 'cliff_range':[0,0,0,0], 'frame_id': 0,
-                       'timestamp': 0,'at_cliff':[False,False,False,False], 'runstop_event': False, 'bump_event_cnt': 0,
-                       'cliff_event': False, 'fan_on': False, 'buzzer_on': False, 'low_voltage_alert':False,'high_current_alert':False,'over_tilt_alert':False,
-                       'charger_connected':False, 'boot_detected':False,'imu': self.imu.status,'debug':0,'state':0,'trace_on':0,
-                       'motor_sync_rate': 0, 'motor_sync_cnt': 0, 'motor_sync_queues': 0, 'motor_sync_drop': 0,
-                       'transport': self.transport.status, 'current_charge':0, 'charger_is_charging':False, 'over_tilt_type':0}
+        self.status = StatusPimuBase.init(self.imu.status, self.transport.status)
 
         self.status_zero=self.status.copy()
         self.status_aux = {'foo': 0}
@@ -285,33 +281,33 @@ class PimuBase(Device):
 
     def pretty_print(self):
         print('------ Pimu -----')
-        print('Voltage',self.status['voltage'])
-        print('Current', self.status['current'])
+        print('Voltage',self.status.voltage)
+        print('Current', self.status.current)
         if self.board_info['hardware_id']>=3:
-            print('Current Charge',self.status['current_charge'])
-        print('CPU Temp',self.status['cpu_temp'])
-        print('Board Temp', self.status['temp'])
-        print('State', self.status['state'])
-        print('At Cliff', self.status['at_cliff'])
-        print('Cliff Range', self.status['cliff_range'])
-        print('Cliff Event', self.status['cliff_event'])
-        print('Runstop Event', self.status['runstop_event'])
-        print('Bump Event Cnt', self.status['bump_event_cnt'])
-        print('Fan On', self.status['fan_on'])
-        print('Buzzer On', self.status['buzzer_on'])
-        print('Low Voltage Alert', self.status['low_voltage_alert'])
-        print('High Current Alert', self.status['high_current_alert'])
-        print('Over Tilt Alert',self.status['over_tilt_alert'])
-        print('Trace on:', self.status['trace_on'])
+            print('Current Charge',self.status.current_charge)
+        print('CPU Temp',self.status.cpu_temp)
+        print('Board Temp', self.status.temp)
+        print('State', self.status.state)
+        print('At Cliff', self.status.at_cliff)
+        print('Cliff Range', self.status.cliff_range)
+        print('Cliff Event', self.status.cliff_event)
+        print('Runstop Event', self.status.runstop_event)
+        print('Bump Event Cnt', self.status.bump_event_cnt)
+        print('Fan On', self.status.fan_on)
+        print('Buzzer On', self.status.buzzer_on)
+        print('Low Voltage Alert', self.status.low_voltage_alert)
+        print('High Current Alert', self.status.high_current_alert)
+        print('Over Tilt Alert',self.status.over_tilt_alert)
+        print('Trace on:', self.status.trace_on)
         if self.board_info['hardware_id']>0:
-            print('Charger Connected', self.status['charger_connected'])
-            print('Boot Detected', self.status['boot_detected'])
-        print('Debug', self.status['debug'])
-        print('Timestamp (s)', self.status['timestamp'])
-        #print('Read error', self.transport.status['read_error'])
-        print('Queued motor sync', self.status['motor_sync_queues'])
-        print('Motor sync rate', self.status['motor_sync_rate'])
-        print('Motor sync cnt', self.status['motor_sync_cnt'])
+            print('Charger Connected', self.status.charger_connected)
+            print('Boot Detected', self.status.boot_detected)
+        print('Debug', self.status.debug)
+        print('Timestamp (s)', self.status.timestamp)
+        #print('Read error', self.transport.status.read_error)
+        print('Queued motor sync', self.status.motor_sync_queues)
+        print('Motor sync rate', self.status.motor_sync_rate)
+        print('Motor sync cnt', self.status.motor_sync_cnt)
         print('Board variant:',self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
         print('Transport version:', self.transport.version)
@@ -363,12 +359,12 @@ class PimuBase(Device):
         if self.ts_last_motor_sync is not None:
             rate=1 / (t - self.ts_last_motor_sync)
             if rate>self.params['max_sync_rate_hz']:
-                self.status['motor_sync_drop'] += 1
+                self.status.motor_sync_drop += 1
                 if self.ts_last_motor_sync_warn is None or t-self.ts_last_motor_sync_warn>5.0:
-                    print('Warning: Rate of calls to Pimu:trigger_motor_sync rate of %f above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(rate,self.params['max_sync_rate_hz'],self.status['motor_sync_drop']))
+                    print('Warning: Rate of calls to Pimu:trigger_motor_sync rate of %f above maximum frequency of %.2f Hz. Motor commands dropped: %d'%(rate,self.params['max_sync_rate_hz'],self.status.motor_sync_drop))
                     self.ts_last_motor_sync_warn=t
                 return False
-            self.status['motor_sync_rate'] = rate #Only update rate if it is ready
+            self.status.motor_sync_rate = rate #Only update rate if it is ready
         return True
 
     def trigger_motor_sync(self):
@@ -586,23 +582,23 @@ class PimuBase(Device):
             #See https://www.intel.com/content/www/us/en/support/articles/000005946/intel-nuc.html
 
             if time.time()-self.ts_get_cpu_temp>10.0: #Once every 10s as is slow changing and is a slow sys call
-                self.status['cpu_temp']=self.get_cpu_temp()
+                self.status.cpu_temp=self.get_cpu_temp()
                 self.ts_get_cpu_temp=time.time()
-            if self.status['cpu_temp']>self.params['base_fan_on']:
+            if self.status.cpu_temp>self.params['base_fan_on']:
                 if self.ts_last_fan_on is None or time.time()-self.ts_last_fan_on>3.0: #Will turn itself off if don't refresh command
                     self.set_fan_on()
                     self.push_command()
                     self.ts_last_fan_on = time.time()
-                if  not self.status['fan_on']:
+                if  not self.status.fan_on:
                     self.logger.debug('Base fan turned on')
 
-            if self.fan_on_last and not self.status['fan_on']:
+            if self.fan_on_last and not self.status.fan_on:
                 self.logger.debug('Base fan turned off')
 
-            if self.status['cpu_temp']<self.params['base_fan_off']and self.status['fan_on']:
+            if self.status.cpu_temp<self.params['base_fan_off']and self.status.fan_on:
                 self.set_fan_off()
                 self.push_command()
-            self.fan_on_last = self.status['fan_on']
+            self.fan_on_last = self.status.fan_on
 
 
 
@@ -615,34 +611,34 @@ class Pimu_Protocol_P0(PimuBase):
             unpack_to = self.status
         sidx=0
         sidx +=self.imu.unpack_status((s[sidx:]))
-        unpack_to['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
-        unpack_to['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
-        unpack_to['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.voltage=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.current = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.temp = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
 
         for i in range(4):
-            unpack_to['cliff_range'][i]=unpack_float_t(s[sidx:])
+            unpack_to.cliff_range[i]=unpack_float_t(s[sidx:])
             sidx+=4
 
-        unpack_to['state'] = unpack_uint32_t(s[sidx:])
+        unpack_to.state = unpack_uint32_t(s[sidx:])
         sidx += 4
 
-        unpack_to['at_cliff']=[]
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_0) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_1) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_2) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_3) != 0)
-        unpack_to['runstop_event'] = (unpack_to['state'] & self.STATE_RUNSTOP_EVENT) != 0
-        unpack_to['cliff_event'] = (unpack_to['state'] & self.STATE_CLIFF_EVENT) != 0
-        unpack_to['fan_on'] = (unpack_to['state'] & self.STATE_FAN_ON) != 0
-        unpack_to['buzzer_on'] = (unpack_to['state'] & self.STATE_BUZZER_ON) != 0
-        unpack_to['low_voltage_alert'] = (unpack_to['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
-        unpack_to['high_current_alert'] = (unpack_to['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
-        unpack_to['over_tilt_alert'] = (unpack_to['state'] & self.STATE_OVER_TILT_ALERT) != 0
-        unpack_to['charger_connected'] = (unpack_to['state'] & self.STATE_CHARGER_CONNECTED) != 0
-        unpack_to['boot_detected'] = (unpack_to['state'] & self.STATE_BOOT_DETECTED) != 0
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
-        unpack_to['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
-        unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
+        unpack_to.at_cliff=[]
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_0) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_1) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_2) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_3) != 0)
+        unpack_to.runstop_event = (unpack_to.state & self.STATE_RUNSTOP_EVENT) != 0
+        unpack_to.cliff_event = (unpack_to.state & self.STATE_CLIFF_EVENT) != 0
+        unpack_to.fan_on = (unpack_to.state & self.STATE_FAN_ON) != 0
+        unpack_to.buzzer_on = (unpack_to.state & self.STATE_BUZZER_ON) != 0
+        unpack_to.low_voltage_alert = (unpack_to.state & self.STATE_LOW_VOLTAGE_ALERT) != 0
+        unpack_to.high_current_alert = (unpack_to.state & self.STATE_HIGH_CURRENT_ALERT) != 0
+        unpack_to.over_tilt_alert = (unpack_to.state & self.STATE_OVER_TILT_ALERT) != 0
+        unpack_to.charger_connected = (unpack_to.state & self.STATE_CHARGER_CONNECTED) != 0
+        unpack_to.boot_detected = (unpack_to.state & self.STATE_BOOT_DETECTED) != 0
+        unpack_to.timestamp = self.timestamp.set(unpack_uint32_t(s[sidx:])); sidx += 4
+        unpack_to.bump_event_cnt = unpack_uint16_t(s[sidx:]);sidx += 2
+        unpack_to.debug = unpack_float_t(s[sidx:]); sidx += 4
         return sidx
 
 # ######################## PIMU PROTOCOL P1 #################################
@@ -653,35 +649,35 @@ class Pimu_Protocol_P1(PimuBase):
 
         sidx=0
         sidx +=self.imu.unpack_status((s[sidx:]))
-        unpack_to['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
-        unpack_to['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
-        unpack_to['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.voltage=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.current = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.temp = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
 
         for i in range(4):
-            unpack_to['cliff_range'][i]=unpack_float_t(s[sidx:])
+            unpack_to.cliff_range[i]=unpack_float_t(s[sidx:])
             sidx+=4
 
-        unpack_to['state'] = unpack_uint32_t(s[sidx:])
+        unpack_to.state = unpack_uint32_t(s[sidx:])
         sidx += 4
-        unpack_to['at_cliff']=[]
-        unpack_to['at_cliff'].append((unpack_to['state'] & PimuBase.STATE_AT_CLIFF_0) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_1) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_2) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_3) != 0)
-        unpack_to['runstop_event'] = (unpack_to['state'] & self.STATE_RUNSTOP_EVENT) != 0
-        unpack_to['cliff_event'] = (unpack_to['state'] & self.STATE_CLIFF_EVENT) != 0
-        unpack_to['fan_on'] = (unpack_to['state'] & self.STATE_FAN_ON) != 0
-        unpack_to['buzzer_on'] = (unpack_to['state'] & self.STATE_BUZZER_ON) != 0
-        unpack_to['low_voltage_alert'] = (unpack_to['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
-        unpack_to['high_current_alert'] = (unpack_to['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
-        unpack_to['over_tilt_alert'] = (unpack_to['state'] & self.STATE_OVER_TILT_ALERT) != 0
+        unpack_to.at_cliff=[]
+        unpack_to.at_cliff.append((unpack_to.state & PimuBase.STATE_AT_CLIFF_0) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_1) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_2) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_3) != 0)
+        unpack_to.runstop_event = (unpack_to.state & self.STATE_RUNSTOP_EVENT) != 0
+        unpack_to.cliff_event = (unpack_to.state & self.STATE_CLIFF_EVENT) != 0
+        unpack_to.fan_on = (unpack_to.state & self.STATE_FAN_ON) != 0
+        unpack_to.buzzer_on = (unpack_to.state & self.STATE_BUZZER_ON) != 0
+        unpack_to.low_voltage_alert = (unpack_to.state & self.STATE_LOW_VOLTAGE_ALERT) != 0
+        unpack_to.high_current_alert = (unpack_to.state & self.STATE_HIGH_CURRENT_ALERT) != 0
+        unpack_to.over_tilt_alert = (unpack_to.state & self.STATE_OVER_TILT_ALERT) != 0
         if self.board_info['hardware_id']>0:
-            unpack_to['charger_connected'] = (unpack_to['state'] & self.STATE_CHARGER_CONNECTED) != 0
-            unpack_to['boot_detected'] = (unpack_to['state'] & self.STATE_BOOT_DETECTED) != 0
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
-        self.imu.status['timestamp'] = unpack_to['timestamp']
-        unpack_to['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
-        unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
+            unpack_to.charger_connected = (unpack_to.state & self.STATE_CHARGER_CONNECTED) != 0
+            unpack_to.boot_detected = (unpack_to.state & self.STATE_BOOT_DETECTED) != 0
+        unpack_to.timestamp = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
+        self.imu.status.timestamp = unpack_to.timestamp
+        unpack_to.bump_event_cnt = unpack_uint16_t(s[sidx:]);sidx += 2
+        unpack_to.debug = unpack_float_t(s[sidx:]); sidx += 4
         return sidx
 
 
@@ -703,19 +699,19 @@ class Pimu_Protocol_P2(PimuBase):
 
     def unpack_debug_trace(self,s,unpack_to):
         sidx=0
-        unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
-        unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
-        unpack_to['f_1'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['f_2'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['f_3'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.u8_1=unpack_uint8_t(s[sidx:]);sidx+=1
+        unpack_to.u8_2 = unpack_uint8_t(s[sidx:]);sidx += 1
+        unpack_to.f_1 = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.f_2 = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.f_3 = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
 
     def unpack_print_trace(self,s,unpack_to):
         sidx=0
         line_len=32
-        unpack_to['timestamp']=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-        unpack_to['line'] = unpack_string_t(s[sidx:], line_len); sidx += line_len
-        unpack_to['x'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.timestamp=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+        unpack_to.line = unpack_string_t(s[sidx:], line_len); sidx += line_len
+        unpack_to.x = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
 
     def rpc_read_firmware_trace_reply(self, reply):
@@ -749,37 +745,37 @@ class Pimu_Protocol_P2(PimuBase):
 
         sidx=0
         sidx +=self.imu.unpack_status((s[sidx:]))
-        unpack_to['voltage']=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
-        unpack_to['current'] = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
-        unpack_to['temp'] = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.voltage=self.get_voltage(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.current = self.get_current(unpack_float_t(s[sidx:]));sidx+=4
+        unpack_to.temp = self.get_temp(unpack_float_t(s[sidx:]));sidx+=4
 
         for i in range(4):
-            unpack_to['cliff_range'][i]=unpack_float_t(s[sidx:])
+            unpack_to.cliff_range[i]=unpack_float_t(s[sidx:])
             sidx+=4
 
-        unpack_to['state'] = unpack_uint32_t(s[sidx:])
+        unpack_to.state = unpack_uint32_t(s[sidx:])
         sidx += 4
 
-        unpack_to['at_cliff']=[]
-        unpack_to['at_cliff'].append((unpack_to['state'] & PimuBase.STATE_AT_CLIFF_0) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_1) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_2) != 0)
-        unpack_to['at_cliff'].append((unpack_to['state'] & self.STATE_AT_CLIFF_3) != 0)
-        unpack_to['runstop_event'] = (unpack_to['state'] & self.STATE_RUNSTOP_EVENT) != 0
-        unpack_to['cliff_event'] = (unpack_to['state'] & self.STATE_CLIFF_EVENT) != 0
-        unpack_to['fan_on'] = (unpack_to['state'] & self.STATE_FAN_ON) != 0
-        unpack_to['buzzer_on'] = (unpack_to['state'] & self.STATE_BUZZER_ON) != 0
-        unpack_to['low_voltage_alert'] = (unpack_to['state'] & self.STATE_LOW_VOLTAGE_ALERT) != 0
-        unpack_to['high_current_alert'] = (unpack_to['state'] & self.STATE_HIGH_CURRENT_ALERT) != 0
-        unpack_to['over_tilt_alert'] = (unpack_to['state'] & self.STATE_OVER_TILT_ALERT) != 0
+        unpack_to.at_cliff=[]
+        unpack_to.at_cliff.append((unpack_to.state & PimuBase.STATE_AT_CLIFF_0) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_1) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_2) != 0)
+        unpack_to.at_cliff.append((unpack_to.state & self.STATE_AT_CLIFF_3) != 0)
+        unpack_to.runstop_event = (unpack_to.state & self.STATE_RUNSTOP_EVENT) != 0
+        unpack_to.cliff_event = (unpack_to.state & self.STATE_CLIFF_EVENT) != 0
+        unpack_to.fan_on = (unpack_to.state & self.STATE_FAN_ON) != 0
+        unpack_to.buzzer_on = (unpack_to.state & self.STATE_BUZZER_ON) != 0
+        unpack_to.low_voltage_alert = (unpack_to.state & self.STATE_LOW_VOLTAGE_ALERT) != 0
+        unpack_to.high_current_alert = (unpack_to.state & self.STATE_HIGH_CURRENT_ALERT) != 0
+        unpack_to.over_tilt_alert = (unpack_to.state & self.STATE_OVER_TILT_ALERT) != 0
         if self.board_info['hardware_id']>0:
-            unpack_to['charger_connected'] = (unpack_to['state'] & self.STATE_CHARGER_CONNECTED) != 0
-            unpack_to['boot_detected'] = (unpack_to['state'] & self.STATE_BOOT_DETECTED) != 0
-        unpack_to['trace_on'] = (unpack_to['state'] & self.STATE_IS_TRACE_ON) != 0
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
-        self.imu.status['timestamp'] = unpack_to['timestamp']
-        unpack_to['bump_event_cnt'] = unpack_uint16_t(s[sidx:]);sidx += 2
-        unpack_to['debug'] = unpack_float_t(s[sidx:]); sidx += 4
+            unpack_to.charger_connected = (unpack_to.state & self.STATE_CHARGER_CONNECTED) != 0
+            unpack_to.boot_detected = (unpack_to.state & self.STATE_BOOT_DETECTED) != 0
+        unpack_to.trace_on = (unpack_to.state & self.STATE_IS_TRACE_ON) != 0
+        unpack_to.timestamp = self.timestamp.set(unpack_uint64_t(s[sidx:])); sidx += 8
+        self.imu.status.timestamp = unpack_to.timestamp
+        unpack_to.bump_event_cnt = unpack_uint16_t(s[sidx:]);sidx += 2
+        unpack_to.debug = unpack_float_t(s[sidx:]); sidx += 4
         return sidx
 
 # ######################## PIMU PROTOCOL P3 #################################
@@ -796,18 +792,18 @@ class Pimu_Protocol_P3(PimuBase):
         if not self.hw_valid:
             return
         payload = arr.array('B', [self.RPC_SET_MOTOR_SYNC])
-        old_sync_cnt = self.status['motor_sync_cnt']
+        old_sync_cnt = self.status.motor_sync_cnt
         self.transport.do_push_rpc_sync(payload, self.rpc_motor_sync_reply)
 
         t=time.time()
         # Should motor_sync_cnt should increment with each call to trigger_motor_sync, if not it is an overrun
-        if self.status['motor_sync_cnt'] == old_sync_cnt:
-            self.status['motor_sync_queues']=self.status['motor_sync_queues']+1
-            print('Warning: Queued motor_sync as trigger_motor_sync calls above maximum rate. Overruns: %d' % (self.status['motor_sync_queues']))
+        if self.status.motor_sync_cnt == old_sync_cnt:
+            self.status.motor_sync_queues=self.status.motor_sync_queues+1
+            print('Warning: Queued motor_sync as trigger_motor_sync calls above maximum rate. Overruns: %d' % (self.status.motor_sync_queues))
             self.ts_last_motor_sync_warn = t
 
         if self.ts_last_motor_sync is not None:
-            self.status['motor_sync_rate']=1 / (t - self.ts_last_motor_sync)
+            self.status.motor_sync_rate=1 / (t - self.ts_last_motor_sync)
         self.ts_last_motor_sync = t
 
     def rpc_motor_sync_reply(self,reply):
@@ -821,7 +817,7 @@ class Pimu_Protocol_P3(PimuBase):
         # take in an array of bytes
         # this needs to exactly match the C struct format
         sidx=0
-        self.status['motor_sync_cnt']=  unpack_int16_t(s[sidx:])
+        self.status.motor_sync_cnt=  unpack_int16_t(s[sidx:])
         sidx += 2
         return sidx
 
@@ -882,7 +878,7 @@ class Pimu_Protocol_P4(PimuBase):
             unpack_to = self.status
         sidx = 0
         sidx = sidx + Pimu_Protocol_P2.unpack_status(self, s, unpack_to)
-        self.status['current_charge'] = self.get_current_charge(unpack_float_t(s[sidx:]));sidx += 4
+        self.status.current_charge = self.get_current_charge(unpack_float_t(s[sidx:]));sidx += 4
         return sidx
 
 # ######################## PIMU PROTOCOL P5 #################################
@@ -892,7 +888,7 @@ class Pimu_Protocol_P5(PimuBase):
             unpack_to = self.status
         sidx = 0
         sidx = sidx + Pimu_Protocol_P4.unpack_status(self, s, unpack_to)
-        unpack_to['charger_is_charging'] = (unpack_to['state'] & self.STATE_IS_CHARGER_CHARGING) != 0
+        unpack_to.charger_is_charging = (unpack_to.state & self.STATE_IS_CHARGER_CHARGING) != 0
         return sidx
 
 # ######################## PIMU PROTOCOL P6 #################################
@@ -902,7 +898,7 @@ class Pimu_Protocol_P6(PimuBase):
             unpack_to = self.status
         sidx = 0
         sidx = sidx + Pimu_Protocol_P5.unpack_status(self, s, unpack_to)
-        unpack_to['over_tilt_type'] = self.get_tilt_type(unpack_uint8_t(s[sidx:]));sidx += 1
+        unpack_to.over_tilt_type = self.get_tilt_type(unpack_uint8_t(s[sidx:]));sidx += 1
         return sidx
 # ######################## PIMU #################################
 class Pimu(PimuBase):

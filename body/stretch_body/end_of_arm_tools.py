@@ -151,8 +151,8 @@ class EOA_Wrist_DW3_Tool_SG3(EndOfArm):
     def step_sentry(self, robot):
         super().step_sentry(robot)
         if robot.collision.running:
-            wrist_p = self.get_joint('wrist_pitch').status['pos']
-            wrist_y = self.get_joint('wrist_yaw').status['pos']
+            wrist_p = self.get_joint('wrist_pitch').status.pos
+            wrist_y = self.get_joint('wrist_yaw').status.pos
             if wrist_p > -0.2 and wrist_y < -0.2:
                 # print("In Special Stop")
                 self.get_joint('wrist_yaw').forced_collision_stop_override = {'pos': False, 'neg':True}
@@ -209,14 +209,14 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
     
     def pre_stow(self,robot=None):
         if robot:
-            if robot.lift.status['pos'] > 0.9:
+            if robot.lift.status.pos > 0.9:
                 robot.lift.move_by(-0.2)
             robot.push_command()
             time.sleep(0.25)
-            while robot.lift.motor.status['is_moving']:
+            while robot.lift.motor.status.is_moving:
                 time.sleep(0.1)
 
-        if not (2 > self.motors['wrist_yaw'].status['pos'] > 0):
+        if not (2 > self.motors['wrist_yaw'].status.pos > 0):
             self.move_to('wrist_pitch',-1.57)
     
     def switch_to_portrait_mode(self):
@@ -256,8 +256,8 @@ class EOA_Wrist_DW3_Tool_Tablet_12in(EndOfArm):
     def step_sentry(self, robot):
         super().step_sentry(robot)
         if robot.collision.running:
-            wrist_p = self.get_joint('wrist_pitch').status['pos']
-            wrist_y = self.get_joint('wrist_yaw').status['pos']
+            wrist_p = self.get_joint('wrist_pitch').status.pos
+            wrist_y = self.get_joint('wrist_yaw').status.pos
             # TODO: Add more special conditions around this part
             if wrist_p > -0.2 and wrist_y < 0.18:
                 # print("In Special Stop")

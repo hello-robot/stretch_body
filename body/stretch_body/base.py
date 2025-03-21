@@ -5,7 +5,6 @@ from stretch_body.device import Device
 from stretch_body.trajectories import DiffDriveTrajectory
 from stretch_body.hello_utils import *
 import time
-import logging
 import numpy
 
 from body.stretch_body.models.status_base import StatusBase

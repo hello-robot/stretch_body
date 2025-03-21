@@ -64,8 +64,8 @@ class WristPitch(DynamixelHelloXL430):
         """
         DynamixelHelloXL430.step_sentry(self,robot)
         if self.robot_params['robot_sentry']['wrist_pitch_overload']:
-            if self.status['stall_overload']:
-                if self.status['effort']>0:
+            if self.status.stall_overload:
+                if self.status.effort>0:
                     self.move_by(self.params['stall_backoff'])
                     self.logger.debug('Backoff at stall overload')
                 else:

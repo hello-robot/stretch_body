@@ -4,6 +4,30 @@ from body.stretch_body.dynamixel_hello_XL430 import DynamixelCommErrorStats
 
 
 @dataclass
+class StatusDynamixelGripperConversion:
+    aperture_m: float
+    finger_rad: float
+    finger_effort: float
+    finger_vel: float
+
+    @classmethod
+    def fromDict(cls, json: dict):
+        status = cls(**json)
+        return status
+
+    @classmethod
+    def init(cls):
+        return cls.fromDict(
+            {
+                "aperture_m": 0.0,
+                "finger_rad": 0.0,
+                "finger_effort": 0.0,
+                "finger_vel": 0.0,
+            }
+        )
+
+
+@dataclass
 class StatusDynamixel:
 
     timestamp_pc: float
@@ -25,6 +49,8 @@ class StatusDynamixel:
     vel_ticks: int
     effort_ticks: int
     watchdog_errors: int
+    pos_pct: float
+    gripper_conversion: StatusDynamixelGripperConversion
 
     # For backwards compatibility, allow users to access this with square brackets:
     def __getitem__(self, key):
@@ -34,7 +60,7 @@ class StatusDynamixel:
     def fromDict(cls, json: dict):
         status = cls(**json)
 
-        if not isinstance(status.comm_errors,DynamixelCommErrorStats):
+        if not isinstance(status.comm_errors, DynamixelCommErrorStats):
             status.comm_errors = DynamixelCommErrorStats(**status.comm_errors)
 
         return status
@@ -62,5 +88,7 @@ class StatusDynamixel:
                 "vel_ticks": 0,
                 "effort_ticks": 0,
                 "watchdog_errors": 0,
+                "pos_pct": 0.0,
+                "gripper_conversion": StatusDynamixelGripperConversion.init()
             }
         )

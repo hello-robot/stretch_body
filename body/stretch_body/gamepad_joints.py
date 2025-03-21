@@ -81,8 +81,8 @@ class CommandBase:
         else:
         # Precision Mode
             if self.start_pos is None:
-                self.start_pos = [robot.base.status['x'],robot.base.status['y']]
-                self.start_theta = robot.base.status['theta']
+                self.start_pos = [robot.base.status.x,robot.base.status.y]
+                self.start_theta = robot.base.status.theta
                 self.target_position = self.start_pos
                 self.target_theta = self.start_theta  
             yv = map_to_range(abs(y),0,self.precision_max_linear_vel)
@@ -150,8 +150,8 @@ class CommandBase:
         Returns:
             bool: True if fast navigation safe
         """
-        arm = robot.arm.status['pos'] < (robot.get_stow_pos('arm') + 0.1) # check if arm pos under stow pose + 0.1 m
-        lift = robot.lift.status['pos'] < (robot.get_stow_pos('lift') + 0.05) # check if lift pos is under stow pose + 0.05m
+        arm = robot.arm.status.pos < (robot.get_stow_pos('arm') + 0.1) # check if arm pos under stow pose + 0.1 m
+        lift = robot.lift.status.pos < (robot.get_stow_pos('lift') + 0.05) # check if lift pos is under stow pose + 0.05m
         return arm and lift
 
     def _process_stick_to_vel(self, x, y, robot):
@@ -160,7 +160,7 @@ class CommandBase:
         if self.fast_base_mode and self.is_fastbase_safe(robot):
             max_linear_vel =  self.max_linear_vel
             max_rotation_vel = self.max_rotation_vel
-        if not robot.arm.status['pos'] < (robot.get_stow_pos('arm') + 0.1):
+        if not robot.arm.status.pos < (robot.get_stow_pos('arm') + 0.1):
             max_rotation_vel = self.arm_extended_rotation_vel
         v_m = map_to_range(abs(y), 0, max_linear_vel)
         if y<0:
@@ -224,7 +224,7 @@ class CommandLift:
         if abs(x) < self.dead_zone:
             x = 0
         # x = to_parabola_transform(x)
-        #print('Vel %f Current %f Effort %f'%(robot.lift.status['vel'],robot.lift.motor.status['current'],robot.lift.motor.status['effort_pct']))
+        #print('Vel %f Current %f Effort %f'%(robot.lift.status.vel,robot.lift.motor.status.current,robot.lift.motor.status.effort_pct))
         # Standard Mode
         if not self.precision_mode:
             self.start_pos = None
@@ -235,13 +235,13 @@ class CommandLift:
             # print(f"[CommandLift]  X: {x} || v_m: {self.safety_v_m}")
         else:
         # Precision Mode
-            if abs(robot.lift.status['vel'])>0.001 and not self.stopped_for_precision:
+            if abs(robot.lift.status.vel)>0.001 and not self.stopped_for_precision:
                 # wait till joint stops before recording the start pos
                 self.stop_motion(robot)
             else:
                 self.stopped_for_precision = True
                 if self.start_pos is None:
-                    self.start_pos = robot.lift.status['pos']
+                    self.start_pos = robot.lift.status.pos
                     self.target_position = self.start_pos
             
             r = self.precision_max_vel
@@ -280,7 +280,7 @@ class CommandLift:
     
     def _step_precision_move(self,xv, robot):
         # Read the current joint position
-        current_position = robot.lift.status['pos']
+        current_position = robot.lift.status.pos
 
         # Calculate the time elapsed since the last iteration
         current_time = time.time()
@@ -341,13 +341,13 @@ class CommandArm:
             self._prev_set_vel_ts = time.time()
         else:
         # Precision Mode
-            if abs(robot.arm.status['vel'])>0.001 and not self.stopped_for_precision:
+            if abs(robot.arm.status.vel)>0.001 and not self.stopped_for_precision:
                 # wait till joint stops before recording the start pos
                 self.stop_motion(robot)
             else:
                 self.stopped_for_precision = True
                 if self.start_pos is None:
-                    self.start_pos = robot.arm.status['pos']
+                    self.start_pos = robot.arm.status.pos
                     self.target_position = self.start_pos
                 
             r = self.precision_max_vel
@@ -386,7 +386,7 @@ class CommandArm:
     
     def _step_precision_move(self,xv, robot):
         # Read the current joint position
-        current_position = robot.arm.status['pos']
+        current_position = robot.arm.status.pos
 
         # Calculate the time elapsed since the last iteration
         current_time = time.time()

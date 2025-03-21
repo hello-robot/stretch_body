@@ -6,6 +6,8 @@ import importlib
 import asyncio
 import traceback
 
+from body.stretch_body.models.devices_robot import DevicesRobot
+from body.stretch_body.models.status_robot import StatusRobot
 from stretch_body.device import Device
 import stretch_body.base as base
 import stretch_body.arm as arm
@@ -207,23 +209,17 @@ class Robot(Device):
         self.collision = RobotCollisionMgmt(self)
         self.dirty_push_command = False
         self.lock = threading.RLock() #Prevent status thread from triggering motor sync prematurely
-        self.status = {'pimu': {}, 'base': {}, 'lift': {}, 'arm': {}, 'head': {}, 'wacc': {}, 'end_of_arm': {}}
         self.async_event_loop = None
 
         self.pimu=pimu.Pimu()
-        self.status['pimu']=self.pimu.status
 
         self.base=base.Base()
-        self.status['base']=self.base.status
 
         self.lift=lift.Lift()
-        self.status['lift']=self.lift.status
 
         self.arm=arm.Arm()
-        self.status['arm']=self.arm.status
 
         self.head=head.Head()
-        self.status['head']=self.head.status
 
         if 'custom_wacc' in self.params:
             module_name = self.params['custom_wacc']['py_module_name']
@@ -231,7 +227,6 @@ class Robot(Device):
             self.wacc=getattr(importlib.import_module(module_name), class_name)(self)
         else:
             self.wacc=wacc.Wacc()
-        self.status['wacc']=self.wacc.status
 
         self.non_dxl_thread = None
         self.dxl_end_of_arm_thread = None
@@ -244,8 +239,24 @@ class Robot(Device):
         module_name = self.robot_params[self.eoa_name]['py_module_name']
         class_name = self.robot_params[self.eoa_name]['py_class_name']
         self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
-        self.status['end_of_arm'] = self.end_of_arm.status
-        self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
+        
+        self.devices= DevicesRobot(**{ 'pimu':self.pimu, 
+                                     'base':self.base, 
+                                     'lift':self.lift, 
+                                     'arm': self.arm, 
+                                     'head': self.head, 
+                                     'wacc':self.wacc, 
+                                     'end_of_arm':self.end_of_arm})
+
+        self.status = StatusRobot(
+            pimu=self.pimu.status,
+            base= self.base.status,
+            lift=self.lift.status,
+            arm=self.arm.status,
+            head=self.head.status,
+            wacc=self.wacc.status,
+            end_of_arm=self.end_of_arm.status
+        )
 
         self.GLOBAL_EXCEPTIONS_LIST = []
         threading.excepthook = self.custom_excepthook
@@ -539,8 +550,8 @@ class Robot(Device):
         """
         Returns true if homing has been run all joints that require it
         """
-        ready = self.lift.motor.status['pos_calibrated']
-        ready = ready and self.arm.motor.status['pos_calibrated']
+        ready = self.lift.motor.status.pos_calibrated
+        ready = ready and self.arm.motor.status.pos_calibrated
         for j in self.end_of_arm.joints:
             req = self.end_of_arm.motors[j].params['req_calibration'] and not self.end_of_arm.motors[j].is_calibrated
             ready = ready and not req
@@ -567,13 +578,13 @@ class Robot(Device):
 
         lift_stowed=False
         pos_lift = self.get_stow_pos('lift')
-        if self.lift.status['pos']<=pos_lift: #Needs to come up before bring in arm
+        if self.lift.status.pos<=pos_lift: #Needs to come up before bring in arm
             print('--------- Stowing Lift ----')
             self.lift.move_to(pos_lift)
             self.push_command()
             time.sleep(0.25)
             ts = time.time()
-            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 4.0:
+            while not self.lift.motor.status.near_pos_setpoint and time.time() - ts < 4.0:
                 time.sleep(0.1)
             lift_stowed=True
         
@@ -586,7 +597,7 @@ class Robot(Device):
         self.push_command()
         time.sleep(0.25)
         ts = time.time()
-        while not self.arm.motor.status['near_pos_setpoint'] and time.time() - ts < 6.0:
+        while not self.arm.motor.status.near_pos_setpoint and time.time() - ts < 6.0:
             time.sleep(0.1)
 
         self.end_of_arm.stow()
@@ -599,7 +610,7 @@ class Robot(Device):
             self.push_command()
             time.sleep(0.25)
             ts = time.time()
-            while not self.lift.motor.status['near_pos_setpoint'] and time.time() - ts < 12.0:
+            while not self.lift.motor.status.near_pos_setpoint and time.time() - ts < 12.0:
                 time.sleep(0.1)
         #Make sure wrist yaw is done before exiting
         while self.end_of_arm.motors['wrist_yaw'].motor.is_moving():

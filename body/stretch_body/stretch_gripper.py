@@ -18,15 +18,11 @@ class StretchGripper(DynamixelHelloXL430):
     """
     def __init__(self, chain=None, usb=None, name='stretch_gripper'):
         DynamixelHelloXL430.__init__(self, name, chain, usb)
-        self.status['pos_pct']= 0.0
+        self.status.pos_pct= 0.0
         self.pct_max_open=self.world_rad_to_pct(self.ticks_to_world_rad(self.params['range_t'][1])) #May be a bit greater than 50 given non-linear calibration
         self.poses = {'zero': 0,
                       'open': self.pct_max_open,
                       'close': -100}
-        self.status['gripper_conversion'] = {'aperture_m':0.0,
-                                             'finger_rad':0.0,
-                                             'finger_effort':0.0,
-                                             'finger_vel':0.0}
         self.gripper_conversion = GripperConversion(self.params['gripper_conversion'])
 
     def startup(self, threaded=True):
@@ -37,7 +33,7 @@ class StretchGripper(DynamixelHelloXL430):
 
     def pretty_print(self):
         print('--- StretchGripper ----')
-        print("Position (%)",self.status['pos_pct'])
+        print("Position (%)",self.status.pos_pct)
         DynamixelHelloXL430.pretty_print(self)
 
     def pose(self,p,v_r=None, a_r=None):
@@ -63,14 +59,14 @@ class StretchGripper(DynamixelHelloXL430):
         a_r: acceleration for trapezoidal motion profile (rad/s^2)
         """
         self.pull_status() #Ensure up to date
-        self.move_to(self.status['pos_pct']+delta_pct,v_r,a_r)
+        self.move_to(self.status.pos_pct+delta_pct,v_r,a_r)
 
     ############### Utilities ###############
 
     def pull_status(self,data=None):
         DynamixelHelloXL430.pull_status(self,data)
-        self.status['pos_pct']=self.world_rad_to_pct(self.status['pos'])
-        self.status['gripper_conversion']=self.gripper_conversion.get_status(self.status)
+        self.status.pos_pct=self.world_rad_to_pct(self.status.pos)
+        self.status.gripper_conversion=self.gripper_conversion.get_status(self.status)
 
     def pct_to_world_rad(self,pct):
         pct_to_tick = -1 * ((self.params['zero_t'] - self.params['range_t'][0]) / 100.0)
@@ -92,10 +88,10 @@ class StretchGripper(DynamixelHelloXL430):
         """
         DynamixelHelloXL430.step_sentry(self, robot)
         if self.hw_valid and self.robot_params['robot_sentry']['stretch_gripper_overload'] and not self.is_homing:
-            if self.status['stall_overload']:
+            if self.status.stall_overload:
                 if self.in_vel_mode:
                     self.enable_pos()
-                if self.status['effort'] < 0: #Only backoff in open direction
+                if self.status.effort < 0: #Only backoff in open direction
                     self.logger.debug('Backoff at stall overload')
                     self.move_by(self.params['stall_backoff'])
 

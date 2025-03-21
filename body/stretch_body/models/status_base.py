@@ -28,9 +28,9 @@ class StatusBase:
         status = cls(**json)
 
         if not isinstance(status.left_wheel, StatusStepper):
-            status.left_wheel = StatusStepper.fromDict(json["left_wheel"])
+            status.left_wheel = StatusStepper.fromDict(status.left_wheel)
         if not isinstance(status.right_wheel, StatusStepper):
-            status.right_wheel = StatusStepper.fromDict(json["right_wheel"])
+            status.right_wheel = StatusStepper.fromDict( status.right_wheel)
 
         return status
 

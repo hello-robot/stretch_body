@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+from typing import TYPE_CHECKING
 from stretch_body.device import Device
 from stretch_body import hello_utils as hu
 from os import makedirs
@@ -8,6 +9,8 @@ from yaml import CDumper as Dumper
 import glob
 import time
 
+if TYPE_CHECKING:
+    from body.stretch_body.robot import Robot
 
 class RobotTrace(Device):
     """
@@ -39,36 +42,36 @@ class RobotTrace(Device):
         Callback should take the form:
 
         def my_trace_cb(robot,data):
-            data['wacc.ax']=robot.wacc.status['ax']
+            data['wacc.ax']=robot.wacc.status.ax
             ...
             return data
         """
         self.trace_cbs.append(cb)
 
-    def default_trace(self,robot,data):
+    def default_trace(self,robot:Robot,data):
         data['timestamp']=time.time()
-        data['pimu.voltage']=robot.pimu.status['voltage']
-        data['pimu.current'] = robot.pimu.status['current']
-        data['pimu.cpu_temp'] = robot.pimu.status['cpu_temp']
-        data['pimu.charger_connected'] = robot.pimu.status['charger_connected']
-        data['pimu.runstop_event'] = robot.pimu.status['runstop_event']
-        data['pimu.low_voltage_alert'] = robot.pimu.status['low_voltage_alert']
+        data['pimu.voltage']=robot.pimu.status.voltage
+        data['pimu.current'] = robot.pimu.status.current
+        data['pimu.cpu_temp'] = robot.pimu.status.cpu_temp
+        data['pimu.charger_connected'] = robot.pimu.status.charger_connected
+        data['pimu.runstop_event'] = robot.pimu.status.runstop_event
+        data['pimu.low_voltage_alert'] = robot.pimu.status.low_voltage_alert
 
-        data['base.right_wheel.effort_pct']=robot.base.right_wheel.status['effort_pct']
-        data['base.right_wheel.pos'] = robot.base.right_wheel.status['pos']
-        data['base.right_wheel.vel'] = robot.base.right_wheel.status['vel']
+        data['base.right_wheel.effort_pct']=robot.base.right_wheel.status.effort_pct
+        data['base.right_wheel.pos'] = robot.base.right_wheel.status.pos
+        data['base.right_wheel.vel'] = robot.base.right_wheel.status.vel
 
-        data['base.left_wheel.effort_pct'] = robot.base.left_wheel.status['effort_pct']
-        data['base.left_wheel.pos'] = robot.base.left_wheel.status['pos']
-        data['base.left_wheel.vel'] = robot.base.left_wheel.status['vel']
+        data['base.left_wheel.effort_pct'] = robot.base.left_wheel.status.effort_pct
+        data['base.left_wheel.pos'] = robot.base.left_wheel.status.pos
+        data['base.left_wheel.vel'] = robot.base.left_wheel.status.vel
 
-        data['arm.motor.effort_pct'] = robot.arm.motor.status['effort_pct']
-        data['arm.pos'] = robot.arm.status['pos']
-        data['arm.vel'] = robot.arm.status['vel']
+        data['arm.motor.effort_pct'] = robot.arm.motor.status.effort_pct
+        data['arm.pos'] = robot.arm.status.pos
+        data['arm.vel'] = robot.arm.status.vel
 
-        data['lift.motor.effort_pct'] = robot.lift.motor.status['effort_pct']
-        data['lift.pos'] = robot.lift.status['pos']
-        data['lift.vel'] = robot.lift.status['vel']
+        data['lift.motor.effort_pct'] = robot.lift.motor.status.effort_pct
+        data['lift.pos'] = robot.lift.status.pos
+        data['lift.vel'] = robot.lift.status.vel
         return data
 
     def get_trace(self):

@@ -47,10 +47,10 @@ class StatusStepper:
         # Make waypoint_traj an instance of WaypointTrajectoryStatus:
         if not isinstance(status.waypoint_traj, StatusWaypointTrajectory):
             status.waypoint_traj = StatusWaypointTrajectory.fromDict(
-                json["waypoint_traj"]
+                status.waypoint_traj
             )
         if not isinstance(status.transport, StatusTransport):
-            status.transport = StatusTransport.fromDict(json["transport"])
+            status.transport = StatusTransport.fromDict(status.transport)
 
         return status
 

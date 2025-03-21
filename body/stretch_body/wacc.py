@@ -1,4 +1,5 @@
 from __future__ import print_function
+from body.stretch_body.models.status_wacc import StatusWacc
 from stretch_body.transport import *
 from stretch_body.device import Device, DeviceTimestamp
 import threading
@@ -56,9 +57,7 @@ class WaccBase(Device):
         if usb is None:
             usb = self.params['usb_name']
         self.transport = Transport(usb=usb, logger=self.logger)
-        self.status = { 'ax':0,'ay':0,'az':0,'a0':0,'d0':0,'d1':0, 'd2':0,'d3':0,'single_tap_count': 0, 'state':0, 'debug':0,
-                       'timestamp': 0,'trace_on':0,
-                       'transport': self.transport.status}
+        self.status = StatusWacc.init(self.transport.status)
         self.status_zero = self.status.copy()
         self.board_info = {'board_variant': None, 'firmware_version': None, 'protocol_version': None,'hardware_id':0}
         self.hw_valid = False
@@ -157,19 +156,19 @@ class WaccBase(Device):
 
     def pretty_print(self):
         print('------------------------------')
-        print('Ax (m/s^2)',self.status['ax'])
-        print('Ay (m/s^2)', self.status['ay'])
-        print('Az (m/s^2)', self.status['az'])
-        print('A0', self.status['a0'])
-        print('D0 (In)', self.status['d0'])
-        print('D1 (In)', self.status['d1'])
-        print('D2 (Out)', self.status['d2'])
-        print('D3 (Out)', self.status['d3'])
-        print('Single Tap Count', self.status['single_tap_count'])
-        print('State ', self.status['state'])
-        print('Trace on',self.status['trace_on'])
-        print('Debug',self.status['debug'])
-        print('Timestamp (s)', self.status['timestamp'])
+        print('Ax (m/s^2)',self.status.ax)
+        print('Ay (m/s^2)', self.status.ay)
+        print('Az (m/s^2)', self.status.az)
+        print('A0', self.status.a0)
+        print('D0 (In)', self.status.d0)
+        print('D1 (In)', self.status.d1)
+        print('D2 (Out)', self.status.d2)
+        print('D3 (Out)', self.status.d3)
+        print('Single Tap Count', self.status.single_tap_count)
+        print('State ', self.status.state)
+        print('Trace on',self.status.trace_on)
+        print('Debug',self.status.debug)
+        print('Timestamp (s)', self.status.timestamp)
         print('Board variant:', self.board_info['board_variant'])
         print('Firmware version:', self.board_info['firmware_version'])
         print('Transport version:', self.transport.version)
@@ -285,19 +284,19 @@ class Wacc_Protocol_P0(WaccBase):
         sidx=0
         if self.ext_status_cb is not None:
             sidx+=self.ext_status_cb(s[sidx:])
-        unpack_to['ax'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['ay'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['az'] = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.ax = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.ay = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.az = unpack_float_t(s[sidx:]);sidx+=4
 
-        unpack_to['a0'] = unpack_int16_t(s[sidx:]);sidx+=2
-        unpack_to['d0'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d1'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d2'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d3'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['single_tap_count'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        unpack_to['state'] = unpack_uint32_t(s[sidx:]); sidx += 4
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
-        unpack_to['debug'] = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.a0 = unpack_int16_t(s[sidx:]);sidx+=2
+        unpack_to.d0 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d1 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d2 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d3 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.single_tap_count = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.state = unpack_uint32_t(s[sidx:]); sidx += 4
+        unpack_to.timestamp = self.timestamp.set(unpack_uint32_t(s[sidx:]));sidx += 4
+        unpack_to.debug = unpack_uint32_t(s[sidx:]);sidx += 4
         return sidx
 
 # ######################## Wacc PROTOCOL P1 #################################
@@ -308,18 +307,18 @@ class Wacc_Protocol_P1(WaccBase):
         sidx=0
         if self.ext_status_cb is not None:
             sidx+=self.ext_status_cb(s[sidx:])
-        unpack_to['ax'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['ay'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['az'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['a0'] = unpack_int16_t(s[sidx:]);sidx+=2
-        unpack_to['d0'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d1'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d2'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d3'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['single_tap_count'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        unpack_to['state'] = unpack_uint32_t(s[sidx:]); sidx += 4
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-        unpack_to['debug'] = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.ax = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.ay = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.az = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.a0 = unpack_int16_t(s[sidx:]);sidx+=2
+        unpack_to.d0 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d1 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d2 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d3 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.single_tap_count = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.state = unpack_uint32_t(s[sidx:]); sidx += 4
+        unpack_to.timestamp = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+        unpack_to.debug = unpack_uint32_t(s[sidx:]);sidx += 4
         return sidx
 
 # ######################## Wacc PROTOCOL P1 #################################
@@ -330,19 +329,19 @@ class Wacc_Protocol_P2(WaccBase):
         sidx=0
         if self.ext_status_cb is not None:
             sidx+=self.ext_status_cb(s[sidx:])
-        unpack_to['ax'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['ay'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['az'] = unpack_float_t(s[sidx:]);sidx+=4
-        unpack_to['a0'] = unpack_int16_t(s[sidx:]);sidx+=2
-        unpack_to['d0'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d1'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d2'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['d3'] = unpack_uint8_t(s[sidx:]); sidx += 1
-        unpack_to['single_tap_count'] = unpack_uint32_t(s[sidx:]);sidx += 4
-        unpack_to['state'] = unpack_uint32_t(s[sidx:]); sidx += 4
-        unpack_to['trace_on'] = unpack_to['state'] & self.STATE_IS_TRACE_ON > 0
-        unpack_to['timestamp'] = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-        unpack_to['debug'] = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.ax = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.ay = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.az = unpack_float_t(s[sidx:]);sidx+=4
+        unpack_to.a0 = unpack_int16_t(s[sidx:]);sidx+=2
+        unpack_to.d0 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d1 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d2 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.d3 = unpack_uint8_t(s[sidx:]); sidx += 1
+        unpack_to.single_tap_count = unpack_uint32_t(s[sidx:]);sidx += 4
+        unpack_to.state = unpack_uint32_t(s[sidx:]); sidx += 4
+        unpack_to.trace_on = unpack_to.state & self.STATE_IS_TRACE_ON > 0
+        unpack_to.timestamp = self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+        unpack_to.debug = unpack_uint32_t(s[sidx:]);sidx += 4
         return sidx
 
     def read_firmware_trace(self):
@@ -359,19 +358,19 @@ class Wacc_Protocol_P2(WaccBase):
 
     def unpack_debug_trace(self,s,unpack_to):
         sidx=0
-        unpack_to['u8_1']=unpack_uint8_t(s[sidx:]);sidx+=1
-        unpack_to['u8_2'] = unpack_uint8_t(s[sidx:]);sidx += 1
-        unpack_to['f_1'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['f_2'] = unpack_float_t(s[sidx:]);sidx += 4
-        unpack_to['f_3'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.u8_1=unpack_uint8_t(s[sidx:]);sidx+=1
+        unpack_to.u8_2 = unpack_uint8_t(s[sidx:]);sidx += 1
+        unpack_to.f_1 = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.f_2 = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.f_3 = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
 
     def unpack_print_trace(self,s,unpack_to):
         sidx=0
         line_len=32
-        unpack_to['timestamp']=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
-        unpack_to['line'] = unpack_string_t(s[sidx:], line_len); sidx += line_len
-        unpack_to['x'] = unpack_float_t(s[sidx:]);sidx += 4
+        unpack_to.timestamp=self.timestamp.set(unpack_uint64_t(s[sidx:]));sidx += 8
+        unpack_to.line = unpack_string_t(s[sidx:], line_len); sidx += line_len
+        unpack_to.x = unpack_float_t(s[sidx:]);sidx += 4
         return sidx
 
     def rpc_read_firmware_trace_reply(self, reply):

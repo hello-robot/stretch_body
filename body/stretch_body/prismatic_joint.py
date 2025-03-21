@@ -1,4 +1,5 @@
 from __future__ import print_function
+from body.stretch_body.models.status_prismatic_joint import StatusPrismaticJoint
 from stretch_body.stepper import Stepper
 from stretch_body.device import Device
 from stretch_body.trajectories import PrismaticTrajectory
@@ -22,7 +23,7 @@ class PrismaticJoint(Device):
         elif name == 'arm':
             motor_name = 'hello-motor-arm'
         self.motor = Stepper(usb=usb, name=motor_name)
-        self.status = {'timestamp_pc':0,'pos': 0.0, 'vel': 0.0, 'force':0.0,'motor': self.motor.status}
+        self.status = StatusPrismaticJoint.init(self.motor.status)
         self.trajectory = PrismaticTrajectory()
         self.thread_rate_hz = 5.0
 
@@ -72,10 +73,10 @@ class PrismaticJoint(Device):
         self.__update_status()
 
     def __update_status(self):
-        self.status['timestamp_pc'] = time.time()
-        self.status['pos'] = self.motor_rad_to_translate_m(self.status['motor']['pos'])
-        self.status['vel'] = self.motor_rad_to_translate_m(self.status['motor']['vel'])
-        self.status['force'] =  0 #Deprecated
+        self.status.timestamp_pc = time.time()
+        self.status.pos = self.motor_rad_to_translate_m(self.status.motor.pos)
+        self.status.vel = self.motor_rad_to_translate_m(self.status.motor.vel)
+        self.status.force =  0 #Deprecated
 
     def push_command(self):
         self.motor.push_command()
@@ -90,10 +91,10 @@ class PrismaticJoint(Device):
 
     def pretty_print(self):
         print('----- %s ------ '%self.name.capitalize())
-        print('Pos (m): ', self.status['pos'])
-        print('Vel (m/s): ', self.status['vel'])
+        print('Pos (m): ', self.status.pos)
+        print('Vel (m/s): ', self.status.vel)
         print('Soft motion limits (m)', self.soft_motion_limits['current'])
-        print('Timestamp PC (s):', self.status['timestamp_pc'])
+        print('Timestamp PC (s):', self.status.timestamp_pc)
         self.motor.pretty_print()
 
     # ###################################################
@@ -173,7 +174,7 @@ class PrismaticJoint(Device):
         hu.check_deprecated_contact_model_prismatic_joint(self,'set_velocity', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos,contact_thresh_neg )
 
         if req_calibration:
-            if not self.motor.status['pos_calibrated']:
+            if not self.motor.status.pos_calibrated:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
                 return
 
@@ -228,13 +229,13 @@ class PrismaticJoint(Device):
         """
         if self._prev_set_vel_ts is None:
             self._prev_set_vel_ts = time.time()
-        if self.status['timestamp_pc']>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency for accurate motion control
+        if self.status.timestamp_pc>self._prev_set_vel_ts: # Braking control syncs with the pull status's freaquency for accurate motion control
             # Honor joint limits in velocity mode
             lim_lower = self.get_soft_motion_limits()[0]
             lim_upper = self.get_soft_motion_limits()[1]
             
-            v_curr = self.status['vel']
-            x_curr = self.status['pos']
+            v_curr = self.status.vel
+            x_curr = self.status.pos
 
             to_min = abs(x_curr - lim_lower)
             to_max = abs(x_curr - lim_upper)
@@ -300,7 +301,7 @@ class PrismaticJoint(Device):
         hu.check_deprecated_contact_model_prismatic_joint(self,'move_to', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos,contact_thresh_neg )
 
         if req_calibration:
-            if not self.motor.status['pos_calibrated']:
+            if not self.motor.status.pos_calibrated:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
                 return
             old_x_m = x_m
@@ -308,11 +309,11 @@ class PrismaticJoint(Device):
             if x_m != old_x_m:
                 self.logger.debug('Clipping move_to({0}) with soft limits {1}'.format(old_x_m, self.soft_motion_limits['current']))
 
-        if self.in_collision_stop['pos'] and self.status['pos']<x_m:
+        if self.in_collision_stop['pos'] and self.status.pos<x_m:
             self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing move_by'%('pos',self.name))
             return
 
-        if self.in_collision_stop['neg'] and self.status['pos']>x_m:
+        if self.in_collision_stop['neg'] and self.status.pos>x_m:
             self.logger.warning('In collision. Motion disabled in direction %s for %s. Not executing move_by'%('neg',self.name))
             return
 
@@ -359,17 +360,17 @@ class PrismaticJoint(Device):
         """
         hu.check_deprecated_contact_model_prismatic_joint(self,'move_by', contact_thresh_pos_N, contact_thresh_neg_N,contact_thresh_pos,contact_thresh_neg )
 
-        if req_calibration or self.motor.status['pos_calibrated']:
-            if not self.motor.status['pos_calibrated']:
+        if req_calibration or self.motor.status.pos_calibrated:
+            if not self.motor.status.pos_calibrated:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
                 return
             old_x_m = x_m
-            if self.status['pos'] + x_m < self.soft_motion_limits['current'][0]:  #Only clip motion when calibrated
-                x_m = self.soft_motion_limits['current'][0] - self.status['pos']
-            if self.status['pos'] + x_m > self.soft_motion_limits['current'][1]:
-                x_m = self.soft_motion_limits['current'][1] - self.status['pos']
+            if self.status.pos + x_m < self.soft_motion_limits['current'][0]:  #Only clip motion when calibrated
+                x_m = self.soft_motion_limits['current'][0] - self.status.pos
+            if self.status.pos + x_m > self.soft_motion_limits['current'][1]:
+                x_m = self.soft_motion_limits['current'][1] - self.status.pos
             if x_m != old_x_m:
-                self.logger.debug('Clipping {0} + move_by({1}) with soft limits {2}'.format(self.status['pos'], old_x_m, self.soft_motion_limits['current']))
+                self.logger.debug('Clipping {0} + move_by({1}) with soft limits {2}'.format(self.status.pos, old_x_m, self.soft_motion_limits['current']))
 
 
         #Handle collision logic
@@ -442,7 +443,7 @@ class PrismaticJoint(Device):
             self.logger.warning('%s connection to hardware not valid'%self.name.upper())
             return False
         if req_calibration:
-            if not self.motor.status['pos_calibrated']:
+            if not self.motor.status.pos_calibrated:
                 self.logger.warning('%s not calibrated'%self.name.capitalize())
                 return False
         if int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
@@ -482,11 +483,11 @@ class PrismaticJoint(Device):
                 self.motor.enable_sync_mode()
                 self.push_command()
         else:
-            if not np.isclose(self.trajectory[0].position, self.status['pos'], atol=self.params['distance_tol']):
+            if not np.isclose(self.trajectory[0].position, self.status.pos, atol=self.params['distance_tol']):
                 self.logger.warning("Can't start joint traj: first waypoint doesn't match current position")
                 return False
 
-        self.traj_guarded_event=self.motor.status['guarded_event']
+        self.traj_guarded_event=self.motor.status.guarded_event
         # start trajectory
         self.motor.set_command(mode=Stepper.MODE_POS_TRAJ_WAYPOINT,
                                v_des=v_r,
@@ -500,7 +501,7 @@ class PrismaticJoint(Device):
         return self.motor.start_waypoint_trajectory(s0)
 
     def is_trajectory_active(self):
-        return self.motor.status['waypoint_traj']['state'] == 'active'
+        return self.motor.status.waypoint_traj['state'] == 'active'
 
     def get_trajectory_ts(self):
         # Return trajectory execution time
@@ -528,20 +529,20 @@ class PrismaticJoint(Device):
         # check if joint valid, right protocol, and right mode
         if not self.motor.hw_valid or int(str(self.motor.board_info['protocol_version'])[1:]) < 1:
             return
-        if self.motor.status['mode'] != self.motor.MODE_POS_TRAJ_WAYPOINT:
+        if self.motor.status.mode != self.motor.MODE_POS_TRAJ_WAYPOINT:
             return
 
-        if self.traj_guarded_event!=self.motor.status['guarded_event']:
+        if self.traj_guarded_event!=self.motor.status.guarded_event:
             self.logger.warning('%s guarded contact. Stopping trajectory'%self.name.upper())
             self.stop_trajectory()
             return
 
-        if self.motor.status['waypoint_traj']['state'] == 'active':
-            next_segment_id = self.motor.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
+        if self.motor.status.waypoint_traj['state'] == 'active':
+            next_segment_id = self.motor.status.waypoint_traj['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
             if next_segment_id < self.trajectory.get_num_segments():
                 s1 = self.trajectory.get_segment(next_segment_id, to_motor_rad=self.translate_m_to_motor_rad).to_array()
                 self.motor.set_next_trajectory_segment(s1)
-        elif self.motor.status['waypoint_traj']['state'] == 'idle' and self.motor.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT:
+        elif self.motor.status.waypoint_traj['state'] == 'idle' and self.motor.status.mode == Stepper.MODE_POS_TRAJ_WAYPOINT:
             self.motor.enable_pos_traj()
             self.push_command()
 
@@ -577,7 +578,7 @@ class PrismaticJoint(Device):
         ts=time.time()
         while (time.time()-ts<timeout):
             self.pull_status()
-            if self.motor.status['in_guarded_event']:
+            if self.motor.status.in_guarded_event:
                 return True
             time.sleep(0.01)
         return False
@@ -613,7 +614,7 @@ class PrismaticJoint(Device):
 
     def get_braking_distance(self,acc=None):
         """Compute distance to brake the joint from the current velocity"""
-        v_curr = self.status['vel']
+        v_curr = self.status.vel
         if acc is None:
             acc=self.params['motion']['max']['accel_m']
         t_brake = abs(v_curr / acc)  # How long to brake from current speed (s)
@@ -644,7 +645,7 @@ class PrismaticJoint(Device):
         distance_to_limit = min(delta1,delta2)
         brake_zone_factor = self.params['motion']['vel_brakezone_factor'] # Propotional value
         if distance_to_limit!=0:
-            brake_zone_thresh = brake_zone_factor*abs(self.status['vel'])/distance_to_limit
+            brake_zone_thresh = brake_zone_factor*abs(self.status.vel)/distance_to_limit
             brake_zone_thresh =  self.bound_value(brake_zone_thresh,0,self.total_range/2)
             brake_zone_thresh = brake_zone_thresh + 0.05 # 0.05m is minimum brake zone thresh  
             self._set_vel_brake_thresh(brake_zone_thresh)
@@ -653,7 +654,7 @@ class PrismaticJoint(Device):
         self.vel_brake_zone_thresh = thresh
 
     def get_dist_to_limits(self,threshold=0.2):
-        current_position = self.status['pos']
+        current_position = self.status.pos
         min_position = self.get_soft_motion_limits()[0]
         max_position = self.get_soft_motion_limits()[1]
         delta1 = abs(current_position - min_position)
@@ -688,7 +689,7 @@ class PrismaticJoint(Device):
         success = True
         print('Homing %s...' % self.name.capitalize())
         self.pull_status()
-        prev_calibrated=self.motor.status['pos_calibrated']
+        prev_calibrated=self.motor.status.pos_calibrated
         prev_guarded_mode = self.motor.gains['enable_guarded_mode']
         prev_sync_mode = self.motor.gains['enable_sync_mode']
         self.motor.enable_guarded_mode()
@@ -710,8 +711,8 @@ class PrismaticJoint(Device):
         self.push_command()
         if self.wait_for_contact(timeout=15.0):  # timeout=15.0):
             self.pull_status()
-            print('Hardstop detected at motor position (rad)', self.motor.status['pos'])
-            x_dir_1 = self.status['pos']
+            print('Hardstop detected at motor position (rad)', self.motor.status.pos)
+            x_dir_1 = self.status.pos
             if to_positive_stop:
                 x = self.translate_m_to_motor_rad(self.params['range_m'][1] )
                 print('Marking %s position to %f (m)' % (self.name.capitalize(), self.params['range_m'][1]))
@@ -730,10 +731,10 @@ class PrismaticJoint(Device):
                 self.move_by(x_m=x_goal_2, contact_thresh_pos=contact_thresh_pos,contact_thresh_neg=contact_thresh_neg,req_calibration=False)
                 self.push_command()
                 if self.wait_for_contact(timeout=15.0):
-                    print('Second hardstop detected at motor position (rad)', self.motor.status['pos'])
+                    print('Second hardstop detected at motor position (rad)', self.motor.status.pos)
                     time.sleep(1.0)
                     self.pull_status()
-                    x_dir_2 = self.status['pos']
+                    x_dir_2 = self.status.pos
                 else:
                     self.logger.warning('%s homing failed. Failed to detect contact' % self.name.capitalize())
                     success = False
