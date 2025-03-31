@@ -37,7 +37,7 @@ class Base(Device):
         self.fast_motion_allowed = True
     # ###########  Device Methods #############
 
-    def startup(self, threaded=True):
+    def startup(self, threaded:bool=True) -> bool:
         #Startup steppers first so that status is populated before this Device thread begins (if threaded==true)
         success = self.left_wheel.startup(threaded=False) and self.right_wheel.startup(threaded=False)
         if success:
@@ -441,8 +441,14 @@ class Base(Device):
         self.right_wheel.pull_status()
         self._waypoint_lwpos = self.left_wheel.status['pos']
         self._waypoint_rwpos = self.right_wheel.status['pos']
-        ls0, rs0 = self.trajectory.get_wheel_segments(0, self.translate_to_motor_rad, self.rotate_to_motor_rad,
+        wheel_segments = self.trajectory.get_wheel_segments(0, self.translate_to_motor_rad, self.rotate_to_motor_rad,
             self._waypoint_lwpos, self._waypoint_rwpos)
+        
+        if wheel_segments is None:
+            return False
+        
+        ls0, rs0 = wheel_segments
+
         return self.left_wheel.start_waypoint_trajectory(ls0.to_array()) and \
             self.right_wheel.start_waypoint_trajectory(rs0.to_array())
 
@@ -495,8 +501,14 @@ class Base(Device):
         if self.left_wheel.status['waypoint_traj']['state'] == 'active' and self.right_wheel.status['waypoint_traj']['state'] == 'active':
             next_segment_id = self.left_wheel.status['waypoint_traj']['segment_id'] - 2 + 1 # subtract 2 due to IDs 0 & 1 being reserved by firmware
             if next_segment_id < self.trajectory.get_num_segments():
-                ls1, rs1 = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
+                wheel_segments = self.trajectory.get_wheel_segments(next_segment_id, self.translate_to_motor_rad, self.rotate_to_motor_rad,
                     self._waypoint_lwpos, self._waypoint_rwpos)
+                
+                if wheel_segments is None:
+                    self.logger.warn('unable to send next trajectory segment; received invalid index')
+                    return
+                
+                ls1, rs1 = wheel_segments
                 self.left_wheel.set_next_trajectory_segment(ls1.to_array())
                 self.right_wheel.set_next_trajectory_segment(rs1.to_array())
         elif self.left_wheel.status['waypoint_traj']['state'] == 'idle' and self.left_wheel.status['mode'] == Stepper.MODE_POS_TRAJ_WAYPOINT and \
