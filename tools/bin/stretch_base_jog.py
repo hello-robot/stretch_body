@@ -69,6 +69,13 @@ def menu():
 
 rate ='default'
 
+def stop_motor_whine():
+    b.pull_status()
+    # b.enable_freewheel_mode()
+    b.translate_by(0)
+    b.push_command()
+
+
 try:
     menu()
     while True:
@@ -81,7 +88,8 @@ try:
             #time.sleep(0.1)
             b.pull_status()
             #print('################################'
-            b.pretty_print()
+            # b.pretty_print()
+            menu()
 
             if c=='p':
                 b.pretty_print()
@@ -173,6 +181,9 @@ try:
             b.push_command()
             p.trigger_motor_sync()
             time.sleep(0.1)
+
+            stop_motor_whine()
+            
 except (KeyboardInterrupt, SystemExit):
     pass
 b.stop()
