@@ -104,7 +104,7 @@ class StretchGripper3(StretchGripper):
     def __init__(self, chain=None, usb=None):
         StretchGripper.__init__(self, chain, usb,'stretch_gripper')
 
-class StretchGripper3v2(StretchGripper, DynamixelHelloXL430):
+class StretchGripper3xm430(StretchGripper, DynamixelHelloXL430):
     """
         Wrapper for version 3.5 XM430-W350 gripper
     """
