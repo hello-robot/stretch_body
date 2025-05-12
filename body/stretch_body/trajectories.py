@@ -226,7 +226,7 @@ class Segment:
 
 class Spline:
 
-    def __init__(self, init_waypoints=None):
+    def __init__(self, init_waypoints:list[Waypoint]=None):
         """Spline representing class
 
         Presents a interface to create splines from waypoints
@@ -275,7 +275,7 @@ class Spline:
         return self.waypoints.pop(index)
 
     def clear(self):
-        self.waypoints = []
+        self.waypoints:list[Waypoint] = []
 
     def add(self, time, pos, vel=None, accel=None):
         """Add a waypoint to the spline.
@@ -392,15 +392,19 @@ class Spline:
                 w1 = self.waypoints[i + 1]
                 return hu.evaluate_polynomial_at(Segment.from_two_waypoints(w0, w1, segment_id=None).to_array(only_coeffs=True), t - w0.time)
 
-    def is_valid(self, v_des, a_des):
+    def is_valid(self, v_des_positive:float, a_des_positive:float, v_des_negative:float|None = None, a_des_negative:float|None = None):
         """Determines whether spline is well-formed and adheres to dynamic limits.
 
         Parameters
         ----------
-        v_des : float
+        v_des_positive : float
             Velocity limit that the spline shouldn't exceed
-        a_des : float
+        a_des_positive : float
             Acceleration limit that the spline shouldn't exceed
+        v_des_negative : float
+            Velocity limit that the spline shouldn't exceed, in the negative direction of motion
+        a_des_negative : float
+            Acceleration limit that the spline shouldn't exceed, in the negative direction of motion
 
         Returns
         -------
@@ -425,12 +429,14 @@ class Spline:
             if waypoint.time < t:
                 return False, "time must increase for each subsequent waypoint"
             t = waypoint.time
-
         # verify spline adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
+            is_positive_direction = self.waypoints[i + 1].position - self.waypoints[i].position  > 0
+            v_des = v_des_positive if is_positive_direction else v_des_negative or v_des_positive
+            a_des = a_des_positive if is_positive_direction else a_des_negative or a_des_positive
             success, v_max, a_max=hu.is_segment_feasible(self.get_segment(i).to_array(), v_des, a_des)
             if not success:
-                return False, "segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
+                return False, f"segment {i} from {self.waypoints[i].position} -> {self.waypoints[i+1].position}, in {'positive' if is_positive_direction else 'negative'} direction, exceeds dynamic bounds of ({v_des} | {a_des} ) with max of ({v_max} | {a_max} )"
 
         return True, ""
 
@@ -655,7 +661,7 @@ class DiffDriveTrajectory(Spline):
     def evaluate_at(self, t, to_motor_rad=lambda pos: pos):
         raise NotImplementedError('This method not implemented for DiffDriveTrajectory.')
 
-    def is_valid(self, v_des, a_des, translate_to_motor_rad, rotate_to_motor_rad):
+    def is_valid(self,v_des_positive:float, a_des_positive:float, translate_to_motor_rad, rotate_to_motor_rad, v_des_negative:float|None = None, a_des_negative:float|None = None, ):
         """Determines whether trajectory is well-formed and adheres to dynamic limits.
 
         Parameters
@@ -704,13 +710,19 @@ class DiffDriveTrajectory(Spline):
 
         # verify left and right trajectories adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
+            is_positive_direction = self.waypoints[i + 1].position[0] - self.waypoints[i].position[0]  > 0
+            is_positive_direction_right = self.waypoints[i + 1].position[1] - self.waypoints[i].position[1]  > 0
+            v_des = v_des_positive if is_positive_direction else v_des_negative or v_des_positive
+            v_des_right = v_des_positive if is_positive_direction_right else v_des_negative or v_des_positive
+            a_des = a_des_positive if is_positive_direction else a_des_negative or a_des_positive
+            a_des_right = a_des_positive if is_positive_direction_right else a_des_negative or a_des_positive
             ls, rs = self.get_wheel_segments(i, translate_to_motor_rad, rotate_to_motor_rad)
             success, v_max, a_max =hu.is_segment_feasible(ls.to_array(), v_des, a_des)
             if not success:
                 return False, "left wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
-            success, v_max, a_max =hu.is_segment_feasible(rs.to_array(), v_des, a_des)
+            success, v_max, a_max =hu.is_segment_feasible(rs.to_array(), v_des_right, a_des_right)
             if not success:
-                return False, "right wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
+                return False, "right wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des_right,a_des_right,v_max,a_max)
 
         # verify that either translate or rotate only at a time
         for i in range(1,len(self.waypoints)):

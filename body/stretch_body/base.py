@@ -400,12 +400,42 @@ class Base(Device):
         if int(str(self.right_wheel.board_info['protocol_version'])[1:]) < 1:
             self.logger.warning("Base right motor firmware version doesn't support waypoint trajectories")
             return False
-            
+        
+        trajectory_max = self.params['motion']['trajectory_max']
+        calibrated_vel_limit_positive = trajectory_max['vel_r']
+        calibrated_vel_limit_negative = trajectory_max['vel_r']
+        calibrated_accel_limit_positive = trajectory_max['accel_r']
+        calibrated_accel_limit_negative = trajectory_max['accel_r']
+
+        motion_type:str|None = None
+
+        if v_r is None and a_r is None and "linear" in trajectory_max:
+            motion_type = "linear"
+        elif v_r is not None and a_r is None and "cubic" in trajectory_max:
+            motion_type = "cubic"
+        elif v_r is not None and a_r is not None and "quintic" in trajectory_max:
+            motion_type = "quintic"
+
+
+        if motion_type is not None:
+            # Get the calibrated linear, cubic or quintic trajectory_max, if available:
+            trajectory_max_positive = trajectory_max[motion_type]["positive"]
+            trajectory_max_negative = trajectory_max[motion_type]["negative"]
+            calibrated_vel_limit_positive = trajectory_max_positive['vel_r']
+            calibrated_vel_limit_negative = trajectory_max_negative['vel_r']
+            calibrated_accel_limit_positive = trajectory_max_positive['accel_r']
+            calibrated_accel_limit_negative = trajectory_max_negative['accel_r']
 
         # check if trajectory valid
-        vel_limit = v_r if v_r is not None else self.params['motion']['trajectory_max']['vel_r']
-        acc_limit = a_r if a_r is not None else self.params['motion']['trajectory_max']['accel_r']
-        valid, reason = self.trajectory.is_valid(vel_limit, acc_limit, self.translate_to_motor_rad, self.rotate_to_motor_rad)
+        valid, reason = self.trajectory.is_valid(
+            v_r or calibrated_vel_limit_positive, 
+            a_r or calibrated_accel_limit_positive, 
+            self.translate_to_motor_rad, 
+            self.rotate_to_motor_rad,
+            v_r or calibrated_vel_limit_negative, 
+            a_r or calibrated_accel_limit_negative, 
+            )
+
         if not valid:
             self.logger.warning('Base trajectory not valid: {0}'.format(reason))
             return False
@@ -416,10 +446,8 @@ class Base(Device):
         # set defaults
         stiffness = max(0.0, min(1.0, stiffness)) if stiffness is not None else self.stiffness
 
-        v = self.translate_to_motor_rad(min(abs(v_r), self.params['motion']['trajectory_max']['vel_r'])) \
-            if v_r is not None else self.translate_to_motor_rad(self.params['motion']['trajectory_max']['vel_r'])
-        a = self.translate_to_motor_rad(min(abs(a_r), self.params['motion']['trajectory_max']['accel_r'])) \
-            if a_r is not None else self.translate_to_motor_rad(self.params['motion']['trajectory_max']['accel_r'])
+        v = self.translate_to_motor_rad(min(abs(v_r or calibrated_vel_limit_positive),calibrated_vel_limit_positive, calibrated_vel_limit_negative)) 
+        a = self.translate_to_motor_rad(min(abs(a_r or calibrated_accel_limit_positive), calibrated_accel_limit_positive, calibrated_accel_limit_negative)) 
 
         i_contact_l, i_contact_r = self.contact_thresh_to_motor_current(is_translate=True,contact_thresh=contact_thresh)
 
