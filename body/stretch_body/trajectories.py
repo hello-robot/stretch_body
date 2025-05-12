@@ -661,7 +661,7 @@ class DiffDriveTrajectory(Spline):
     def evaluate_at(self, t, to_motor_rad=lambda pos: pos):
         raise NotImplementedError('This method not implemented for DiffDriveTrajectory.')
 
-    def is_valid(self, v_des, a_des, translate_to_motor_rad, rotate_to_motor_rad):
+    def is_valid(self,v_des_positive:float, a_des_positive:float, translate_to_motor_rad, rotate_to_motor_rad, v_des_negative:float|None = None, a_des_negative:float|None = None, ):
         """Determines whether trajectory is well-formed and adheres to dynamic limits.
 
         Parameters
@@ -710,6 +710,9 @@ class DiffDriveTrajectory(Spline):
 
         # verify left and right trajectories adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
+            is_positive_direction = self.waypoints[i + 1].position - self.waypoints[i].position  > 0
+            v_des = v_des_positive if is_positive_direction else v_des_negative or v_des_positive
+            a_des = a_des_positive if is_positive_direction else a_des_negative or a_des_positive
             ls, rs = self.get_wheel_segments(i, translate_to_motor_rad, rotate_to_motor_rad)
             success, v_max, a_max =hu.is_segment_feasible(ls.to_array(), v_des, a_des)
             if not success:

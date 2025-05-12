@@ -474,13 +474,6 @@ class PrismaticJoint(Device):
             calibrated_accel_limit_positive = trajectory_max_positive['accel_m']
             calibrated_accel_limit_negative = trajectory_max_negative['accel_m']
 
-        print(f"""
-              {calibrated_vel_limit_positive=}
-              {calibrated_vel_limit_negative=}
-              {calibrated_accel_limit_positive=}
-              {calibrated_accel_limit_negative=}
-              """)
-
         valid, reason = self.trajectory.is_valid(
             v_m or calibrated_vel_limit_positive, 
             a_m or calibrated_accel_limit_positive, 
