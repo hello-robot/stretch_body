@@ -431,12 +431,12 @@ class Spline:
             t = waypoint.time
         # verify spline adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
-            is_positive_direction = self.waypoints[index + 1] - self.waypoints[index]  > 0
+            is_positive_direction = self.waypoints[i + 1].position - self.waypoints[i].position  > 0
             v_des = v_des_positive if is_positive_direction else v_des_negative or v_des_positive
             a_des = a_des_positive if is_positive_direction else a_des_negative or a_des_positive
             success, v_max, a_max=hu.is_segment_feasible(self.get_segment(i).to_array(), v_des, a_des)
             if not success:
-                return False, "segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
+                return False, f"segment {i} from {self.waypoints[i].position} -> {self.waypoints[i+1].position}, in {'positive' if is_positive_direction else 'negative'} direction, exceeds dynamic bounds of ({v_des} | {a_des} ) with max of ({v_max} | {a_max} )"
 
         return True, ""
 
