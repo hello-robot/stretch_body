@@ -710,16 +710,19 @@ class DiffDriveTrajectory(Spline):
 
         # verify left and right trajectories adheres to joint dynamics limits
         for i in range(self.get_num_segments()):
-            is_positive_direction = self.waypoints[i + 1].position - self.waypoints[i].position  > 0
+            is_positive_direction = self.waypoints[i + 1].position[0] - self.waypoints[i].position[0]  > 0
+            is_positive_direction_right = self.waypoints[i + 1].position[1] - self.waypoints[i].position[1]  > 0
             v_des = v_des_positive if is_positive_direction else v_des_negative or v_des_positive
+            v_des_right = v_des_positive if is_positive_direction_right else v_des_negative or v_des_positive
             a_des = a_des_positive if is_positive_direction else a_des_negative or a_des_positive
+            a_des_right = a_des_positive if is_positive_direction_right else a_des_negative or a_des_positive
             ls, rs = self.get_wheel_segments(i, translate_to_motor_rad, rotate_to_motor_rad)
             success, v_max, a_max =hu.is_segment_feasible(ls.to_array(), v_des, a_des)
             if not success:
                 return False, "left wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
-            success, v_max, a_max =hu.is_segment_feasible(rs.to_array(), v_des, a_des)
+            success, v_max, a_max =hu.is_segment_feasible(rs.to_array(), v_des_right, a_des_right)
             if not success:
-                return False, "right wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des,a_des,v_max,a_max)
+                return False, "right wheel segment %d exceeds dynamic bounds of (%f vel | %f acc ) with max of (%f vel | %f acc )"%(i,v_des_right,a_des_right,v_max,a_max)
 
         # verify that either translate or rotate only at a time
         for i in range(1,len(self.waypoints)):

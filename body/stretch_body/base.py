@@ -402,10 +402,10 @@ class Base(Device):
             return False
         
         trajectory_max = self.params['motion']['trajectory_max']
-        calibrated_vel_limit_positive = trajectory_max['vel_m']
-        calibrated_vel_limit_negative = trajectory_max['vel_m']
-        calibrated_accel_limit_positive = trajectory_max['accel_m']
-        calibrated_accel_limit_negative = trajectory_max['accel_m']
+        calibrated_vel_limit_positive = trajectory_max['vel_r']
+        calibrated_vel_limit_negative = trajectory_max['vel_r']
+        calibrated_accel_limit_positive = trajectory_max['accel_r']
+        calibrated_accel_limit_negative = trajectory_max['accel_r']
 
         motion_type:str|None = None
 
@@ -421,10 +421,10 @@ class Base(Device):
             # Get the calibrated linear, cubic or quintic trajectory_max, if available:
             trajectory_max_positive = trajectory_max[motion_type]["positive"]
             trajectory_max_negative = trajectory_max[motion_type]["negative"]
-            calibrated_vel_limit_positive = trajectory_max_positive['vel_m']
-            calibrated_vel_limit_negative = trajectory_max_negative['vel_m']
-            calibrated_accel_limit_positive = trajectory_max_positive['accel_m']
-            calibrated_accel_limit_negative = trajectory_max_negative['accel_m']
+            calibrated_vel_limit_positive = trajectory_max_positive['vel_r']
+            calibrated_vel_limit_negative = trajectory_max_negative['vel_r']
+            calibrated_accel_limit_positive = trajectory_max_positive['accel_r']
+            calibrated_accel_limit_negative = trajectory_max_negative['accel_r']
 
         # check if trajectory valid
         valid, reason = self.trajectory.is_valid(
