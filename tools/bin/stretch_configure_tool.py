@@ -93,7 +93,7 @@ def does_tool_need_to_change():
         'eoa_wrist_dw3_tool_nil': (3, True),
         'eoa_wrist_dw3_tool_sg3': (4, True),
         'eoa_wrist_dw3_tool_tablet_12in': (3, True),
-        'eoa_wrist_dw3_tool_sg3_xm430': (4, True),
+        'eoa_wrist_dw3_tool_sg3_pro': (4, True),
     }
     expected_num_wrist_dxls, expected_d405_present = tool_numdxls_d405_map.get(stretch_tool, (-1, False))
     if num_wrist_dxls != expected_num_wrist_dxls:
@@ -122,7 +122,7 @@ def determine_what_tool_is_correct():
         1: ['tool_none'],
         2: ['tool_stretch_gripper'],
         3: ['eoa_wrist_dw3_tool_nil', 'eoa_wrist_dw3_tool_tablet_12in'],
-        4: ['tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_sg3_xm430']
+        4: ['tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_sg3_pro']
     }
     numdxls_match = numdxls_tool_map.get(num_wrist_dxls, [])
     cli_device.logger.debug(f"These tools match based on {num_wrist_dxls} number of wrist dxls: {Fore.YELLOW + str(numdxls_match) + Style.RESET_ALL}")
@@ -132,7 +132,7 @@ def determine_what_tool_is_correct():
     # filter by d405 present
     d405_tool_map = {
         False: ['tool_none', 'tool_stretch_gripper', 'tool_stretch_dex_wrist', 'eoa_wrist_dw3_tool_nil'],
-        True: ['eoa_wrist_dw3_tool_sg3','eoa_wrist_dw3_tool_tablet_12in', 'eoa_wrist_dw3_tool_sg3_xm430'],
+        True: ['eoa_wrist_dw3_tool_sg3','eoa_wrist_dw3_tool_tablet_12in', 'eoa_wrist_dw3_tool_sg3_pro'],
     }
     d405_match = d405_tool_map.get(d405_present, [])
     cli_device.logger.debug(f"These tools match based on present={d405_present} gripper camera: {Fore.YELLOW + str(d405_match) + Style.RESET_ALL}")
@@ -221,7 +221,7 @@ def configure_tool(target_tool_name):
             'eoa_wrist_dw3_tool_nil': 0.75,
             'eoa_wrist_dw3_tool_tablet_12in': 0.75,
             'eoa_wrist_dw3_tool_sg3': 0.75,
-            'eoa_wrist_dw3_tool_sg3_xm430': 0.75,
+            'eoa_wrist_dw3_tool_sg3_pro': 0.75,
         }
         feedforward_value = tool_feedforward_map.get(target_tool_name, 0.8)
         cli_device.logger.debug(f'For model={stretch_model} and tool={target_tool_name}, choosing i_feedforward={feedforward_value}')
@@ -239,7 +239,7 @@ def configure_tool(target_tool_name):
             'eoa_wrist_dw3_tool_nil': 1.8,
             'eoa_wrist_dw3_tool_tablet_12in': 1.8,
             'eoa_wrist_dw3_tool_sg3': 1.8,
-            'eoa_wrist_dw3_tool_sg3_xm430': 1.8,
+            'eoa_wrist_dw3_tool_sg3_pro': 1.8,
         }
         feedforward_value = tool_feedforward_map.get(target_tool_name, 1.9)
         cli_device.logger.debug(f'For model={stretch_model} and tool={target_tool_name}, choosing i_feedforward={feedforward_value}')
