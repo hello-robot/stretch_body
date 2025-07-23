@@ -30,7 +30,10 @@ logging.getLogger().setLevel(logging.CRITICAL)
 def is_wrist_present():
     return exists('/dev/hello-dynamixel-wrist')
 
+present_dxl_model_id_map = {}
+
 def how_many_dxl_on_wrist_chain():
+    global present_dxl_model_id_map
     from stretch_body.dynamixel_XL430 import DynamixelXL430, DynamixelCommError
     cli_device.logger.debug("Scanning wrist dxl chain for motors...")
     nfound = 0
@@ -44,6 +47,7 @@ def how_many_dxl_on_wrist_chain():
                     continue
                 if not m.do_ping(verbose=False):
                     continue
+                present_dxl_model_id_map[dxl_id] = m.dxl_model_name
                 m.stop()
                 nfound += 1
         except DynamixelCommError:
@@ -104,6 +108,13 @@ def does_tool_need_to_change():
     # check if the existing hardware, d405 present, matches the current tool
     if d405_present != expected_d405_present:
         cli_device.logger.info(f"""But the gripper camera {"should" if expected_d405_present else "shouldn't"} be present""")
+        return True
+
+    # Check if SG3's gripper dxl id to detect pro gripper
+    pro_gripper_id = 17
+    if pro_gripper_id in present_dxl_model_id_map.keys():
+        cli_device.logger.info(f"The Stretch Gripper dxl id set to {present_dxl_model_id_map[pro_gripper_id]}")
+        cli_device.logger.info("Done!")
         return True
 
     cli_device.logger.info("Which seems correct based on the hardware connected to your robot")
