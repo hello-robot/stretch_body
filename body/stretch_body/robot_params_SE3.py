@@ -121,7 +121,7 @@ SE3_stretch_gripper_SG3_pro={
         'use_multiturn': 1,
         'use_pos_current_ctrl':0,
         'use_current_homing': 1,
-        'current_homing_limit_A': 0.18,
+        'current_homing_limit_A': 0.15,
         'current_limit_A': 1,
         'retry_on_comm_failure': 1,
         'baud': 115200,
