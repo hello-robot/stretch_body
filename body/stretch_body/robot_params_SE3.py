@@ -77,7 +77,7 @@ SE3_stretch_gripper_SG3_pro={
         'range_pad_t': [100.0, -100.0],
         'flip_encoder_polarity': 0,
         'gr': 1.0,
-        'id': 14,
+        'id': 17,
         'max_voltage_limit': 15,
         'min_grip_strength': -125,
         'min_voltage_limit': 11,
