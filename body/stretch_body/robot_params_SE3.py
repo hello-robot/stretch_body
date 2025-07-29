@@ -73,11 +73,11 @@ configuration_params_template={
 # Eg, which joints and tools and versions of hardware are present
 
 
-SE3_stretch_gripper_SG3_v2={
+SE3_stretch_gripper_SG3_pro={
         'range_pad_t': [100.0, -100.0],
         'flip_encoder_polarity': 0,
         'gr': 1.0,
-        'id': 14,
+        'id': 17,
         'max_voltage_limit': 15,
         'min_grip_strength': -125,
         'min_voltage_limit': 11,
@@ -121,7 +121,7 @@ SE3_stretch_gripper_SG3_v2={
         'use_multiturn': 1,
         'use_pos_current_ctrl':0,
         'use_current_homing': 1,
-        'current_homing_limit_A': 0.18,
+        'current_homing_limit_A': 0.15,
         'current_limit_A': 1,
         'retry_on_comm_failure': 1,
         'baud': 115200,
@@ -437,9 +437,9 @@ SE3_eoa_wrist_dw3_tool_sg3={
             }
     }}
 
-SE3_eoa_wrist_dw3_tool_sg3_v2 = copy.deepcopy(SE3_eoa_wrist_dw3_tool_sg3)
-SE3_eoa_wrist_dw3_tool_sg3_v2['devices']['stretch_gripper']['device_params'] = 'SE3_stretch_gripper_SG3_v2'
-SE3_eoa_wrist_dw3_tool_sg3_v2['devices']['stretch_gripper']['py_class_name'] = 'StretchGripper3v2'
+SE3_eoa_wrist_dw3_tool_sg3_pro = copy.deepcopy(SE3_eoa_wrist_dw3_tool_sg3)
+SE3_eoa_wrist_dw3_tool_sg3_pro['devices']['stretch_gripper']['device_params'] = 'SE3_stretch_gripper_SG3_pro'
+SE3_eoa_wrist_dw3_tool_sg3_pro['devices']['stretch_gripper']['py_class_name'] = 'StretchGripper3Pro'
 
 SE3_eoa_wrist_dw3_tool_nil={
         'py_class_name': 'EOA_Wrist_DW3_Tool_NIL',
@@ -575,11 +575,11 @@ nominal_params={
     #Each EOA will get expanded at runtime into its full parameter dictionary
     # Eg, supported_eoa.tool_none --> adds the wrist_yaw param dict to nominal_params
     # Add all formally supported EOA to this list
-    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_tablet_12in', 'eoa_wrist_dw3_tool_sg3_v2'],
+    'supported_eoa': ['eoa_wrist_dw3_tool_nil','eoa_wrist_dw3_tool_sg3', 'eoa_wrist_dw3_tool_tablet_12in', 'eoa_wrist_dw3_tool_sg3_pro'],
     'eoa_wrist_dw3_tool_nil': SE3_eoa_wrist_dw3_tool_nil,
     'eoa_wrist_dw3_tool_sg3': SE3_eoa_wrist_dw3_tool_sg3,
     'eoa_wrist_dw3_tool_tablet_12in': SE3_eoa_wrist_dw3_tool_tablet_12in,
-    'eoa_wrist_dw3_tool_sg3_v2': SE3_eoa_wrist_dw3_tool_sg3_v2,
+    'eoa_wrist_dw3_tool_sg3_pro': SE3_eoa_wrist_dw3_tool_sg3_pro,
     'arm':{
         'usb_name': '/dev/hello-motor-arm',
         'use_vel_traj': 1,
