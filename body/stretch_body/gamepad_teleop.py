@@ -96,11 +96,11 @@ class GamePadTeleop(Device):
 
     def using_stretch_gripper(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
-            or self.end_of_arm_tool == 'tool_stretch_gripper' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_v2' 
+            or self.end_of_arm_tool == 'tool_stretch_gripper' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_pro' 
     def using_dexwrist(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
             or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_nil' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_tablet_12in' \
-            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_v2' 
+            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_pro' 
 
     def command_robot_joints(self, robot):
         """
