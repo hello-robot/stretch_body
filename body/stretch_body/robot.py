@@ -243,7 +243,7 @@ class Robot(Device):
         self.eoa_name= self.params['tool']
         module_name = self.robot_params[self.eoa_name]['py_module_name']
         class_name = self.robot_params[self.eoa_name]['py_class_name']
-        self.end_of_arm = getattr(importlib.import_module(module_name), class_name)()
+        self.end_of_arm = getattr(importlib.import_module(module_name), class_name)(name=self.eoa_name)
         self.status['end_of_arm'] = self.end_of_arm.status
         self.devices={ 'pimu':self.pimu, 'base':self.base, 'lift':self.lift, 'arm': self.arm, 'head': self.head, 'wacc':self.wacc, 'end_of_arm':self.end_of_arm}
 
