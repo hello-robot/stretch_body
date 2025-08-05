@@ -70,8 +70,8 @@ else:
 if args.verbose:
     print(Fore.LIGHTBLUE_EX + 'Batch = ' + Fore.CYAN + stretch_batch)
 print(Fore.LIGHTBLUE_EX + 'Serial Number = ' + Fore.CYAN + stretch_serial_no)
+print(Style.RESET_ALL, end="")
 # create robot instance
-print(Style.RESET_ALL)
 r=robot.Robot()
 if not r.startup():
     sys.exit(1)
@@ -296,8 +296,10 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         if ubuntu_version == '18.04':
             return Fore.RED + f'[Fail] {ubuntu_str} is deprecated'
         elif ubuntu_version == '20.04':
-            return Fore.GREEN + f'[Pass] {ubuntu_str} is ready'
+            return Fore.GREEN + f'[Fail] {ubuntu_str} is deprecated'
         elif ubuntu_version == '22.04':
+            return Fore.GREEN + f'[Pass] {ubuntu_str} is ready'
+        elif ubuntu_version == '24.04':
             return Fore.GREEN + f'[Pass] {ubuntu_str} is ready'
         else:
             return Fore.RED + f'[Fail] {ubuntu_str} is unknown'
@@ -314,6 +316,10 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             },
             '22.04': {
                 'ros-humble-librealsense2': False,
+                'librealsense2': True,
+            },
+            '24.04': {
+                'ros-jazzy-librealsense2': True,
                 'librealsense2': True,
             }
         }
@@ -414,7 +420,7 @@ try: # TODO: remove try/catch after sw check verified to work reliably
         return True, "", pip_versions, pip_editable_locations
     def all_ros_correct():
         ros1_distros = ['noetic', 'melodic', 'lunar', 'kinetic', 'jade', 'indigo']
-        ros2_distros = ['rolling', 'jazzy', 'iron', 'humble', 'galactic', 'foxy', 'eloquent', 'dashing']
+        ros2_distros = ['rolling', 'kilted', 'jazzy', 'iron', 'humble', 'galactic', 'foxy', 'eloquent', 'dashing']
         ros_expectations = { # the actual set of supported ROS distros
             'melodic': {
                 'stretch_core': True,
@@ -438,6 +444,11 @@ try: # TODO: remove try/catch after sw check verified to work reliably
             'humble': {
                 'stretch_core': True,
                 'realsense2_camera': True,
+                'sllidar_ros2': True,
+                'ros2_numpy': True,
+            },
+            'jazzy': {
+                'stretch_core': True,
                 'sllidar_ros2': True,
                 'ros2_numpy': True,
             }
