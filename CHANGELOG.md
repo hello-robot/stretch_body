@@ -2,7 +2,11 @@
 
 The changes between releases of Stretch Body are documented here.
 
-## [0.7.28](https://pypi.org/project/hello-robot-stretch-body/0.7.13/) - January 27, 2025
+## [0.7.29](https://pypi.org/project/hello-robot-stretch-body/0.7.29/) - August 19, 2025
+
+ - The Stretch Pro Gripper, which features a stronger Dynamixel servo, is now supported as an end-of-arm tool.
+
+## [0.7.28](https://pypi.org/project/hello-robot-stretch-body/0.7.28/) - January 27, 2025
  - Drops Numba as a dependency
 
 ## [0.7.13](https://pypi.org/project/hello-robot-stretch-body/0.7.13/) - May 7, 2024
