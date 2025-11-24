@@ -7,8 +7,8 @@ class ToolNone(EndOfArm):
     """
     Just a WristYaw for RE1 / Stretch 2
     """
-    def __init__(self):
-        EndOfArm.__init__(self, name='tool_none')
+    def __init__(self, name='tool_none'):
+        EndOfArm.__init__(self, name=name)
 
         #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
         #It is used by CollisionMgmt 
@@ -22,8 +22,8 @@ class ToolStretchGripper(EndOfArm):
     """
     Wrist Yaw + standard Stretch Gripper for RE1 / Stretch 2
     """
-    def __init__(self):
-        EndOfArm.__init__(self, name='tool_stretch_gripper')
+    def __init__(self, name='tool_stretch_gripper'):
+        EndOfArm.__init__(self, name=name)
 
         #This maps from the name of a joint in the URDF to the name of the joint in Stretch Body
         #It is used by CollisionMgmt
