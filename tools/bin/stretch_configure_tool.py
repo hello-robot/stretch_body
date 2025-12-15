@@ -110,10 +110,10 @@ def does_tool_need_to_change():
         cli_device.logger.info(f"""But the gripper camera {"should" if expected_d405_present else "shouldn't"} be present""")
         return True
 
-    # Check if SG3's gripper dxl id to detect pro gripper
+    # Check if using standard gripper and gripper dxl id to is pro gripper
     pro_gripper_id = 17
-    if pro_gripper_id in present_dxl_model_id_map.keys():
-        cli_device.logger.info(f"The Stretch Gripper dxl id set to {present_dxl_model_id_map[pro_gripper_id]}")
+    if stretch_tool == "eoa_wrist_dw3_tool_sg3" and pro_gripper_id in present_dxl_model_id_map.keys():
+        cli_device.logger.info(f"But we need to switch to the Pro version of the gripper")
         cli_device.logger.info("Done!")
         return True
 
