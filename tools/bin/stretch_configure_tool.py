@@ -112,8 +112,15 @@ def does_tool_need_to_change():
 
     # Check if using standard gripper and gripper dxl id to is pro gripper
     pro_gripper_id = 17
-    if stretch_tool == "eoa_wrist_dw3_tool_sg3" and pro_gripper_id in present_dxl_model_id_map.keys():
-        cli_device.logger.info(f"But we need to switch to the Pro version of the gripper")
+    pro_present = pro_gripper_id in present_dxl_model_id_map
+
+    if pro_present and stretch_tool != "eoa_wrist_dw3_tool_sg3_pro":
+        cli_device.logger.info("But a Pro gripper was detected and your tool is not set to eoa_wrist_dw3_tool_sg3_pro")
+        cli_device.logger.info("Done!")
+        return True
+
+    if (not pro_present) and stretch_tool == "eoa_wrist_dw3_tool_sg3_pro":
+        cli_device.logger.info("But your tool is set to eoa_wrist_dw3_tool_sg3_pro and a Pro gripper was not detected (DXL id 17 not found)")
         cli_device.logger.info("Done!")
         return True
 
@@ -149,6 +156,23 @@ def determine_what_tool_is_correct():
     cli_device.logger.debug(f"These tools match based on present={d405_present} gripper camera: {Fore.YELLOW + str(d405_match) + Style.RESET_ALL}")
     matches = list(set(matches) & set(d405_match))
     cli_device.logger.debug(f"Filtering based on this brings the matches to: {Fore.YELLOW + str(matches) + Style.RESET_ALL}")
+
+
+    # pro-gripper tie-breaker (DXL ID 17)
+    pro_gripper_id = 17
+    pro_present = pro_gripper_id in present_dxl_model_id_map
+
+    if pro_present:
+        target = 'eoa_wrist_dw3_tool_sg3_pro'
+        if target not in matches:
+            cli_device.logger.info(
+                f"Pro gripper detected (DXL id {pro_gripper_id}). {target} not listed in supported_eoa, attempting anyway."
+            )
+        else:
+            cli_device.logger.info(
+                f"Pro gripper detected (DXL id {pro_gripper_id}). Selecting {target}."
+            )
+        return target
 
     if len(matches) == 0:
         cli_device.logger.info('Unable to find any tool that matches the hardware connected to your robot. Contact Hello Robot support for help.')
