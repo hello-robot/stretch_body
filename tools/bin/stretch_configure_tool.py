@@ -124,7 +124,7 @@ def does_tool_need_to_change():
         return True
 
     if (not pro_present) and stretch_tool == "eoa_wrist_dw3_tool_sg3_pro":
-        cli_device.logger.info("But your tool is set to eoa_wrist_dw3_tool_sg3_pro and a Pro gripper was not detected (DXL id 17 not found)")
+        cli_device.logger.info("But your tool is set to eoa_wrist_dw3_tool_sg3_pro and a Pro gripper was not detected")
         cli_device.logger.info("Done!")
         return True
 
