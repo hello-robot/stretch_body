@@ -165,6 +165,9 @@ def determine_what_tool_is_correct():
     # pro-gripper present
     pro_present = is_pro_gripper_present()
 
+    if not pro_present:
+        matches = [m for m in matches if m != 'eoa_wrist_dw3_tool_sg3_pro']
+              
     if pro_present:
         target = 'eoa_wrist_dw3_tool_sg3_pro'
         if target not in matches:
