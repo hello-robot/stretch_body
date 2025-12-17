@@ -63,6 +63,11 @@ def is_d405_present():
             return True
     return False
 
+def is_pro_gripper_present(pro_gripper_id=17):
+    """Return True if the Pro gripper servo (by DXL ID) was detected in the last scan."""
+    model = present_dxl_model_id_map.get(pro_gripper_id)
+    return model is not None
+
 def run_cmd(cmdstr):
     cli_device.logger.debug(f'Executing command: {cmdstr}')
     returncode = os.system(cmdstr + ' > /dev/null 2>&1')
@@ -111,8 +116,7 @@ def does_tool_need_to_change():
         return True
 
     # Check if using standard gripper and gripper dxl id to is pro gripper
-    pro_gripper_id = 17
-    pro_present = pro_gripper_id in present_dxl_model_id_map
+    pro_present = is_pro_gripper_present()
 
     if pro_present and stretch_tool != "eoa_wrist_dw3_tool_sg3_pro":
         cli_device.logger.info("But a Pro gripper was detected and your tool is not set to eoa_wrist_dw3_tool_sg3_pro")
@@ -158,19 +162,18 @@ def determine_what_tool_is_correct():
     cli_device.logger.debug(f"Filtering based on this brings the matches to: {Fore.YELLOW + str(matches) + Style.RESET_ALL}")
 
 
-    # pro-gripper tie-breaker (DXL ID 17)
-    pro_gripper_id = 17
-    pro_present = pro_gripper_id in present_dxl_model_id_map
+    # pro-gripper present
+    pro_present = is_pro_gripper_present()
 
     if pro_present:
         target = 'eoa_wrist_dw3_tool_sg3_pro'
         if target not in matches:
             cli_device.logger.info(
-                f"Pro gripper detected (DXL id {pro_gripper_id}). {target} not listed in supported_eoa, attempting anyway."
+                f"Pro gripper detected. {target} not listed in supported_eoa, attempting anyway."
             )
         else:
             cli_device.logger.info(
-                f"Pro gripper detected (DXL id {pro_gripper_id}). Selecting {target}."
+                f"Pro gripper detected. Selecting {target}."
             )
         return target
 
