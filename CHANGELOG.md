@@ -2,6 +2,12 @@
 
 The changes between releases of Stretch Body are documented here.
 
+## [0.7.30](https://pypi.org/project/hello-robot-stretch-body/0.7.30/) and [Tools 0.7.15](https://pypi.org/project/hello-robot-stretch-body-tools/0.7.15/) - Dec 19, 2025
+
+ - Resolves the missing init param for RE1 tool names [#383](https://github.com/hello-robot/stretch_body/pull/383)
+ - [tools] Disambiguate between the standard and pro grippers [#384](https://github.com/hello-robot/stretch_body/pull/384)
+ - [tools] Unset sg3_pro to use sg3 URDF [#385](https://github.com/hello-robot/stretch_body/pull/385)
+
 ## [0.7.29](https://pypi.org/project/hello-robot-stretch-body/0.7.29/) - August 19, 2025
 
  - The Stretch Pro Gripper, which features a stronger Dynamixel servo, is now supported as an end-of-arm tool.
