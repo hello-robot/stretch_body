@@ -227,13 +227,9 @@ def configure_tool(target_tool_name):
         cli_device.logger.info(f'This CLI doesnt support {ubuntu_version}. Consider upgrading your robots operating system.')
         sys.exit(1)
 
-    # --- tool aliasing for URDF/xacro filenames ---
-    urdf_tool_name = target_tool_name
-    if target_tool_name == 'eoa_wrist_dw3_tool_sg3_pro':
-        urdf_tool_name = 'eoa_wrist_dw3_tool_sg3'
     # check stretch_urdf has target_tool_name
-    target_tool_urdf = f"stretch_description_{stretch_model}_{urdf_tool_name}.urdf"
-    target_tool_xacro = f"stretch_description_{stretch_model}_{urdf_tool_name}.xacro"
+    target_tool_urdf = f"stretch_description_{stretch_model}_{target_tool_name}.urdf"
+    target_tool_xacro = f"stretch_description_{stretch_model}_{target_tool_name}.xacro"
     if target_tool_urdf not in os.listdir(data_dir) or target_tool_xacro not in os.listdir(data_dir + '/xacro'):
         cli_device.logger.info(f'Cannot find URDF for this tool. Contact Hello Robot support.')
         cli_device.logger.debug(f"Target URDF={target_tool_urdf}. Target XACRO={target_tool_xacro}. Stretch URDF has these: {os.listdir(data_dir)}")
