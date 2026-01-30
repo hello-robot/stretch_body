@@ -78,6 +78,53 @@ if not r.startup():
 
 r.monitor.logger.setLevel('WARN')
 
+# -------------------------
+# Helpers: RealSense negotiated USB speed via sysfs
+# -------------------------
+_USB_IF_RE = re.compile(r"^\d+-[\d.]+:\d+\.\d+$")  # e.g. 2-1:1.0, 3-2.3.3.1:1.0
+
+def _rs_get_info(dev, info_enum):
+    try:
+        return dev.get_info(info_enum)
+    except Exception:
+        return None
+
+def _extract_sysfs_id_from_rs_physical_port(physical_port: str):
+    """
+    Extract USB sysfs id from RealSense physical port path.
+    Example:
+      .../usb2/2-1/2-1:1.0/... -> 2-1
+      .../usb3/3-2.3.3.1/3-2.3.3.1:1.0/... -> 3-2.3.3.1
+    """
+    if not physical_port:
+        return None
+    parts = physical_port.strip().split("/")
+    for i, p in enumerate(parts):
+        if _USB_IF_RE.match(p) and i > 0:
+            return parts[i - 1]
+    return None
+
+def _read_usb_speed_mbps(sysfs_id: str):
+    if not sysfs_id:
+        return None
+    try:
+        with open(f"/sys/bus/usb/devices/{sysfs_id}/speed", "r") as f:
+            return int(float(f.read().strip()))
+    except Exception:
+        return None
+
+def _read_usb_product(sysfs_id: str):
+    if not sysfs_id:
+        return None
+    path = f"/sys/bus/usb/devices/{sysfs_id}/product"
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r") as f:
+            return f.read().strip()
+    except Exception:
+        return None
+
 # ###################  HARDWARE  ######################
 def is_comms_ready():
     # Establish what USB devices we expect to see
@@ -185,6 +232,36 @@ def are_sensors_ready():
         if not cameras_seen[s]:
             return False, False, f"missing {s} camera"
 
+    # -------------------------
+    # NEW: RealSense negotiated USB speed sanity check (D435i must be USB3)
+    # -------------------------
+    rs_devs = []
+    for dev in rs.context().devices:
+        rs_devs.append({
+            "name": _rs_get_info(dev, rs.camera_info.name) or "Unknown",
+            "serial": _rs_get_info(dev, rs.camera_info.serial_number) or "Unknown",
+            "usb_desc": _rs_get_info(dev, rs.camera_info.usb_type_descriptor) or "Unknown",
+            "phys": _rs_get_info(dev, rs.camera_info.physical_port) or "",
+        })
+
+    def _find_rs(name_substr: str):
+        for d in rs_devs:
+            if name_substr.lower() in d["name"].lower():
+                return d
+        return None
+
+    d435 = _find_rs("D435")
+    if d435:
+        sys_id = _extract_sysfs_id_from_rs_physical_port(d435["phys"])
+        speed = _read_usb_speed_mbps(sys_id)
+        product = _read_usb_product(sys_id)
+        if speed is None:
+            return True, False, f"D435i USB speed unknown (SN={d435['serial']}, usb_desc={d435['usb_desc']}, sysfs={sys_id})"
+        if speed < 5000:
+            return True, False, f"D435i is USB2 ({speed} Mbps). Expected USB3 (>=5000). Check cable/port/hub. (SN={d435['serial']}, sysfs={sys_id})"
+        if args.verbose:
+            extra = f", product={product}" if product else ""
+            print(Fore.LIGHTBLUE_EX + f"         D435i USB speed OK ({speed} Mbps, SN={d435['serial']}, sysfs={sys_id}{extra})")
     # Check for lidar
     try:
         lidar_dev = stretch_body.device.Device('lidar')
