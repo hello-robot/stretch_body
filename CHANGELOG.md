@@ -2,6 +2,10 @@
 
 The changes between releases of Stretch Body are documented here.
 
+## [0.7.31](https://pypi.org/project/hello-robot-stretch-body/0.7.31/) - February 17, 2026
+
+ - Adds a check to verify that the Intel RealSense D435i camera is connected over USB 3.0.
+
 ## [0.7.30](https://pypi.org/project/hello-robot-stretch-body/0.7.30/) and [Tools 0.7.15](https://pypi.org/project/hello-robot-stretch-body-tools/0.7.15/) - Dec 19, 2025
 
  - Resolves the missing init param for RE1 tool names [#383](https://github.com/hello-robot/stretch_body/pull/383)
