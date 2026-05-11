@@ -80,7 +80,9 @@ class GamePadTeleop(Device):
         if self.using_dexwrist():
             self.wrist_pitch_command = gamepad_joints.CommandWristPitch()
             self.wrist_roll_command = gamepad_joints.CommandWristRoll()
-            
+        if self.using_aloha_gripper():
+            self.gripper = gamepad_joints.CommandAlohaGripperPosition()
+
         print(f"Key mapped to End-Of-Arm Tool: {self.end_of_arm_tool}")
         self.lock = lock
         if not self.lock:
@@ -94,13 +96,16 @@ class GamePadTeleop(Device):
 
         self.currently_stowing = False
 
+    def using_aloha_gripper(self):
+        return self.end_of_arm_tool == 'eoa_wrist_dw3_aloha_gripper'
+    
     def using_stretch_gripper(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
             or self.end_of_arm_tool == 'tool_stretch_gripper' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_pro' 
     def using_dexwrist(self):
         return self.end_of_arm_tool == 'tool_stretch_dex_wrist' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3' \
             or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_nil' or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_tablet_12in' \
-            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_pro' 
+            or self.end_of_arm_tool == 'eoa_wrist_dw3_tool_sg3_pro' or self.end_of_arm_tool == 'eoa_wrist_dw3_aloha_gripper'
 
     def command_robot_joints(self, robot):
         """

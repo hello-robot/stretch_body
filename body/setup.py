@@ -19,9 +19,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
     ],
-    install_requires=['numpy>=1.24', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose',
+    install_requires=['numpy==1.26.4', 'scipy', 'matplotlib', 'ipython', 'pandas', 'sympy', 'nose',
                       'inputs', 'drawnow', 'rplidar-roboticia', 'snakeviz', 'pyusb', 'SpeechRecognition', 'pixel-ring',
-                      'click', 'cma', 'colorama', 'filelock',
+                      'click', 'cma', 'colorama', 'filelock==3.6.0',
                       'scikit-image', 'open3d', 'pyrealsense2', 'pathlib', 'psutil', 'gitpython', 'urchin', 'urdf_parser_py', # urdfpy ==> urchin
                       'opencv-contrib-python', 'renamed-opencv-python-inference-engine; python_version >= "3.0.0"', # resolve cv2 conflict for py3
                       'jupyter',
