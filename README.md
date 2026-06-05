@@ -4,7 +4,11 @@
 
 # Overview
 
-The stretch_body repository includes Python packages that allow a developer to interact with the hardware of the Stretch robots. These packages are:
+The stretch_body repository includes Python packages that allow a developer to interact with the hardware of the Stretch 1-3 robots.
+
+Looking for the Stretch 4 repository? Check out https://github.com/hello-robot/stretch4_body
+
+The packages in this repository are:
 
 | Package                        | Description                                |
 |--------------------------------|--------------------------------------------|
