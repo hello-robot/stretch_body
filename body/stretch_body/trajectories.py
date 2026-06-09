@@ -226,7 +226,7 @@ class Segment:
 
 class Spline:
 
-    def __init__(self, init_waypoints:list[Waypoint]=None):
+    def __init__(self, init_waypoints=None):
         """Spline representing class
 
         Presents a interface to create splines from waypoints
@@ -275,7 +275,7 @@ class Spline:
         return self.waypoints.pop(index)
 
     def clear(self):
-        self.waypoints:list[Waypoint] = []
+        self.waypoints = []
 
     def add(self, time, pos, vel=None, accel=None):
         """Add a waypoint to the spline.
