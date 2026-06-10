@@ -226,7 +226,7 @@ class Segment:
 
 class Spline:
 
-    def __init__(self, init_waypoints:list[Waypoint]=None):
+    def __init__(self, init_waypoints=None):
         """Spline representing class
 
         Presents a interface to create splines from waypoints
@@ -275,7 +275,7 @@ class Spline:
         return self.waypoints.pop(index)
 
     def clear(self):
-        self.waypoints:list[Waypoint] = []
+        self.waypoints = []
 
     def add(self, time, pos, vel=None, accel=None):
         """Add a waypoint to the spline.
@@ -392,7 +392,7 @@ class Spline:
                 w1 = self.waypoints[i + 1]
                 return hu.evaluate_polynomial_at(Segment.from_two_waypoints(w0, w1, segment_id=None).to_array(only_coeffs=True), t - w0.time)
 
-    def is_valid(self, v_des_positive:float, a_des_positive:float, v_des_negative:float|None = None, a_des_negative:float|None = None):
+    def is_valid(self, v_des_positive:float, a_des_positive:float, v_des_negative = None, a_des_negative = None):
         """Determines whether spline is well-formed and adheres to dynamic limits.
 
         Parameters
@@ -661,7 +661,7 @@ class DiffDriveTrajectory(Spline):
     def evaluate_at(self, t, to_motor_rad=lambda pos: pos):
         raise NotImplementedError('This method not implemented for DiffDriveTrajectory.')
 
-    def is_valid(self,v_des_positive:float, a_des_positive:float, translate_to_motor_rad, rotate_to_motor_rad, v_des_negative:float|None = None, a_des_negative:float|None = None, ):
+    def is_valid(self,v_des_positive:float, a_des_positive:float, translate_to_motor_rad, rotate_to_motor_rad, v_des_negative = None, a_des_negative = None, ):
         """Determines whether trajectory is well-formed and adheres to dynamic limits.
 
         Parameters
