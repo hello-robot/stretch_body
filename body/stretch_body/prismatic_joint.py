@@ -455,7 +455,7 @@ class PrismaticJoint(Device):
         calibrated_accel_limit_positive = trajectory_max['accel_m']
         calibrated_accel_limit_negative = trajectory_max['accel_m']
 
-        motion_type:str|None = None
+        motion_type = None
 
         if v_m is None and a_m is None and "linear" in trajectory_max:
             motion_type = "linear"
