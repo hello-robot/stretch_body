@@ -407,7 +407,7 @@ class Base(Device):
         calibrated_accel_limit_positive = trajectory_max['accel_r']
         calibrated_accel_limit_negative = trajectory_max['accel_r']
 
-        motion_type:str|None = None
+        motion_type = None
 
         if v_r is None and a_r is None and "linear" in trajectory_max:
             motion_type = "linear"
@@ -606,7 +606,7 @@ class Base(Device):
         await self.right_wheel.pull_status_async()
         self.__update_status()
 
-    def _get_effort(self) -> tuple[float, float]:
+    def _get_effort(self):
         return (
             self.status['left_wheel']["effort_pct"],
             self.status['right_wheel']["effort_pct"]
